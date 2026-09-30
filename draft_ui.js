@@ -190,8 +190,13 @@ function _setupBody() {
     STAGES.filter(s => clashes.includes(s.id)).map(s => _t(s.labelKey))
   )].join('\u060C ');
 
+  const _anyEmpty = JOB_FIELDS.slice(0, 3)
+    .some(f => !(document.getElementById(f.id)?.value || '').trim());
+
   return `
     <p class="dg-intro">${_esc(_t('dgModalIntro'))}</p>
+
+    ${_jobInfoBlock(_anyEmpty)}
 
     <p class="dg-label">${_esc(_t('dgDepthLabel'))}</p>
     <ol class="dg-chain">
@@ -240,25 +245,10 @@ function _setupBody() {
         </div>
       </div>` : ''}
 
-    ${scopeIsMissing() ? `
-      <div class="dg-note dg-note-warn">
-        <strong>\u26A0\uFE0F ${_esc(_t('dgScopeSoftTitle'))}</strong>
-        <p>${_esc(_t('dgScopeSoftBody'))}</p>
-        ${_scopeOpen ? `
-          <textarea id="dgScopeText" class="dg-scope-input" rows="4"
-                    placeholder="${_esc(_t('dgScopePlaceholder'))}"></textarea>
-          <div class="dg-scope-actions">
-            <button type="button" class="dg-inline-btn dg-inline-ghost" id="dgScopeCancel">
-              ${_esc(_t('dgScopeCancel'))}
-            </button>
-            <button type="button" class="dg-inline-btn" id="dgScopeSave">
-              ${_esc(_t('dgScopeSave'))}
-            </button>
-          </div>` : `
-          <button type="button" class="dg-inline-btn" id="dgAddScope">
-            ${_esc(_t('dgScopeAddNow'))}
-          </button>`}
-      </div>` : ''}
+    <div class="dg-note dg-note-warn" id="dgScopeNote" style="${scopeIsMissing() ? '' : 'display:none;'}">
+      <strong>\u26A0\uFE0F ${_esc(_t('dgScopeSoftTitle'))}</strong>
+      <p>${_esc(_t('dgScopeSoftBody'))}</p>
+    </div>
 
     <div class="dg-note dg-note-info">
       <strong>\u{1F465} ${_esc(_t('dgVerifExcludedTitle'))}</strong>
@@ -299,6 +289,54 @@ function _quotaBlock(ids) {
   return '';
 }
 
+/* ── Job information used for generation ──────────────────────
+   The same inputs the Duties & Tasks generator sends to the model
+   (generateAIDacum → _readAIInputs in projects.js): Occupation Title is
+   the only hard requirement; Job Title, Scope of Work, Sector and
+   Context are optional but narrow the draft to the actual JOB. Each
+   field here edits the real Chart Info field directly, so a value
+   entered in this dialog is already in the tab when the user returns. */
+const JOB_FIELDS = [
+  { id: 'occupationTitle', key: 'labelOccupation', required: true },
+  { id: 'jobTitle',        key: 'labelJobTitle' },
+  { id: 'scopeOfWork',     key: 'labelScope', tag: 'textarea' },
+  { id: 'sector',          key: 'labelSector' },
+  { id: 'context',         key: 'labelContext' },
+];
+
+function _fieldLabel(f) {
+  let label = _t(f.key).replace(/\s*[:：]\s*$/, '');
+  if (f.required) return label + ' *';
+  if (!/[(（]/.test(label)) label += ` (${_t('dgOptionalTag')})`;
+  return label;
+}
+
+function _jobFieldsHtml() {
+  return JOB_FIELDS.map(f => {
+    const val = (document.getElementById(f.id)?.value || '');
+    const ph  = document.getElementById(f.id)?.getAttribute('placeholder') || '';
+    return `
+    <label class="dg-prereq-field">
+      <span>${_esc(_fieldLabel(f))}</span>
+      ${f.tag === 'textarea'
+        ? `<textarea id="dgFix_${f.id}" data-dg-field="${f.id}" rows="3"
+                     placeholder="${_esc(ph)}">${_esc(val)}</textarea>`
+        : `<input type="text" id="dgFix_${f.id}" data-dg-field="${f.id}"
+                  value="${_esc(val)}" placeholder="${_esc(ph)}">`}
+    </label>`;
+  }).join('');
+}
+
+function _jobInfoBlock(open) {
+  return `
+    <details class="dg-jobinfo" ${open ? 'open' : ''}
+             style="margin:0 0 16px;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;background:#f8fafc;">
+      <summary style="cursor:pointer;font-weight:700;color:#334155;">\u{1F4CB} ${_esc(_t('dgJobInfoTitle'))}</summary>
+      <p style="margin:8px 0 10px;font-size:.85em;color:#64748b;line-height:1.55;">${_esc(_t('dgJobInfoHint'))}</p>
+      ${_jobFieldsHtml()}
+    </details>`;
+}
+
 /* Missing prerequisites are COLLECTED here rather than reported as an
    error. Opening a dialog only to be told to go elsewhere and come
    back is the worst of both: it interrupts and it does not help. */
@@ -316,10 +354,8 @@ function _prereqBody(missing) {
       <strong>\u26A0\uFE0F ${_esc(_t('dgPrereqTitleV2'))}</strong>
       <p>${_esc(_t('dgPrereqBodyV2'))}</p>
     </div>
-    ${missing.includes('occupationTitle')
-      ? field('occupationTitle', 'dgNeedOccupation', 'input') : ''}
-    ${missing.includes('scopeOfWork')
-      ? field('scopeOfWork', 'dgNeedScope', 'textarea') : ''}`;
+    <p style="margin:0 0 10px;font-size:.85em;color:#64748b;line-height:1.55;">${_esc(_t('dgJobInfoHint'))}</p>
+    ${_jobFieldsHtml()}`;
 }
 
 // ── Running / done view ──────────────────────────────────────
@@ -410,6 +446,26 @@ function _wire() {
     });
   });
 
+  /* Live two-way edit: typing here writes straight into the Chart
+     Info field (with the same input/change events a keystroke there
+     would fire, so autosave and history see it). No re-render on each
+     keystroke — that would steal focus mid-word. */
+  document.querySelectorAll('#dgOverlay [data-dg-field]').forEach(el => {
+    el.addEventListener('input', () => {
+      const dst = document.getElementById(el.getAttribute('data-dg-field'));
+      if (!dst) return;
+      dst.value = el.value;
+      try { dst.dispatchEvent(new Event('input',  { bubbles: true })); } catch (_) {}
+      if (el.getAttribute('data-dg-field') === 'occupationTitle') _occCheck = null;
+      const note = document.getElementById('dgScopeNote');
+      if (note) note.style.display = scopeIsMissing() ? '' : 'none';
+    });
+    el.addEventListener('change', () => {
+      const dst = document.getElementById(el.getAttribute('data-dg-field'));
+      if (dst) { try { dst.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {} }
+    });
+  });
+
   q('#dgSaveFix')?.addEventListener('click', () => {
     /* Write straight into the real Chart Info fields so the values are
        saved with the project, not held only by this dialog.
@@ -420,7 +476,7 @@ function _wire() {
        would appear to do nothing at all, which is exactly the symptom
        this replaced. */
     let wrote = 0;
-    ['occupationTitle', 'scopeOfWork'].forEach(id => {
+    JOB_FIELDS.map(f => f.id).forEach(id => {
       try {
         const src = document.getElementById('dgFix_' + id);
         const dst = document.getElementById(id);
@@ -496,6 +552,7 @@ function _wire() {
        stage consumes the output of the one before it. A typo caught
        here costs one small call; the same typo caught after stage one
        costs the day and produces a chart for the wrong occupation. */
+    if (missingPrerequisites().length) { renderModal(); return; }
     const title = (document.getElementById('occupationTitle')?.value || '').trim();
     if (title && !wasBypassed(title)) {
       const startBtn = q('#dgStart');
