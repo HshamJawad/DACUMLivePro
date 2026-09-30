@@ -108,14 +108,14 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v88';
+      var EXPECTED_SW = 'v96';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.24.0';
-      var APP_RELEASED = '2026-08-31';
+      var APP_VERSION = '3.25.0';
+      var APP_RELEASED = '2026-09-30';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
@@ -711,7 +711,7 @@
       // now updates both places.
       function _paintVersionBadge() {
         var foot = document.getElementById('dacumFooterVersion');
-        if (foot) foot.textContent = APP_VERSION;
+        if (foot) foot.textContent = APP_VERSION + ' (' + APP_RELEASED + ')';
 
         var badge = document.getElementById('dacumVersionBadge');
         var text  = document.getElementById('dacumVersionText');
@@ -2495,17 +2495,9 @@
         </button>
       </div>
       <div class="dtb-right">
-        <!-- ── Version badge ──────────────────────────────────
-             Shows which build is running (kept in sync by the SW
-             block at the top of this file). Turns into a clickable
-             "Update now" chip when a newer Service Worker is ready.
-             Title attribute carries the full version + release date
-             for anyone reporting a bug. -->
-        <button id="dacumVersionBadge" type="button"
-                title="Loading version…"
-                aria-label="Application version">
-          <span id="dacumVersionText">—</span>
-        </button>
+        <!-- Version badge removed from the toolbar (space). The build
+             identity is shown in the Help-tab footer, painted from
+             APP_VERSION / APP_RELEASED by the SW block at the top. -->
       </div>
     </div>
 

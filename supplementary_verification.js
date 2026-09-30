@@ -266,6 +266,31 @@ function _injectStyles() {
     .sv-res-cat h5{margin:0 0 6px;font-size:.95em;color:#4338ca;}
     .sv-sep{margin:10px 0 0;font-size:.8em;color:#64748b;border-inline-start:3px solid #667eea;padding:6px 10px;background:#f8fafc;border-radius:4px;}
     .sv-pct{font-weight:700;color:#10b981;}
+    /* Phone layout: each item becomes a compact card — item text on
+       top, the four 0–3 counts side by side in ONE row (not stacked
+       one under another), then score, % and the row actions. */
+    @media (max-width:760px){
+      #${CONTAINER_ID} .sv-table{display:block;width:100%;min-width:0!important;border:none;}
+      #${CONTAINER_ID} .sv-table thead{display:none;}
+      #${CONTAINER_ID} .sv-table tbody{display:block;width:100%;}
+      #${CONTAINER_ID} .sv-table tr{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;
+        padding:12px 10px;margin:0 0 10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;}
+      #${CONTAINER_ID} .sv-table td{display:block;width:auto!important;min-width:0!important;
+        border:none!important;padding:0!important;background:transparent!important;text-align:start!important;}
+      #${CONTAINER_ID} .sv-table td:nth-child(1),
+      #${CONTAINER_ID} .sv-table td:nth-child(2),
+      #${CONTAINER_ID} .sv-table td:nth-child(5){grid-column:1/-1;}
+      #${CONTAINER_ID} .sv-table td[data-label]::before{content:attr(data-label);display:block;
+        font-size:.74em;font-weight:700;color:#64748b;margin-bottom:4px;}
+      #${CONTAINER_ID} .sv-table .count-input-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
+      #${CONTAINER_ID} .sv-table .count-input-item{display:flex!important;flex-direction:column;align-items:center;gap:3px;margin:0!important;}
+      #${CONTAINER_ID} .sv-table .count-input-item input{width:100%!important;max-width:64px;min-width:0!important;
+        box-sizing:border-box;text-align:center;padding:6px 2px;}
+      #${CONTAINER_ID} .sv-table .rating-scale{display:flex!important;flex-direction:row!important;justify-content:space-around;}
+      #${CONTAINER_ID} .sv-item-input{min-width:0;font-weight:600;}
+      #${CONTAINER_ID} .sv-actions{justify-content:flex-end;}
+      #${CONTAINER_ID} .sv-icon{width:36px;height:36px;}
+    }
     @media (max-width:640px){
       .sv-card{padding:14px 12px;}
       .sv-cat-body{padding:8px 8px 12px;}
@@ -314,9 +339,9 @@ function _itemRow(cat, item, idx, total) {
       <input type="text" class="sv-item-input" value="${_esc(item.text)}"
              data-sv="edit-item" data-cat="${cat.id}" data-item="${item.id}">
     </td>
-    <td style="width:${isWorkshop ? '30%' : '22%'};">${isWorkshop ? _countInputs(cat, item) : _ratingRadios(cat, item)}</td>
-    <td style="text-align:center;width:10%;"><span class="weighted-mean" data-sv-score="${item.id}">${_fmtScore(r)}</span></td>
-    <td style="text-align:center;width:10%;"><span class="sv-pct" data-sv-pct="${item.id}">${_fmtPct(r)}</span></td>
+    <td data-label="${_esc(_t(isWorkshop ? 'svThRatingCounts' : 'svThRating'))}" style="width:${isWorkshop ? '30%' : '22%'};">${isWorkshop ? _countInputs(cat, item) : _ratingRadios(cat, item)}</td>
+    <td data-label="${_esc(_t('svThScore'))}" style="text-align:center;width:10%;"><span class="weighted-mean" data-sv-score="${item.id}">${_fmtScore(r)}</span></td>
+    <td data-label="%" style="text-align:center;width:10%;"><span class="sv-pct" data-sv-pct="${item.id}">${_fmtPct(r)}</span></td>
     <td style="width:14%;">
       <div class="sv-actions">
         <button type="button" class="sv-icon" data-sv="up" data-cat="${cat.id}" data-item="${item.id}"
