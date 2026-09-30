@@ -22,6 +22,7 @@ import { clearAiGeneratedFlag } from './refine.js';
 import { initDragDrop }        from './drag_drop.js';
 import { initVerificationCharts } from './verification_charts.js';
 import { initSupplementaryVerification } from './supplementary_verification.js';
+import { initI18nDefaults } from './i18n_defaults.js';
 import { renderDraftCard }        from './draft_ui.js';
 import { renderRegenButtons }     from './draft_regen.js';
 import { renderUnverifiedBanner } from './draft_unverified.js';
@@ -103,6 +104,10 @@ document.addEventListener('DOMContentLoaded', async function () {
      foot of the Task Verification tab. Bound after the collection-mode
      init above because it renders counts or radios to match that mode. */
   initSupplementaryVerification();
+
+  /* Default seed content (Skills Matrix rows, Additional Info headings)
+     follows the interface language; user-edited text is never touched. */
+  initI18nDefaults();
 
   /* Full Draft card. Rendered rather than written into index.html
      because its labels come from the dictionary and it has to be

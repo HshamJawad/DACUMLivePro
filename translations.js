@@ -4209,6 +4209,15 @@
 
   window.i18n = {
     t: t, tf: tf, setLang: setLang, getLang: getLang, apply: applyTranslations,
+    /* Translation of a key in a SPECIFIC language (not the active one).
+       Used to recognise default text that was seeded in another language
+       — e.g. a Skills Matrix row created while the UI was Arabic — so it
+       can follow a language switch without touching user-edited text. */
+    tIn: function (key, lang) {
+      var d = TRANSLATIONS[lang];
+      return (d && d[key] !== undefined) ? d[key] : undefined;
+    },
+    languages: function () { return Object.keys(TRANSLATIONS); },
     isRTL: function () { return RTL_LANGS.indexOf(_current) !== -1; },
     has: function (key) { return TRANSLATIONS.en[key] !== undefined; },
     audit: audit,

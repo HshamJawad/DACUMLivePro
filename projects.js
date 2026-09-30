@@ -774,7 +774,11 @@ function _resetImagePreview(imageType) {
 function _resetHeading(headingId, defaultText) {
   const el = document.getElementById(headingId);
   if (el) {
-    el.textContent = defaultText;
+    /* Default heading in the ACTIVE language (the key sits on the
+       element as data-i18n). The English literal is only a fallback. */
+    const key = el.getAttribute('data-i18n');
+    const tr  = key && window.i18n ? window.i18n.t(key) : '';
+    el.textContent = (tr && tr !== key) ? tr : defaultText;
     el.setAttribute('contenteditable', 'false');
   }
 }

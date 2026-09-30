@@ -186,3 +186,39 @@ export function defaultSupplementaryVerification() {
     }))
   };
 }
+
+
+/* ── Keep DEFAULT seed text in the interface language ─────────
+   The matrix rows are seeded from i18n and then stored as data, so a
+   project created while the UI was Arabic kept Arabic rows after a
+   switch to English (and vice versa). This walks every seeded row and,
+   ONLY where the stored text is still exactly the default wording in
+   one of the supported languages, swaps it for the active language.
+   Anything the facilitator typed or edited matches no default wording
+   and is left untouched. Returns true when something changed. */
+export function retranslateSkillsLevelData() {
+  const I = window.i18n;
+  if (!I || !I.tIn || !Array.isArray(appState.skillsLevelData)) return false;
+  const langs = I.languages ? I.languages() : ['en', 'fr', 'ar'];
+  const isDefault = (text, key) => {
+    const v = String(text == null ? '' : text).trim();
+    return !!v && langs.some(l => (I.tIn(key, l) || '').trim() === v);
+  };
+  let changed = false;
+  appState.skillsLevelData.forEach(cat => {
+    const seed = SKILLS_SEED.find(s => s.id === cat.id);
+    if (!seed || !seed.key) return;
+    if (isDefault(cat.category, seed.key)) {
+      const now = I.t(seed.key);
+      if (now !== cat.category) { cat.category = now; changed = true; }
+    }
+    (cat.competencies || []).forEach(comp => {
+      const idx = parseInt(String(comp.id || '').split('.')[1], 10) - 1;
+      const key = seed.comps[idx];
+      if (!key || !isDefault(comp.text, key)) return;
+      const now = I.t(key);
+      if (now !== comp.text) { comp.text = now; changed = true; }
+    });
+  });
+  return changed;
+}
