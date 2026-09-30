@@ -39,7 +39,11 @@ const OPTIONAL_COPY = {
 let _depth   = CHAIN.length;          // default: generate everything
 let _extras  = new Set();             // ids of chosen optional stages
 let _scopeOpen = false;               // inline Scope editor expanded?
-let _phase   = 'setup';               // setup | running | done | error
+let _phase   = 'setup';
+/* Open/closed state of the "Occupation & job information" panel.
+   null = decide automatically on first render (open when a key field is
+   empty); after that the user's own choice is kept across re-renders. */
+let _jobInfoOpen = null;               // setup | running | done | error
 
 /* Result of the occupation-title check, held only while this dialog is
    open. The check runs at Start, not on open: opening the dialog should
@@ -114,6 +118,7 @@ export function openDraftModal() {
   _phase = 'setup';
   _scopeOpen = false;
   _occCheck = null;
+  _jobInfoOpen = null;
   renderModal();
 
   _unsub = onDraftProgress(_onProgress);
@@ -129,8 +134,20 @@ function renderModal() {
   const overlay = document.getElementById('dgOverlay');
   if (!overlay) return;
 
+  /* Keep the dialog where the user is. Every tick of a stage box
+     re-renders the body; without this the scroll position reset to the
+     top and the user had to scroll back down to the options. */
+  const _scrollers = () => [overlay, overlay.querySelector('.dg-dialog'),
+                            overlay.querySelector('.dg-body')];
+  const prevScroll = _scrollers().map(el => (el ? el.scrollTop : 0));
+  const prevPhase  = overlay.getAttribute('data-phase');
+
   try {
     _renderModalInner(overlay);
+    overlay.setAttribute('data-phase', _phase);
+    if (prevPhase === _phase) {
+      _scrollers().forEach((el, i) => { if (el) el.scrollTop = prevScroll[i]; });
+    }
   } catch (err) {
     /* A blank blurred screen tells the user nothing and offers no way
        back. Show the failure, and always show a way out. */
@@ -196,7 +213,7 @@ function _setupBody() {
   return `
     <p class="dg-intro">${_esc(_t('dgModalIntro'))}</p>
 
-    ${_jobInfoBlock(_anyEmpty)}
+    ${_jobInfoBlock(_jobInfoOpen === null ? (_jobInfoOpen = _anyEmpty) : _jobInfoOpen)}
 
     <p class="dg-label">${_esc(_t('dgDepthLabel'))}</p>
     <p style="margin:-4px 0 8px;font-size:.82em;color:#64748b;line-height:1.5;">${_esc(_t('dgChainHint'))}</p>
@@ -457,6 +474,10 @@ function _wire() {
      Info field (with the same input/change events a keystroke there
      would fire, so autosave and history see it). No re-render on each
      keystroke — that would steal focus mid-word. */
+  q('.dg-jobinfo')?.addEventListener('toggle', (e) => {
+    _jobInfoOpen = e.currentTarget.open;
+  });
+
   document.querySelectorAll('#dgOverlay [data-dg-field]').forEach(el => {
     el.addEventListener('input', () => {
       const dst = document.getElementById(el.getAttribute('data-dg-field'));
