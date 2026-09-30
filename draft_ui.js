@@ -199,13 +199,19 @@ function _setupBody() {
     ${_jobInfoBlock(_anyEmpty)}
 
     <p class="dg-label">${_esc(_t('dgDepthLabel'))}</p>
+    <p style="margin:-4px 0 8px;font-size:.82em;color:#64748b;line-height:1.5;">${_esc(_t('dgChainHint'))}</p>
     <ol class="dg-chain">
       ${CHAIN.map((s, i) => `
         <li class="dg-chain-item ${i < _depth ? 'is-on' : ''}"
-            data-depth="${i + 1}" role="button" tabindex="0">
-          <span class="dg-chain-num">${i + 1}</span>
-          <span class="dg-chain-label">${_esc(_t(s.labelKey))}</span>
-          <span class="dg-chain-check">${i < _depth ? '\u2713' : ''}</span>
+            style="${i < _depth ? '' : 'opacity:.55;'}">
+          <label style="display:flex;align-items:center;gap:10px;width:100%;cursor:${i === 0 ? 'default' : 'pointer'};">
+            <input type="checkbox" class="dg-chain-cb" data-idx="${i}"
+                   ${i < _depth ? 'checked' : ''} ${i === 0 ? 'disabled' : ''}
+                   style="width:18px;height:18px;flex-shrink:0;accent-color:#4f46e5;cursor:inherit;">
+            <span class="dg-chain-num">${i + 1}</span>
+            <span class="dg-chain-label" style="flex:1;${i < _depth ? '' : 'text-decoration:line-through;'}">${_esc(_t(s.labelKey))}</span>
+            ${i < _depth ? '' : `<span style="font-size:.75em;font-weight:700;color:#94a3b8;">${_esc(_t('dgExcluded'))}</span>`}
+          </label>
         </li>`).join('')}
     </ol>
 
@@ -427,14 +433,15 @@ function _wire() {
   // Depth: clicking stage N selects stages 1..N. The dependency is
   // expressed by the interaction itself, so there is no invalid state
   // to warn about.
-  document.querySelectorAll('#dgOverlay .dg-chain-item').forEach(el => {
-    const pick = () => {
-      _depth = parseInt(el.getAttribute('data-depth'), 10);
+  /* Stages form a chain — each consumes the one before it — so the
+     checkboxes keep that rule for the user: unticking a stage also
+     excludes every stage after it, ticking one includes every stage
+     before it. Stage 1 (Duties & Tasks) is the root and stays on. */
+  document.querySelectorAll('#dgOverlay .dg-chain-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const i = parseInt(cb.getAttribute('data-idx'), 10);
+      _depth = cb.checked ? i + 1 : Math.max(1, i);
       renderModal();
-    };
-    el.addEventListener('click', pick);
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
     });
   });
 
