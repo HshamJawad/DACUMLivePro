@@ -50,6 +50,7 @@
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
+import { formatDacumDateRange, formatDateLong } from './exports_shared.js';
 import {
     _rtl,
     _font,
@@ -220,8 +221,10 @@ export async function exportOccupationalStandardWord() {
             _kvRow(_t('osFieldFacilitators'), _lines(_val('facilitators'))),
             _kvRow(_t('osFieldPanel'),        _lines(_val('panelMembers'))),
             _kvRow(_t('osFieldObservers'),    _lines(_val('observers'))),
+            /* Date first, then venue. The old lookup read two ids that do
+               not exist ('workshopDate', 'date'), so the date never printed. */
             _kvRow(_t('osFieldVenueDate'),
-                [_val('venue'), _val('workshopDate') || _val('date')].filter(Boolean).join(' — ')),
+                [formatDacumDateRange(formatDateLong), _val('venue')].filter(Boolean).join(' — ')),
         );
         children.push(_table(panelRows, KV_COLS));
 

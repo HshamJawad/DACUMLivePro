@@ -196,7 +196,7 @@ function _watchDocumentInputs() {
   const WATCHED = [
     'input[data-duty-id]',
     'input[data-task-id]',
-    '#dacumDate', '#venue', '#producedFor', '#producedBy',
+    '#dacumDate', '#dacumDateEnd', '#venue', '#producedFor', '#producedBy',
     '#occupationTitle', '#jobTitle', '#sector', '#context', '#scopeOfWork',
     '#facilitators', '#observers', '#panelMembers',
     '#knowledgeInput', '#skillsInput', '#behaviorsInput',

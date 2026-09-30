@@ -142,7 +142,7 @@ export function clearAllSilent() {
 
 function _doClear() {
   // ── Chart Info ────────────────────────────────────────────
-  ['dacumDate','producedFor','producedBy','occupationTitle','scopeOfWork','jobTitle',
+  ['dacumDate','dacumDateEnd','producedFor','producedBy','occupationTitle','scopeOfWork','jobTitle',
    'sector','context','venue','facilitators','observers','panelMembers'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -347,7 +347,7 @@ function _isTabEmpty(tabId) {
 
   switch (tabId) {
     case 'info-tab':
-      return !['dacumDate','venue','producedFor','producedBy','occupationTitle','scopeOfWork',
+      return !['dacumDate','dacumDateEnd','venue','producedFor','producedBy','occupationTitle','scopeOfWork',
                'jobTitle','sector','context','facilitators','observers','panelMembers']
                .some(val) && !s.producedForImage && !s.producedByImage;
 
@@ -418,7 +418,7 @@ export function clearCurrentTab(tabId) {
   if (!_confirmClear(tabId)) return;
 
   if (tabId === 'info-tab') {
-    ['dacumDate','venue','producedFor','producedBy','occupationTitle','scopeOfWork','jobTitle',
+    ['dacumDate','dacumDateEnd','venue','producedFor','producedBy','occupationTitle','scopeOfWork','jobTitle',
      'sector','context','facilitators','observers','panelMembers'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';

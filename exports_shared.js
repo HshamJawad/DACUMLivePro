@@ -129,3 +129,25 @@ export function getVerificationCoverage(results) {
         `Unrated tasks are omitted from the tables below.`
   };
 }
+
+
+// ── DACUM workshop date (single day or from – to) ─────────────
+// Both date inputs hold ISO yyyy-mm-dd. `fmt` turns one ISO date into
+// display text, so each exporter keeps its own established style.
+export function formatDacumDateRange(fmt) {
+  const start = (document.getElementById('dacumDate')?.value || '').trim();
+  const end   = (document.getElementById('dacumDateEnd')?.value || '').trim();
+  if (!start) return '';
+  if (!end || end === start) return fmt(start);
+  return `${fmt(start)} \u2013 ${fmt(end)}`;
+}
+
+/** Long, localised date in the export language — Latin digits kept. */
+export function formatDateLong(iso) {
+  const lang = window.i18n ? window.i18n.getLang() : 'en';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  try {
+    return d.toLocaleDateString(lang + '-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch (_) { return iso; }
+}

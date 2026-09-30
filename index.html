@@ -108,7 +108,7 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v104';
+      var EXPECTED_SW='v105';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
@@ -1005,6 +1005,63 @@
                       fill();
                       el.addEventListener('change', fill);
                       el.addEventListener('blur', fill);
+                    })();
+                    </script>
+
+                    <!-- Optional end date for multi-day workshops. Single-day
+                         (or online) workshops leave it off and export as one
+                         date; ticked, the chart exports "from – to". -->
+                    <label style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-weight:600;font-size:.92em;">
+                        <input type="checkbox" id="dacumMultiDay" style="width:18px;height:18px;">
+                        <span data-i18n="labelMultiDay">Multi-day workshop (from – to)</span>
+                    </label>
+                    <div id="dacumDateEndWrap" style="display:none;margin-top:8px;">
+                        <label for="dacumDateEnd">📅 <span data-i18n="labelDateTo">To:</span></label>
+                        <input type="date" id="dacumDateEnd" style="cursor: pointer;">
+                    </div>
+                    <script>
+                    (function () {
+                      var cb   = document.getElementById('dacumMultiDay');
+                      var wrap = document.getElementById('dacumDateEndWrap');
+                      var end  = document.getElementById('dacumDateEnd');
+                      var start = document.getElementById('dacumDate');
+                      if (!cb || !wrap || !end) return;
+                      var d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+                      function sync() {
+                        var on = !!d.get.call(end);
+                        cb.checked = on || cb.checked && wrap.style.display !== 'none';
+                        wrap.style.display = cb.checked ? '' : 'none';
+                        if (start) end.min = start.value || '';
+                      }
+                      /* A project load writes .value directly (no event), so
+                         the checkbox follows the stored end date on its own. */
+                      Object.defineProperty(end, 'value', {
+                        configurable: true,
+                        get: function () { return d.get.call(this); },
+                        set: function (v) {
+                          d.set.call(this, v == null ? '' : v);
+                          cb.checked = !!(v);
+                          wrap.style.display = cb.checked ? '' : 'none';
+                        }
+                      });
+                      cb.addEventListener('change', function () {
+                        wrap.style.display = cb.checked ? '' : 'none';
+                        if (!cb.checked && d.get.call(end)) {
+                          d.set.call(end, '');
+                          end.dispatchEvent(new Event('input', { bubbles: true }));
+                          end.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                        if (cb.checked) { if (start) end.min = start.value || ''; end.focus(); }
+                      });
+                      end.addEventListener('change', function () {
+                        /* An end before the start is a typo — swap-free rule:
+                           snap it to the start date rather than export nonsense. */
+                        if (start && d.get.call(end) && start.value && d.get.call(end) < start.value) {
+                          d.set.call(end, start.value);
+                        }
+                      });
+                      if (start) start.addEventListener('change', function () { end.min = start.value || ''; });
+                      sync();
                     })();
                     </script>
                 </div>

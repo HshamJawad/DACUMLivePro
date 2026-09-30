@@ -165,6 +165,7 @@ export function importProjectFromData(data, fileName) {
     lwParticipantUrl:         '',
     _chartInfo: {
       dacumDate:       s.chartInfo?.dacumDate       || '',
+      dacumDateEnd:    s.chartInfo?.dacumDateEnd    || '',
       venue:           s.chartInfo?.venue            || '',
       producedFor:     s.chartInfo?.producedFor      || '',
       producedBy:      s.chartInfo?.producedBy       || '',
@@ -819,6 +820,7 @@ function _captureState() {
 
   const chartInfo = {
     dacumDate:       _val('dacumDate'),
+    dacumDateEnd:    _val('dacumDateEnd'),
     venue:           _val('venue'),
     producedFor:     _val('producedFor'),
     producedBy:      _val('producedBy'),
@@ -979,6 +981,7 @@ function _hydrateChartInfoDOM(ci) {
   const arrToText = a => Array.isArray(a) ? a.join('\n') : (a || '');
 
   setVal('dacumDate',       ci.dacumDate);
+  setVal('dacumDateEnd',    ci.dacumDateEnd || '');
   setVal('venue',           ci.venue);
   setVal('producedFor',     ci.producedFor);
   setVal('producedBy',      ci.producedBy);

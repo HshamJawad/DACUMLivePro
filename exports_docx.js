@@ -11,7 +11,7 @@
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
-import { buildVerificationDataset, getVerificationCoverage } from './exports_shared.js';
+import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange } from './exports_shared.js';
 import { noteExportExclusion } from './draft_unverified.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getSupplementaryExportSections } from './supplementary_verification.js';
@@ -838,15 +838,13 @@ export async function exportToWord() {
                 const Paragraph = _withArabicLangParagraph(_Paragraph, TextRun);
 
                 // Get all input values
-                const dacumDateValue = document.getElementById('dacumDate').value;
-                let dacumDate = '';
-                if (dacumDateValue) {
-                    const dateObj = new Date(dacumDateValue + 'T00:00:00');
+                const dacumDate = formatDacumDateRange(iso => {
+                    const dateObj = new Date(iso + 'T00:00:00');
                     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
                     const day = String(dateObj.getDate()).padStart(2, '0');
                     const year = dateObj.getFullYear();
-                    dacumDate = `${month}/${day}/${year}`;
-                }
+                    return `${month}/${day}/${year}`;
+                });
                 const producedFor = document.getElementById('producedFor').value;
                 const producedBy = document.getElementById('producedBy').value;
                 const occupationTitle = document.getElementById('occupationTitle').value;

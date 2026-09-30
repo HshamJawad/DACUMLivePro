@@ -38,6 +38,7 @@ export function saveToJSON() {
       savedDate: new Date().toISOString(),
       chartInfo: {
         dacumDate: document.getElementById('dacumDate').value,
+        dacumDateEnd: document.getElementById('dacumDateEnd')?.value || '',
         venue: document.getElementById('venue').value,
         producedFor: document.getElementById('producedFor').value,
         producedBy: document.getElementById('producedBy').value,

@@ -11,7 +11,7 @@
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
-import { buildVerificationDataset, getVerificationCoverage } from './exports_shared.js';
+import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange } from './exports_shared.js';
 import { noteExportExclusion } from './draft_unverified.js';
 /* lwExportVerifiedPDF() was called on the standalone path without ever
    being imported — a ReferenceError that only fires when a facilitator
@@ -703,15 +703,13 @@ export function exportToPDF() {
         _endHeadingColor = _installHeadingColor(pdf);
 
         // Get input values
-        const dacumDateInput = document.getElementById('dacumDate');
-        let dacumDateFormatted = '';
-        if (dacumDateInput.value) {
-            const dateObj = new Date(dacumDateInput.value + 'T00:00:00');
+        const dacumDateFormatted = formatDacumDateRange(iso => {
+            const dateObj = new Date(iso + 'T00:00:00');
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
             const day = String(dateObj.getDate()).padStart(2, '0');
             const year = dateObj.getFullYear();
-            dacumDateFormatted = `${month}-${day}-${year}`;
-        }
+            return `${month}-${day}-${year}`;
+        });
         const producedForInput = document.getElementById('producedFor');
         const producedByInput = document.getElementById('producedBy');
         const occupationTitleInput = document.getElementById('occupationTitle');
