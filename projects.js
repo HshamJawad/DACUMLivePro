@@ -14,6 +14,7 @@ import { loadDutiesForVerification, syncVerificationTab } from './tasks.js';
 import { syncTaskAnalysisTab, clearAllTaskAnalysis, hasAnyTaskAnalysis,
          countTaskAnalysisRecords } from './task_analysis.js';
 import { isBatchRun } from './draft_mode.js';
+import { throwIfAIError, showAIServiceError } from './ai_client.js';
 import { verifyOccupation, needsConfirmation, VERDICT,
          markBypassed, wasBypassed, clearBypass } from './occupation_check.js';
 
@@ -686,10 +687,7 @@ Generate the DACUM draft now in valid JSON format only.`;
       body: JSON.stringify({ prompt })
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Backend request failed: ${response.status} ${response.statusText}`);
-    }
+    await throwIfAIError(response);
 
     const data = await response.json();
     if (!data.content || !data.content[0] || !data.content[0].text) {
@@ -753,112 +751,9 @@ Generate the DACUM draft now in valid JSON format only.`;
     hideLoadingModal();
     console.error('Error generating AI DACUM:', error);
     showStatus(_t('msgAIGenFailed'), 'error');
-    _showAIErrorModal(error.message || String(error));
+    showAIServiceError(error, { safeKey: 'aiErrSafeDuties', tipKeys: ['aiTipDuties1', 'aiTipDuties2', 'aiTipDuties3'] });
     return false;
   }
-}
-
-// ── AI Error Modal ───────────────────────────────────────────
-
-function _showAIErrorModal(errorMessage) {
-  const existing = document.getElementById('aiErrorModal');
-  if (existing) existing.remove();
-
-  const isOffline = /Failed to fetch|NetworkError|network|ECONNREFUSED|ERR_CONNECTION|ERR_NAME_NOT_RESOLVED|503|502/i.test(errorMessage);
-
-  const modal = document.createElement('div');
-  modal.id = 'aiErrorModal';
-  modal.setAttribute('role', 'alertdialog');
-  modal.setAttribute('aria-modal', 'true');
-  /* Appended to <body> and styled entirely inline, so the RTL
-     stylesheet cannot reach it — direction has to be set here or
-     the Arabic text renders left-aligned with its full stops on
-     the wrong side. */
-  modal.setAttribute('dir', (window.i18n && window.i18n.isRTL()) ? 'rtl' : 'ltr');
-
-  modal.style.cssText =
-    'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;' +
-    'justify-content:center;padding:20px;background:rgba(0,0,0,0.55);' +
-    'backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);' +
-    'animation:aiErrFadeIn 0.2s ease';
-
-  const icon   = isOffline ? '\uD83D\uDD0C' : '\u26A0\uFE0F';
-  const title  = _t(isOffline ? 'aiErrOfflineTitle' : 'aiErrDutiesTitle');
-  const sub    = _t(isOffline ? 'aiErrOfflineSub'   : 'aiErrFailedSub');
-  const hdrBg  = isOffline
-    ? 'linear-gradient(135deg,#fff7ed,#ffedd5)'
-    : 'linear-gradient(135deg,#fef2f2,#fee2e2)';
-  const hdrBdr = isOffline ? '#fed7aa' : '#fecaca';
-  const hdrClr = isOffline ? '#9a3412' : '#991b1b';
-  const subClr = isOffline ? '#c2410c' : '#b91c1c';
-
-  /* Two branches, both translated. The raw error string stays as
-     it came from the browser: it is a diagnostic for whoever is
-     debugging, and translating an exception message would make it
-     unsearchable. It is isolated LTR by the stylesheet. */
-  const bodyText = isOffline
-    ? _t('aiErrOfflineBody') + '<br><br>' + _t('aiErrSafeDuties')
-    : _t('aiErrOccurred') + '<br><br>' +
-      '<code style="font-size:0.82em;background:#f1f5f9;padding:4px 8px;' +
-      'border-radius:4px;word-break:break-all;direction:ltr;' +
-      'unicode-bidi:isolate;display:inline-block;">' +
-      (errorMessage || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code>' +
-      '<br><br>' + _t('aiErrSafeDuties');
-
-  const offlineTips = isOffline
-    ? '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;' +
-      'padding:12px 14px;margin-bottom:16px;">' +
-      '<p style="margin:0;font-size:0.82em;color:#15803d;font-weight:600;">' +
-      '\u2705 ' + _t('aiErrWhatInstead') + '</p>' +
-      '<ul style="margin:6px 0 0;padding-left:18px;font-size:0.82em;color:#166534;line-height:1.8;">' +
-      '<li>' + _t('aiTipDuties1') + '</li>' +
-      '<li>' + _t('aiTipDuties2') + '</li>' +
-      '<li>' + _t('aiTipDuties3') + '</li></ul></div>'
-    : '';
-
-  modal.innerHTML =
-    '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;' +
-    'box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;' +
-    'font-family:\'Segoe UI\',system-ui,sans-serif;animation:aiErrSlideIn 0.22s ease;">' +
-      '<div style="padding:20px 22px 16px;display:flex;align-items:center;gap:12px;' +
-      'background:' + hdrBg + ';border-bottom:1px solid ' + hdrBdr + ';">' +
-        '<span style="font-size:1.8em;line-height:1;">' + icon + '</span>' +
-        '<div>' +
-          '<p style="margin:0;font-size:1em;font-weight:800;color:' + hdrClr + ';">' + title + '</p>' +
-          '<p style="margin:2px 0 0;font-size:0.78em;color:' + subClr + ';">' + sub + '</p>' +
-        '</div>' +
-      '</div>' +
-      '<div style="padding:18px 22px 20px;">' +
-        '<p style="margin:0 0 16px;font-size:0.88em;color:#374151;line-height:1.6;">' + bodyText + '</p>' +
-        offlineTips +
-        '<div style="display:flex;justify-content:flex-end;">' +
-          '<button id="aiErrorModalClose" style="padding:9px 22px;background:#667eea;' +
-          'color:#fff;border:none;border-radius:8px;font-size:0.9em;font-weight:700;' +
-          'cursor:pointer;transition:background 0.15s;"' +
-          ' onmouseover="this.style.background=\'#5a67d8\'"' +
-          ' onmouseout="this.style.background=\'#667eea\'">' + _t('btnGotIt') + '</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
-  if (!document.getElementById('aiErrStyles')) {
-    const s = document.createElement('style');
-    s.id = 'aiErrStyles';
-    s.textContent =
-      '@keyframes aiErrFadeIn  { from{opacity:0} to{opacity:1} }' +
-      '@keyframes aiErrSlideIn { from{transform:translateY(-14px);opacity:0}' +
-      ' to{transform:translateY(0);opacity:1} }';
-    document.head.appendChild(s);
-  }
-
-  document.body.appendChild(modal);
-
-  function _close() { modal.remove(); }
-  document.getElementById('aiErrorModalClose').addEventListener('click', _close);
-  modal.addEventListener('click', function(e) { if (e.target === modal) _close(); });
-  document.addEventListener('keydown', function _esc(e) {
-    if (e.key === 'Escape') { _close(); document.removeEventListener('keydown', _esc); }
-  });
 }
 
 // ── Private helpers ───────────────────────────────────────────

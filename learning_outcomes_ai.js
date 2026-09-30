@@ -37,6 +37,7 @@ import { renderPCSourceList, renderLearningOutcomes } from './modules.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
+import { throwIfAIError, showAIServiceError } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -258,9 +259,7 @@ export async function generateLearningOutcomesAI(pattern = 'C') {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ prompt: _buildPrompt(selection, pattern) + _aiDir() }),
     });
-    if (!response.ok) {
-      throw new Error(`Backend request failed: ${response.status} ${response.statusText}`);
-    }
+    await throwIfAIError(response);
 
     const data = await response.json();
     if (!data.content?.[0]?.text) {
@@ -359,104 +358,7 @@ export async function generateLearningOutcomesAI(pattern = 'C') {
     hideLoadingModal();
     console.error('Error generating learning outcomes:', error);
     showStatus(_t('msgAIFailed'), 'error');
-    _showAIErrorModal(error.message || String(error));
+    showAIServiceError(error, { safeKey: 'aiErrSafeLO', tipKeys: ['aiTipLO1', 'aiTipLO2'] });
     return false;
   }
-}
-
-// ── Error modal ───────────────────────────────────────────────
-
-function _showAIErrorModal(errorMessage) {
-  const existing = document.getElementById('loAiErrorModal');
-  if (existing) existing.remove();
-
-  const isOffline = /Failed to fetch|NetworkError|network|ECONNREFUSED|ERR_CONNECTION|ERR_NAME_NOT_RESOLVED|503|502/i.test(errorMessage);
-
-  const modal = document.createElement('div');
-  modal.id = 'loAiErrorModal';
-  modal.setAttribute('role', 'alertdialog');
-  modal.setAttribute('aria-modal', 'true');
-  /* Appended to <body> with inline styles only, so the RTL sheet
-     cannot reach it — direction is set here or Arabic renders
-     left-aligned with its punctuation on the wrong side. */
-  modal.setAttribute('dir', (window.i18n && window.i18n.isRTL()) ? 'rtl' : 'ltr');
-
-  modal.style.cssText =
-    'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;' +
-    'justify-content:center;padding:20px;background:rgba(0,0,0,0.55);' +
-    'backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);' +
-    'animation:aiErrFadeIn 0.2s ease';
-
-  const icon   = isOffline ? '\uD83D\uDD0C' : '\u26A0\uFE0F';
-  const title  = _t(isOffline ? 'aiErrOfflineTitle' : 'aiErrLOTitle');
-  const sub    = _t(isOffline ? 'aiErrOfflineSub'   : 'aiErrFailedSub');
-  const hdrBg  = isOffline ? 'linear-gradient(135deg,#fff7ed,#ffedd5)'
-                           : 'linear-gradient(135deg,#fef2f2,#fee2e2)';
-  const hdrBdr = isOffline ? '#fed7aa' : '#fecaca';
-  const hdrClr = isOffline ? '#9a3412' : '#991b1b';
-  const subClr = isOffline ? '#c2410c' : '#b91c1c';
-
-  /* Two branches, both translated. The raw error string stays as
-     it came from the browser: it is a diagnostic for whoever is
-     debugging, and translating an exception message would make it
-     unsearchable. It is isolated LTR by the stylesheet. */
-  const bodyText = isOffline
-    ? _t('aiErrOfflineBody') + '<br><br>' + _t('aiErrSafeLO')
-    : _t('aiErrOccurred') + '<br><br>' +
-      '<code style="font-size:0.82em;background:#f1f5f9;padding:4px 8px;' +
-      'border-radius:4px;word-break:break-all;direction:ltr;' +
-      'unicode-bidi:isolate;display:inline-block;">' +
-      (errorMessage || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</code>' +
-      '<br><br>' + _t('aiErrSafeLO');
-
-  const tips =
-    '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;' +
-    'padding:12px 14px;margin-bottom:16px;">' +
-    '<p style="margin:0;font-size:0.82em;color:#15803d;font-weight:600;">' +
-    '\u2705 ' + _t('aiErrWhatInstead') + '</p>' +
-    '<ul style="margin:6px 0 0;padding-left:18px;font-size:0.82em;color:#166534;line-height:1.8;">' +
-    '<li>' + _t('aiTipLO1') + '</li>' +
-    '<li>' + _t('aiTipLO2') + '</li>' +
-    '</ul></div>';
-
-  modal.innerHTML =
-    '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;' +
-    'box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;' +
-    'font-family:\'Segoe UI\',system-ui,sans-serif;animation:aiErrSlideIn 0.22s ease;">' +
-      '<div style="padding:20px 22px 16px;display:flex;align-items:center;gap:12px;' +
-      'background:' + hdrBg + ';border-bottom:1px solid ' + hdrBdr + ';">' +
-        '<span style="font-size:1.8em;line-height:1;">' + icon + '</span>' +
-        '<div>' +
-          '<p style="margin:0;font-size:1em;font-weight:800;color:' + hdrClr + ';">' + title + '</p>' +
-          '<p style="margin:2px 0 0;font-size:0.78em;color:' + subClr + ';">' + sub + '</p>' +
-        '</div>' +
-      '</div>' +
-      '<div style="padding:18px 22px 20px;">' +
-        '<p style="margin:0 0 16px;font-size:0.88em;color:#374151;line-height:1.6;">' + bodyText + '</p>' +
-        tips +
-        '<div style="display:flex;justify-content:flex-end;">' +
-          '<button id="loAiErrorClose" style="padding:9px 22px;background:#667eea;' +
-          'color:#fff;border:none;border-radius:8px;font-size:0.9em;font-weight:700;' +
-          'cursor:pointer;font-family:inherit;">' + _t('btnGotIt') + '</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
-  if (!document.getElementById('aiErrStyles')) {
-    const st = document.createElement('style');
-    st.id = 'aiErrStyles';
-    st.textContent =
-      '@keyframes aiErrFadeIn  { from{opacity:0} to{opacity:1} }' +
-      '@keyframes aiErrSlideIn { from{transform:translateY(-14px);opacity:0}' +
-      ' to{transform:translateY(0);opacity:1} }';
-    document.head.appendChild(st);
-  }
-
-  document.body.appendChild(modal);
-  const close = () => modal.remove();
-  modal.querySelector('#loAiErrorClose').addEventListener('click', close);
-  modal.addEventListener('click', e => { if (e.target === modal) close(); });
-  document.addEventListener('keydown', function esc(e) {
-    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); }
-  });
 }

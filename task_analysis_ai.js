@@ -18,6 +18,7 @@
 // ============================================================
 
 import { appState }            from './state.js';
+import { throwIfAIError, showAIServiceError } from './ai_client.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { incrementUsage, showLoadingModal, hideLoadingModal } from './storage.js';
 import { getTaskAnalysisContext, writeTaskAnalysisAI,
@@ -112,7 +113,7 @@ async function _generate(taskKey, wanted) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: _buildPrompt(ctx, wanted) + _aiDir() }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await throwIfAIError(res);
     const data = await res.json();
     const text = (data.content || []).map(b => (b.type === 'text' ? b.text : '')).join('')
       .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -146,6 +147,7 @@ async function _generate(taskKey, wanted) {
   } catch (err) {
     console.error('[task-analysis-ai]', err);
     showStatus(_tf('taAiFailed', { msg: err.message || String(err) }), 'error');
+    showAIServiceError(err, { safeKey: 'aiSvcSafeGeneric' });
   } finally {
     hideLoadingModal();
   }

@@ -23,6 +23,7 @@ import { showStatus }                   from './renderer.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { getDutyLetter }                from './codes.js';
+import { throwIfAIError, showAIServiceError } from './ai_client.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -110,7 +111,7 @@ export async function generateDraftRatings() {
                 (window.i18n ? window.i18n.aiDirective() : '')
       }),
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    await throwIfAIError(res);
 
     const data = await res.json();
     const text = (data.content || [])
@@ -123,6 +124,7 @@ export async function generateDraftRatings() {
   } catch (err) {
     console.error('[draft-ratings]', err);
     showStatus(_tf('msgAIFailed', {}), 'error');
+    showAIServiceError(err, { safeKey: 'aiSvcSafeGeneric' });
     return false;
   } finally {
     hideLoadingModal();
