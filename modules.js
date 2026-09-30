@@ -112,6 +112,18 @@ function _ensureClusteringSeeded() {
 }
 
 export function bypassToClusteringTab() {
+  // This button rebuilds the clustering pool from scratch on purpose,
+  // but it becomes clickable again after "Reset Decision" - at which
+  // point the chart may already hold clusters the user worked on.
+  // Ask before wiping them; Cancel leaves everything untouched,
+  // including the decision buttons.
+  const cd = appState.clusteringData;
+  const clusterCount = cd?.clusters?.length || 0;
+  if (clusterCount > 0) {
+    const taskCount = cd.clusters.reduce((n, c) => n + (c.tasks?.length || 0), 0);
+    if (!confirm(_tf('msgConfirmRebuildClusters', { n: clusterCount, t: taskCount }))) return;
+  }
+
   _markVerificationBypassed();
   initializeClusteringFromTasks();
   switchTab('clustering-tab');
