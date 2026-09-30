@@ -81,12 +81,16 @@ function _itemResult(item) {
     const c   = item.counts || {};
     const sum = SCALE.reduce((a, v) => a + (parseInt(c[v]) || 0), 0);
     const max = appState.workshopParticipants;
+    // Counts that came from a Live Workshop session are real ballots:
+    // their total is the number of participants who voted, so the
+    // manual participant ceiling does not apply to them.
+    const live = item.source === 'live';
     if (sum === 0)  return { valid: false, responses: 0,   status: 'empty' };
-    if (sum > max)  return { valid: false, responses: sum, status: 'error' };
+    if (!live && sum > max)  return { valid: false, responses: sum, status: 'error' };
     const mean = calculateWeightedMean(c);
     if (mean === null) return { valid: false, responses: 0, status: 'empty' };
     return { valid: true, mean, percentage: (mean / 3) * 100, responses: sum,
-             status: sum < max ? 'partial' : 'ok' };
+             status: (!live && sum < max) ? 'partial' : 'ok' };
   }
   const r = item.rating;
   if (r === null || r === undefined) return { valid: false, responses: 0, status: 'empty' };
@@ -200,6 +204,48 @@ export function getSupplementaryExportSections() {
 }
 
 /** True when any item holds a response — used by "Clear This Tab". */
+/* ── Live Workshop bridge ─────────────────────────────────────────
+   Items sent to the participant voting page when a live session is
+   created. Returns null when the feature is off or has no items, so
+   the session payload — and therefore the participant form — carries
+   no supplementary section at all in that case. */
+export function getSupplementaryItemsForLiveSession() {
+  const sv = _sv();
+  if (!sv.enabled) return null;
+  _syncFromAdditionalInfo();
+  const categories = sv.categories
+    .filter(c => c.enabled && c.items.length)
+    .map(c => ({
+      id: c.id,
+      name: categoryDisplayName(c),
+      items: c.items.map(i => ({ id: i.id, text: i.text })),
+    }));
+  return categories.length ? { scale: '0-3', categories } : null;
+}
+
+/* Applies aggregated live-session counts (from /api/get-results →
+   supplementaryResults) onto the matching items. Items are matched by
+   id; anything the facilitator changed after the session was created
+   is simply left as it is. Returns the number of items updated. */
+export function applyLiveSupplementaryResults(results) {
+  if (!results || typeof results !== 'object') return 0;
+  const sv = _sv();
+  let n = 0;
+  sv.categories.forEach(c => c.items.forEach(i => {
+    const r = results[i.id];
+    if (!r || !r.counts) return;
+    i.counts = { 0: 0, 1: 0, 2: 0, 3: 0 };
+    SCALE.forEach(v => { i.counts[v] = parseInt(r.counts[v]) || 0; });
+    i.source = 'live';
+    n++;
+  }));
+  if (n) {
+    renderSupplementaryVerification();
+    _scheduleSave();
+  }
+  return n;
+}
+
 export function hasSupplementaryResponses() {
   return _sv().categories.some(c => c.items.some(i =>
     (i.rating !== null && i.rating !== undefined) ||
@@ -683,6 +729,7 @@ function _onInput(e) {
   if (isNaN(v) || v < 0) v = 0;
   if (v > max) { v = max; el.value = v; }
   item.counts[el.getAttribute('data-scale')] = v;
+  delete item.source;   // edited by hand → no longer a live-session result
   _refreshAfterRating(item);
   _scheduleSave();
 }

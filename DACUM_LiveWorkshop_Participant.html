@@ -335,6 +335,20 @@
         body.pt-rtl .rating-column, body.pt-rtl .rating-cell { direction: ltr; }
         body.pt-rtl .info-box { text-align: right; }
 
+        /* Supplementary Occupational Verification — card list rather
+           than a wide table, so it reads well on a phone. */
+        .sv-section { background:#f5f3ff; padding:20px; margin:30px 0 20px; border-radius:12px; border-left:4px solid #8b5cf6; }
+        body.pt-rtl .sv-section { border-left:none; border-right:4px solid #8b5cf6; }
+        .sv-section h2 { color:#5b21b6; margin:0 0 6px; font-size:1.3em; }
+        .sv-intro { color:#4c1d95; font-size:.92em; line-height:1.6; margin-bottom:14px; }
+        .sv-cat-title { font-weight:700; color:#6d28d9; margin:18px 0 8px; font-size:1.05em; }
+        .sv-item { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+                   background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:8px; }
+        .sv-item-text { flex:1 1 220px; color:#374151; font-weight:500; font-size:.95em; }
+        .sv-item .rating-column { direction:ltr; flex:0 0 auto; }
+        .sv-item.sv-done { border-color:#a7f3d0; background:#f0fdf4; }
+        .sv-scale-hint { font-size:.8em; color:#6b7280; margin-bottom:6px; }
+
         .loading {
             text-align: center;
             padding: 50px;
@@ -410,6 +424,8 @@
         errClosed: 'Voting has been closed by the facilitator.',
         errIncomplete: 'Please complete all three ratings for at least one task',
         okSubmitted: '\u2705 Votes submitted successfully! Thank you for participating.',
+        svTitle: 'Supplementary Occupational Verification',
+        svIntro: 'Rate how important each item is for this occupation (0 = not important, 3 = critical). These ratings are kept separate from task priorities.',
         errSubmit: 'Error submitting votes: {msg}'
       },
       fr: {
@@ -432,6 +448,8 @@
         errClosed: 'Le vote a \u00e9t\u00e9 cl\u00f4tur\u00e9 par l\u2019animateur.',
         errIncomplete: 'Compl\u00e9tez les trois \u00e9valuations pour au moins une t\u00e2che',
         okSubmitted: '\u2705 Votes envoy\u00e9s. Merci de votre participation !',
+        svTitle: 'V\u00e9rification professionnelle compl\u00e9mentaire',
+        svIntro: '\u00c9valuez l\u2019importance de chaque \u00e9l\u00e9ment pour ce m\u00e9tier (0 = pas important, 3 = critique). Ces notes restent distinctes des priorit\u00e9s des t\u00e2ches.',
         errSubmit: 'Erreur lors de l\u2019envoi : {msg}'
       },
       ar: {
@@ -455,6 +473,8 @@
         errLoading: '\u062e\u0637\u0623 \u0641\u064a \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u062c\u0644\u0633\u0629: {msg}',
         errClosed: '\u0623\u063a\u0644\u0642 \u0627\u0644\u0645\u064f\u064a\u0633\u0651\u0631 \u0628\u0627\u0628 \u0627\u0644\u062a\u0635\u0648\u064a\u062a.',
         errIncomplete: '\u0623\u0643\u0645\u0650\u0644 \u0627\u0644\u062a\u0642\u064a\u064a\u0645\u0627\u062a \u0627\u0644\u062b\u0644\u0627\u062b\u0629 \u0644\u0645\u0647\u0645\u0629 \u0648\u0627\u062d\u062f\u0629 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644',
+        svTitle: '\u0627\u0644\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0647\u0646\u064a\u0629 \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629',
+        svIntro: '\u0642\u064a\u0651\u0645 \u0623\u0647\u0645\u064a\u0629 \u0643\u0644 \u0628\u0646\u062f \u0644\u0647\u0630\u0647 \u0627\u0644\u0645\u0647\u0646\u0629 (0 = \u063a\u064a\u0631 \u0645\u0647\u0645\u060c 3 = \u062d\u0631\u062c). \u062a\u0628\u0642\u0649 \u0647\u0630\u0647 \u0627\u0644\u062a\u0642\u064a\u064a\u0645\u0627\u062a \u0645\u0646\u0641\u0635\u0644\u0629 \u0639\u0646 \u0623\u0648\u0644\u0648\u064a\u0627\u062a \u0627\u0644\u0645\u0647\u0627\u0645.',
         okSubmitted: '\u2705 \u0623\u064f\u0631\u0633\u0644\u062a \u0627\u0644\u0623\u0635\u0648\u0627\u062a \u0628\u0646\u062c\u0627\u062d! \u0634\u0643\u0631\u0627\u064b \u0644\u0645\u0634\u0627\u0631\u0643\u062a\u0643.',
         errSubmit: '\u062e\u0637\u0623 \u0641\u064a \u0625\u0631\u0633\u0627\u0644 \u0627\u0644\u0623\u0635\u0648\u0627\u062a: {msg}'
       }
@@ -505,7 +525,14 @@
             `input[name="${taskId}_${dim}"][value="${v[dim]}"]`);
           if (el) el.checked = true;
         });
-        if (typeof updateTaskScore === 'function') updateTaskScore(taskId);
+        if (typeof updateTaskDisplay === 'function') updateTaskDisplay(taskId);
+      });
+      Object.keys(supplementaryVotes || {}).forEach(itemId => {
+        const el = document.querySelector(
+          `input[name="sv_${itemId}"][value="${supplementaryVotes[itemId]}"]`);
+        if (el) el.checked = true;
+        const row = document.getElementById('sv_row_' + itemId);
+        if (row) row.classList.add('sv-done');
       });
     }
     </script>
@@ -516,6 +543,9 @@
         
         // Participant voting data
         let participantVotes = {};
+        // Supplementary Occupational Verification: { itemId: 0-3 }.
+        // Only used when the session carries a `supplementary` block.
+        let supplementaryVotes = {};
         let sessionId = null;
         let sessionData = null;
         
@@ -686,6 +716,47 @@
                 dutySection.innerHTML = html;
                 container.appendChild(dutySection);
             });
+
+            renderSupplementary(sessionData, container);
+        }
+
+        /* Optional section — rendered ONLY when the facilitator enabled
+           Supplementary Occupational Verification and it has items.
+           Sessions without it (and every older session) show tasks only. */
+        function renderSupplementary(sessionData, container) {
+            const supp = sessionData && sessionData.supplementary;
+            const cats = supp && Array.isArray(supp.categories)
+                ? supp.categories.filter(c => c.items && c.items.length) : [];
+            if (!cats.length) return;
+
+            const sec = document.createElement('div');
+            sec.className = 'sv-section';
+            let html = `<h2>\u{1F9ED} ${pt('svTitle')}</h2>
+                        <p class="sv-intro">${pt('svIntro')}</p>`;
+            cats.forEach(cat => {
+                html += `<div class="sv-cat-title">${escapeHtml(cat.name || '')}</div>`;
+                cat.items.forEach(item => {
+                    html += `<div class="sv-item" id="sv_row_${item.id}">
+                        <div class="sv-item-text">${escapeHtml(item.text || '')}</div>
+                        <div class="rating-column">
+                            ${[0, 1, 2, 3].map(val => `
+                                <div class="rating-option">
+                                    <input type="radio" id="sv_${item.id}_${val}" name="sv_${item.id}" value="${val}"
+                                           onchange="recordSupplementaryVote('${item.id}', ${val})">
+                                    <label for="sv_${item.id}_${val}">${val}</label>
+                                </div>`).join('')}
+                        </div>
+                    </div>`;
+                });
+            });
+            sec.innerHTML = html;
+            container.appendChild(sec);
+        }
+
+        function recordSupplementaryVote(itemId, value) {
+            supplementaryVotes[itemId] = parseInt(value);
+            const row = document.getElementById('sv_row_' + itemId);
+            if (row) row.classList.add('sv-done');
         }
         
         // Record a vote
@@ -772,10 +843,11 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        sessionId: sessionId,
-                        votes: completedVotes
-                    })
+                    body: JSON.stringify(Object.assign(
+                        { sessionId: sessionId, votes: completedVotes },
+                        Object.keys(supplementaryVotes).length
+                            ? { supplementaryVotes: supplementaryVotes } : {}
+                    ))
                 });
                 
                 if (!response.ok) {

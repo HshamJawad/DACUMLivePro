@@ -5,6 +5,8 @@
 
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
+import { getSupplementaryItemsForLiveSession,
+         applyLiveSupplementaryResults } from './supplementary_verification.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -125,6 +127,12 @@ export async function lwFinalizeAndCreateSession() {
     priorityFormula: selectedFormula,
     duties: JSON.parse(JSON.stringify(duties))
   };
+
+  /* Supplementary Occupational Verification — only when the optional
+     feature is enabled AND has items. Otherwise the key is absent and
+     the participant form shows tasks only, exactly as before. */
+  const _supp = getSupplementaryItemsForLiveSession();
+  if (_supp) appState.lwFinalizedData.supplementary = _supp;
 
   appState.lwIsFinalized = true;
   document.getElementById('btnLWFinalize').disabled = true;
@@ -366,6 +374,12 @@ export async function lwFetchResults() {
     if (result.success) {
       appState.lwAggregatedResults = result.data;
       lwApplyVotingResultsToDataModel();  // also populates workshopResults
+
+      // Supplementary items travel separately and never touch task
+      // results or the Priority Index.
+      if (result.data && result.data.supplementaryResults) {
+        applyLiveSupplementaryResults(result.data.supplementaryResults);
+      }
       lwDisplayResults();
 
       // ── Trigger dashboard refresh via registered callback ──
