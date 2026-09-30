@@ -28,6 +28,7 @@ import { bypassToClusteringTab, resetVerificationDecision, initializeClusteringF
   removeTaskFromCluster, addTaskToClusterFromDropdown, updateClusterRange,
   updateClusterCriteria, updateClusterCriteriaFromNumbered,
   handleCriteriaKeydown, initCriteriaNumber, proceedToClusteringFromVerification,
+  proceedToClusteringFromTaskAnalysis,
   updateCreateLOButton, createLearningOutcome, toggleEditLO, deleteLearningOutcome,
   reassignPCToLO, unassignPCFromLO,
   updateCreateModuleButton, createModule, renameModule, deleteModule,
@@ -321,6 +322,7 @@ export function setupEvents() {
   _on('btnBypassToClustering',      'click', () => bypassToClusteringTab());
   _on('btnResetDecision',           'click', () => resetVerificationDecision());
   _on('btnProceedToClustering',     'click', () => proceedToClusteringFromVerification());
+  _on('btnTAProceedToClustering',   'click', () => proceedToClusteringFromTaskAnalysis());
   _on('btnCreateCluster',           'click', () => createCluster());
 
   // Learning Outcomes

@@ -85,13 +85,60 @@ function _findEffectiveCriterionById(pcId) {
 
 // ── Clustering ────────────────────────────────────────────────
 
-export function bypassToClusteringTab() {
+// Records the "without verification" decision and syncs the three
+// decision buttons in the Task Verification tab. Shared by the bypass
+// button there and by the Task Analysis -> Clustering path, so the
+// verification tab always reflects the decision however it was made.
+function _markVerificationBypassed() {
   appState.verificationDecisionMade = true;
   appState.clusteringAllowed = true;
-  document.getElementById('btnLWFinalize').disabled = true;
-  document.getElementById('btnBypassToClustering').disabled = true;
-  document.getElementById('btnResetDecision').style.display = 'inline-block';
+  const fin = document.getElementById('btnLWFinalize');
+  const byp = document.getElementById('btnBypassToClustering');
+  const rst = document.getElementById('btnResetDecision');
+  if (fin) fin.disabled = true;
+  if (byp) byp.disabled = true;
+  if (rst) rst.style.display = 'inline-block';
+}
+
+// Seeds the clustering pool only when there is nothing there yet.
+// initializeClusteringFromTasks() wipes existing clusters, so calling
+// it unconditionally on every "Proceed" click destroyed the user's
+// clustering work when they went back and then forward again.
+function _ensureClusteringSeeded() {
+  const cd = appState.clusteringData;
+  const hasClusters = (cd?.clusters?.length || 0) > 0;
+  const hasPool     = (cd?.availableTasks?.length || 0) > 0;
+  if (!hasClusters && !hasPool) initializeClusteringFromTasks();
+}
+
+export function bypassToClusteringTab() {
+  _markVerificationBypassed();
   initializeClusteringFromTasks();
+  switchTab('clustering-tab');
+}
+
+// "Proceed to Competency Clustering" at the bottom of Task Analysis.
+// Task Analysis now sits between Task Verification and Clustering, but
+// the generic clustering gate in switchTab() still assumed the old
+// Verification -> Clustering order and answered this button with
+// "Please choose an option in the Task Verification tab" - a message
+// that belongs to a different tab. This path handles it locally:
+//   - decision already made, or clusters already exist -> go straight on
+//   - no decision yet -> ask here, in this tab's own words; OK records
+//     "without verification" (same as the bypass button), Cancel stays.
+export function proceedToClusteringFromTaskAnalysis() {
+  const hasClusters = (appState.clusteringData?.clusters?.length || 0) > 0;
+  const decided = appState.clusteringAllowed === true ||
+                  appState.verificationDecisionMade === true ||
+                  hasClusters;
+
+  if (!decided) {
+    if (!confirm(_t('msgTAProceedWithoutVerification'))) return;
+    _markVerificationBypassed();
+  }
+
+  appState.clusteringAllowed = true;
+  _ensureClusteringSeeded();
   switchTab('clustering-tab');
 }
 
@@ -401,11 +448,12 @@ export function initCriteriaNumber(event, clusterId) {
 }
 
 export function proceedToClusteringFromVerification() {
-  if (appState.clusteringAllowed !== true) {
-    alert('Please choose one option above (Live Voting or Without Verification) first.');
+  if (appState.clusteringAllowed !== true && appState.verificationDecisionMade !== true) {
+    alert(_t('msgChooseVerificationAbove'));
     return;
   }
-  initializeClusteringFromTasks();
+  appState.clusteringAllowed = true;
+  _ensureClusteringSeeded();
   switchTab('clustering-tab');
 }
 
