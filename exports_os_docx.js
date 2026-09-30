@@ -339,6 +339,7 @@ export async function exportOccupationalStandardWord() {
 
         if (narrative.length) {
             children.push(_break());
+            children.push(_h2(_t('expAdditionalInfo')));
             narrative.forEach(sec => {
                 children.push(_table([
                     new TableRow({ children: [_cell(sec.head, { bold: true, shaded: true, fill: _tblFill(), width: TABLE_W })] }),
