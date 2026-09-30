@@ -388,21 +388,10 @@ function _isTabEmpty(tabId) {
 function _hasSupplementaryResponses() {
   const sv = appState.supplementaryVerification;
   if (!sv || !Array.isArray(sv.categories)) return false;
+  if (sv.enabled) return true;
   return sv.categories.some(c => (c.items || []).some(i =>
     (i.rating !== null && i.rating !== undefined) ||
     [0, 1, 2, 3].some(v => (parseInt(i.counts?.[v]) || 0) > 0)));
-}
-
-function _clearSupplementaryResponses() {
-  const sv = appState.supplementaryVerification;
-  if (sv && Array.isArray(sv.categories)) {
-    sv.categories.forEach(c => (c.items || []).forEach(i => {
-      i.counts = { 0: 0, 1: 0, 2: 0, 3: 0 };
-      i.rating = null;
-      i.result = null;
-    }));
-  }
-  document.dispatchEvent(new CustomEvent('dacum:supplementary-changed'));
 }
 
 function _confirmClear(tabId) {
@@ -461,9 +450,11 @@ export function clearCurrentTab(tabId) {
     appState.verificationRatings = {};
     appState.workshopCounts      = {};
     appState.workshopResults     = {};
-    // Supplementary items: clear their RESPONSES only, keep the lists —
-    // the same rule as tasks, whose text survives a ratings clear.
-    _clearSupplementaryResponses();
+    // Supplementary Occupational Verification: back to its initial
+    // state (feature off, no items, no responses). Items taken from
+    // Additional Info reappear automatically when it is re-enabled.
+    appState.supplementaryVerification = defaultSupplementaryVerification();
+    document.dispatchEvent(new CustomEvent('dacum:supplementary-changed'));
     // Repopulate rather than leave the tab blank. Emptying the container
     // was technically correct — the RATINGS are what "clear" means here —
     // but it looked like the duties themselves had been deleted, and the

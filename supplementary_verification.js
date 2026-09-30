@@ -140,6 +140,7 @@ function _rankedItems(cat) {
  */
 export function getSupplementaryVerificationData() {
   const sv = _sv();
+  _syncFromAdditionalInfo();
   _recompute();
 
   const base = {
@@ -333,7 +334,6 @@ function _categoryBlock(cat) {
   const isWorkshop = appState.collectionMode === 'workshop';
   const renameable = !cat.key || cat.renameable;
   const name = categoryDisplayName(cat);
-  const hasSource = Array.isArray(cat.source) && cat.source.length > 0;
 
   const head = `
     <div class="sv-cat-head">
@@ -372,7 +372,6 @@ function _categoryBlock(cat) {
       <div class="sv-add-row">
         <input type="text" data-sv="new-item" data-cat="${cat.id}" placeholder="${_esc(_t('svPhAddItem'))}">
         <button type="button" class="sv-btn sv-primary" data-sv="add-item" data-cat="${cat.id}">${_esc(_t('svBtnAdd'))}</button>
-        ${hasSource ? `<button type="button" class="sv-btn" data-sv="import" data-cat="${cat.id}">${_esc(_t('svBtnImport'))}</button>` : ''}
       </div>
     </div>
   </div>`;
@@ -414,6 +413,7 @@ export function renderSupplementaryVerification() {
   if (!host) return;
   _injectStyles();
   const sv = _sv();
+  if (_syncFromAdditionalInfo()) _scheduleSave();
   _recompute();
 
   const isWorkshop = appState.collectionMode === 'workshop';
@@ -504,28 +504,57 @@ function _itemHasResponse(i) {
          SCALE.some(v => (parseInt(i.counts?.[v]) || 0) > 0);
 }
 
-function _importFromAdditionalInfo(cat) {
-  const lines = [];
+/* ── Automatic sync with the Additional Info tab ──────────────────
+   The lists a panel already wrote in Additional Info (knowledge,
+   skills, tools, behaviours, trends) ARE the items to verify, so they
+   appear in their cards automatically — no import step. Rules:
+     • a new line in Additional Info → a new item here (flagged auto);
+     • a line removed/changed there → its auto item is removed here,
+       unless it already carries responses (evidence is never dropped
+       silently);
+     • an item the user deleted here is remembered in `dismissed` and
+       is not re-added on the next sync;
+     • items added manually here are never touched by the sync. */
+function _sourceLines(cat) {
+  const out = [];
   (cat.source || []).forEach(id => {
     const el = document.getElementById(id);
-    if (el && el.value) el.value.split('\n').forEach(l => { if (_cleanLine(l)) lines.push(l); });
+    if (el && el.value) el.value.split('\n').forEach(l => {
+      const c = _cleanLine(l);
+      if (c) out.push(c);
+    });
   });
-  const existing = new Set(cat.items.map(i => i.text.trim().toLowerCase()));
-  let added = 0;
+  return out;
+}
+
+function _syncFromAdditionalInfo() {
   const sv = _sv();
-  lines.forEach(l => {
-    const clean = _cleanLine(l);
-    const key = clean.toLowerCase();
-    if (!clean || existing.has(key)) return;
-    existing.add(key);
-    sv.itemCounter++;
-    cat.items.push({ id: `sv_item_${sv.itemCounter}`, text: clean,
-                     counts: { 0: 0, 1: 0, 2: 0, 3: 0 }, rating: null, result: null });
-    added++;
+  if (!sv.enabled || typeof document === 'undefined' || !document.getElementById) return false;
+  let changed = false;
+  sv.categories.forEach(cat => {
+    if (!Array.isArray(cat.source) || !cat.source.length) return;
+    if (!Array.isArray(cat.dismissed)) cat.dismissed = [];
+    const lines = _sourceLines(cat);
+    const wanted = new Set(lines.map(l => l.toLowerCase()));
+    const dismissed = new Set(cat.dismissed);
+
+    const before = cat.items.length;
+    cat.items = cat.items.filter(i =>
+      !i.auto || wanted.has(i.text.trim().toLowerCase()) || _itemHasResponse(i));
+    if (cat.items.length !== before) changed = true;
+
+    const have = new Set(cat.items.map(i => i.text.trim().toLowerCase()));
+    lines.forEach(text => {
+      const key = text.toLowerCase();
+      if (have.has(key) || dismissed.has(key)) return;
+      have.add(key);
+      sv.itemCounter++;
+      cat.items.push({ id: `sv_item_${sv.itemCounter}`, text, auto: true,
+                       counts: { 0: 0, 1: 0, 2: 0, 3: 0 }, rating: null, result: null });
+      changed = true;
+    });
   });
-  showStatus(added ? _tf('svMsgImported', { n: added }) : _t('svMsgNothingToImport'),
-             added ? 'success' : 'error');
-  return added > 0;
+  return changed;
 }
 
 function _onClick(e) {
@@ -539,8 +568,6 @@ function _onClick(e) {
   if (action === 'add-item' && cat) {
     const input = document.querySelector(`input[data-sv="new-item"][data-cat="${cat.id}"]`);
     if (input && _addItem(cat, input.value)) changed = true;
-  } else if (action === 'import' && cat) {
-    changed = _importFromAdditionalInfo(cat);
   } else if ((action === 'up' || action === 'down') && cat && item) {
     const i = cat.items.indexOf(item);
     const j = action === 'up' ? i - 1 : i + 1;
@@ -550,6 +577,10 @@ function _onClick(e) {
     }
   } else if (action === 'del-item' && cat && item) {
     if (!_itemHasResponse(item) || confirm(_t('svConfirmDeleteItem'))) {
+      if (item.auto) {
+        if (!Array.isArray(cat.dismissed)) cat.dismissed = [];
+        cat.dismissed.push(item.text.trim().toLowerCase());
+      }
       cat.items.splice(cat.items.indexOf(item), 1);
       changed = true;
     }
@@ -599,6 +630,7 @@ function _onChange(e) {
     const clean = _cleanLine(el.value);
     if (!clean) { el.value = item.text; return; }
     item.text = clean;
+    item.auto = false;   // edited here → now the user's own item
     _scheduleSave();
     const res = document.getElementById('svResults');
     if (res) { _recompute(); res.outerHTML = _resultsHtml(); }
