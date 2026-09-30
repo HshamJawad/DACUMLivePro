@@ -1666,7 +1666,15 @@
                         </p>
                     </div>
                     
-                    <div style="text-align: center; display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <style id="lwDecisionActionsStyles">
+                        .lw-decision-actions{display:flex;justify-content:center;align-items:stretch;gap:15px;flex-wrap:wrap;text-align:center;max-width:100%;}
+                        .lw-decision-actions > button{max-width:100%!important;min-width:0!important;box-sizing:border-box!important;white-space:normal!important;overflow-wrap:anywhere;line-height:1.35;text-align:center;}
+                        @media (max-width:640px){
+                            .lw-decision-actions{flex-direction:column;align-items:stretch;gap:12px;}
+                            .lw-decision-actions > button{width:100%!important;flex:0 0 auto!important;padding:14px 16px!important;font-size:1em!important;}
+                        }
+                    </style>
+                    <div class="lw-decision-actions">
                         <button class="btn-primary"  id="btnLWFinalize" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; font-size: 1.1em; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                             🔒 <span data-i18n="btnLWFinalize">Finalize & Create Live Voting Session</span>
                         </button>
