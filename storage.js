@@ -35,15 +35,15 @@ export function getUsageData() {
 }
 
 export function checkUsageLimit() {
+  /* No daily ceiling any more — every AI action is always allowed.
+     The call sites (and the Full Draft quota check) are kept unchanged
+     and simply always see an unlimited allowance. The counter below
+     still records how many generations ran today, for information
+     only; it never blocks anything. */
   const usage = getUsageData();
   const today = new Date().toDateString();
-  if (usage.date !== today) {
-    const newUsage = { count: 0, date: today };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newUsage));
-    return { allowed: true, remaining: DAILY_LIMIT };
-  }
-  const remaining = DAILY_LIMIT - usage.count;
-  return { allowed: remaining > 0, remaining, count: usage.count };
+  const count = usage.date === today ? (usage.count || 0) : 0;
+  return { allowed: true, remaining: Infinity, count };
 }
 
 export function incrementUsage() {

@@ -52,6 +52,14 @@ const TEXT_FIELDS = [
   { key: 'performanceStandard',       labelKey: 'taLblStandard',   phKey: 'taPhStandard' },
 ];
 
+/* All ten sections in on-screen order — shared with task_analysis_ai.js
+   so the AI dialog lists exactly what the form shows. */
+export const TA_FIELD_SPECS = [
+  'performanceSteps', 'requiredKnowledge', 'requiredSkills', 'toolsEquipmentMaterials',
+  'safetyOSH', 'conditionsWorkEnvironment', 'decisionsCriticalPoints',
+  'performanceCriteria', 'performanceStandard', 'commonErrorsTroubleshooting',
+].map(key => [...LIST_FIELDS, ...TEXT_FIELDS].find(f => f.key === key));
+
 // Additional Info holds general, occupation-wide information; Task
 // Analysis holds what THIS task specifically needs. These three fields
 // are the ones with a direct counterpart in Additional Info, so they
@@ -226,6 +234,75 @@ export function getTaskAnalysisExportData() {
     });
 }
 
+// ── AI assistance hooks (used by task_analysis_ai.js) ───────────
+
+function _fieldFilled(r, key) {
+  const v = r ? r[key] : null;
+  return Array.isArray(v) ? _nonBlank(v).length > 0 : !!(v || '').trim();
+}
+
+/** Everything the AI prompt needs about one task, read-only. */
+export function getTaskAnalysisContext(taskKey) {
+  syncAllFromDOM();
+  const flat  = _allTasksFlat();
+  const entry = flat.find(f => f.taskKey === taskKey);
+  if (!entry) return null;
+  const letter = getDutyLetter(entry.dutyIndex);
+  const record = _view(taskKey);
+  const filled = {};
+  TA_FIELD_SPECS.forEach(f => { filled[f.key] = _fieldFilled(record, f.key); });
+
+  const clusterCriteria = [];
+  (appState.clusteringData?.clusters || []).forEach(c => {
+    if ((c.tasks || []).some(t => t.id === taskKey)) {
+      (c.performanceCriteria || []).forEach(pc => { if ((pc || '').trim()) clusterCriteria.push(pc.trim()); });
+    }
+  });
+
+  return {
+    taskKey,
+    dutyLetter: letter,
+    dutyTitle:  entry.dutyTitle,
+    taskCode:   `${letter}${entry.taskNum}`,
+    taskText:   entry.task.text,
+    siblings:   flat.filter(f => f.dutyId === entry.dutyId && f.taskKey !== taskKey)
+                    .map(f => f.task.text).slice(0, 25),
+    record, filled, clusterCriteria,
+  };
+}
+
+/** Writes AI-generated sections into one task and marks each as an
+ *  AI draft until the user edits it. Only the keys passed are touched. */
+export function writeTaskAnalysisAI(taskKey, values) {
+  const r = _ensureRecord(taskKey);
+  if (!r._aiDraft || typeof r._aiDraft !== 'object') r._aiDraft = {};
+  Object.keys(values).forEach(k => {
+    r[k] = Array.isArray(values[k]) ? values[k].slice() : String(values[k]);
+    r._aiDraft[k] = true;
+  });
+  if (taskKey === _selectedTaskKey) _renderFormPanel();
+  _touchStatus(taskKey);
+  try {
+    import('./dacum_projects.js').then(m => m.saveCurrentProject()).catch(() => {});
+  } catch (_) {}
+}
+
+function _aiBadge(key) {
+  const r = _record(_selectedTaskKey);
+  if (!r || !r._aiDraft || !r._aiDraft[key]) return '';
+  return ` <span class="ta-ai-badge" data-ta-ai-badge="${key}"
+      style="font-size:.62em;font-weight:700;color:#6d28d9;background:#f5f3ff;border:1px solid #ddd6fe;
+             border-radius:999px;padding:2px 8px;vertical-align:middle;white-space:nowrap;">✨ ${escapeHtml(_t('taAiBadge'))}</span>`;
+}
+
+function _clearAiDraft(key) {
+  const r = _record(_selectedTaskKey);
+  if (r && r._aiDraft && r._aiDraft[key]) {
+    delete r._aiDraft[key];
+    document.querySelector(`[data-ta-ai-badge="${key}"]`)?.remove();
+  }
+}
+
 // ── Selection state (module-local, not persisted) ──────────────
 let _selectedTaskKey = null;
 let _lastSignature    = null;
@@ -375,7 +452,7 @@ function _renderListField(field, items) {
   return `
     <div class="section-container" data-field-block="${field.key}">
       <div class="section-header-editable">
-        <h3>${_t(field.labelKey)}</h3>
+        <h3>${_t(field.labelKey)}${_aiBadge(field.key)}</h3>
         <div style="display:flex;gap:10px;">${pickBtn}
           <button type="button" class="btn-format btn-icon" data-action="ta-format-list"
                   data-field="${field.key}" data-format-type="number"
@@ -397,7 +474,7 @@ function _renderTextField(field, value) {
   return `
     <div class="section-container" data-field-block="${field.key}">
       <div class="section-header-editable">
-        <h3>${_t(field.labelKey)}</h3>
+        <h3>${_t(field.labelKey)}${_aiBadge(field.key)}</h3>
         <button type="button" class="btn-clear-section" data-action="ta-clear-field" data-field="${field.key}">
           🗑️ ${_t('btnClear')}
         </button>
@@ -436,9 +513,17 @@ function _renderFormPanel() {
           ${_statusLabel(status)}
         </span>
       </div>
-      <button type="button" class="ta-clear-btn" data-action="ta-clear-analysis" data-task-key="${entry.taskKey}">
-        🗑️ ${_t('btnClearAnalysis')}
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button type="button" class="ta-ai-btn" data-action="ta-ai-open" data-task-key="${entry.taskKey}"
+                title="${escapeHtml(_t('taAiTitle'))}"
+                style="margin-top:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;
+                       border-radius:8px;padding:7px 14px;font-size:.85em;font-weight:700;cursor:pointer;">
+          ${_t('taAiBtn')}
+        </button>
+        <button type="button" class="ta-clear-btn" data-action="ta-clear-analysis" data-task-key="${entry.taskKey}">
+          🗑️ ${_t('btnClearAnalysis')}
+        </button>
+      </div>
     </div>
 
     ${_renderListField(byField.performanceSteps,            r.performanceSteps)}
@@ -610,6 +695,16 @@ export function setupTaskAnalysisEvents() {
       return;
     }
 
+    if (action === 'ta-ai-open') {
+      const key = btn.getAttribute('data-task-key');
+      // Loaded on demand: keeps the AI module off this tab's start-up
+      // path and avoids an import cycle (it imports from this file).
+      import('./task_analysis_ai.js')
+        .then(m => m.openTaskAnalysisAI(key))
+        .catch(err => { console.error('[task-analysis-ai] load failed', err); showStatus(_tf('taAiFailed', { msg: err.message }), 'error'); });
+      return;
+    }
+
     if (action === 'ta-clear-analysis') {
       _clearOneTaskAnalysis(btn.getAttribute('data-task-key'));
       return;
@@ -655,6 +750,7 @@ export function setupTaskAnalysisEvents() {
       if (!confirm(_t('confirmClearSection'))) return;
       const rec = _ensureRecord(_selectedTaskKey);
       rec[field] = isList ? [] : '';
+      _clearAiDraft(field);
       const textarea = btn.closest('.section-container')?.querySelector('textarea');
       if (textarea) textarea.value = '';
       _touchStatus(_selectedTaskKey);
@@ -680,12 +776,14 @@ export function setupTaskAnalysisEvents() {
       // filtered out only where they matter — status, export, and the
       // "is this empty" checks (see _isRecordEmpty / getTaskAnalysisExportData).
       r[field] = el.value.split('\n');
+      _clearAiDraft(field);
       return;
     }
     if (action === 'ta-edit-text') {
       const field = el.getAttribute('data-field');
       const r = _ensureRecord(_selectedTaskKey);
       r[field] = el.value;
+      _clearAiDraft(field);
       return;
     }
   });
