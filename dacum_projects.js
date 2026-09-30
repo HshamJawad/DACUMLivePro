@@ -11,7 +11,7 @@
 // Max projects     : 50
 // ============================================================
 
-import { appState }           from './state.js';
+import { appState, defaultSupplementaryVerification } from './state.js';
 import { showStatus }         from './renderer.js';
 import { syncAllFromDOM }     from './duties.js';
 import { clearAllSilent }     from './projects.js';
@@ -128,6 +128,8 @@ export function importProjectFromData(data, fileName) {
     // Absent in files exported before this feature existed — {} then.
     taskAnalysisData:         s.taskAnalysis                 || {},
     taskAnalysisPriority:     s.taskAnalysisPriority          || {},
+    // Absent in files exported before Supplementary Verification existed.
+    supplementaryVerification: s.supplementaryVerification    || null,
     collectionMode:           s.verification?.collectionMode || 'workshop',
     workflowMode:             s.verification?.workflowMode   || 'standard',
     workshopParticipants:     s.verification?.workshopParticipants || 10,
@@ -868,6 +870,7 @@ function _captureState() {
     taskMetadata:             appState.taskMetadata            || {},
     taskAnalysisData:         appState.taskAnalysisData        || {},
     taskAnalysisPriority:     appState.taskAnalysisPriority    || {},
+    supplementaryVerification: appState.supplementaryVerification || null,
     collectionMode:           appState.collectionMode,
     workflowMode:             appState.workflowMode,
     workshopParticipants:     appState.workshopParticipants,
@@ -913,6 +916,9 @@ function _applyState(s) {
   // key here — falling back to {} is what makes them load normally.
   appState.taskAnalysisData         = s.taskAnalysisData         || {};
   appState.taskAnalysisPriority     = s.taskAnalysisPriority     || {};
+  // Older projects have no such key — the default is the feature OFF,
+  // which is exactly how those projects behaved before.
+  appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();
   appState.collectionMode           = s.collectionMode           || 'workshop';
   appState.workflowMode             = s.workflowMode             || 'standard';
   appState.workshopParticipants     = s.workshopParticipants     || 10;

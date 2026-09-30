@@ -8,6 +8,7 @@ import { showStatus } from './renderer.js';
 import { lwExtractDutiesAndTasks } from './workshop.js';
 import { getTaskCode, getDutyLabel } from './codes.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
+import { getSupplementaryVerificationData } from './supplementary_verification.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -935,7 +936,12 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     source: 'DACUM Live Pro v1.0',
     exportDate: new Date().toISOString(),
     occupation,
-    modules: modulesToSend.map(m => _buildModuleExport(m, mm.modules.indexOf(m) + 1))
+    modules: modulesToSend.map(m => _buildModuleExport(m, mm.modules.indexOf(m) + 1)),
+    // Occupation-level Verified Occupational Reference Data. Always
+    // present; { available:false } when the optional feature is off or
+    // empty. Reference evidence only — Module Builder must not turn it
+    // into learning outcomes automatically.
+    occupationalReference: getSupplementaryVerificationData()
   };
 
   try {
@@ -950,7 +956,9 @@ export function openModuleBuilderFromMapping(moduleId = null) {
       try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (_) { existing = null; }
       if (existing && Array.isArray(existing.modules)) {
         const others = existing.modules.filter(m => m.moduleId !== moduleId);
-        payload = { ...existing, exportDate: exportObject.exportDate, occupation, modules: [...others, ...exportObject.modules] };
+        payload = { ...existing, exportDate: exportObject.exportDate, occupation,
+                    occupationalReference: exportObject.occupationalReference,
+                    modules: [...others, ...exportObject.modules] };
       }
     }
     // Diagnostic only — confirms exactly what left this tab, so a report
@@ -996,6 +1004,7 @@ export function exportModuleMappingJSON() {
     // made this file look inconsistent with what Module Builder actually
     // received even when nothing was actually lost in the transfer.
     modules: mm.modules.map((module, i) => _buildModuleExport(module, i + 1)),
+    occupationalReference: getSupplementaryVerificationData(),
     summary: {
       totalModules: mm.modules.length,
       totalLearningOutcomes: mm.modules.reduce((s, m) => s + m.learningOutcomes.length, 0),

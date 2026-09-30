@@ -3,7 +3,7 @@
 // Project-level ops: clear, switch tab, AI generation
 // ============================================================
 
-import { appState } from './state.js';
+import { appState, defaultSupplementaryVerification } from './state.js';
 import { showStatus } from './renderer.js';
 import { addDuty, renderDutiesFromState } from './duties.js';
 import { resetSkillsLevel, renderSkillsLevel } from './renderer.js';
@@ -200,6 +200,10 @@ function _doClear() {
   appState.workshopCounts       = {};
   appState.workshopResults      = {};
   appState.priorityFormula      = 'if';
+  // Back to the default (feature off) — a new project must never
+  // inherit the previous project's supplementary lists.
+  appState.supplementaryVerification = defaultSupplementaryVerification();
+  document.dispatchEvent(new CustomEvent('dacum:supplementary-changed'));
   const wp  = document.getElementById('workshopParticipants');
   const fif = document.getElementById('formula-if');
   const ifd = document.getElementById('formula-ifd');
@@ -357,7 +361,8 @@ function _isTabEmpty(tabId) {
     case 'verification-tab':
       return !Object.keys(s.verificationRatings || {}).length &&
              !Object.keys(s.workshopCounts      || {}).length &&
-             !Object.keys(s.workshopResults     || {}).length;
+             !Object.keys(s.workshopResults     || {}).length &&
+             !_hasSupplementaryResponses();
 
     case 'task-analysis-tab':
       return !hasAnyTaskAnalysis();
@@ -374,6 +379,30 @@ function _isTabEmpty(tabId) {
     default:
       return false;   // unknown tab: never suppress the warning
   }
+}
+
+/* Supplementary Occupational Verification — inline, appState-only
+   helpers. Importing supplementary_verification.js here would close an
+   import cycle through dacum_projects.js; the module re-renders itself
+   on the event below. */
+function _hasSupplementaryResponses() {
+  const sv = appState.supplementaryVerification;
+  if (!sv || !Array.isArray(sv.categories)) return false;
+  return sv.categories.some(c => (c.items || []).some(i =>
+    (i.rating !== null && i.rating !== undefined) ||
+    [0, 1, 2, 3].some(v => (parseInt(i.counts?.[v]) || 0) > 0)));
+}
+
+function _clearSupplementaryResponses() {
+  const sv = appState.supplementaryVerification;
+  if (sv && Array.isArray(sv.categories)) {
+    sv.categories.forEach(c => (c.items || []).forEach(i => {
+      i.counts = { 0: 0, 1: 0, 2: 0, 3: 0 };
+      i.rating = null;
+      i.result = null;
+    }));
+  }
+  document.dispatchEvent(new CustomEvent('dacum:supplementary-changed'));
 }
 
 function _confirmClear(tabId) {
@@ -432,6 +461,9 @@ export function clearCurrentTab(tabId) {
     appState.verificationRatings = {};
     appState.workshopCounts      = {};
     appState.workshopResults     = {};
+    // Supplementary items: clear their RESPONSES only, keep the lists —
+    // the same rule as tasks, whose text survives a ratings clear.
+    _clearSupplementaryResponses();
     // Repopulate rather than leave the tab blank. Emptying the container
     // was technically correct — the RATINGS are what "clear" means here —
     // but it looked like the duties themselves had been deleted, and the

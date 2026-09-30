@@ -14,6 +14,7 @@ import { getTaskCode, getDutyLetter } from './codes.js';
 import { buildVerificationDataset, getVerificationCoverage } from './exports_shared.js';
 import { noteExportExclusion } from './draft_unverified.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
+import { getSupplementaryExportSections } from './supplementary_verification.js';
 import * as ExportSettings from './export_settings.js';
 
 
@@ -242,6 +243,80 @@ export function _safeFilename(title, suffix) {
   return (base || _t('fileUntitled')) + suffix;
 }
 
+
+
+/* ── Supplementary Occupational Verification section ─────────────
+   Returns the paragraphs/tables for the optional supplementary block,
+   or [] when the feature is off or holds no verified items — in which
+   case the document is byte-identical to previous builds. `lib` must
+   carry the WRAPPED Paragraph/TextRun so Arabic keeps its w:lang. */
+function _supplementaryDocxBlock(lib) {
+    const sections = getSupplementaryExportSections();
+    if (!sections.length) return [];
+
+    const { Paragraph, TextRun, Table, TableRow, TableCell,
+            WidthType, AlignmentType, ShadingType, PageBreak } = lib;
+    const cols = [900, 5071, 1100, 1000, 1000];   // = 9071 twips (16 cm)
+    const out = [];
+
+    out.push(new Paragraph({ children: [new PageBreak()], bidirectional: _rtl() }));
+    out.push(new Paragraph({
+        children: [new TextRun({ text: _t('svTitle'), bold: true, size: 32 })],
+        spacing: { before: 200, after: 200 },
+        alignment: AlignmentType.CENTER,
+        bidirectional: _rtl(),
+    }));
+    out.push(new Paragraph({
+        children: [new TextRun({ text: _t('svExpNote'), italics: true, size: 20 })],
+        spacing: { after: 300 },
+        bidirectional: _rtl(),
+    }));
+
+    const head = (txt, i) => new TableCell({
+        children: [new Paragraph({
+            children: [new TextRun({ text: txt, bold: true, size: 20, __shaded: true })],
+            ...(i === 1 ? {} : { alignment: AlignmentType.CENTER }),
+            bidirectional: _rtl(),
+        })],
+        width: { size: cols[i], type: WidthType.DXA },
+        shading: { fill: _tblFill(), type: ShadingType.CLEAR, color: 'auto' },
+    });
+    const cell = (txt, i) => new TableCell({
+        children: [new Paragraph({
+            children: [new TextRun({ text: txt, size: 20 })],
+            ...(i === 1 ? {} : { alignment: AlignmentType.CENTER }),
+            bidirectional: _rtl(),
+        })],
+        width: { size: cols[i], type: WidthType.DXA },
+    });
+
+    sections.forEach(sec => {
+        out.push(new Paragraph({
+            children: [new TextRun({ text: `${sec.letter}. ${sec.title}`, bold: true, size: 26 })],
+            spacing: { before: 240, after: 120 },
+            bidirectional: _rtl(),
+        }));
+        const rows = [new TableRow({
+            tableHeader: true,
+            children: [head(_t('svThRank'), 0), head(_t('svThItem'), 1),
+                       head(_t('svThScore'), 2), head('%', 3), head(_t('svThResponses'), 4)],
+        })];
+        sec.items.forEach(it => rows.push(new TableRow({
+            children: [cell(`#${it.rank}`, 0), cell(it.text, 1),
+                       cell(it.aggregatedScore.toFixed(2), 2),
+                       cell(`${it.percentage.toFixed(1)}%`, 3),
+                       cell(String(it.responses), 4)],
+        })));
+        out.push(new Table({
+            visuallyRightToLeft: _rtl(),
+            width: { size: 9071, type: WidthType.DXA },
+            columnWidths: cols,
+            layout: 'fixed',
+            rows,
+        }));
+    });
+    return out;
+}
 
 export async function exportTaskVerificationWord() {
     // Tell the user WHY the appendix is missing rather than
@@ -642,6 +717,13 @@ export async function exportTaskVerificationWord() {
                     }));
                 });
                 
+                // Supplementary Occupational Verification (only when enabled + used)
+                children.push(..._supplementaryDocxBlock({
+                    Paragraph, TextRun, Table, TableRow, TableCell,
+                    WidthType, AlignmentType, ShadingType,
+                    PageBreak: window.docx.PageBreak,
+                }));
+
                 // Create document
                 const doc = new Document({
                     styles: {
@@ -2307,6 +2389,14 @@ export async function exportToWord() {
                         width: { size: 100, type: WidthType.PERCENTAGE }
                     }));
                 }
+
+                // ============ SUPPLEMENTARY OCCUPATIONAL VERIFICATION ============
+                // Separate from the task verification appendices above;
+                // adds nothing when the optional feature is off or unused.
+                children.push(..._supplementaryDocxBlock({
+                    Paragraph, TextRun, Table, TableRow, TableCell,
+                    WidthType, AlignmentType, ShadingType, PageBreak,
+                }));
 
                 // ============ TASK ANALYSIS APPENDIX ============
                 // Sits between Task Verification and Competency Clusters,

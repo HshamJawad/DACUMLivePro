@@ -54,6 +54,15 @@ export const appState = {
   // as taskAnalysisData above.
   taskAnalysisPriority: {},
 
+  // ── Supplementary Occupational Verification (optional) ─────
+  // Occupation-level evidence (knowledge & skills, tools, behaviours,
+  // trends, custom lists) verified on the same 0–3 scale as tasks but
+  // kept completely separate from task results and the Priority Index.
+  // Seeded by defaultSupplementaryVerification() below; owned by
+  // supplementary_verification.js. Projects saved before this feature
+  // simply lack the key and fall back to the default (disabled).
+  supplementaryVerification: null,
+
   // ── Workshop Aggregated Counts ─────────────────────────────
   workshopParticipants: 10,
   priorityFormula: 'if',
@@ -150,4 +159,30 @@ export function defaultSkillsLevelData() {
 /** True when the matrix has never been populated (fresh project). */
 export function skillsLevelIsEmpty() {
   return !Array.isArray(appState.skillsLevelData) || appState.skillsLevelData.length === 0;
+}
+
+
+/* ── Supplementary Occupational Verification defaults ─────────
+   Labels are i18n KEYS, not strings: a default category shows in the
+   interface language until the user renames it (only "Other" and
+   custom categories are renameable). `source` lists the Additional
+   Info fields a category can import its items from. */
+export const SV_DEFAULT_CATEGORIES = [
+  { id: 'knowledgeSkills', key: 'svCatKnowledgeSkills', enabled: true,  source: ['knowledgeInput', 'skillsInput'] },
+  { id: 'toolsEquipment',  key: 'svCatTools',           enabled: true,  source: ['toolsInput'] },
+  { id: 'workBehaviours',  key: 'svCatBehaviours',      enabled: true,  source: ['behaviorsInput'] },
+  { id: 'futureTrends',    key: 'svCatTrends',          enabled: true,  source: ['trendsInput'] },
+  { id: 'other',           key: 'svCatOther',           enabled: false, source: [], renameable: true },
+];
+
+export function defaultSupplementaryVerification() {
+  return {
+    enabled: false,
+    itemCounter: 0,
+    categoryCounter: 0,
+    categories: SV_DEFAULT_CATEGORIES.map(c => ({
+      id: c.id, key: c.key, name: '', enabled: c.enabled,
+      renameable: !!c.renameable, source: c.source.slice(), items: []
+    }))
+  };
 }

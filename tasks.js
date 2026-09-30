@@ -611,7 +611,9 @@ export function validateAndComputeTask(taskKey) {
   }
 }
 
-function calculateWeightedMean(counts) {
+// Exported so Supplementary Occupational Verification aggregates with
+// exactly the same formula as tasks — see supplementary_verification.js.
+export function calculateWeightedMean(counts) {
   let wSum = 0, total = 0;
   for (let v = 0; v <= 3; v++) {
     const c = counts[v] || 0;

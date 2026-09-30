@@ -21,6 +21,7 @@ import { initImageStore }     from './image_store.js';
 import { clearAiGeneratedFlag } from './refine.js';
 import { initDragDrop }        from './drag_drop.js';
 import { initVerificationCharts } from './verification_charts.js';
+import { initSupplementaryVerification } from './supplementary_verification.js';
 import { renderDraftCard }        from './draft_ui.js';
 import { renderRegenButtons }     from './draft_regen.js';
 import { renderUnverifiedBanner } from './draft_unverified.js';
@@ -97,6 +98,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   // delegated onto the permanent container, so it survives every
   // later re-render when the collection or workflow mode changes.
   initVerificationCharts();
+
+  /* Supplementary Occupational Verification — optional block at the
+     foot of the Task Verification tab. Bound after the collection-mode
+     init above because it renders counts or radios to match that mode. */
+  initSupplementaryVerification();
 
   /* Full Draft card. Rendered rather than written into index.html
      because its labels come from the dictionary and it has to be

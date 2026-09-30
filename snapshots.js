@@ -141,6 +141,13 @@ export function saveToJSON() {
     data.taskAnalysis = appState.taskAnalysisData || {};
     data.taskAnalysisPriority = appState.taskAnalysisPriority || {};
 
+    // Supplementary Occupational Verification — its own top-level key,
+    // separate from data.verification so task results stay untouched.
+    // Read back by importProjectFromData(); older files simply lack it.
+    if (appState.supplementaryVerification) {
+      data.supplementaryVerification = appState.supplementaryVerification;
+    }
+
     // Download
     const jsonString = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });

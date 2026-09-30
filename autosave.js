@@ -22,7 +22,7 @@ import { saveCurrentProject,
          getActiveProjectId,
          loadProject }         from './dacum_projects.js';
 import { renderAll }           from './workshop_snapshots.js';
-import { appState }            from './state.js';
+import { appState, defaultSupplementaryVerification } from './state.js';
 import { syncAllFromDOM }      from './duties.js';
 import { getImageSync }        from './image_store.js';
 
@@ -416,6 +416,7 @@ function _snapshotAppState() {
       skillsLevelData:          appState.skillsLevelData,
       verificationRatings:      appState.verificationRatings     || {},
       taskMetadata:             appState.taskMetadata            || {},
+      supplementaryVerification: appState.supplementaryVerification || null,
       collectionMode:           appState.collectionMode,
       workflowMode:             appState.workflowMode,
       workshopParticipants:     appState.workshopParticipants,
@@ -450,6 +451,7 @@ function _applyBackupState(s) {
   if (s.skillsLevelData) appState.skillsLevelData = s.skillsLevelData;
   appState.verificationRatings      = s.verificationRatings      || {};
   appState.taskMetadata             = s.taskMetadata             || {};
+  appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();
   appState.collectionMode           = s.collectionMode           || 'workshop';
   appState.workflowMode             = s.workflowMode             || 'standard';
   appState.workshopParticipants     = s.workshopParticipants     || 10;

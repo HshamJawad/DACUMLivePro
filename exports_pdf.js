@@ -19,6 +19,7 @@ import { noteExportExclusion } from './draft_unverified.js';
    why it survived this long. Found by check_imports.js. */
 import { lwExportVerifiedPDF } from './workshop.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
+import { getSupplementaryExportSections } from './supplementary_verification.js';
 import * as ExportSettings from './export_settings.js';
 import {
     ensureArabicFont,
@@ -219,6 +220,85 @@ function _onTableFill(pdf, draw) {
     }
 }
 
+
+
+/* ── Supplementary Occupational Verification section ─────────────
+   Shared by the standalone verification report and the main chart
+   appendix. Starts on its own page and is written ONLY when the
+   optional feature is enabled and holds verified items — otherwise
+   nothing is added and the document is identical to before.
+   Kept visually and analytically apart from task results: its own
+   heading, its own ranking per category, no Priority Index. */
+function _writeSupplementaryPDF(pdf, margin) {
+    const sections = getSupplementaryExportSections();
+    if (!sections.length) return;
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const bottom = () => pdf.internal.pageSize.getHeight() - margin;
+
+    pdf.addPage();
+    let y = margin + 10;
+
+    pdf.setFontSize(16);
+    pdf.setFont(undefined, 'bold');
+    pdf.text(_t('svTitle'), pageWidth / 2, y, { align: 'center' });
+    y += 8;
+
+    pdf.setFontSize(9);
+    pdf.setFont(undefined, 'italic');
+    pdf.splitTextToSize(_t('svExpNote'), pageWidth - 2 * margin).forEach(line => {
+        pdf.text(line, margin, y);
+        y += 4.5;
+    });
+    y += 4;
+
+    const colRank  = margin;
+    const colItem  = margin + 16;
+    const colScore = pageWidth - margin - 75;
+    const colPct   = pageWidth - margin - 50;
+    const colResp  = pageWidth - margin - 25;
+    const itemW    = colScore - colItem - 4;
+
+    const header = () => {
+        pdf.setFontSize(10);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(_t('svThRank'),      colRank,  y);
+        pdf.text(_t('svThItem'),      colItem,  y);
+        pdf.text(_t('svThScore'),     colScore, y);
+        pdf.text('%',                 colPct,   y);
+        pdf.text(_t('svThResponses'), colResp,  y);
+        y += 2;
+        pdf.setDrawColor(200, 200, 200);
+        pdf.line(margin, y, pageWidth - margin, y);
+        pdf.setDrawColor(0, 0, 0);
+        y += 4.5;
+        pdf.setFont(undefined, 'normal');
+    };
+
+    sections.forEach(sec => {
+        if (y + 22 > bottom()) { pdf.addPage(); y = margin + 10; }
+        pdf.setFontSize(13);
+        pdf.setFont(undefined, 'bold');
+        pdf.text(`${sec.letter}. ${sec.title}`, margin, y);
+        y += 7;
+        header();
+
+        sec.items.forEach(it => {
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            const lines = pdf.splitTextToSize(it.text, itemW);
+            const h = lines.length * 4.8 + 1.5;
+            if (y + h > bottom()) { pdf.addPage(); y = margin + 10; header(); }
+            pdf.text(`#${it.rank}`, colRank, y);
+            pdf.text(lines, colItem, y);
+            pdf.text(it.aggregatedScore.toFixed(2), colScore, y);
+            pdf.text(`${it.percentage.toFixed(1)}%`, colPct, y);
+            pdf.text(String(it.responses), colResp, y);
+            y += h;
+        });
+        y += 6;
+    });
+}
 
 export function exportTaskVerificationPDF() {
     // Tell the user WHY the appendix is missing rather than
@@ -546,6 +626,9 @@ export function exportTaskVerificationPDF() {
             yPos += 5;
         });
         
+        // Supplementary Occupational Verification (only when enabled + used)
+        _writeSupplementaryPDF(pdf, margin);
+
         // Save PDF
         pdf.save(_safeFilename(occupationTitle, '_Task_Verification.pdf'));
         showStatus(_t('msgTVPdfExported'), 'success');
@@ -1777,6 +1860,11 @@ export function exportToPDF() {
             });
         }
         
+        // ============ SUPPLEMENTARY OCCUPATIONAL VERIFICATION ============
+        // Follows the task verification appendices and stays separate
+        // from them. Writes nothing when the feature is off or unused.
+        _writeSupplementaryPDF(pdf, margin);
+
         // ============ TASK ANALYSIS APPENDIX ============
         // Sits between Task Verification and Competency Clusters in the
         // export, matching the on-screen tab order. Included whenever any
