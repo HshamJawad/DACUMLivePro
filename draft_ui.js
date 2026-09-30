@@ -520,10 +520,34 @@ function _wire() {
 
     console.log('[draft] save & continue: wrote', wrote, 'field(s)');
 
-    if (!wrote && missingPrerequisites().length) {
-      // Still blocked, and nothing was written: say so rather than
-      // re-rendering the same panel and looking inert.
-      showStatus(_t('dgSaveFailed'), 'error');
+    if (missingPrerequisites().length) {
+      /* Occupation Title still empty. Say so INSIDE the dialog, next to
+         the field — a status toast sits behind the modal overlay, which
+         is why this button used to look as if it did nothing. */
+      const occ = document.getElementById('dgFix_occupationTitle');
+      if (occ) {
+        occ.style.borderColor = '#dc2626';
+        occ.style.boxShadow = '0 0 0 3px rgba(220,38,38,.15)';
+        occ.setAttribute('aria-invalid', 'true');
+        let msg = document.getElementById('dgOccRequiredMsg');
+        if (!msg) {
+          msg = document.createElement('p');
+          msg.id = 'dgOccRequiredMsg';
+          msg.setAttribute('role', 'alert');
+          msg.style.cssText = 'margin:6px 0 0;font-size:.85em;font-weight:600;color:#dc2626;';
+          occ.insertAdjacentElement('afterend', msg);
+        }
+        msg.textContent = '\u26A0\uFE0F ' + _t('dgOccRequiredMsg');
+        occ.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        occ.focus();
+        occ.addEventListener('input', function clr() {
+          if (!occ.value.trim()) return;
+          occ.style.borderColor = ''; occ.style.boxShadow = '';
+          occ.removeAttribute('aria-invalid');
+          document.getElementById('dgOccRequiredMsg')?.remove();
+          occ.removeEventListener('input', clr);
+        });
+      }
       return;
     }
     renderModal();
