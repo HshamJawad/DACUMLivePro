@@ -986,24 +986,27 @@
             <div class="mb-20">
                 <div class="mb-10">
                     <label for="dacumDate">📅 <span data-i18n="labelDate">DACUM Date:</span></label>
-                    <style id="dateFieldStyles">
-                        .date-field-wrap{position:relative;}
-                        .date-field-wrap input[type="date"]{cursor:pointer;direction:ltr;text-align:left;unicode-bidi:isolate!important;letter-spacing:normal!important;}
-                        .date-field-wrap input[type="date"]::-webkit-datetime-edit,
-                        .date-field-wrap input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-                        .date-field-wrap input[type="date"]::-webkit-datetime-edit-text,
-                        .date-field-wrap input[type="date"]::-webkit-datetime-edit-day-field,
-                        .date-field-wrap input[type="date"]::-webkit-datetime-edit-month-field,
-                        .date-field-wrap input[type="date"]::-webkit-datetime-edit-year-field{unicode-bidi:plaintext!important;letter-spacing:normal!important;}
-                        .date-field-wrap input[type="date"]:invalid{box-shadow:none;}
-                        .date-field-wrap input[type="date"]:invalid::-webkit-datetime-edit{color:transparent!important;}
-                        .date-field-wrap .date-placeholder{display:none;position:absolute;top:50%;left:56px;right:56px;transform:translateY(-50%);pointer-events:none;color:#9ca3af;text-align:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-                        .date-field-wrap input[type="date"]:invalid + .date-placeholder{display:block;}
-                    </style>
-                    <div class="date-field-wrap">
-                        <input type="date" id="dacumDate" required>
-                        <span class="date-placeholder" data-i18n="phDacumDate" aria-hidden="true">Select a date</span>
-                    </div>
+                    <input type="date" id="dacumDate" style="cursor: pointer;">
+                    <script>
+                    (function () {
+                      var el = document.getElementById('dacumDate');
+                      if (!el) return;
+                      var d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+                      function today() {
+                        var t = new Date();
+                        return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+                      }
+                      Object.defineProperty(el, 'value', {
+                        configurable: true,
+                        get: function () { return d.get.call(this); },
+                        set: function (v) { d.set.call(this, (v == null || v === '') ? today() : v); }
+                      });
+                      function fill() { if (!d.get.call(el)) d.set.call(el, today()); }
+                      fill();
+                      el.addEventListener('change', fill);
+                      el.addEventListener('blur', fill);
+                    })();
+                    </script>
                 </div>
                 
                 <div class="mb-10">
