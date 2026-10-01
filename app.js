@@ -15,7 +15,8 @@ import { lwCheckAndShowSection } from './workshop.js';
 import { setBaseline }       from './history.js';
 import { renderSnapshotPanel } from './workshop_snapshots.js';
 import { initProjectsSidebar, saveCurrentProject,
-         createProject, getActiveProjectId } from './dacum_projects.js';
+         createProject, getActiveProjectId,
+         getProjects, loadProject } from './dacum_projects.js';
 import { startAutoSave, checkCrashRecovery } from './autosave.js';
 import { initImageStore }     from './image_store.js';
 import { clearAiGeneratedFlag } from './refine.js';
@@ -30,6 +31,44 @@ import { renderUnverifiedBanner } from './draft_unverified.js';
 // Expose switchTab globally (called from HTML onclick and live workshop guards)
 window.switchTab = switchTab;
 window.updateDutyLevelSummary = updateDutyLevelSummary;
+
+/* ── Reopen the active project on start-up ───────────────────────────
+   THE BUG THIS FIXES: the page boots into the default blank workspace
+   (one empty duty, one empty task) and nothing ever loaded the active
+   project's saved state back into it. The first save after that — the
+   beforeunload handler, or autosave on the first edit — then captured
+   the blank screen and wrote it OVER the saved project. Closing and
+   reopening the tool therefore emptied every project down to
+   "1 duty · 1 task", without Clear All ever being pressed.
+
+   loadProject() is reused rather than duplicated, but it begins by
+   saving the CURRENT workspace into the active project — on boot that
+   workspace is the blank screen, i.e. the very overwrite described
+   above. So the active marker is lifted for the duration of the call:
+   saveCurrentProject() does nothing without an active project, and
+   loadProject() sets the marker again itself once the state is applied.
+
+   If loading fails part-way, the marker is deliberately NOT put back:
+   with no active project nothing can save over the stored copy, and the
+   boot code below simply starts a fresh project. The saved project
+   stays intact in the sidebar and can be opened by clicking it. */
+function _restoreActiveProjectOnBoot() {
+  const id = getActiveProjectId();
+  if (!id) return false;
+
+  const exists = getProjects().some(p => p && p.id === id && p.state);
+  if (!exists) return false;
+
+  try {
+    localStorage.removeItem('dacum_active_project');
+    loadProject(id);                       // applies state, renders, re-marks active
+    if (getActiveProjectId() !== id) localStorage.setItem('dacum_active_project', id);
+    return true;
+  } catch (e) {
+    console.error('[app] could not reopen the saved project — it was left untouched:', e);
+    return false;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', async function () {
   // Open the logo store and warm its in-memory cache BEFORE any project
@@ -72,6 +111,11 @@ document.addEventListener('DOMContentLoaded', async function () {
   // Initialize multi-project sidebar
   initProjectsSidebar();
 
+  // Reopen the project the user was working on. MUST run before the
+  // beforeunload handler and autosave below are attached — either of
+  // them saving the blank boot screen is what used to wipe projects.
+  _restoreActiveProjectOnBoot();
+
   // If no active project yet, create one automatically from the initial state
   if (!getActiveProjectId()) {
     const occ = document.getElementById('occupationTitle')?.value?.trim();
@@ -89,6 +133,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   // Check for unsaved work from a previous crashed session
   checkCrashRecovery();
+
+  // The two calls below READ the radio buttons and write them into
+  // appState. After a restored project those radios still show the
+  // HTML defaults, so tick the project's own values first — otherwise
+  // a "survey" or "extended" project would come back as the default.
+  [['collectionMode', appState.collectionMode], ['workflowMode', appState.workflowMode]]
+    .forEach(([name, val]) => {
+      const r = val && document.querySelector(`input[name="${name}"][value="${val}"]`);
+      if (r) r.checked = true;
+    });
 
   // Initialize Task Verification controls
   updateCollectionMode();
