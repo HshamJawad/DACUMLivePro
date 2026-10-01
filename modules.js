@@ -4,9 +4,11 @@
 // ============================================================
 
 import { appState } from './state.js';
-import { showStatus } from './renderer.js';
+import { showStatus, escapeHtml } from './renderer.js';
 import { lwExtractDutiesAndTasks } from './workshop.js';
-import { getTaskCode, getDutyLabel } from './codes.js';
+import { getTaskCode, getDutyLabel,
+         CLUSTER_ADDED_TASK_PREFIX, isClusterAddedTaskId,
+         getAddedTaskLabel } from './codes.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
 import { getSupplementaryVerificationData } from './supplementary_verification.js';
 
@@ -29,6 +31,9 @@ function switchTab(tabId) { window.switchTab(tabId); }
 // returns (some call sites previously built ids like "C1-TTask B3-PC1"
 // by string-concatenating an already-prefixed code; this is the fix).
 function _taskLabel(taskId) {
+  // A task added during Competency Clustering has no DACUM code — it is
+  // labelled as an added task instead (see codes.js getTaskCode).
+  if (isClusterAddedTaskId(taskId)) return getAddedTaskLabel().toUpperCase();
   const raw = (getTaskCode(taskId) || '').replace(/^task\s*/i, '').trim();
   return `TASK ${raw}`;
 }
@@ -305,15 +310,11 @@ export function renderClusters() {
         <div class="cluster-section">
           <h4>📋 ${_t('lblRelatedTasks')}</h4>
           <div class="related-tasks-list">
-            ${cluster.tasks.map((task, taskIndex) => {
-              return `
-                <div class="related-task-item" style="display:flex;justify-content:space-between;align-items:center;">
-                  <div style="flex:1"><strong>${_taskLabel(task.id)}:</strong> ${task.text}</div>
-                  <button class="btn-remove-task" data-action="remove-task-from-cluster"
-                    data-cluster-id="${cluster.id}" data-task-index="${taskIndex}" style="margin-left:10px;">✕</button>
-                </div>`;
-            }).join('') || `<div style="color:#999;font-style:italic;">${_t('msgNoTasksAssigned')}</div>`}
+            ${cluster.tasks.map((task, taskIndex) =>
+              _renderClusterTaskRow(cluster, task, taskIndex, cluster.tasks.length - 1)
+            ).join('') || `<div style="color:#999;font-style:italic;">${_t('msgNoTasksAssigned')}</div>`}
           </div>
+          ${_renderAddTaskControl(cluster)}
         </div>
 
         <div class="cluster-section">
@@ -385,6 +386,21 @@ export function removeTaskFromCluster(clusterId, taskIndex) {
   const cluster = cd.clusters.find(c => c.id === clusterId);
   if (!cluster) return;
   const task = cluster.tasks[taskIndex];
+  if (!task) return;
+
+  // A task the expert ADDED during clustering never came from the
+  // Occupational Profile, so it has no place in the Available Tasks
+  // pool. Deleting it removes it for good — after a confirmation,
+  // because its wording exists nowhere else. Profile tasks keep the
+  // original behaviour below, unchanged: they return to the pool.
+  if (isClusterAddedTask(task)) {
+    if (!confirm(_tx('confirmDeleteAddedTask'))) return;
+    cluster.tasks.splice(taskIndex, 1);
+    renderClusters();
+    _persistClusters();
+    return;
+  }
+
   cluster.tasks.splice(taskIndex, 1);
   cd.availableTasks.push(task);
   if (cd.availableTasks.length > 0 && cd.availableTasks[0].priorityIndex !== null) {
@@ -405,6 +421,484 @@ export function addTaskToClusterFromDropdown(taskIndex, clusterId) {
   cd.availableTasks.splice(taskIndex, 1);
   renderAvailableTasks();
   renderClusters();
+}
+
+// ══════════════════════════════════════════════════════════════
+// TASK CONTROLS INSIDE A COMPETENCY CARD
+// ──────────────────────────────────────────────────────────────
+// Move Up / Move Down / Delete on each related task, and "+ Add Task"
+// at the bottom of the card. An expert refinement layer ONLY:
+//
+//   • Moving a task reorders cluster.tasks — the array that already
+//     holds this competency's tasks and is already saved with the
+//     project. Nothing else is touched: task IDs, the DACUM codes
+//     (computed live from appState.dutiesData by codes.js), the
+//     Occupational Profile, Task Verification and Task Analysis all
+//     stay exactly as they were.
+//
+//   • An added task lives ONLY inside this cluster's task list. It is
+//     never written into appState.dutiesData, so the Occupational
+//     Profile is never modified. It carries:
+//         id      'cctask_…'   — can never collide with a profile ID
+//         source  'competency-clustering'
+//         sourceLabel 'Added during Competency Clustering'
+//     Original tasks carry no source field; absence means "from the
+//     Occupational Profile", which keeps every existing project valid
+//     without a migration. getClusterTaskSource() reads it either way.
+//
+//   • The order of cluster.tasks IS the final task order within the
+//     competency. Together with the source flag, that is everything
+//     Module Builder will need later; no Module Builder code changes.
+//
+// Event wiring for these controls is self-contained below (same
+// pattern as the language-change listener at the end of this file),
+// so events.js did not need to change. The one control shared with
+// events.js is Delete, which keeps its existing data-action and is
+// still dispatched there to removeTaskFromCluster().
+// ══════════════════════════════════════════════════════════════
+
+export const CLUSTER_TASK_SOURCE_PROFILE = 'occupational-profile';
+export const CLUSTER_TASK_SOURCE_ADDED   = 'competency-clustering';
+
+export function isClusterAddedTask(task) {
+  return !!task && (task.source === CLUSTER_TASK_SOURCE_ADDED || isClusterAddedTaskId(task.id));
+}
+
+/** 'occupational-profile' | 'competency-clustering' — for Module Builder. */
+export function getClusterTaskSource(task) {
+  return isClusterAddedTask(task) ? CLUSTER_TASK_SOURCE_ADDED : CLUSTER_TASK_SOURCE_PROFILE;
+}
+
+/* New interface strings. Read from translations.js when a key exists
+   there; until then these built-in fallbacks are used, so the feature
+   works in all three languages without editing the dictionary file. */
+const _LOCAL_STRINGS = {
+  en: {
+    ttMoveTaskUp:             'Move Up',
+    ttMoveTaskDown:           'Move Down',
+    ttDeleteClusterTask:      'Delete Task',
+    btnAddClusterTask:        'Add Task',
+    phNewClusterTask:         'Enter the task statement — e.g. Calibrate a digital multimeter to manufacturer specifications',
+    lblAddedDuringClustering: 'Added during Competency Clustering',
+    msgEnterTaskStatement:    'Enter the task statement first.',
+    msgClusterTaskAdded:      'Task added to this competency.',
+    confirmDeleteAddedTask:   'Delete this task?\n\nIt was added during Competency Clustering and is not part of the Occupational Profile, so it will be removed permanently.'
+  },
+  fr: {
+    ttMoveTaskUp:             'Monter',
+    ttMoveTaskDown:           'Descendre',
+    ttDeleteClusterTask:      'Supprimer la tâche',
+    btnAddClusterTask:        'Ajouter une tâche',
+    phNewClusterTask:         'Saisissez l’énoncé de la tâche — ex. Étalonner un multimètre numérique selon les spécifications du fabricant',
+    lblAddedDuringClustering: 'Ajoutée lors du regroupement des compétences',
+    msgEnterTaskStatement:    'Saisissez d’abord l’énoncé de la tâche.',
+    msgClusterTaskAdded:      'Tâche ajoutée à cette compétence.',
+    confirmDeleteAddedTask:   'Supprimer cette tâche ?\n\nElle a été ajoutée lors du regroupement des compétences et ne fait pas partie du profil professionnel : elle sera supprimée définitivement.'
+  },
+  ar: {
+    ttMoveTaskUp:             'نقل لأعلى',
+    ttMoveTaskDown:           'نقل لأسفل',
+    ttDeleteClusterTask:      'حذف المهمة',
+    btnAddClusterTask:        'إضافة مهمة',
+    phNewClusterTask:         'اكتب عبارة المهمة — مثال: معايرة مقياس متعدد رقمي وفق مواصفات الصانع',
+    lblAddedDuringClustering: 'أُضيفت أثناء تجميع الكفاءات',
+    msgEnterTaskStatement:    'اكتب عبارة المهمة أولاً.',
+    msgClusterTaskAdded:      'تمت إضافة المهمة إلى هذه الكفاءة.',
+    confirmDeleteAddedTask:   'حذف هذه المهمة؟\n\nأُضيفت أثناء تجميع الكفاءات وليست جزءاً من الملف المهني، لذا ستُحذف نهائياً.'
+  }
+};
+
+function _tx(key) {
+  const I = window.i18n;
+  if (I && I.has && I.has(key)) return I.t(key);
+  const lang = (I && I.getLang) ? I.getLang() : 'en';
+  return (_LOCAL_STRINGS[lang] && _LOCAL_STRINGS[lang][key]) || _LOCAL_STRINGS.en[key] || key;
+}
+
+function _esc(s) {
+  return typeof escapeHtml === 'function'
+    ? escapeHtml(String(s == null ? '' : s))
+    : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+// Inline SVG, centred by viewBox — the same approach the verification
+// chart modal uses, because text glyphs (↑ ↓ 🗑) sit off-centre in a
+// fixed-size button and render differently on every platform.
+const _ICON_UP    = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 12.5l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const _ICON_DOWN  = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const _ICON_TRASH = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path d="M4 6h12M8 6V4.5h4V6M6 6l.7 10h6.6L14 6M8.5 9v4.5M11.5 9v4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+// Which card has its Add Task field open, and what has been typed so
+// far — kept here so a re-render (language switch, another card's
+// action) does not lose half-typed text.
+let _addTaskOpenFor = null;
+let _addTaskDraft   = '';
+
+function _renderClusterTaskRow(cluster, task, taskIndex, lastIndex) {
+  const added   = isClusterAddedTask(task);
+  // Profile task text is rendered exactly as before. Added text is
+  // typed straight into this form, so it is escaped.
+  const text    = added ? _esc(task.text) : task.text;
+  const cid     = _esc(cluster.id);
+  const up      = _esc(_tx('ttMoveTaskUp'));
+  const down    = _esc(_tx('ttMoveTaskDown'));
+  const del     = _esc(_tx('ttDeleteClusterTask'));
+  return `
+    <div class="related-task-item cluster-task-row${added ? ' is-added' : ''}" data-task-id="${_esc(task.id)}">
+      <div class="cluster-task-text">
+        <strong>${_esc(_taskLabel(task.id))}:</strong> ${text}
+        ${added ? `<span class="cluster-task-source">${_esc(_tx('lblAddedDuringClustering'))}</span>` : ''}
+      </div>
+      <div class="cluster-task-actions">
+        <button type="button" class="ctl-btn" data-action="move-cluster-task" data-dir="-1"
+          data-cluster-id="${cid}" data-task-index="${taskIndex}"
+          title="${up}" aria-label="${up}" ${taskIndex === 0 ? 'disabled' : ''}>${_ICON_UP}</button>
+        <button type="button" class="ctl-btn" data-action="move-cluster-task" data-dir="1"
+          data-cluster-id="${cid}" data-task-index="${taskIndex}"
+          title="${down}" aria-label="${down}" ${taskIndex === lastIndex ? 'disabled' : ''}>${_ICON_DOWN}</button>
+        <button type="button" class="btn-remove-task ctl-btn ctl-btn-delete" data-action="remove-task-from-cluster"
+          data-cluster-id="${cid}" data-task-index="${taskIndex}"
+          title="${del}" aria-label="${del}">${_ICON_TRASH}</button>
+      </div>
+    </div>`;
+}
+
+function _renderAddTaskControl(cluster) {
+  const cid   = _esc(cluster.id);
+  const label = _esc(_tx('btnAddClusterTask'));
+  if (_addTaskOpenFor !== cluster.id) {
+    return `
+      <button type="button" class="ctl-add-btn" data-action="open-add-cluster-task" data-cluster-id="${cid}">
+        <span aria-hidden="true">＋</span><span>${label}</span>
+      </button>`;
+  }
+  const ph = _esc(_tx('phNewClusterTask'));
+  return `
+    <div class="ctl-add-form" data-cluster-id="${cid}">
+      <textarea class="ctl-add-input" rows="2" data-cluster-id="${cid}"
+        placeholder="${ph}" aria-label="${label}">${_esc(_addTaskDraft)}</textarea>
+      <div class="ctl-add-form-actions">
+        <button type="button" class="ctl-add-confirm" data-action="confirm-add-cluster-task" data-cluster-id="${cid}">${label}</button>
+        <button type="button" class="ctl-add-cancel" data-action="cancel-add-cluster-task" data-cluster-id="${cid}">${_esc(_t('btnCancel'))}</button>
+      </div>
+    </div>`;
+}
+
+/**
+ * Move one task up (delta -1) or down (delta +1) inside its OWN
+ * competency. Swaps two neighbours in cluster.tasks; nothing else.
+ */
+export function moveClusterTask(clusterId, taskIndex, delta) {
+  const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
+  if (!cluster || !Array.isArray(cluster.tasks)) return false;
+  const tasks = cluster.tasks;
+  const to = taskIndex + delta;
+  if (!Number.isInteger(taskIndex) || (delta !== 1 && delta !== -1) ||
+      taskIndex < 0 || taskIndex >= tasks.length || to < 0 || to >= tasks.length) return false;
+
+  const moving = tasks[taskIndex];
+  tasks[taskIndex] = tasks[to];
+  tasks[to] = moving;
+
+  renderClusters();
+  _afterMove(clusterId, to, delta, moving.id);
+  _persistClusters();
+  return true;
+}
+
+/**
+ * Add a new task to ONE competency. The Occupational Profile is not
+ * touched — see the block comment above for the data model.
+ */
+export function addTaskToCluster(clusterId, rawText) {
+  const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
+  if (!cluster) return null;
+
+  const text = String(rawText || '').replace(/\s+/g, ' ').trim();
+  if (!text) {
+    showStatus(_tx('msgEnterTaskStatement'), 'error');
+    _focusAddInput(clusterId);
+    return null;
+  }
+
+  const task = {
+    id:            _newClusterTaskId(),
+    text,
+    dutyTitle:     '',
+    priorityIndex: null,           // never verified — keeps PI badges/sorting safe
+    source:        CLUSTER_TASK_SOURCE_ADDED,
+    sourceLabel:   'Added during Competency Clustering',
+    addedToClusterId: cluster.id,
+    addedAt:       new Date().toISOString()
+  };
+  if (!Array.isArray(cluster.tasks)) cluster.tasks = [];
+  cluster.tasks.push(task);
+
+  _addTaskOpenFor = null;
+  _addTaskDraft   = '';
+  renderClusters();
+  _focusSel(`#clustersContainer [data-action="open-add-cluster-task"][data-cluster-id="${_attr(clusterId)}"]`);
+  showStatus('✓ ' + _tx('msgClusterTaskAdded'), 'success');
+  _persistClusters();
+  return task;
+}
+
+export function openAddClusterTask(clusterId) {
+  if (_addTaskOpenFor !== clusterId) _addTaskDraft = '';
+  _addTaskOpenFor = clusterId;
+  renderClusters();
+  _focusAddInput(clusterId);
+}
+
+export function cancelAddClusterTask(clusterId) {
+  _addTaskOpenFor = null;
+  _addTaskDraft   = '';
+  renderClusters();
+  if (clusterId) {
+    _focusSel(`#clustersContainer [data-action="open-add-cluster-task"][data-cluster-id="${_attr(clusterId)}"]`);
+  }
+}
+
+// Unique across every task ID the project holds, profile and clusters
+// alike — the prefix already rules out profile IDs, the loop rules out
+// the (vanishingly unlikely) repeat among added ones.
+function _newClusterTaskId() {
+  const used = new Set();
+  (appState.dutiesData || []).forEach(d => (d.tasks || []).forEach(t => {
+    if (t && t.inputId) used.add(t.inputId);
+    if (t && t.id) used.add(t.id);
+  }));
+  const cd = appState.clusteringData || {};
+  (cd.availableTasks || []).forEach(t => t && used.add(t.id));
+  (cd.clusters || []).forEach(c => (c.tasks || []).forEach(t => t && used.add(t.id)));
+
+  let id;
+  do {
+    id = CLUSTER_ADDED_TASK_PREFIX + Date.now().toString(36) +
+         Math.random().toString(36).slice(2, 7);
+  } while (used.has(id));
+  return id;
+}
+
+function _attr(v) {
+  return String(v).replace(/["\\]/g, '\\$&');
+}
+
+function _focusSel(sel) {
+  const el = document.querySelector(sel);
+  if (el && typeof el.focus === 'function') el.focus();
+  return el;
+}
+
+function _focusAddInput(clusterId) {
+  const ta = _focusSel(`#clustersContainer .ctl-add-input[data-cluster-id="${_attr(clusterId)}"]`);
+  if (ta && typeof ta.setSelectionRange === 'function') {
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+}
+
+// After a move the whole list is re-rendered, which would drop keyboard
+// focus. Put it back on the same control of the moved task — or on the
+// other arrow if the task has just reached the top/bottom — and flash
+// the row so the eye can follow it.
+function _afterMove(clusterId, newIndex, delta, taskId) {
+  const base = `#clustersContainer [data-action="move-cluster-task"][data-cluster-id="${_attr(clusterId)}"][data-task-index="${newIndex}"]`;
+  const same  = document.querySelector(`${base}[data-dir="${delta}"]`);
+  const other = document.querySelector(`${base}[data-dir="${-delta}"]`);
+  const target = (same && !same.disabled) ? same : other;
+  if (target && typeof target.focus === 'function') target.focus();
+
+  const row = target && target.closest('.cluster-task-row');
+  if (row && row.getAttribute('data-task-id') === taskId) {
+    row.classList.add('ctl-moved');
+    setTimeout(() => row.classList.remove('ctl-moved'), 900);
+  }
+}
+
+// Saves through the existing project mechanism (saveCurrentProject →
+// _captureState, which already serialises appState.clusteringData).
+// Imported lazily: dacum_projects.js depends on this module's render
+// functions, so a static import here would create a cycle.
+function _persistClusters() {
+  import('./dacum_projects.js')
+    .then(m => { try { m.saveCurrentProject(); } catch (e) { console.warn('[clusters] save failed:', e); } })
+    .catch(() => { /* project system unavailable — the exit handler will still save */ });
+}
+
+function _injectClusterTaskStyles() {
+  if (document.getElementById('clusterTaskControlsStyles')) return;
+  const st = document.createElement('style');
+  st.id = 'clusterTaskControlsStyles';
+  st.textContent = `
+    /* ── Competency card: task row ─────────────────────────────
+       Text takes the free width; the three buttons keep their own.
+       flex-wrap lets the buttons drop below the text on a narrow
+       screen instead of squeezing it or pushing the card sideways. */
+    .related-task-item.cluster-task-row {
+      display: flex; flex-wrap: wrap; align-items: flex-start;
+      column-gap: 10px; row-gap: 6px;
+    }
+    .cluster-task-row .cluster-task-text {
+      flex: 1 1 220px; min-width: 0;
+      overflow-wrap: anywhere; line-height: 1.5;
+      padding-top: 5px;
+    }
+    .cluster-task-row.is-added {
+      border-inline-start: 3px dashed #cbd5e1;
+      padding-inline-start: 10px;
+    }
+    .cluster-task-source {
+      display: block; margin-top: 2px;
+      font-size: 0.78em; font-style: italic; color: #94a3b8;
+    }
+    .cluster-task-actions {
+      flex: 0 0 auto; display: flex; gap: 6px;
+      margin-inline-start: auto;
+    }
+
+    /* Every axis pinned: dacum-responsive.css gives every <button> a
+       44px min-height on touch screens, which would stretch a square
+       into an oval (see the touch-shape contract in
+       dacum-components.css). */
+    .ctl-btn {
+      box-sizing: border-box; flex: 0 0 auto;
+      width: 34px; height: 34px;
+      min-width: 34px; max-width: 34px;
+      min-height: 34px; max-height: 34px;
+      padding: 0 !important; margin: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 8px; border: 1px solid #cbd5e1;
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #475569; line-height: 0; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .ctl-btn svg { display: block; width: 16px; height: 16px; }
+    .ctl-btn:hover:not(:disabled) {
+      background: #e2e8f0; border-color: #94a3b8; color: #1e293b;
+    }
+    .ctl-btn:focus-visible { outline: 2px solid #667eea; outline-offset: 2px; }
+    .ctl-btn:disabled {
+      opacity: 0.4; cursor: not-allowed;
+      background: #f1f5f9; transform: none !important; box-shadow: none !important;
+    }
+    /* Delete keeps the existing red. */
+    .ctl-btn.ctl-btn-delete {
+      background: #ef4444; border-color: #ef4444; color: #ffffff;
+    }
+    .ctl-btn.ctl-btn-delete:hover:not(:disabled) {
+      background: #dc2626; border-color: #dc2626; color: #ffffff;
+    }
+    /* dacum-rtl.css mirrors the old inline margin of the ✕ button;
+       the buttons now sit in their own group, so no margin is needed. */
+    html[dir="rtl"] .related-task-item .cluster-task-actions .btn-remove-task { margin-right: 0; }
+
+    .cluster-task-row.ctl-moved {
+      background: rgba(102, 126, 234, 0.10);
+      transition: background 0.6s;
+    }
+
+    /* ── + Add Task ─────────────────────────────────────────── */
+    .ctl-add-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 10px; min-height: 38px; padding: 7px 16px;
+      border: 1.5px dashed #94a3b8; border-radius: 8px;
+      background: #f8fafc; color: #475569;
+      font-size: 0.9em; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .ctl-add-btn:hover { background: #e2e8f0; border-color: #64748b; color: #1e293b; }
+    .ctl-add-btn:focus-visible { outline: 2px solid #667eea; outline-offset: 2px; }
+
+    .ctl-add-form {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start;
+      margin-top: 10px; padding: 10px;
+      background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px;
+    }
+    .cluster-section .ctl-add-form textarea.ctl-add-input {
+      flex: 1 1 240px; min-width: 0; width: auto;
+      min-height: 44px; padding: 8px 10px;
+      font-size: 0.95em; resize: vertical; box-sizing: border-box;
+    }
+    .ctl-add-form-actions { display: flex; gap: 8px; flex: 0 0 auto; margin-inline-start: auto; }
+    .ctl-add-confirm, .ctl-add-cancel {
+      min-height: 38px; padding: 7px 16px !important;
+      border-radius: 8px; font-size: 0.9em; font-weight: 600;
+      font-family: inherit; cursor: pointer; white-space: nowrap;
+    }
+    .ctl-add-confirm { background: #475569; color: #ffffff; border: 1px solid #475569; }
+    .ctl-add-confirm:hover { background: #334155; border-color: #334155; }
+    .ctl-add-cancel  { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; }
+    .ctl-add-cancel:hover { background: #f1f5f9; }
+
+    /* Touch screens: full 44px targets, still square. */
+    @media (hover: none) and (pointer: coarse) {
+      .ctl-btn {
+        width: 44px; height: 44px;
+        min-width: 44px; max-width: 44px;
+        min-height: 44px; max-height: 44px;
+      }
+      .ctl-add-btn, .ctl-add-confirm, .ctl-add-cancel { min-height: 44px; }
+      .cluster-task-row .cluster-task-text { padding-top: 10px; }
+    }
+
+    /* Phones: the add form stacks, buttons share the width. */
+    @media (max-width: 480px) {
+      .ctl-add-form-actions { width: 100%; }
+      .cluster-section .ctl-add-form textarea.ctl-add-input { flex-basis: 100%; min-height: 72px; }
+      .ctl-add-confirm, .ctl-add-cancel { flex: 1 1 0; }
+    }
+  `;
+  document.head.appendChild(st);
+}
+
+let _clusterTaskControlsWired = false;
+function _wireClusterTaskControls() {
+  if (_clusterTaskControlsWired || typeof document === 'undefined') return;
+  _clusterTaskControlsWired = true;
+  _injectClusterTaskStyles();
+
+  // Delegated on document because #clustersContainer is rebuilt on
+  // every render. Delete is deliberately NOT handled here — events.js
+  // already dispatches it, unchanged.
+  document.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest && e.target.closest('#clustersContainer [data-action]');
+    if (!btn) return;
+    const action = btn.getAttribute('data-action');
+    const cid    = btn.getAttribute('data-cluster-id');
+    if (action === 'move-cluster-task') {
+      moveClusterTask(cid, parseInt(btn.getAttribute('data-task-index'), 10),
+                           parseInt(btn.getAttribute('data-dir'), 10));
+    } else if (action === 'open-add-cluster-task') {
+      openAddClusterTask(cid);
+    } else if (action === 'confirm-add-cluster-task') {
+      const ta = document.querySelector(`#clustersContainer .ctl-add-input[data-cluster-id="${_attr(cid)}"]`);
+      addTaskToCluster(cid, ta ? ta.value : '');
+    } else if (action === 'cancel-add-cluster-task') {
+      cancelAddClusterTask(cid);
+    }
+  });
+
+  // Enter adds, Shift+Enter is ignored (a task statement is one line),
+  // Escape cancels. isComposing guards Arabic/IME input.
+  document.addEventListener('keydown', (e) => {
+    const ta = e.target && e.target.closest && e.target.closest('#clustersContainer .ctl-add-input');
+    if (!ta || e.isComposing) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!e.shiftKey) addTaskToCluster(ta.getAttribute('data-cluster-id'), ta.value);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelAddClusterTask(ta.getAttribute('data-cluster-id'));
+    }
+  });
+
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.matches && e.target.matches('#clustersContainer .ctl-add-input')) {
+      _addTaskDraft = e.target.value;
+    }
+  });
 }
 
 export function updateClusterRange(clusterId, value) {
@@ -1051,3 +1545,6 @@ window.addEventListener('dacum:langchange', () => {
   if (document.getElementById('moduleLoList'))      renderModuleLoList();
   if (document.getElementById('modulesContainer'))  renderModules();
 });
+
+/* Competency-card task controls (Move Up / Move Down / Add Task). */
+_wireClusterTaskControls();

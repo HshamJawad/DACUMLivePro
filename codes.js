@@ -140,7 +140,36 @@ export function getTaskCodeShort(taskInputId) {
  */
 export function getTaskCode(taskInputId) {
   const short = getTaskCodeShort(taskInputId);
-  return short ? _tf('lblTask', { code: short }) : '';
+  if (short) return _tf('lblTask', { code: short });
+  // A task the expert added during Competency Clustering has no place
+  // in the Occupational Profile, so it has no letter-number code. It is
+  // labelled honestly as an added task — never given a DACUM-style code
+  // such as "Task F7" that could be mistaken for a profile task. Every
+  // exporter calls this function, so the label is consistent everywhere.
+  return isClusterAddedTaskId(taskInputId) ? getAddedTaskLabel() : '';
+}
+
+// ── Tasks added during Competency Clustering ─────────────────
+//
+// Their IDs carry this prefix and are generated in modules.js
+// (addTaskToCluster). Profile task IDs never start with it, so the two
+// sets can never collide. The ID is the only thing this file needs to
+// tell the two apart; the full source metadata lives on the task object.
+export const CLUSTER_ADDED_TASK_PREFIX = 'cctask_';
+
+export function isClusterAddedTaskId(taskId) {
+  return typeof taskId === 'string' && taskId.indexOf(CLUSTER_ADDED_TASK_PREFIX) === 0;
+}
+
+// Fallback wording, used until the key 'lblClusterAddedTask' is added
+// to translations.js — once it is, the dictionary takes over.
+const _ADDED_TASK_LABEL = { en: 'Added Task', fr: 'Tâche ajoutée', ar: 'مهمة مضافة' };
+
+export function getAddedTaskLabel() {
+  const I = window.i18n;
+  if (I && I.has && I.has('lblClusterAddedTask')) return I.t('lblClusterAddedTask');
+  const lang = (I && I.getLang) ? I.getLang() : 'en';
+  return _ADDED_TASK_LABEL[lang] || _ADDED_TASK_LABEL.en;
 }
 
 /**
