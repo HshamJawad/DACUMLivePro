@@ -11,7 +11,7 @@
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
-import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange } from './exports_shared.js';
+import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange, formatVenueWithMode } from './exports_shared.js';
 import { noteExportExclusion } from './draft_unverified.js';
 /* lwExportVerifiedPDF() was called on the standalone path without ever
    being imported — a ReferenceError that only fires when a facilitator
@@ -799,15 +799,15 @@ export function exportToPDF() {
         }
         
         // Add venue if exists
-        const venueInput = document.getElementById('venue');
-        if (venueInput && venueInput.value) {
+        const venueText = formatVenueWithMode();
+        if (venueText) {
             pdf.setFontSize(14);
             pdf.setFont(undefined, 'bold');
             const venueLabel = _t('expVenueLabel') + ' ';
             pdf.text(venueLabel, leftColX, leftY);
             const venueLabelW = pdf.getTextWidth(venueLabel) + 1;
             pdf.setFont(undefined, 'normal');
-            pdf.text(venueInput.value, leftColX + venueLabelW, leftY);
+            pdf.text(venueText, leftColX + venueLabelW, leftY);
         }
         
         // Right column - Job info

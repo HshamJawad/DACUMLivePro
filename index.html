@@ -108,7 +108,7 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v107';
+      var EXPECTED_SW='v108';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
@@ -1067,9 +1067,79 @@
                 </div>
                 
                 <div class="mb-10">
-                    <label for="venue">📍 <span data-i18n="labelVenue">Venue:</span></label>
+                    <label>🧭 <span data-i18n="labelWorkshopFormat">Workshop format:</span></label>
+                    <input type="hidden" id="workshopFormat" value="inperson">
+                    <div id="workshopFormatSeg" role="radiogroup" style="display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;margin-top:6px;">
+                        <button type="button" role="radio" data-fmt="inperson" class="wf-btn" data-i18n="fmtInPerson">In person</button>
+                        <button type="button" role="radio" data-fmt="online" class="wf-btn" data-i18n="fmtOnline">Online</button>
+                        <button type="button" role="radio" data-fmt="hybrid" class="wf-btn" data-i18n="fmtHybrid">Hybrid</button>
+                    </div>
+                    <style>
+                      .wf-btn{border:none;background:transparent;color:#475569;font-weight:600;font-size:.95em;padding:9px 18px;border-radius:9px;cursor:pointer;font-family:inherit;width:auto;margin:0;}
+                      .wf-btn[aria-checked="true"]{background:#4f46e5;color:#fff;box-shadow:0 2px 6px rgba(79,70,229,.35);}
+                    </style>
+                </div>
+
+                <div class="mb-10">
+                    <label for="venue"><span id="venueIcon">📍</span> <span id="venueLabel" data-i18n="labelVenue">Venue:</span></label>
                     <input type="text" id="venue" placeholder="e.g., Conference Center, City" data-i18n="phVenue" data-i18n-attr="placeholder">
                 </div>
+                <script>
+                (function () {
+                  /* Venue follows the workshop format. A user switch clears
+                     what was typed (a street address is no use as a Zoom
+                     link); a project load sets the format silently and
+                     keeps the stored venue. */
+                  var fmt   = document.getElementById('workshopFormat');
+                  var seg   = document.getElementById('workshopFormatSeg');
+                  var venue = document.getElementById('venue');
+                  var lbl   = document.getElementById('venueLabel');
+                  var icon  = document.getElementById('venueIcon');
+                  if (!fmt || !seg || !venue || !lbl) return;
+                  var MAP = {
+                    inperson: { icon: '📍', label: 'labelVenue',       ph: 'phVenue',       l: 'Venue:',                    p: 'e.g., Conference Center, City' },
+                    online:   { icon: '💻', label: 'labelVenueOnline', ph: 'phVenueOnline', l: 'Online platform:',          p: 'e.g., Zoom, Microsoft Teams, Google Meet' },
+                    hybrid:   { icon: '🔀', label: 'labelVenueHybrid', ph: 'phVenueHybrid', l: 'Venue & online platform:', p: 'e.g., Conference Center, City + Zoom' }
+                  };
+                  var d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+                  function norm(v) { return MAP[v] ? v : 'inperson'; }
+                  function tr(k, fb) {
+                    try { var s = window.i18n && window.i18n.t(k); return (s && s !== k) ? s : fb; } catch (_) { return fb; }
+                  }
+                  function paint() {
+                    var f = norm(d.get.call(fmt)), m = MAP[f];
+                    seg.querySelectorAll('.wf-btn').forEach(function (b) {
+                      b.setAttribute('aria-checked', b.getAttribute('data-fmt') === f ? 'true' : 'false');
+                    });
+                    icon.textContent = m.icon;
+                    lbl.setAttribute('data-i18n', m.label);
+                    venue.setAttribute('data-i18n', m.ph);
+                    lbl.textContent = tr(m.label, m.l);
+                    venue.placeholder = tr(m.ph, m.p);
+                  }
+                  Object.defineProperty(fmt, 'value', {
+                    configurable: true,
+                    get: function () { return d.get.call(this); },
+                    set: function (v) { d.set.call(this, norm(v)); paint(); }
+                  });
+                  seg.addEventListener('click', function (e) {
+                    var b = e.target.closest('.wf-btn');
+                    if (!b) return;
+                    var f = b.getAttribute('data-fmt');
+                    if (f === d.get.call(fmt)) return;
+                    d.set.call(fmt, f);
+                    paint();
+                    if (venue.value) {
+                      venue.value = '';
+                      venue.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    fmt.dispatchEvent(new Event('change', { bubbles: true }));
+                    venue.focus();
+                  });
+                  document.addEventListener('dacum:langchange', paint);
+                  paint();
+                })();
+                </script>
                 
                 <div class="mb-10">
                     <label for="producedFor">🏢 <span data-i18n="labelProducedFor">Produced For:</span></label>

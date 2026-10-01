@@ -151,3 +151,18 @@ export function formatDateLong(iso) {
     return d.toLocaleDateString(lang + '-u-nu-latn', { day: 'numeric', month: 'long', year: 'numeric' });
   } catch (_) { return iso; }
 }
+
+
+// ── Venue with workshop format (in person / online / hybrid) ──
+// In person prints the venue as typed. Online/hybrid prefix the
+// format so "Zoom" reads as "Online — Zoom"; with no venue typed
+// the format alone is printed.
+export function formatVenueWithMode() {
+  const venue = (document.getElementById('venue')?.value || '').trim();
+  const fmt   = (document.getElementById('workshopFormat')?.value || 'inperson').trim();
+  if (fmt !== 'online' && fmt !== 'hybrid') return venue;
+  const key = fmt === 'online' ? 'fmtOnline' : 'fmtHybrid';
+  const t = window.i18n ? window.i18n.t(key) : key;
+  const label = (t && t !== key) ? t : (fmt === 'online' ? 'Online' : 'Hybrid');
+  return venue ? `${label} \u2014 ${venue}` : label;
+}

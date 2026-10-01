@@ -167,6 +167,7 @@ export function importProjectFromData(data, fileName) {
       dacumDate:       s.chartInfo?.dacumDate       || '',
       dacumDateEnd:    s.chartInfo?.dacumDateEnd    || '',
       venue:           s.chartInfo?.venue            || '',
+      workshopFormat:  s.chartInfo?.workshopFormat   || 'inperson',
       producedFor:     s.chartInfo?.producedFor      || '',
       producedBy:      s.chartInfo?.producedBy       || '',
       occupationTitle: s.chartInfo?.occupationTitle  || '',
@@ -822,6 +823,7 @@ function _captureState() {
     dacumDate:       _val('dacumDate'),
     dacumDateEnd:    _val('dacumDateEnd'),
     venue:           _val('venue'),
+    workshopFormat:  _val('workshopFormat') || 'inperson',
     producedFor:     _val('producedFor'),
     producedBy:      _val('producedBy'),
     occupationTitle: _val('occupationTitle'),
@@ -982,6 +984,7 @@ function _hydrateChartInfoDOM(ci) {
 
   setVal('dacumDate',       ci.dacumDate);
   setVal('dacumDateEnd',    ci.dacumDateEnd || '');
+  setVal('workshopFormat',  ci.workshopFormat || 'inperson');
   setVal('venue',           ci.venue);
   setVal('producedFor',     ci.producedFor);
   setVal('producedBy',      ci.producedBy);

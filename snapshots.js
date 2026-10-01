@@ -40,6 +40,7 @@ export function saveToJSON() {
         dacumDate: document.getElementById('dacumDate').value,
         dacumDateEnd: document.getElementById('dacumDateEnd')?.value || '',
         venue: document.getElementById('venue').value,
+        workshopFormat: document.getElementById('workshopFormat')?.value || 'inperson',
         producedFor: document.getElementById('producedFor').value,
         producedBy: document.getElementById('producedBy').value,
         occupationTitle: document.getElementById('occupationTitle').value,
@@ -300,6 +301,10 @@ export function loadFromJSONLegacy(event) {
         if (data.chartInfo) {
           const ci = data.chartInfo;
           document.getElementById('dacumDate').value = ci.dacumDate || '';
+          const _end = document.getElementById('dacumDateEnd');
+          if (_end) _end.value = ci.dacumDateEnd || '';
+          const _fmt = document.getElementById('workshopFormat');
+          if (_fmt) _fmt.value = ci.workshopFormat || 'inperson';
           document.getElementById('venue').value = ci.venue || '';
           document.getElementById('producedFor').value = ci.producedFor || '';
           document.getElementById('producedBy').value = ci.producedBy || '';

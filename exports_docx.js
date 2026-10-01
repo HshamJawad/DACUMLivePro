@@ -11,7 +11,7 @@
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
-import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange } from './exports_shared.js';
+import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange, formatVenueWithMode } from './exports_shared.js';
 import { noteExportExclusion } from './draft_unverified.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getSupplementaryExportSections } from './supplementary_verification.js';
@@ -931,7 +931,7 @@ export async function exportToWord() {
                 }
                 
                 // Add Venue if exists
-                const venueValue = document.getElementById('venue')?.value;
+                const venueValue = formatVenueWithMode();
                 if (venueValue) {
                     children.push(new Paragraph({
                         children: [

@@ -50,7 +50,7 @@
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
-import { formatDacumDateRange, formatDateLong } from './exports_shared.js';
+import { formatDacumDateRange, formatDateLong, formatVenueWithMode } from './exports_shared.js';
 import {
     _rtl,
     _font,
@@ -233,7 +233,7 @@ export async function exportOccupationalStandardWord() {
             /* Date first, then venue. The old lookup read two ids that do
                not exist ('workshopDate', 'date'), so the date never printed. */
             _kvRow(_t('osFieldVenueDate'),
-                [formatDacumDateRange(formatDateLong), _val('venue')].filter(Boolean).join(' — ')),
+                [formatDacumDateRange(formatDateLong), formatVenueWithMode()].filter(Boolean).join(' — ')),
         );
         children.push(_table(panelRows, KV_COLS));
 
