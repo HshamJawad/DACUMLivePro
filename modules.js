@@ -208,6 +208,11 @@ export function renderAvailableTasks() {
   const cd = appState.clusteringData;
   const container = document.getElementById('availableTasksList');
 
+  // Bring the pool in line with Duties & Tasks before drawing it — see
+  // syncClusteringWithProfile(). Idempotent: a no-op when nothing changed.
+  syncClusteringWithProfile();
+  _renderSyncNotice(container);
+
   if (cd.availableTasks.length === 0) {
     container.innerHTML = `<div class="no-tasks-message">${_t('msgAllTasksAssigned')}</div>`;
     document.getElementById('btnCreateCluster').disabled = true;
@@ -226,6 +231,7 @@ export function renderAvailableTasks() {
         <input type="checkbox" id="task_${index}" data-action="update-cluster-button">
         <label for="task_${index}" class="task-checkbox-label">
           <strong>${_taskLabel(task.id)}:</strong> ${task.text}
+          ${task.newFromProfile ? `<span class="cluster-new-badge" title="${_esc(_tx('ttNewTask'))}">${_esc(_tx('lblNewTask'))}</span>` : ''}
         </label>
         ${task.priorityIndex !== null ? `<span class="task-priority-badge">PI: ${task.priorityIndex.toFixed(2)}</span>` : ''}
         ${cd.clusters.length > 0 ? `
@@ -266,6 +272,7 @@ export function createCluster() {
 
   selectedIndices.sort((a, b) => b - a);
   selectedIndices.forEach(index => {
+    delete cd.availableTasks[index].newFromProfile;   // "New" badge ends once placed
     newCluster.tasks.push(cd.availableTasks[index]);
     cd.availableTasks.splice(index, 1);
   });
@@ -417,6 +424,7 @@ export function addTaskToClusterFromDropdown(taskIndex, clusterId) {
   if (!cluster) return;
   const task = cd.availableTasks[taskIndex];
   if (!task) return;
+  delete task.newFromProfile;   // "New" badge ends once placed
   cluster.tasks.push(task);
   cd.availableTasks.splice(taskIndex, 1);
   renderAvailableTasks();
@@ -482,7 +490,16 @@ const _LOCAL_STRINGS = {
     lblAddedDuringClustering: 'Added during Competency Clustering',
     msgEnterTaskStatement:    'Enter the task statement first.',
     msgClusterTaskAdded:      'Task added to this competency.',
-    confirmDeleteAddedTask:   'Delete this task?\n\nIt was added during Competency Clustering and is not part of the Occupational Profile, so it will be removed permanently.'
+    confirmDeleteAddedTask:   'Delete this task?\n\nIt was added during Competency Clustering and is not part of the Occupational Profile, so it will be removed permanently.',
+    syncTitle:                'Duties & Tasks changed — clustering has been updated',
+    syncAdded:                'New tasks added to Available Tasks: {n}',
+    syncUpdated:              'Task statements updated to match Duties & Tasks: {n}',
+    syncDropped:              'Deleted tasks removed from Available Tasks: {n}',
+    syncOrphans:              'Tasks in competencies that no longer exist in Duties & Tasks: {n} — marked ⚠ below for your review',
+    lblNewTask:               'New',
+    ttNewTask:                'Added in Duties & Tasks after clustering began',
+    lblRemovedFromProfile:    'Removed from Occupational Profile',
+    ttDismissNotice:          'Dismiss'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -493,7 +510,16 @@ const _LOCAL_STRINGS = {
     lblAddedDuringClustering: 'Ajoutée lors du regroupement des compétences',
     msgEnterTaskStatement:    'Saisissez d’abord l’énoncé de la tâche.',
     msgClusterTaskAdded:      'Tâche ajoutée à cette compétence.',
-    confirmDeleteAddedTask:   'Supprimer cette tâche ?\n\nElle a été ajoutée lors du regroupement des compétences et ne fait pas partie du profil professionnel : elle sera supprimée définitivement.'
+    confirmDeleteAddedTask:   'Supprimer cette tâche ?\n\nElle a été ajoutée lors du regroupement des compétences et ne fait pas partie du profil professionnel : elle sera supprimée définitivement.',
+    syncTitle:                'Les tâches et activités ont changé — le regroupement a été mis à jour',
+    syncAdded:                'Nouvelles tâches ajoutées aux tâches disponibles : {n}',
+    syncUpdated:              'Énoncés de tâches mis à jour selon les tâches et activités : {n}',
+    syncDropped:              'Tâches supprimées retirées des tâches disponibles : {n}',
+    syncOrphans:              'Tâches des compétences qui n’existent plus dans les tâches et activités : {n} — signalées ⚠ ci-dessous pour vérification',
+    lblNewTask:               'Nouveau',
+    ttNewTask:                'Ajoutée dans les tâches et activités après le début du regroupement',
+    lblRemovedFromProfile:    'Retirée du profil professionnel',
+    ttDismissNotice:          'Fermer'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -504,7 +530,16 @@ const _LOCAL_STRINGS = {
     lblAddedDuringClustering: 'أُضيفت أثناء تجميع الكفاءات',
     msgEnterTaskStatement:    'اكتب عبارة المهمة أولاً.',
     msgClusterTaskAdded:      'تمت إضافة المهمة إلى هذه الكفاءة.',
-    confirmDeleteAddedTask:   'حذف هذه المهمة؟\n\nأُضيفت أثناء تجميع الكفاءات وليست جزءاً من الملف المهني، لذا ستُحذف نهائياً.'
+    confirmDeleteAddedTask:   'حذف هذه المهمة؟\n\nأُضيفت أثناء تجميع الكفاءات وليست جزءاً من الملف المهني، لذا ستُحذف نهائياً.',
+    syncTitle:                'تغيّرت الواجبات والمهام — جرى تحديث تجميع الكفاءات',
+    syncAdded:                'مهام جديدة أُضيفت إلى المهام المتاحة: {n}',
+    syncUpdated:              'عبارات مهام حُدّثت لتطابق الواجبات والمهام: {n}',
+    syncDropped:              'مهام محذوفة أُزيلت من المهام المتاحة: {n}',
+    syncOrphans:              'مهام داخل الكفاءات لم تعد موجودة في الواجبات والمهام: {n} — موسومة بـ ⚠ أدناه لمراجعتها',
+    lblNewTask:               'جديدة',
+    ttNewTask:                'أُضيفت في الواجبات والمهام بعد بدء التجميع',
+    lblRemovedFromProfile:    'حُذفت من الملف المهني',
+    ttDismissNotice:          'إغلاق'
   }
 };
 
@@ -537,6 +572,10 @@ let _addTaskDraft   = '';
 
 function _renderClusterTaskRow(cluster, task, taskIndex, lastIndex) {
   const added   = isClusterAddedTask(task);
+  // A profile task that has since been deleted from Duties & Tasks has
+  // no live DACUM code. It is NOT removed automatically — the expert
+  // decides — but it is flagged so it cannot pass unnoticed.
+  const orphan  = !added && !getTaskCode(task.id);
   // Profile task text is rendered exactly as before. Added text is
   // typed straight into this form, so it is escaped.
   const text    = added ? _esc(task.text) : task.text;
@@ -545,9 +584,11 @@ function _renderClusterTaskRow(cluster, task, taskIndex, lastIndex) {
   const down    = _esc(_tx('ttMoveTaskDown'));
   const del     = _esc(_tx('ttDeleteClusterTask'));
   return `
-    <div class="related-task-item cluster-task-row${added ? ' is-added' : ''}" data-task-id="${_esc(task.id)}">
+    <div class="related-task-item cluster-task-row${added ? ' is-added' : ''}${orphan ? ' is-orphan' : ''}" data-task-id="${_esc(task.id)}">
       <div class="cluster-task-text">
-        <strong>${_esc(_taskLabel(task.id))}:</strong> ${text}
+        ${orphan
+          ? `<strong class="cluster-orphan-label">⚠ ${_esc(_tx('lblRemovedFromProfile'))}:</strong>`
+          : `<strong>${_esc(_taskLabel(task.id))}:</strong>`} ${text}
         ${added ? `<span class="cluster-task-source">${_esc(_tx('lblAddedDuringClustering'))}</span>` : ''}
       </div>
       <div class="cluster-task-actions">
@@ -726,6 +767,146 @@ function _persistClusters() {
     .catch(() => { /* project system unavailable — the exit handler will still save */ });
 }
 
+function _txf(key, vars) {
+  let s = _tx(key);
+  if (vars) Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(String(vars[k])); });
+  return s;
+}
+
+// ══════════════════════════════════════════════════════════════
+// KEEPING CLUSTERING IN STEP WITH DUTIES & TASKS
+// ──────────────────────────────────────────────────────────────
+// The Available Tasks pool is seeded ONCE (initializeClusteringFromTasks)
+// and then saved with the project. Before this, anything the expert
+// changed later in Duties & Tasks never reached this tab: a new task or
+// a whole new duty was silently missing from the chain that leads to
+// Learning Outcomes and modules.
+//
+// On every draw of Available Tasks, the pool is compared with the live
+// Occupational Profile (appState.dutiesData) and brought back in line:
+//
+//   new profile task, in no cluster and not in the pool
+//       → appended to Available Tasks, marked "New"
+//   profile task whose wording changed
+//       → its text is updated wherever it sits (pool or competency)
+//   pool task deleted from the profile
+//       → dropped from the pool (it was never placed)
+//   competency task deleted from the profile
+//       → NOT removed; flagged ⚠ on its card for the expert to decide
+//
+// Nothing already placed in a competency is moved, and tasks added
+// during clustering (cctask_…) are outside this comparison entirely.
+// A notice summarises what changed until the expert dismisses it.
+// ══════════════════════════════════════════════════════════════
+
+let _syncNotice      = null;   // { added, updated, dropped, orphans }
+let _lastOrphanCount = 0;
+
+export function syncClusteringWithProfile() {
+  const cd = appState.clusteringData;
+  if (!cd || !Array.isArray(cd.clusters) || !Array.isArray(cd.availableTasks)) return null;
+  // Clustering not started yet: the first visit seeds the pool in full.
+  if (!cd.clusters.length && !cd.availableTasks.length) return null;
+
+  const duties  = appState.dutiesData || [];
+  const present = new Set();     // every profile task ID, even if blank right now
+  const live    = new Map();     // ID → { text, dutyTitle } for tasks with wording
+  duties.forEach(d => (d.tasks || []).forEach(t => {
+    if (!t || !t.inputId) return;
+    present.add(t.inputId);
+    const text = (t.text || '').trim();
+    if (text) live.set(t.inputId, { text, dutyTitle: (d.title || '').trim() });
+  }));
+  // An empty profile is a transient state (project switch, Clear All) —
+  // never read it as "every task was deleted".
+  if (!present.size) return null;
+
+  let added = 0, updated = 0, dropped = 0, orphans = 0;
+  const placed = new Set();
+
+  const refresh = (t) => {
+    const l = live.get(t.id);
+    if (!l) return;
+    if ((t.text || '').trim() !== l.text) { t.text = l.text; updated++; }
+    if (l.dutyTitle && t.dutyTitle !== l.dutyTitle) t.dutyTitle = l.dutyTitle;
+  };
+
+  cd.clusters.forEach(c => (c.tasks || []).forEach(t => {
+    if (!t || isClusterAddedTask(t)) return;
+    placed.add(t.id);
+    if (!present.has(t.id)) { orphans++; return; }
+    refresh(t);
+  }));
+
+  cd.availableTasks = cd.availableTasks.filter(t => {
+    if (!t) return false;
+    if (isClusterAddedTask(t)) return true;
+    if (!present.has(t.id)) { dropped++; return false; }
+    placed.add(t.id);
+    refresh(t);
+    return true;
+  });
+
+  // Appended in DACUM order (duty by duty, task by task).
+  duties.forEach(d => (d.tasks || []).forEach(t => {
+    if (!t || !live.has(t.inputId) || placed.has(t.inputId)) return;
+    const l = live.get(t.inputId);
+    cd.availableTasks.push({
+      id: t.inputId, text: l.text, dutyTitle: l.dutyTitle,
+      priorityIndex: null, newFromProfile: true
+    });
+    placed.add(t.inputId);
+    added++;
+  }));
+
+  if (added || updated || dropped || orphans > _lastOrphanCount) {
+    const p = _syncNotice || { added: 0, updated: 0, dropped: 0 };
+    _syncNotice = { added: p.added + added, updated: p.updated + updated,
+                    dropped: p.dropped + dropped, orphans };
+  } else if (_syncNotice) {
+    _syncNotice.orphans = orphans;
+  }
+  _lastOrphanCount = orphans;
+
+  if (added || updated || dropped) _persistClusters();
+  return { added, updated, dropped, orphans };
+}
+
+function _renderSyncNotice(listEl) {
+  if (!listEl || !listEl.parentNode) return;
+  let box = document.getElementById('clusterSyncNotice');
+  const n = _syncNotice;
+  const lines = [];
+  if (n) {
+    if (n.added)   lines.push(_txf('syncAdded',   { n: n.added }));
+    if (n.updated) lines.push(_txf('syncUpdated', { n: n.updated }));
+    if (n.dropped) lines.push(_txf('syncDropped', { n: n.dropped }));
+    if (n.orphans) lines.push(_txf('syncOrphans', { n: n.orphans }));
+  }
+  if (!lines.length) { if (box) box.remove(); return; }
+
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'clusterSyncNotice';
+    box.setAttribute('role', 'status');
+    listEl.parentNode.insertBefore(box, listEl);
+  }
+  const close = _esc(_tx('ttDismissNotice'));
+  box.innerHTML = `
+    <div class="csn-head">
+      <strong>🔄 ${_esc(_tx('syncTitle'))}</strong>
+      <button type="button" class="csn-close" data-action="dismiss-cluster-sync"
+        title="${close}" aria-label="${close}">✕</button>
+    </div>
+    <ul>${lines.map(l => `<li>${_esc(l)}</li>`).join('')}</ul>`;
+}
+
+export function dismissClusterSyncNotice() {
+  _syncNotice = null;
+  const box = document.getElementById('clusterSyncNotice');
+  if (box) box.remove();
+}
+
 function _injectClusterTaskStyles() {
   if (document.getElementById('clusterTaskControlsStyles')) return;
   const st = document.createElement('style');
@@ -832,6 +1013,34 @@ function _injectClusterTaskStyles() {
     .ctl-add-cancel  { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; }
     .ctl-add-cancel:hover { background: #f1f5f9; }
 
+    /* ── Sync with Duties & Tasks ──────────────────────────── */
+    #clusterSyncNotice {
+      margin: 0 0 12px; padding: 10px 14px;
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
+      color: #1e3a8a; font-size: 0.9em; line-height: 1.55;
+    }
+    #clusterSyncNotice .csn-head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    }
+    #clusterSyncNotice ul { margin: 6px 0 0; padding-inline-start: 20px; }
+    #clusterSyncNotice .csn-close {
+      flex: 0 0 auto; box-sizing: border-box;
+      width: 28px; height: 28px; min-width: 28px; max-width: 28px;
+      min-height: 28px; max-height: 28px; padding: 0 !important;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 6px; border: 1px solid #bfdbfe; background: #ffffff;
+      color: #1e3a8a; font-size: 13px; line-height: 1; cursor: pointer;
+    }
+    #clusterSyncNotice .csn-close:hover { background: #dbeafe; }
+    .cluster-new-badge {
+      display: inline-block; margin-inline-start: 6px; padding: 1px 8px;
+      border-radius: 999px; background: #dcfce7; color: #166534;
+      border: 1px solid #86efac; font-size: 0.75em; font-weight: 700;
+      vertical-align: middle; white-space: nowrap;
+    }
+    .cluster-task-row.is-orphan { background: #fffbeb; }
+    .cluster-orphan-label { color: #b45309; }
+
     /* Touch screens: full 44px targets, still square. */
     @media (hover: none) and (pointer: coarse) {
       .ctl-btn {
@@ -862,7 +1071,17 @@ function _wireClusterTaskControls() {
   // Delegated on document because #clustersContainer is rebuilt on
   // every render. Delete is deliberately NOT handled here — events.js
   // already dispatches it, unchanged.
+  // A notice belongs to the project it was raised for.
+  document.addEventListener('dacum:project-loaded', () => {
+    _syncNotice = null; _lastOrphanCount = 0;
+    _addTaskOpenFor = null; _addTaskDraft = '';
+  });
+
   document.addEventListener('click', (e) => {
+    if (e.target && e.target.closest && e.target.closest('#clusterSyncNotice [data-action="dismiss-cluster-sync"]')) {
+      dismissClusterSyncNotice();
+      return;
+    }
     const btn = e.target && e.target.closest && e.target.closest('#clustersContainer [data-action]');
     if (!btn) return;
     const action = btn.getAttribute('data-action');
