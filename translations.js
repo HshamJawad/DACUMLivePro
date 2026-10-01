@@ -3452,8 +3452,8 @@
       countDuty_other: '{n} واجب',
       countTask_one: 'مهمة واحدة',
       countTask_two: 'مهمتان',
-      countTask_few: '{n} مهمات',
-      countTask_many: '{n} مهمةً',
+      countTask_few: '{n} مهام',
+      countTask_many: '{n} مهمة',
       countTask_zero: 'لا توجد مهام',
       countTask_other: '{n} مهمة',
       msgProjectCreated: 'أُنشئ المشروع «{name}»',
@@ -4052,6 +4052,7 @@
      missing falls back to "_other", so a language only has to define
      the categories it actually uses. */
   function _pluralCategory(n) {
+    if (_current === 'fr') return (n === 0 || n === 1) ? 'one' : 'other';   // CLDR fr: 0 and 1 are singular
     if (_current !== 'ar') return n === 1 ? 'one' : 'other';
     if (n === 0) return 'zero';
     if (n === 1) return 'one';

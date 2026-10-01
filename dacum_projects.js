@@ -729,6 +729,7 @@ export function initProjectsSidebar() {
 
   _positionToggle();
   renderProjectsSidebar();
+  _watchDutiesForStats();
 
   // Show welcome overlay on first open if no projects exist yet
   if (_loadProjects().length === 0) {
@@ -777,8 +778,8 @@ export function renderProjectsSidebar() {
           </div>
           <div class="dps-card-meta">🕐 ${date}</div>
           <div class="dps-card-stats">
-            <span>📋 ${_tp('countDuty', dutyCount)}</span>
-            <span>✅ ${_tp('countTask', taskCount)}</span>
+            <span class="dps-stat-duties">📋 ${_tp('countDuty', dutyCount)}</span>
+            <span class="dps-stat-tasks">✅ ${_tp('countTask', taskCount)}</span>
           </div>
         </div>
         <div class="dps-card-actions">
@@ -787,6 +788,10 @@ export function renderProjectsSidebar() {
         </div>
       </div>`;
   }).join('');
+
+  // The saved copy can lag the live chart (it is only written on save),
+  // so the active card is patched with the live counts after each render.
+  _applyLiveStats();
 
   // Delegated click handler (re-attach each render using event delegation on stable parent)
   list.onclick = function (e) {
@@ -1967,3 +1972,78 @@ window.addEventListener('dacum:langchange', () => {
      reads from storage and is already called on every project change. */
   if (document.getElementById('dpsProjectList')) renderProjectsSidebar();
 });
+
+
+/* ── Live duty/task counts on the active project card ────────────────
+   The card used to read its counts from the SAVED project in
+   localStorage, which is only rewritten on save — so adding, deleting,
+   dragging, Undo/Redo or a snapshot restore left the card showing stale
+   numbers until the user clicked it or reloaded.
+
+   Every one of those paths ends in renderDutiesFromState(), which
+   rebuilds #dutiesContainer from appState. Watching that container's
+   child list therefore catches all of them (and any future path) with
+   no hook inside duties.js, history.js, drag_drop.js or snapshots.js.
+   Typing does not mutate the child list, so this never runs per
+   keystroke. Counts follow the same rule as the saved card: every duty
+   and every task row in the chart. */
+let _liveStats = null;          // { id, duties, tasks } for the active project
+let _statsRaf  = 0;
+
+function _computeLiveStats() {
+  const duties = Array.isArray(appState.dutiesData) ? appState.dutiesData : [];
+  return {
+    id:     _getActive(),
+    duties: duties.length,
+    tasks:  duties.reduce((n, d) => n + ((d && d.tasks) ? d.tasks.length : 0), 0),
+  };
+}
+
+function _applyLiveStats() {
+  if (!_liveStats || !_liveStats.id || _liveStats.id !== _getActive()) return;
+  const card = document.querySelector(`.dps-card[data-project-id="${_liveStats.id}"]`);
+  if (card) {
+    const d = card.querySelector('.dps-stat-duties');
+    const t = card.querySelector('.dps-stat-tasks');
+    const dTxt = '📋 ' + _tp('countDuty', _liveStats.duties);
+    const tTxt = '✅ ' + _tp('countTask', _liveStats.tasks);
+    if (d && d.textContent !== dTxt) d.textContent = dTxt;
+    if (t && t.textContent !== tTxt) t.textContent = tTxt;
+  }
+  // Live-workshop panel shows the same pair for the active project.
+  const lw = document.getElementById('lwProjectStats');
+  if (lw && lw.textContent) {
+    lw.textContent = `${_tp('countDuty', _liveStats.duties)} · ${_tp('countTask', _liveStats.tasks)}`;
+  }
+}
+
+export function refreshActiveProjectStats() {
+  _liveStats = _computeLiveStats();
+  _applyLiveStats();
+}
+
+function _scheduleStatsRefresh() {
+  if (_statsRaf) return;
+  const run = () => { _statsRaf = 0; refreshActiveProjectStats(); };
+  _statsRaf = (typeof requestAnimationFrame === 'function')
+    ? requestAnimationFrame(run)
+    : setTimeout(run, 16);
+}
+
+function _watchDutiesForStats() {
+  if (_watchDutiesForStats._on) return;
+  const container = document.getElementById('dutiesContainer');
+  if (!container || typeof MutationObserver !== 'function') {
+    // Container not in the DOM yet — try again once the page settles.
+    setTimeout(_watchDutiesForStats, 500);
+    return;
+  }
+  _watchDutiesForStats._on = true;
+  new MutationObserver(_scheduleStatsRefresh)
+    .observe(container, { childList: true, subtree: true });
+  // A project switch re-renders the duties too, but refresh explicitly
+  // so the new card never shows the previous project's numbers.
+  document.addEventListener('dacum:project-loaded', _scheduleStatsRefresh);
+  window.addEventListener('dacum:langchange', _scheduleStatsRefresh);
+  _scheduleStatsRefresh();
+}
