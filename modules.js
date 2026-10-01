@@ -512,7 +512,32 @@ const _LOCAL_STRINGS = {
     loSyncRenumbered:         'Criteria renumbered to follow the new task order: {n}',
     loSyncRemoved:            'Criteria removed because their task is no longer in any competency: {n}',
     loSyncStale:              'Criteria reworded or deleted in Competency Clusters / Task Analysis: {n} — marked ⚠ for your review',
-    lblStaleCriterion:        'Reworded or deleted at the source — review, then keep or remove (✕)'
+    lblStaleCriterion:        'Reworded or deleted at the source — review, then keep or remove (✕)',
+    lblModuleLevel:           'Level',
+    lblModuleTrack:           'Specialisation',
+    phModuleTrack:            'Common to all',
+    optNoLevel:               '— not set —',
+    lblLevelN:                'Level {n}',
+    lblLevelShort:            'L{n}',
+    lblNoLevelGroup:          'Level not set',
+    lblLevelSummary:          '{m} module(s) · {lo} learning outcome(s)',
+    lblLevelCount:            'Number of levels in the programme',
+    covTitle:                 'Performance Criteria Coverage by Level',
+    covHint:                  'Every performance criterion from the Competency Clusters, and the module and level where it is taught. A criterion with ✗ is not taught anywhere in the programme.',
+    covGapsOnly:              'Show gaps only',
+    covTotal:                 '{n} criteria',
+    covCoveredN:              'Taught: {n} ({p}%)',
+    covGapN:                  'Not taught: {n}',
+    covLoOnlyN:               'In an outcome but no module: {n}',
+    covMultiN:                'Taught in more than one module: {n}',
+    covGap:                   'Not taught',
+    covLoOnly:                'Only in {lo} — not in a module',
+    covMulti:                 'In {n} modules',
+    covColCriterion:          'Performance criterion',
+    covColNoLevel:            'No level',
+    covColStatus:             'Status',
+    covNoGaps:                'No gaps — every criterion is taught in a module.',
+    covEmpty:                 'No performance criteria yet — add them in the Competency Clusters tab.'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -537,7 +562,32 @@ const _LOCAL_STRINGS = {
     loSyncRenumbered:         'Critères renumérotés selon le nouvel ordre des tâches : {n}',
     loSyncRemoved:            'Critères retirés car leur tâche n’est plus dans aucune compétence : {n}',
     loSyncStale:              'Critères reformulés ou supprimés dans les groupes / l’analyse des tâches : {n} — signalés ⚠ pour vérification',
-    lblStaleCriterion:        'Reformulé ou supprimé à la source — vérifiez, puis conservez ou retirez (✕)'
+    lblStaleCriterion:        'Reformulé ou supprimé à la source — vérifiez, puis conservez ou retirez (✕)',
+    lblModuleLevel:           'Niveau',
+    lblModuleTrack:           'Spécialisation',
+    phModuleTrack:            'Commun à tous',
+    optNoLevel:               '— non défini —',
+    lblLevelN:                'Niveau {n}',
+    lblLevelShort:            'N{n}',
+    lblNoLevelGroup:          'Niveau non défini',
+    lblLevelSummary:          '{m} module(s) · {lo} résultat(s) d’apprentissage',
+    lblLevelCount:            'Nombre de niveaux du programme',
+    covTitle:                 'Couverture des critères de performance par niveau',
+    covHint:                  'Chaque critère de performance des groupes de compétences, avec le module et le niveau où il est enseigné. Un critère marqué ✗ n’est enseigné nulle part dans le programme.',
+    covGapsOnly:              'Afficher uniquement les lacunes',
+    covTotal:                 '{n} critères',
+    covCoveredN:              'Enseignés : {n} ({p} %)',
+    covGapN:                  'Non enseignés : {n}',
+    covLoOnlyN:               'Dans un résultat mais sans module : {n}',
+    covMultiN:                'Enseignés dans plusieurs modules : {n}',
+    covGap:                   'Non enseigné',
+    covLoOnly:                'Seulement dans {lo} — sans module',
+    covMulti:                 'Dans {n} modules',
+    covColCriterion:          'Critère de performance',
+    covColNoLevel:            'Sans niveau',
+    covColStatus:             'État',
+    covNoGaps:                'Aucune lacune — chaque critère est enseigné dans un module.',
+    covEmpty:                 'Aucun critère de performance — ajoutez-les dans l’onglet Groupes de compétences.'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -562,7 +612,32 @@ const _LOCAL_STRINGS = {
     loSyncRenumbered:         'معايير أُعيد ترقيمها وفق الترتيب الجديد للمهام: {n}',
     loSyncRemoved:            'معايير أُزيلت لأن مهمتها لم تعد في أي كفاءة: {n}',
     loSyncStale:              'معايير عُدّلت صياغتها أو حُذفت في تجمعات الكفاءات / تحليل المهمة: {n} — موسومة بـ ⚠ لمراجعتها',
-    lblStaleCriterion:        'عُدّلت أو حُذفت في المصدر — راجعها ثم أبقِها أو أزلها (✕)'
+    lblStaleCriterion:        'عُدّلت أو حُذفت في المصدر — راجعها ثم أبقِها أو أزلها (✕)',
+    lblModuleLevel:           'المستوى',
+    lblModuleTrack:           'التخصص',
+    phModuleTrack:            'مشتركة للجميع',
+    optNoLevel:               '— غير محدد —',
+    lblLevelN:                'المستوى {n}',
+    lblLevelShort:            'م{n}',
+    lblNoLevelGroup:          'مستوى غير محدد',
+    lblLevelSummary:          '{m} وحدة · {lo} محصلة تعلم',
+    lblLevelCount:            'عدد مستويات البرنامج',
+    covTitle:                 'تغطية معايير الأداء حسب المستوى',
+    covHint:                  'كل معيار أداء من تجمعات الكفاءات، والوحدة والمستوى اللذان يُدرَّس فيهما. المعيار الموسوم بـ ✗ لا يُدرَّس في أي مكان من البرنامج.',
+    covGapsOnly:              'عرض الفجوات فقط',
+    covTotal:                 '{n} معياراً',
+    covCoveredN:              'مُدرَّسة: {n} ({p}%)',
+    covGapN:                  'غير مُدرَّسة: {n}',
+    covLoOnlyN:               'في محصلة تعلم دون وحدة: {n}',
+    covMultiN:                'مُدرَّسة في أكثر من وحدة: {n}',
+    covGap:                   'غير مُدرَّس',
+    covLoOnly:                'في {lo} فقط — دون وحدة',
+    covMulti:                 'في {n} وحدات',
+    covColCriterion:          'معيار الأداء',
+    covColNoLevel:            'دون مستوى',
+    covColStatus:             'الحالة',
+    covNoGaps:                'لا توجد فجوات — كل معيار مُدرَّس في وحدة.',
+    covEmpty:                 'لا توجد معايير أداء بعد — أضفها في تبويب تجمعات الكفاءات.'
   }
 };
 
@@ -1219,6 +1294,55 @@ function _injectClusterTaskStyles() {
     .cluster-task-row.is-orphan { background: #fffbeb; }
     .cluster-orphan-label { color: #b45309; }
 
+    /* ── Module levels ─────────────────────────────────────── */
+    .mod-level-chip, .mod-track-chip {
+      display: inline-block; margin-inline-start: 6px; padding: 1px 9px;
+      border-radius: 999px; font-size: 0.72em; font-weight: 700; vertical-align: middle;
+    }
+    .mod-level-chip { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+    .mod-track-chip { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .mod-meta-row { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: -4px 0 12px; }
+    .mod-meta-field { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86em; color: #475569; font-weight: 600; flex-wrap: wrap; }
+    .mod-meta-field select, .mod-meta-field input {
+      padding: 6px 10px; border: 1.5px solid #cbd5e1; border-radius: 6px;
+      font-size: 0.95em; font-family: inherit; background: #fff; max-width: 100%;
+    }
+    .mod-track-input { width: 170px; }
+    .cov-level-count { width: 70px; }
+    .mod-level-group { margin-bottom: 18px; }
+    .mod-level-head {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;
+      margin: 6px 0 10px; padding: 8px 12px; border-radius: 8px;
+      background: #eef2ff; color: #3730a3; font-weight: 800;
+    }
+    .mod-level-head span { font-weight: 600; font-size: 0.85em; color: #6366f1; }
+
+    /* ── Coverage matrix ───────────────────────────────────── */
+    #coverageMatrixSection .cov-hint { color: #64748b; font-size: 0.88em; margin: 0 0 12px; }
+    .cov-controls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-bottom: 12px; }
+    .cov-gaps-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88em; color: #475569; cursor: pointer; }
+    .cov-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .cov-pill { padding: 4px 12px; border-radius: 999px; font-size: 0.82em; font-weight: 700; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+    .cov-pill.cov-ok, .cov-st.cov-ok { background: #dcfce7; color: #166534; border-color: #86efac; }
+    .cov-pill.cov-gap, .cov-st.cov-gap { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    .cov-pill.cov-lo,  .cov-st.cov-lo  { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .cov-pill.cov-multi, .cov-st.cov-multi { background: #e0f2fe; color: #075985; border-color: #7dd3fc; }
+    .cov-table-wrap { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; -webkit-overflow-scrolling: touch; }
+    .cov-table { width: 100%; border-collapse: collapse; font-size: 0.86em; min-width: 520px; }
+    .cov-table th { background: #f8fafc; color: #334155; padding: 8px 10px; text-align: start; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+    .cov-table td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .cov-table .cov-group td { background: #f0f9ff; color: #0369a1; font-weight: 700; }
+    .cov-table .cov-crit { min-width: 220px; line-height: 1.45; }
+    .cov-table .cov-lvl { text-align: center; white-space: nowrap; }
+    .cov-table .cov-status { white-space: nowrap; }
+    .cov-table tr.cov-gap td.cov-crit { color: #991b1b; }
+    .cov-task { color: #94a3b8; font-size: 0.9em; }
+    .cov-chip { display: inline-block; margin: 1px 2px; padding: 1px 7px; border-radius: 6px; background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 0.92em; }
+    .cov-chip small { font-weight: 600; color: #92400e; }
+    .cov-st { display: inline-block; padding: 2px 8px; border-radius: 6px; border: 1px solid transparent; font-size: 0.9em; font-weight: 700; }
+    .cov-empty { text-align: center; color: #64748b; padding: 16px; }
+    @media (max-width: 600px) { .mod-track-input { width: 100%; } .mod-meta-field { width: 100%; } }
+
     /* Touch screens: full 44px targets, still square. */
     @media (hover: none) and (pointer: coarse) {
       .ctl-btn {
@@ -1293,6 +1417,21 @@ function _wireClusterTaskControls() {
     } else if (e.key === 'Escape') {
       e.preventDefault();
       cancelAddClusterTask(ta.getAttribute('data-cluster-id'));
+    }
+  });
+
+  // Module level / specialisation, coverage controls.
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (!t || !t.matches) return;
+    if (t.matches('#modulesContainer .mod-level-select'))     setModuleLevel(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesContainer .mod-track-input')) setModuleTrack(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#coverageMatrixSection .cov-level-count')) setModuleLevelCount(t.value);
+    else if (t.matches('#coverageMatrixSection .cov-gaps-only')) { _covGapsOnly = t.checked; renderCoverageMatrix(); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('#modulesContainer .mod-track-input')) {
+      e.preventDefault(); e.target.blur();
     }
   });
 
@@ -1403,6 +1542,21 @@ export function renderPCSourceList() {
   // Outcome. That is a minor, non-destructive edge case confined to
   // projects that existed before this change, not a data-loss risk.
 
+  // Levels at which each criterion is already taught (via its LO's
+  // module), shown on the "Used" badge — e.g. "Used · L1".
+  const _usedLevels = new Map();
+  (appState.moduleMappingData.modules || []).forEach(m => {
+    const l = _moduleLevel(m);
+    if (!l) return;
+    (m.learningOutcomes || []).forEach(o => (o.linkedCriteria || []).forEach(pc => {
+      if (pc.stale || !pc.key) return;
+      const tag = _txf('lblLevelShort', { n: l });
+      const cur = _usedLevels.get(pc.key);
+      if (!cur) _usedLevels.set(pc.key, tag);
+      else if (!cur.split(', ').includes(tag)) _usedLevels.set(pc.key, cur + ', ' + tag);
+    }));
+  });
+
   let html = '';
   let hasAnyCriteria = false;
 
@@ -1433,7 +1587,7 @@ export function renderPCSourceList() {
             <span class="pc-number">${pcId}:</span> ${c.text}
             ${c.source === 'ta' ? `<span style="color:#94a3b8;font-size:0.9em;margin-inline-start:6px;">[${_taskLabel(c.taskId)}]</span>` : ''}
           </label>
-          ${isUsed ? `<span class="pc-used-badge">${_t('lblUsed')}</span>` : ''}
+          ${isUsed ? `<span class="pc-used-badge">${_t('lblUsed')}${_usedLevels.has(c.key) ? ' · ' + _usedLevels.get(c.key) : ''}</span>` : ''}
           ${lo.outcomes.length > 0 ? `
           <div class="task-dropdown-container" style="margin-left:10px;">
             <select class="task-reassign-dropdown"
@@ -1637,7 +1791,7 @@ export function renderModuleLoList() {
   availableLos.forEach(outcome => {
     const criteriaText = outcome.linkedCriteria.map(pc => pc.id).join(', ');
     let moduleOptions = `<option value="">${_t('optSelectModule')}</option>`;
-    mm.modules.forEach((m, mi) => { moduleOptions += `<option value="${m.id}">M${mi + 1} — ${m.title}</option>`; });
+    mm.modules.forEach((m, mi) => { const l = _moduleLevel(m); moduleOptions += `<option value="${m.id}">M${mi + 1}${l ? ` (${_txf('lblLevelShort', { n: l })}${m.track ? ' ' + m.track : ''})` : ''} — ${m.title}</option>`; });
 
     html += `
       <div class="module-lo-item">
@@ -1694,22 +1848,40 @@ export function renderModules() {
 
   if (mm.modules.length === 0) {
     container.innerHTML = `<div class="no-clusters-message">${_t('msgNoModules')}</div>`;
+    renderCoverageMatrix();
     return;
   }
 
-  let html = '';
-  mm.modules.forEach((module, moduleIndex) => {
+  const levelCount = getModuleLevelCount();
+  const card = (module, moduleIndex) => {
     const { sourceTaskIds } = _collectModuleTaskAnalysis(module);
-    html += `
+    const lvl = _moduleLevel(module);
+    const levelOpts = [`<option value="">${_esc(_tx('optNoLevel'))}</option>`]
+      .concat(Array.from({ length: levelCount }, (_, i) =>
+        `<option value="${i + 1}" ${lvl === i + 1 ? 'selected' : ''}>${_esc(_txf('lblLevelN', { n: i + 1 }))}</option>`))
+      .join('');
+    return `
       <div class="module-item">
         <div class="module-header">
-          <div class="module-title">M${moduleIndex + 1} — ${module.title}</div>
+          <div class="module-title">M${moduleIndex + 1} — ${module.title}
+            ${lvl ? `<span class="mod-level-chip">${_esc(_txf('lblLevelShort', { n: lvl }))}</span>` : ''}
+            ${module.track ? `<span class="mod-track-chip">${_esc(module.track)}</span>` : ''}
+          </div>
           <div class="module-actions">
             <button class="btn-rename-module" data-action="build-module-in-builder" data-module-id="${module.id}"
                     title="${_t('ttBuildThisModule')}">🚀 ${_t('btnBuildThisModule')}</button>
             <button class="btn-rename-module" data-action="rename-module" data-module-id="${module.id}">✏️ ${_t('btnRename')}</button>
             <button class="btn-delete-module" data-action="delete-module" data-module-id="${module.id}">🗑️ ${_t('btnDeleteModule')}</button>
           </div>
+        </div>
+        <div class="mod-meta-row">
+          <label class="mod-meta-field"><span>${_esc(_tx('lblModuleLevel'))}</span>
+            <select class="mod-level-select" data-module-id="${_esc(module.id)}">${levelOpts}</select>
+          </label>
+          <label class="mod-meta-field"><span>${_esc(_tx('lblModuleTrack'))}</span>
+            <input type="text" class="mod-track-input" data-module-id="${_esc(module.id)}"
+              value="${_esc(module.track || '')}" maxlength="40" placeholder="${_esc(_tx('phModuleTrack'))}">
+          </label>
         </div>
         ${sourceTaskIds.length ? `
         <div style="font-size:0.85em;color:#64748b;margin:-4px 0 10px;">
@@ -1733,9 +1905,223 @@ export function renderModules() {
           }).join('')}
         </div>
       </div>`;
-  });
+  };
+
+  // Grouped by level when levels are in use. The M-number stays the
+  // module's position in the full list, so exports and links are
+  // unaffected by the grouping — it is display only.
+  const anyLevel = mm.modules.some(m => _moduleLevel(m));
+  let html = '';
+  if (!anyLevel) {
+    html = mm.modules.map(card).join('');
+  } else {
+    const groups = [];
+    for (let l = 1; l <= levelCount; l++) groups.push({ level: l, items: [] });
+    const none = { level: null, items: [] };
+    mm.modules.forEach((m, i) => {
+      const l = _moduleLevel(m);
+      (l ? groups[l - 1] : none).items.push([m, i]);
+    });
+    [...groups, none].forEach(g => {
+      if (!g.items.length) return;
+      const lo = g.items.reduce((n, [m]) => n + m.learningOutcomes.length, 0);
+      html += `<div class="mod-level-group">
+        <div class="mod-level-head">${_esc(g.level ? _txf('lblLevelN', { n: g.level }) : _tx('lblNoLevelGroup'))}
+          <span>${_esc(_txf('lblLevelSummary', { m: g.items.length, lo }))}</span></div>
+        ${g.items.map(([m, i]) => card(m, i)).join('')}
+      </div>`;
+    });
+  }
 
   container.innerHTML = html;
+  renderCoverageMatrix();
+}
+
+// ══════════════════════════════════════════════════════════════
+// LEVELS AND COVERAGE
+// ──────────────────────────────────────────────────────────────
+// A multi-level programme (e.g. TVQF levels 1–3) is built from ONE
+// occupational standard: each performance criterion is taught in the
+// level where it belongs, and a level may split into specialisations
+// (tracks) — the CMCN pattern, where level 3 divides into Computer
+// Maintenance and Computer Networks while other modules stay common.
+//
+//   module.level   1..N, or absent for "not assigned yet"
+//   module.track   free text; empty = common to all tracks
+//   moduleMappingData.levelCount   how many levels the programme has
+//
+// The coverage matrix answers the question the source documents could
+// not: which criteria of the standard are taught at which level, which
+// are taught nowhere, and which are taught more than once.
+// ══════════════════════════════════════════════════════════════
+
+const MAX_LEVELS = 8;
+
+function _moduleLevel(m) {
+  const n = parseInt(m && m.level, 10);
+  return Number.isInteger(n) && n >= 1 && n <= MAX_LEVELS ? n : null;
+}
+
+export function getModuleLevelCount() {
+  const mm = appState.moduleMappingData || {};
+  const stored = parseInt(mm.levelCount, 10);
+  const used = Math.max(0, ...(mm.modules || []).map(m => _moduleLevel(m) || 0));
+  return Math.min(MAX_LEVELS, Math.max(Number.isInteger(stored) && stored > 0 ? stored : 3, used));
+}
+
+export function setModuleLevelCount(n) {
+  const mm = appState.moduleMappingData;
+  const used = Math.max(0, ...(mm.modules || []).map(m => _moduleLevel(m) || 0));
+  const v = Math.max(1, used, Math.min(MAX_LEVELS, parseInt(n, 10) || 3));
+  mm.levelCount = v;
+  renderModules(); renderModuleLoList();
+  _persistClusters();
+  return v;
+}
+
+export function setModuleLevel(moduleId, level) {
+  const m = appState.moduleMappingData.modules.find(x => x.id === moduleId);
+  if (!m) return;
+  const n = parseInt(level, 10);
+  if (Number.isInteger(n) && n >= 1 && n <= MAX_LEVELS) m.level = n; else delete m.level;
+  renderModules(); renderModuleLoList();
+  _persistClusters();
+}
+
+export function setModuleTrack(moduleId, track) {
+  const m = appState.moduleMappingData.modules.find(x => x.id === moduleId);
+  if (!m) return;
+  const t = String(track || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+  if (t) m.track = t; else delete m.track;
+  renderModules(); renderModuleLoList();
+  _persistClusters();
+}
+
+/** Per-criterion coverage: which modules (with level/track) teach it. */
+export function computeCoverage() {
+  _reconcileLearningOutcomes();
+  const cd = appState.clusteringData || { clusters: [] };
+  const mm = appState.moduleMappingData || { modules: [] };
+  const lo = appState.learningOutcomesData || { outcomes: [] };
+
+  const rows = [];
+  const byKey = new Map();
+  (cd.clusters || []).forEach((c, ci) => {
+    _getClusterEffectiveCriteria(c, ci + 1).forEach(cr => {
+      if (!cr.text || !cr.text.trim()) return;
+      const row = { key: cr.key, id: cr.id, text: cr.text, taskId: cr.taskId,
+                    clusterNumber: ci + 1, clusterName: c.name, modules: [], los: [] };
+      rows.push(row);
+      if (!byKey.has(cr.key)) byKey.set(cr.key, row);
+    });
+  });
+
+  const inModule = new Set();
+  mm.modules.forEach((m, mi) => {
+    (m.learningOutcomes || []).forEach(o => {
+      inModule.add(o.id);
+      (o.linkedCriteria || []).forEach(pc => {
+        const row = !pc.stale && pc.key && byKey.get(pc.key);
+        if (row && !row.modules.some(x => x.id === m.id)) {
+          row.modules.push({ id: m.id, number: `M${mi + 1}`, title: m.title,
+                             level: _moduleLevel(m), track: m.track || '' });
+        }
+      });
+    });
+  });
+  lo.outcomes.forEach(o => (o.linkedCriteria || []).forEach(pc => {
+    const row = !pc.stale && pc.key && byKey.get(pc.key);
+    if (row && !row.los.includes(o.number)) row.los.push(o.number);
+  }));
+
+  rows.forEach(r => {
+    r.status = r.modules.length > 1 ? 'multi'
+             : r.modules.length === 1 ? 'covered'
+             : r.los.length ? 'lo-only' : 'gap';
+  });
+  const count = st => rows.filter(r => r.status === st).length;
+  return { rows, levelCount: getModuleLevelCount(),
+           summary: { total: rows.length, covered: count('covered') + count('multi'),
+                      multi: count('multi'), loOnly: count('lo-only'), gap: count('gap') } };
+}
+
+let _covGapsOnly = false;
+
+export function renderCoverageMatrix() {
+  const modCont = document.getElementById('modulesContainer');
+  if (!modCont) return;
+  const anchor = modCont.closest('.clustering-section') || modCont;
+  let sec = document.getElementById('coverageMatrixSection');
+  if (!sec) {
+    sec = document.createElement('div');
+    sec.id = 'coverageMatrixSection';
+    sec.className = 'clustering-section';
+    anchor.parentNode.insertBefore(sec, anchor.nextSibling);
+  }
+
+  const cov = computeCoverage();
+  const { rows, levelCount, summary } = cov;
+  const usesNoLevel = rows.some(r => r.modules.some(m => !m.level));
+  const levels = Array.from({ length: levelCount }, (_, i) => i + 1);
+
+  const cell = (r, level) => r.modules
+    .filter(m => (m.level || null) === level)
+    .map(m => `<span class="cov-chip" title="${_esc(m.title)}">${_esc(m.number)}${m.track ? ` <small>${_esc(m.track)}</small>` : ''}</span>`)
+    .join('');
+
+  const statusCell = r => {
+    if (r.status === 'gap')     return `<span class="cov-st cov-gap">✗ ${_esc(_tx('covGap'))}</span>`;
+    if (r.status === 'lo-only') return `<span class="cov-st cov-lo">◐ ${_esc(_txf('covLoOnly', { lo: r.los.join(', ') }))}</span>`;
+    if (r.status === 'multi')   return `<span class="cov-st cov-multi">⚠ ${_esc(_txf('covMulti', { n: r.modules.length }))}</span>`;
+    return `<span class="cov-st cov-ok">✓</span>`;
+  };
+
+  let body = '';
+  let lastCluster = null;
+  const shown = rows.filter(r => !_covGapsOnly || r.status === 'gap' || r.status === 'lo-only');
+  shown.forEach(r => {
+    if (r.clusterNumber !== lastCluster) {
+      lastCluster = r.clusterNumber;
+      body += `<tr class="cov-group"><td colspan="${levels.length + (usesNoLevel ? 3 : 2)}">C${r.clusterNumber} — ${_esc(r.clusterName)}</td></tr>`;
+    }
+    body += `<tr class="cov-row cov-${r.status}">
+      <td class="cov-crit"><strong>${_esc(r.id)}</strong> ${_esc(r.text)}${r.taskId ? ` <span class="cov-task">[${_esc(_taskLabel(r.taskId))}]</span>` : ''}</td>
+      ${levels.map(l => `<td class="cov-lvl">${cell(r, l)}</td>`).join('')}
+      ${usesNoLevel ? `<td class="cov-lvl">${cell(r, null)}</td>` : ''}
+      <td class="cov-status">${statusCell(r)}</td>
+    </tr>`;
+  });
+
+  const pct = summary.total ? Math.round(summary.covered / summary.total * 100) : 0;
+  sec.innerHTML = `
+    <h3>📊 ${_esc(_tx('covTitle'))}</h3>
+    <p class="cov-hint">${_esc(_tx('covHint'))}</p>
+    <div class="cov-controls">
+      <label class="mod-meta-field"><span>${_esc(_tx('lblLevelCount'))}</span>
+        <input type="number" class="cov-level-count" min="1" max="${MAX_LEVELS}" value="${levelCount}">
+      </label>
+      <label class="cov-gaps-toggle"><input type="checkbox" class="cov-gaps-only" ${_covGapsOnly ? 'checked' : ''}>
+        ${_esc(_tx('covGapsOnly'))}</label>
+    </div>
+    ${summary.total ? `
+    <div class="cov-summary">
+      <span class="cov-pill">${_esc(_txf('covTotal', { n: summary.total }))}</span>
+      <span class="cov-pill cov-ok">✓ ${_esc(_txf('covCoveredN', { n: summary.covered, p: pct }))}</span>
+      <span class="cov-pill cov-gap">✗ ${_esc(_txf('covGapN', { n: summary.gap }))}</span>
+      ${summary.loOnly ? `<span class="cov-pill cov-lo">◐ ${_esc(_txf('covLoOnlyN', { n: summary.loOnly }))}</span>` : ''}
+      ${summary.multi ? `<span class="cov-pill cov-multi">⚠ ${_esc(_txf('covMultiN', { n: summary.multi }))}</span>` : ''}
+    </div>
+    <div class="cov-table-wrap">
+      <table class="cov-table">
+        <thead><tr>
+          <th>${_esc(_tx('covColCriterion'))}</th>
+          ${levels.map(l => `<th>${_esc(_txf('lblLevelShort', { n: l }))}</th>`).join('')}
+          ${usesNoLevel ? `<th>${_esc(_tx('covColNoLevel'))}</th>` : ''}
+          <th>${_esc(_tx('covColStatus'))}</th>
+        </tr></thead>
+        <tbody>${body || `<tr><td colspan="${levels.length + 3}" class="cov-empty">${_esc(_tx('covNoGaps'))}</td></tr>`}</tbody>
+      </table>
+    </div>` : `<div class="no-clusters-message">${_esc(_tx('covEmpty'))}</div>`}`;
 }
 
 export function renameModule(moduleId) {
@@ -1807,6 +2193,9 @@ function _buildModuleExport(module, moduleNumber) {
     moduleId: module.id,
     moduleNumber: `M${moduleNumber}`,
     moduleTitle: module.title,
+    // Programme level (1..N) and specialisation; null / '' when unset.
+    level: _moduleLevel(module),
+    track: module.track || '',
     learningOutcomes: module.learningOutcomes.map(o => ({
       number: o.number,
       statement: o.statement,
@@ -1920,6 +2309,12 @@ export function exportModuleMappingJSON() {
     // received even when nothing was actually lost in the transfer.
     modules: mm.modules.map((module, i) => _buildModuleExport(module, i + 1)),
     occupationalReference: getSupplementaryVerificationData(),
+    levelCount: getModuleLevelCount(),
+    coverage: (() => { const c = computeCoverage(); return {
+      summary: c.summary,
+      criteria: c.rows.map(r => ({ id: r.id, text: r.text, taskId: r.taskId || null,
+        competency: r.clusterNumber, status: r.status,
+        modules: r.modules.map(m => ({ module: m.number, level: m.level, track: m.track })) })) }; })(),
     summary: {
       totalModules: mm.modules.length,
       totalLearningOutcomes: mm.modules.reduce((s, m) => s + m.learningOutcomes.length, 0),
