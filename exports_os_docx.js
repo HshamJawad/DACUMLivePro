@@ -199,9 +199,18 @@ export async function exportOccupationalStandardWord() {
         const occupation = _val('occupationTitle');
         const job        = _val('jobTitle');
 
+        /* Subtitle under each part heading is the JOB being profiled;
+           falls back to the occupation when no job title is entered. */
+        const _jobSubtitle = () => new Paragraph({
+            children: [new TextRun({ text: job || occupation, bold: true, size: 28 })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 300 },
+            bidirectional: _rtl(),
+        });
+
         children.push(_h1(_t('osPart1Title')));
         children.push(new Paragraph({
-            children: [new TextRun({ text: occupation, bold: true, size: 28 })],
+            children: [new TextRun({ text: job || occupation, bold: true, size: 28 })],
             alignment: AlignmentType.CENTER,
             spacing: { after: 300 },
             bidirectional: _rtl(),
@@ -355,6 +364,7 @@ export async function exportOccupationalStandardWord() {
 
         children.push(_break());
         children.push(_h1(_t('osPart2Title')));
+        if (job || occupation) children.push(_jobSubtitle());
 
         // Header block. The four blank rows are the endorsement chain —
         // see the note at the top of this file for why they are printed
@@ -480,7 +490,7 @@ export async function exportOccupationalStandardWord() {
         // ---- Tools, equipment and materials -------------------------
         const tools = _val('toolsInput');
         if (tools) {
-            children.push(_spacer());
+            children.push(_break());
             children.push(_table([
                 new TableRow({
                     children: [_cell(
