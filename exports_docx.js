@@ -1268,7 +1268,6 @@ export async function exportToWord() {
                             
                             if (taskIndex < dutyData.tasks.length) {
                                 const taskLabel = _tf('lblTask', { code: `${dutyLetter}${taskIndex + 1}` });
-                                const taskText = `${taskLabel}: ${dutyData.tasks[taskIndex]}`;
                                 
                                 rowCells.push(
                                     new TableCell({
@@ -1276,7 +1275,12 @@ export async function exportToWord() {
                                             new Paragraph({
                                                 children: [
                                                     new TextRun({
-                                                        text: taskText,
+                                                        text: `${taskLabel}: `,
+                                                        bold: true,
+                                                        size: 24, // 12pt
+                                                    }),
+                                                    new TextRun({
+                                                        text: dutyData.tasks[taskIndex],
                                                         size: 24, // 12pt
                                                     }),
                                                 ],

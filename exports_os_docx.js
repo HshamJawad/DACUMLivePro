@@ -299,7 +299,8 @@ export async function exportOccupationalStandardWord() {
                         cells.push(new TableCell({
                             children: [new Paragraph({
                                 children: idx < d.tasks.length
-                                    ? [new TextRun({ text: `${label}: ${d.tasks[idx]}`, size: 24 })]
+                                    ? [new TextRun({ text: `${label}: `, bold: true, size: 24 }),
+                                       new TextRun({ text: d.tasks[idx], size: 24 })]
                                     : [new TextRun({ text: '', size: 24 })],
                                 bidirectional: _rtl(),
                             })],
