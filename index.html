@@ -108,7 +108,7 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v108';
+      var EXPECTED_SW='v109';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
@@ -1051,8 +1051,23 @@
                           end.dispatchEvent(new Event('input', { bubbles: true }));
                           end.dispatchEvent(new Event('change', { bubbles: true }));
                         }
-                        if (cb.checked) { if (start) end.min = start.value || ''; end.focus(); }
+                        if (cb.checked) { if (start) end.min = start.value || ''; fillEnd(); }
                       });
+                      /* Never leave the end date empty while it is shown: an
+                         empty date input on Android renders the locale's
+                         placeholder words (يوم/شهر/سنة) reversed. Prefill
+                         with the day after the start date. */
+                      function fillEnd() {
+                        if (!cb.checked || d.get.call(end)) return;
+                        var s0 = (start && start.value) || '';
+                        var t = s0 ? new Date(s0 + 'T00:00:00') : new Date();
+                        t.setDate(t.getDate() + 1);
+                        var v = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+                        d.set.call(end, v);
+                        end.dispatchEvent(new Event('input', { bubbles: true }));
+                      }
+                      end.addEventListener('blur', fillEnd);
+                      end.addEventListener('change', fillEnd);
                       end.addEventListener('change', function () {
                         /* An end before the start is a typo — swap-free rule:
                            snap it to the start date rather than export nonsense. */
