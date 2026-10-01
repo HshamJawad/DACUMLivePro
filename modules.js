@@ -59,16 +59,24 @@ function _taskLabel(taskId) {
 // input card in renderClusters() shows. This replaces the old
 // fragmented "C1-PC1" / "C1-Ttaskcode-PC1" schemes; see the note in
 // renderPCSourceList() about what that means for pre-existing projects.
+//
+// Each item also carries a `key` that does NOT depend on position:
+//   ta|<taskId>|<text>      — criterion from a task's Task Analysis
+//   pc|<clusterId>|<text>   — criterion typed for the cluster itself
+// The positional id renumbers whenever tasks are added, moved or
+// removed; the key does not. Learning Outcomes store the key, which is
+// how their links follow a criterion to its new number (see
+// _reconcileLearningOutcomes below).
 function _getClusterEffectiveCriteria(cluster, clusterNumber) {
   const items = [];
   cluster.tasks.forEach(task => {
     const taskId = task.id;
     getTaskPerformanceCriteria(taskId).forEach(text => {
-      items.push({ text, taskId, source: 'ta' });
+      items.push({ text, taskId, source: 'ta', clusterId: cluster.id, key: `ta|${taskId}|${text}` });
     });
   });
   (cluster.performanceCriteria || []).forEach(text => {
-    items.push({ text, taskId: null, source: 'manual' });
+    items.push({ text, taskId: null, source: 'manual', clusterId: cluster.id, key: `pc|${cluster.id}|${text}` });
   });
   return items.map((item, i) => ({
     ...item,
@@ -499,7 +507,12 @@ const _LOCAL_STRINGS = {
     lblNewTask:               'New',
     ttNewTask:                'Added in Duties & Tasks after clustering began',
     lblRemovedFromProfile:    'Removed from Occupational Profile',
-    ttDismissNotice:          'Dismiss'
+    ttDismissNotice:          'Dismiss',
+    loSyncTitle:              'Competency Clusters changed — Learning Outcomes updated',
+    loSyncRenumbered:         'Criteria renumbered to follow the new task order: {n}',
+    loSyncRemoved:            'Criteria removed because their task is no longer in any competency: {n}',
+    loSyncStale:              'Criteria reworded or deleted in Competency Clusters / Task Analysis: {n} — marked ⚠ for your review',
+    lblStaleCriterion:        'Reworded or deleted at the source — review, then keep or remove (✕)'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -519,7 +532,12 @@ const _LOCAL_STRINGS = {
     lblNewTask:               'Nouveau',
     ttNewTask:                'Ajoutée dans les tâches et activités après le début du regroupement',
     lblRemovedFromProfile:    'Retirée du profil professionnel',
-    ttDismissNotice:          'Fermer'
+    ttDismissNotice:          'Fermer',
+    loSyncTitle:              'Les groupes de compétences ont changé — résultats d’apprentissage mis à jour',
+    loSyncRenumbered:         'Critères renumérotés selon le nouvel ordre des tâches : {n}',
+    loSyncRemoved:            'Critères retirés car leur tâche n’est plus dans aucune compétence : {n}',
+    loSyncStale:              'Critères reformulés ou supprimés dans les groupes / l’analyse des tâches : {n} — signalés ⚠ pour vérification',
+    lblStaleCriterion:        'Reformulé ou supprimé à la source — vérifiez, puis conservez ou retirez (✕)'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -539,7 +557,12 @@ const _LOCAL_STRINGS = {
     lblNewTask:               'جديدة',
     ttNewTask:                'أُضيفت في الواجبات والمهام بعد بدء التجميع',
     lblRemovedFromProfile:    'حُذفت من الملف المهني',
-    ttDismissNotice:          'إغلاق'
+    ttDismissNotice:          'إغلاق',
+    loSyncTitle:              'تغيّرت تجمعات الكفاءات — جرى تحديث محصلات التعلم',
+    loSyncRenumbered:         'معايير أُعيد ترقيمها وفق الترتيب الجديد للمهام: {n}',
+    loSyncRemoved:            'معايير أُزيلت لأن مهمتها لم تعد في أي كفاءة: {n}',
+    loSyncStale:              'معايير عُدّلت صياغتها أو حُذفت في تجمعات الكفاءات / تحليل المهمة: {n} — موسومة بـ ⚠ لمراجعتها',
+    lblStaleCriterion:        'عُدّلت أو حُذفت في المصدر — راجعها ثم أبقِها أو أزلها (✕)'
   }
 };
 
@@ -888,6 +911,7 @@ function _renderSyncNotice(listEl) {
   if (!box) {
     box = document.createElement('div');
     box.id = 'clusterSyncNotice';
+    box.className = 'dacum-sync-notice';
     box.setAttribute('role', 'status');
     listEl.parentNode.insertBefore(box, listEl);
   }
@@ -905,6 +929,142 @@ export function dismissClusterSyncNotice() {
   _syncNotice = null;
   const box = document.getElementById('clusterSyncNotice');
   if (box) box.remove();
+}
+
+// ══════════════════════════════════════════════════════════════
+// CARRYING CLUSTER CHANGES INTO LEARNING OUTCOMES
+// ──────────────────────────────────────────────────────────────
+// The Performance Criteria list in the Learning Outcomes tab is already
+// rebuilt live from the clusters, so a task placed in a competency
+// shows its criteria there straight away, numbered in task order. What
+// did NOT follow were the outcomes created earlier: each stores a copy
+// of its criteria under the positional number ("1-3") they had at the
+// time. Adding, moving or removing a task shifts those numbers, and the
+// stored links silently drifted out of step.
+//
+// Each link is now matched to its live criterion by `key` (see
+// _getClusterEffectiveCriteria), falling back to task + wording for
+// outcomes created before keys existed. Then:
+//   found          → number, cluster and wording follow the criterion
+//   its task is no longer in ANY competency (removed, or its
+//   competency deleted)
+//                  → the link is removed from the outcome
+//   anything else  (criterion reworded or deleted in Task Analysis or
+//                   in the cluster's own criteria)
+//                  → kept and flagged ⚠ for the expert, never guessed at
+// Module copies of each outcome are re-pointed at the live outcome, so
+// Module Mapping and the Module Builder export carry the same numbers.
+// With no clusters at all (tab cleared) nothing is touched: removing
+// every link because the stage above was emptied would be data loss.
+// ══════════════════════════════════════════════════════════════
+
+let _loNotice = null;   // { renumbered, removed, stale }
+
+function _matchLink(pc, byKey, all, consumed) {
+  if (pc.key && byKey.has(pc.key)) {
+    return byKey.get(pc.key).find(c => !consumed.has(c)) || null;
+  }
+  if (pc.taskId) {
+    return all.find(c => !consumed.has(c) && c.source === 'ta' &&
+                         c.taskId === pc.taskId && c.text === pc.text) || null;
+  }
+  const same = all.filter(c => !consumed.has(c) && c.source === 'manual' && c.text === pc.text);
+  return same.find(c => c.clusterId && c.clusterId === pc.clusterId)
+      || same.find(c => c.clusterNumber === pc.clusterNumber)
+      || same[0] || null;
+}
+
+function _reconcileLearningOutcomes() {
+  const cd = appState.clusteringData;
+  const lo = appState.learningOutcomesData;
+  if (!lo || !Array.isArray(lo.outcomes) || !lo.outcomes.length ||
+      !cd || !Array.isArray(cd.clusters) || !cd.clusters.length) {
+    _refreshModuleOutcomes();
+    return null;
+  }
+
+  const all = [];
+  cd.clusters.forEach((c, i) => all.push(..._getClusterEffectiveCriteria(c, i + 1)));
+  const byKey = new Map();
+  all.forEach(c => { if (!byKey.has(c.key)) byKey.set(c.key, []); byKey.get(c.key).push(c); });
+  const placedTasks = new Set();
+  cd.clusters.forEach(c => (c.tasks || []).forEach(t => { if (t) placedTasks.add(t.id); }));
+
+  let renumbered = 0, removed = 0, newlyStale = 0, stale = 0;
+  lo.outcomes.forEach(o => {
+    if (!Array.isArray(o.linkedCriteria)) return;
+    const consumed = new Set();
+    o.linkedCriteria = o.linkedCriteria.filter(pc => {
+      if (!pc) return false;
+      const c = _matchLink(pc, byKey, all, consumed);
+      if (c) {
+        consumed.add(c);
+        if (pc.id !== c.id) renumbered++;
+        pc.id = c.id; pc.text = c.text; pc.clusterNumber = c.clusterNumber;
+        pc.clusterId = c.clusterId; pc.key = c.key; pc.taskId = c.taskId || null;
+        delete pc.stale;
+        return true;
+      }
+      if (pc.taskId && !placedTasks.has(pc.taskId)) { removed++; return false; }
+      if (!pc.stale) { pc.stale = true; newlyStale++; }
+      stale++;
+      return true;
+    });
+  });
+
+  if (renumbered || removed || newlyStale) {
+    const p = _loNotice || { renumbered: 0, removed: 0 };
+    _loNotice = { renumbered: p.renumbered + renumbered, removed: p.removed + removed, stale };
+    _persistClusters();
+  } else if (_loNotice) {
+    _loNotice.stale = stale;
+  }
+  _refreshModuleOutcomes();
+  return { renumbered, removed, stale };
+}
+
+// Modules hold their outcomes by reference within a session, but a
+// saved project reloads them as separate copies, which then never see
+// later changes. Re-point each at the live outcome with the same id.
+// An outcome that no longer exists keeps its copy, exactly as before.
+function _refreshModuleOutcomes() {
+  const mm = appState.moduleMappingData;
+  const lo = appState.learningOutcomesData;
+  if (!mm || !Array.isArray(mm.modules) || !lo || !Array.isArray(lo.outcomes)) return;
+  const byId = new Map(lo.outcomes.map(o => [o.id, o]));
+  mm.modules.forEach(m => {
+    if (Array.isArray(m.learningOutcomes)) {
+      m.learningOutcomes = m.learningOutcomes.map(o => (o && byId.get(o.id)) || o);
+    }
+  });
+}
+
+function _renderLoNotice(listEl) {
+  if (!listEl || !listEl.parentNode) return;
+  let box = document.getElementById('loSyncNotice');
+  const n = _loNotice;
+  const lines = [];
+  if (n) {
+    if (n.renumbered) lines.push(_txf('loSyncRenumbered', { n: n.renumbered }));
+    if (n.removed)    lines.push(_txf('loSyncRemoved',    { n: n.removed }));
+    if (n.stale)      lines.push(_txf('loSyncStale',      { n: n.stale }));
+  }
+  if (!lines.length) { if (box) box.remove(); return; }
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'loSyncNotice';
+    box.className = 'dacum-sync-notice';
+    box.setAttribute('role', 'status');
+    listEl.parentNode.insertBefore(box, listEl);
+  }
+  const close = _esc(_tx('ttDismissNotice'));
+  box.innerHTML = `
+    <div class="csn-head">
+      <strong>🔄 ${_esc(_tx('loSyncTitle'))}</strong>
+      <button type="button" class="csn-close" data-action="dismiss-lo-sync"
+        title="${close}" aria-label="${close}">✕</button>
+    </div>
+    <ul>${lines.map(l => `<li>${_esc(l)}</li>`).join('')}</ul>`;
 }
 
 function _injectClusterTaskStyles() {
@@ -1014,16 +1174,16 @@ function _injectClusterTaskStyles() {
     .ctl-add-cancel:hover { background: #f1f5f9; }
 
     /* ── Sync with Duties & Tasks ──────────────────────────── */
-    #clusterSyncNotice {
+    .dacum-sync-notice {
       margin: 0 0 12px; padding: 10px 14px;
       background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
       color: #1e3a8a; font-size: 0.9em; line-height: 1.55;
     }
-    #clusterSyncNotice .csn-head {
+    .dacum-sync-notice .csn-head {
       display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
     }
-    #clusterSyncNotice ul { margin: 6px 0 0; padding-inline-start: 20px; }
-    #clusterSyncNotice .csn-close {
+    .dacum-sync-notice ul { margin: 6px 0 0; padding-inline-start: 20px; }
+    .dacum-sync-notice .csn-close {
       flex: 0 0 auto; box-sizing: border-box;
       width: 28px; height: 28px; min-width: 28px; max-width: 28px;
       min-height: 28px; max-height: 28px; padding: 0 !important;
@@ -1031,7 +1191,25 @@ function _injectClusterTaskStyles() {
       border-radius: 6px; border: 1px solid #bfdbfe; background: #ffffff;
       color: #1e3a8a; font-size: 13px; line-height: 1; cursor: pointer;
     }
-    #clusterSyncNotice .csn-close:hover { background: #dbeafe; }
+    .dacum-sync-notice .csn-close:hover { background: #dbeafe; }
+    .lo-linked-item.lo-link-stale { background: #fffbeb; }
+    .lo-linked-item.lo-link-stale strong { color: #b45309; }
+    .lo-stale-note {
+      display: block; margin-top: 2px;
+      font-size: 0.78em; font-style: italic; color: #b45309;
+    }
+
+    /* "Add to" / "Assign to LO" dropdowns (existing elements). A native
+       <select> is as wide as its longest option — a long competency
+       name pushed the row past a phone screen. Cap it; the open list
+       still shows the full names. */
+    .task-reassign-dropdown { max-width: min(320px, 100%); min-width: 0; text-overflow: ellipsis; }
+    .task-dropdown-container { min-width: 0; max-width: 100%; }
+    @media (max-width: 768px) {
+      .task-checkbox-item, .pc-checkbox-item { flex-wrap: wrap; }
+      .task-dropdown-container { flex: 1 1 100%; margin-inline-start: 0 !important; }
+      .task-reassign-dropdown { flex: 1 1 auto; width: 100%; max-width: 100%; }
+    }
     .cluster-new-badge {
       display: inline-block; margin-inline-start: 6px; padding: 1px 8px;
       border-radius: 999px; background: #dcfce7; color: #166534;
@@ -1073,13 +1251,18 @@ function _wireClusterTaskControls() {
   // already dispatches it, unchanged.
   // A notice belongs to the project it was raised for.
   document.addEventListener('dacum:project-loaded', () => {
-    _syncNotice = null; _lastOrphanCount = 0;
+    _syncNotice = null; _lastOrphanCount = 0; _loNotice = null;
     _addTaskOpenFor = null; _addTaskDraft = '';
   });
 
   document.addEventListener('click', (e) => {
     if (e.target && e.target.closest && e.target.closest('#clusterSyncNotice [data-action="dismiss-cluster-sync"]')) {
       dismissClusterSyncNotice();
+      return;
+    }
+    if (e.target && e.target.closest && e.target.closest('#loSyncNotice [data-action="dismiss-lo-sync"]')) {
+      _loNotice = null;
+      const b = document.getElementById('loSyncNotice'); if (b) b.remove();
       return;
     }
     const btn = e.target && e.target.closest && e.target.closest('#clustersContainer [data-action]');
@@ -1189,6 +1372,13 @@ export function renderPCSourceList() {
   const container = document.getElementById('pcSourceList');
   if (!container) return;
 
+  // Pick up any Duties & Tasks change first (also when the user jumps
+  // here without passing through Competency Clusters), then bring the
+  // existing Learning Outcomes in line with the clusters.
+  syncClusteringWithProfile();
+  _reconcileLearningOutcomes();
+  _renderLoNotice(container);
+
   const cd = appState.clusteringData;
   if (!cd.clusters || cd.clusters.length === 0) {
     container.innerHTML = `<div class="no-tasks-message">${_t('msgNoPCAvailable')}</div>`;
@@ -1198,7 +1388,9 @@ export function renderPCSourceList() {
   const lo = appState.learningOutcomesData;
   const usedPCIds = new Set();
   lo.outcomes.forEach(outcome => {
-    if (outcome.linkedCriteria) outcome.linkedCriteria.forEach(pc => usedPCIds.add(pc.id));
+    // A ⚠ link no longer points at a live criterion; its old number may
+    // now belong to a different one, so it must not mark that one used.
+    if (outcome.linkedCriteria) outcome.linkedCriteria.forEach(pc => { if (!pc.stale) usedPCIds.add(pc.id); });
   });
   // Note on legacy projects: a Learning Outcome created before this
   // "{clusterNumber}-{position}" id scheme was introduced stored its
@@ -1282,7 +1474,7 @@ export function createLearningOutcome() {
     if (!found) return;
     linkedCriteria.push({
       id: found.id, text: found.text, clusterNumber: found.clusterNumber,
-      taskId: found.taskId || null
+      taskId: found.taskId || null, clusterId: found.clusterId, key: found.key
     });
   });
 
@@ -1301,6 +1493,7 @@ export function createLearningOutcome() {
 
 export function renderLearningOutcomes() {
   const container = document.getElementById('loBlocksContainer');
+  _reconcileLearningOutcomes();   // idempotent — no-op when nothing changed
   const lo = appState.learningOutcomesData;
 
   if (lo.outcomes.length === 0) {
@@ -1330,11 +1523,11 @@ export function renderLearningOutcomes() {
         </div>
         <div class="lo-linked-criteria">
           <h5>📎 ${_t('lblMappedPC')}</h5>
-          ${outcome.linkedCriteria.map(pc => `
-            <div class="lo-linked-item">
-              <div style="flex:1"><strong>${pc.id}:</strong> ${pc.text}${pc.taskId ? ` <span style="color:#94a3b8;font-size:0.85em;">[${_taskLabel(pc.taskId)}]</span>` : ''}</div>
+          ${outcome.linkedCriteria.map((pc, pcIndex) => `
+            <div class="lo-linked-item${pc.stale ? ' lo-link-stale' : ''}">
+              <div style="flex:1"><strong>${pc.stale ? '⚠ ' : ''}${pc.id}:</strong> ${pc.text}${pc.taskId ? ` <span style="color:#94a3b8;font-size:0.85em;">[${_taskLabel(pc.taskId)}]</span>` : ''}${pc.stale ? `<span class="lo-stale-note">${_esc(_tx('lblStaleCriterion'))}</span>` : ''}</div>
               <button class="btn-remove-task" data-action="unassign-pc-from-lo"
-                data-lo-id="${outcome.id}" data-pc-id="${pc.id}" style="margin-left:10px;">✕</button>
+                data-lo-id="${outcome.id}" data-pc-id="#idx:${pcIndex}" style="margin-left:10px;">✕</button>
             </div>`).join('')}
         </div>
       </div>`;
@@ -1383,17 +1576,17 @@ export function reassignPCToLO(pcId, clusterNumber, criterionIndex, targetLoId) 
   const targetLO = lo.outcomes.find(o => o.id === targetLoId);
   if (!targetLO) return;
 
-  const alreadyInTarget = targetLO.linkedCriteria.some(pc => pc.id === pcId);
+  const alreadyInTarget = targetLO.linkedCriteria.some(pc => pc.id === pcId && !pc.stale);
   if (!alreadyInTarget) {
     lo.outcomes.forEach(outcome => {
-      const idx = outcome.linkedCriteria.findIndex(pc => pc.id === pcId);
+      const idx = outcome.linkedCriteria.findIndex(pc => pc.id === pcId && !pc.stale);
       if (idx !== -1) outcome.linkedCriteria.splice(idx, 1);
     });
     const found = _findEffectiveCriterionById(pcId);
     if (found) {
       targetLO.linkedCriteria.push({
         id: found.id, text: found.text, clusterNumber: found.clusterNumber,
-        taskId: found.taskId || null
+        taskId: found.taskId || null, clusterId: found.clusterId, key: found.key
       });
     }
   }
@@ -1405,8 +1598,13 @@ export function reassignPCToLO(pcId, clusterNumber, criterionIndex, targetLoId) 
 export function unassignPCFromLO(loId, pcId) {
   const lo = appState.learningOutcomesData.outcomes.find(o => o.id === loId);
   if (!lo) return;
-  const idx = lo.linkedCriteria.findIndex(pc => pc.id === pcId);
-  if (idx !== -1) lo.linkedCriteria.splice(idx, 1);
+  // The ✕ now sends the link's POSITION ("#idx:n"): after renumbering, a
+  // ⚠ link can share its old number with a live one, and removing "by
+  // number" could take out the wrong criterion. A plain id still works.
+  const m = /^#idx:(\d+)$/.exec(String(pcId));
+  const idx = m ? parseInt(m[1], 10) : lo.linkedCriteria.findIndex(pc => pc.id === pcId);
+  if (idx >= 0 && idx < lo.linkedCriteria.length) lo.linkedCriteria.splice(idx, 1);
+  _persistClusters();
   renderPCSourceList();
   renderLearningOutcomes();
 }
@@ -1415,6 +1613,7 @@ export function unassignPCFromLO(loId, pcId) {
 
 export function renderModuleLoList() {
   const container = document.getElementById('moduleLoList');
+  _reconcileLearningOutcomes();   // also re-links module copies to live outcomes
   const lo = appState.learningOutcomesData;
   const mm = appState.moduleMappingData;
 
@@ -1490,6 +1689,7 @@ export function createModule() {
 
 export function renderModules() {
   const container = document.getElementById('modulesContainer');
+  _refreshModuleOutcomes();
   const mm = appState.moduleMappingData;
 
   if (mm.modules.length === 0) {
@@ -1637,6 +1837,7 @@ export function openModuleBuilderFromMapping(moduleId = null) {
   const occupationTitle = document.getElementById('occupationTitle')?.value || '';
   const jobTitle = document.getElementById('jobTitle')?.value || '';
   const occupation = occupationTitle || jobTitle || 'Unknown Occupation';
+  _reconcileLearningOutcomes();
   const mm = appState.moduleMappingData;
 
   const modulesToSend = moduleId
@@ -1695,6 +1896,7 @@ export function openModuleBuilderFromMapping(moduleId = null) {
 }
 
 export function exportModuleMappingJSON() {
+  _reconcileLearningOutcomes();
   const mm = appState.moduleMappingData;
   if (!mm.modules || mm.modules.length === 0) {
     showStatus(_t('msgNoModulesToExport'), 'error');
