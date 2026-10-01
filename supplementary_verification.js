@@ -319,13 +319,15 @@ function _injectStyles() {
       #${CONTAINER_ID} .sv-table{display:block;width:100%;min-width:0!important;border:none;}
       #${CONTAINER_ID} .sv-table thead{display:none;}
       #${CONTAINER_ID} .sv-table tbody{display:block;width:100%;}
-      #${CONTAINER_ID} .sv-table tr{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;
+      #${CONTAINER_ID} .sv-table tr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:8px 10px;
         padding:12px 10px;margin:0 0 10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;}
       #${CONTAINER_ID} .sv-table td{display:block;width:auto!important;min-width:0!important;
         border:none!important;padding:0!important;background:transparent!important;text-align:start!important;}
       #${CONTAINER_ID} .sv-table td:nth-child(1),
-      #${CONTAINER_ID} .sv-table td:nth-child(2),
-      #${CONTAINER_ID} .sv-table td:nth-child(5){grid-column:1/-1;}
+      #${CONTAINER_ID} .sv-table td:nth-child(2){grid-column:1/-1;}
+      /* Score · % · actions share one line instead of the buttons
+         taking a row of their own under every item. */
+      #${CONTAINER_ID} .sv-table td:nth-child(5){grid-column:auto;align-self:end;}
       #${CONTAINER_ID} .sv-table td[data-label]::before{content:attr(data-label);display:block;
         font-size:.74em;font-weight:700;color:#64748b;margin-bottom:4px;}
       #${CONTAINER_ID} .sv-table .count-input-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
@@ -334,8 +336,8 @@ function _injectStyles() {
         box-sizing:border-box;text-align:center;padding:6px 2px;}
       #${CONTAINER_ID} .sv-table .rating-scale{display:flex!important;flex-direction:row!important;justify-content:space-around;}
       #${CONTAINER_ID} .sv-item-input{min-width:0;font-weight:600;}
-      #${CONTAINER_ID} .sv-actions{justify-content:flex-end;}
-      #${CONTAINER_ID} .sv-icon{width:36px;height:36px;}
+      #${CONTAINER_ID} .sv-actions{justify-content:flex-end;flex-wrap:nowrap;gap:5px;}
+      #${CONTAINER_ID} .sv-icon{width:34px;height:34px;flex-shrink:0;}
     }
     @media (max-width:640px){
       .sv-card{padding:14px 12px;}
