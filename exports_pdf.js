@@ -21,6 +21,7 @@ import { lwExportVerifiedPDF } from './workshop.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getSupplementaryExportSections } from './supplementary_verification.js';
 import * as ExportSettings from './export_settings.js';
+import { writeLevelsPdf, moduleTitleWithLevel } from './modules.js';
 import {
     ensureArabicFont,
     isArabicFontLoaded,
@@ -2212,7 +2213,7 @@ export function exportToPDF() {
                 // Module title
                 pdf.setFontSize(14);
                 pdf.setFont(undefined, 'bold');
-                pdf.text(module.title, margin, yPos);
+                pdf.text(moduleTitleWithLevel(module), margin, yPos);
                 yPos += 7;
                 
                 // Learning Outcomes in this module
@@ -2280,6 +2281,13 @@ export function exportToPDF() {
             });
         }
         
+        // ============ LEVELS & COVERAGE MATRIX ============
+        // Same content as the Word export (see modules.js). Draws on a
+        // new page and returns the new y; no modules → nothing drawn.
+        try {
+            yPos = writeLevelsPdf(pdf, { margin, pageWidth, pageHeight, yPos });
+        } catch (e) { console.warn('[export pdf] levels/coverage block skipped:', e); }
+
         // ============ ASSESSMENT PLAN SECTION ============
         //
         // Mirror of the Word appendix — see exports_docx.js for the full
@@ -2334,7 +2342,7 @@ export function exportToPDF() {
 
                 pdf.setFontSize(14);
                 pdf.setFont(undefined, 'bold');
-                pdf.text(module.title, margin, yPos);
+                pdf.text(moduleTitleWithLevel(module), margin, yPos);
                 yPos += 7;
 
                 (module.learningOutcomes || []).forEach(lo => {

@@ -108,18 +108,39 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v114';
+      var EXPECTED_SW='v115';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.25.0';
-      var APP_RELEASED = '2026-09-30';
+      var APP_VERSION = '3.26.0';
+      var APP_RELEASED = '2026-10-01';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.26.0 — 2026-10-01 — clusters, levels & coverage ───
+         MINOR. Additive only; projects without the new data export
+         and render exactly as before.
+
+         Added
+           modules.js          Competence Cluster task controls (move
+                               up/down, delete, + Add Task with its own
+                               ID and "competency-clustering" source),
+                               automatic sync with Duties & Tasks, and
+                               Learning Outcome renumbering after
+                               cluster changes. Module level + track,
+                               levels count, and a performance-criteria
+                               coverage matrix.
+           exports_docx.js     "Programme Structure by Level" table and
+           exports_pdf.js      the coverage matrix after Module Mapping;
+                               module titles carry their level/track.
+         Fixed
+           app.js              Active project is reopened on start-up
+                               instead of being overwritten by the blank
+                               boot screen.
 
          ── 3.24.0 — 2026-08-31 — assessment traceability ────────
          MINOR. Two additions, both of which appear only when the data

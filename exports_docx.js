@@ -16,6 +16,7 @@ import { noteExportExclusion } from './draft_unverified.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getSupplementaryExportSections } from './supplementary_verification.js';
 import * as ExportSettings from './export_settings.js';
+import { buildLevelsDocxBlock, moduleTitleWithLevel } from './modules.js';
 
 
 /* ── i18n + direction helpers ────────────────────────────────────────
@@ -2752,7 +2753,7 @@ export async function exportToWord() {
                         children.push(new Paragraph({
                             children: [
                                 new TextRun({
-                                    text: module.title,
+                                    text: moduleTitleWithLevel(module),
                                     bold: true,
                                     size: 28, // 14pt
                                 }),
@@ -2834,6 +2835,16 @@ export async function exportToWord() {
                     });
                 }
 
+                // ============ LEVELS & COVERAGE MATRIX ============
+                // Programme structure by level + performance-criteria
+                // coverage matrix. Built in modules.js (single source,
+                // same data as the on-screen matrix); returns [] when the
+                // project has no modules, so older projects are unchanged.
+                try {
+                    children.push(...buildLevelsDocxBlock({ Paragraph, TextRun, Table, TableRow, TableCell,
+                        WidthType, AlignmentType, ShadingType, PageBreak, fill: _tblFill(), rtl: _rtl() }));
+                } catch (e) { console.warn('[export docx] levels/coverage block skipped:', e); }
+
                 // ============ ASSESSMENT PLAN SECTION ============
                 //
                 // A curriculum breaks at exactly one joint: the assessment
@@ -2884,7 +2895,7 @@ export async function exportToWord() {
 
                     _apModules.forEach(module => {
                         children.push(new Paragraph({
-                            children: [new TextRun({ text: module.title, bold: true, size: 28 })],
+                            children: [new TextRun({ text: moduleTitleWithLevel(module), bold: true, size: 28 })],
                             spacing: { before: 300, after: 200 },
                                 bidirectional: _rtl(),
                         }));

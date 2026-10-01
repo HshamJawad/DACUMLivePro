@@ -537,7 +537,14 @@ const _LOCAL_STRINGS = {
     covColNoLevel:            'No level',
     covColStatus:             'Status',
     covNoGaps:                'No gaps — every criterion is taught in a module.',
-    covEmpty:                 'No performance criteria yet — add them in the Competency Clusters tab.'
+    covEmpty:                 'No performance criteria yet — add them in the Competency Clusters tab.',
+    covTaught:                'Taught',
+    covCommon:                'Common',
+    expLevelsTitle:           'Programme Structure by Level',
+    expColModule:             'Module',
+    expColLOs:                'Learning outcomes',
+    expColCriteria:           'Performance criteria',
+    expCovHint:               'Every performance criterion from the Competency Clusters, and the module and level where it is taught. A criterion marked “Not taught” appears in no module of the programme.'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -587,7 +594,14 @@ const _LOCAL_STRINGS = {
     covColNoLevel:            'Sans niveau',
     covColStatus:             'État',
     covNoGaps:                'Aucune lacune — chaque critère est enseigné dans un module.',
-    covEmpty:                 'Aucun critère de performance — ajoutez-les dans l’onglet Groupes de compétences.'
+    covEmpty:                 'Aucun critère de performance — ajoutez-les dans l’onglet Groupes de compétences.',
+    covTaught:                'Enseigné',
+    covCommon:                'Commun',
+    expLevelsTitle:           'Structure du programme par niveau',
+    expColModule:             'Module',
+    expColLOs:                'Résultats d’apprentissage',
+    expColCriteria:           'Critères de performance',
+    expCovHint:               'Chaque critère de performance des groupes de compétences, avec le module et le niveau où il est enseigné. Un critère « Non enseigné » ne figure dans aucun module du programme.'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -637,7 +651,14 @@ const _LOCAL_STRINGS = {
     covColNoLevel:            'دون مستوى',
     covColStatus:             'الحالة',
     covNoGaps:                'لا توجد فجوات — كل معيار مُدرَّس في وحدة.',
-    covEmpty:                 'لا توجد معايير أداء بعد — أضفها في تبويب تجمعات الكفاءات.'
+    covEmpty:                 'لا توجد معايير أداء بعد — أضفها في تبويب تجمعات الكفاءات.',
+    covTaught:                'مُدرَّس',
+    covCommon:                'مشتركة',
+    expLevelsTitle:           'هيكل البرنامج حسب المستوى',
+    expColModule:             'الوحدة',
+    expColLOs:                'محصلات التعلم',
+    expColCriteria:           'معايير الأداء',
+    expCovHint:               'كل معيار أداء من تجمعات الكفاءات، والوحدة والمستوى اللذان يُدرَّس فيهما. المعيار الموسوم «غير مُدرَّس» لا يرد في أي وحدة من البرنامج.'
   }
 };
 
@@ -2043,6 +2064,249 @@ export function computeCoverage() {
   return { rows, levelCount: getModuleLevelCount(),
            summary: { total: rows.length, covered: count('covered') + count('multi'),
                       multi: count('multi'), loOnly: count('lo-only'), gap: count('gap') } };
+}
+
+// ── Export helpers (used by exports_docx.js / exports_pdf.js) ──────────
+// Kept here, next to the data they describe, so the two exporters only
+// need a one-line call each and no new file has to be registered with
+// the service worker.
+
+/** "M3 — Title (Level 3 · CN)" — module heading for exported documents. */
+export function moduleTitleWithLevel(module) {
+  const mm = appState.moduleMappingData || { modules: [] };
+  const i = (mm.modules || []).indexOf(module);
+  const n = i >= 0 ? `M${i + 1} — ` : '';
+  const l = _moduleLevel(module);
+  const tags = [l ? _txf('lblLevelN', { n: l }) : '', module && module.track ? module.track : '']
+    .filter(Boolean).join(' · ');
+  return `${n}${module ? module.title : ''}${tags ? ` (${tags})` : ''}`;
+}
+
+function _statusWord(r) {
+  if (r.status === 'gap')     return _tx('covGap');
+  if (r.status === 'lo-only') return _txf('covLoOnly', { lo: r.los.join(', ') });
+  if (r.status === 'multi')   return _txf('covMulti', { n: r.modules.length });
+  return _tx('covTaught');
+}
+
+function _levelsExportData() {
+  const mm = appState.moduleMappingData || { modules: [] };
+  if (!(mm.modules || []).length) return null;
+  const cov = computeCoverage();
+  if (!cov.rows.length) return null;
+  const levelCount = cov.levelCount;
+  const anyLevel = mm.modules.some(m => _moduleLevel(m));
+  const usesNoLevel = cov.rows.some(r => r.modules.some(m => !m.level));
+  const cols = Array.from({ length: levelCount }, (_, i) => i + 1);
+  if (usesNoLevel) cols.push(null);
+
+  // Programme structure: one row per module, ordered by level.
+  const structure = mm.modules
+    .map((m, i) => ({ m, i, l: _moduleLevel(m) }))
+    .sort((a, b) => (a.l || 99) - (b.l || 99) || a.i - b.i)
+    .map(({ m, i, l }) => {
+      const crit = [];
+      (m.learningOutcomes || []).forEach(o => (o.linkedCriteria || []).forEach(pc => {
+        if (!pc.stale && !crit.includes(pc.id)) crit.push(pc.id);
+      }));
+      return { level: l ? _txf('lblLevelN', { n: l }) : _tx('lblNoLevelGroup'),
+               module: `M${i + 1} — ${m.title}`, track: m.track || _tx('covCommon'),
+               los: String((m.learningOutcomes || []).length), criteria: crit.join(', ') };
+    });
+
+  const cellText = (r, level) => r.modules
+    .filter(m => (m.level || null) === level)
+    .map(m => m.number + (m.track ? ` ${m.track}` : '')).join(', ');
+
+  const s = cov.summary;
+  const pct = s.total ? Math.round(s.covered / s.total * 100) : 0;
+  const summary = [
+    _txf('covTotal', { n: s.total }),
+    _txf('covCoveredN', { n: s.covered, p: pct }),
+    _txf('covGapN', { n: s.gap }),
+    s.loOnly ? _txf('covLoOnlyN', { n: s.loOnly }) : '',
+    s.multi ? _txf('covMultiN', { n: s.multi }) : '',
+  ].filter(Boolean).join('  ·  ');
+
+  const head = [_tx('covColCriterion'),
+    ...cols.map(l => l ? _txf('lblLevelShort', { n: l }) : _tx('covColNoLevel')),
+    _tx('covColStatus')];
+  const body = [];
+  let last = null;
+  cov.rows.forEach(r => {
+    if (r.clusterNumber !== last) {
+      last = r.clusterNumber;
+      body.push({ group: `C${r.clusterNumber} — ${r.clusterName}` });
+    }
+    body.push({ status: r.status,
+      cells: [`${r.id}  ${r.text}`, ...cols.map(l => cellText(r, l)), _statusWord(r)] });
+  });
+  return { anyLevel, structure, summary, head, body, levelColumns: cols.length };
+}
+
+/**
+ * Word: returns the paragraphs/tables for "Programme Structure by Level"
+ * and the coverage matrix, or [] when there are no modules. `lib` is the
+ * exporter's own (wrapped) docx classes plus { fill, rtl }.
+ */
+export function buildLevelsDocxBlock(lib) {
+  const d = _levelsExportData();
+  if (!d) return [];
+  const { Paragraph, TextRun, Table, TableRow, TableCell, WidthType,
+          AlignmentType, ShadingType, PageBreak } = lib;
+  const rtl = !!lib.rtl, fill = lib.fill || 'DCDCDC';
+  const out = [];
+  const TOTAL = 9071;
+
+  const para = (text, o = {}) => new Paragraph({
+    children: [new TextRun({ text, size: o.size || 20, bold: !!o.bold, italics: !!o.italics,
+                             color: o.color, __shaded: !!o.shaded })],
+    ...(o.center ? { alignment: AlignmentType.CENTER } : {}),
+    spacing: o.spacing || { after: 0 },
+    bidirectional: rtl,
+  });
+  const cell = (text, w, o = {}) => new TableCell({
+    children: [para(text, o)],
+    width: { size: w, type: WidthType.DXA },
+    ...(o.fillCell ? { shading: { fill: o.fillCell, type: ShadingType.CLEAR, color: 'auto' } } : {}),
+    ...(o.span ? { columnSpan: o.span } : {}),
+  });
+  const table = (rows, widths) => new Table({
+    visuallyRightToLeft: rtl, width: { size: TOTAL, type: WidthType.DXA },
+    columnWidths: widths, layout: 'fixed', rows,
+  });
+
+  out.push(new Paragraph({ children: [new PageBreak()], bidirectional: rtl }));
+
+  // 1. Programme structure — only meaningful once levels are in use.
+  if (d.anyLevel) {
+    out.push(para(_tx('expLevelsTitle'), { size: 32, bold: true, center: true, spacing: { before: 200, after: 300 } }));
+    const w = [1100, 3571, 1400, 1200, 1800];
+    const rows = [new TableRow({ tableHeader: true, children:
+      [_tx('lblModuleLevel'), _tx('expColModule'), _tx('lblModuleTrack'), _tx('expColLOs'), _tx('expColCriteria')]
+        .map((h, i) => cell(h, w[i], { bold: true, shaded: true, fillCell: fill, center: i !== 1 })) })];
+    d.structure.forEach(r => rows.push(new TableRow({ children: [
+      cell(r.level, w[0], { center: true }), cell(r.module, w[1]), cell(r.track, w[2], { center: true }),
+      cell(r.los, w[3], { center: true }), cell(r.criteria, w[4], { size: 18 }),
+    ] })));
+    out.push(table(rows, w));
+    out.push(para('', { spacing: { after: 300 } }));
+  }
+
+  // 2. Coverage matrix.
+  out.push(para(_tx('covTitle'), { size: 28, bold: true, spacing: { before: 200, after: 120 } }));
+  out.push(para(_tx('expCovHint'), { size: 18, italics: true, spacing: { after: 80 } }));
+  out.push(para(d.summary, { size: 20, bold: true, spacing: { after: 160 } }));
+
+  const statusW = 1700;
+  const lvlW = Math.max(560, Math.min(900, Math.floor((TOTAL - statusW - 3200) / d.levelColumns)));
+  const critW = TOTAL - statusW - lvlW * d.levelColumns;
+  const w = [critW, ...Array(d.levelColumns).fill(lvlW), statusW];
+  const STATUS_COLOR = { gap: 'B91C1C', 'lo-only': '92400E', multi: '075985', covered: '166534' };
+  const rows = [new TableRow({ tableHeader: true,
+    children: d.head.map((h, i) => cell(h, w[i], { bold: true, shaded: true, fillCell: fill, size: 18, center: i !== 0 })) })];
+  d.body.forEach(r => {
+    if (r.group) {
+      rows.push(new TableRow({ children: [cell(r.group, TOTAL, { bold: true, size: 18, span: w.length, fillCell: 'EFF6FF' })] }));
+      return;
+    }
+    rows.push(new TableRow({ children: r.cells.map((t, i) => {
+      const last = i === r.cells.length - 1;
+      return cell(t, w[i], { size: 18, center: i !== 0,
+        bold: last, color: last ? STATUS_COLOR[r.status] : (i === 0 && r.status === 'gap' ? 'B91C1C' : undefined) });
+    }) }));
+  });
+  out.push(table(rows, w));
+  return out;
+}
+
+/**
+ * PDF: draws the same two sections on new pages and returns the y
+ * position after them (unchanged when there is nothing to draw).
+ * Uses plain text, lines and rectangles only — all of which
+ * pdf_arabic.js mirrors for Arabic — and words instead of ✓/✗, which
+ * the embedded fonts do not carry.
+ */
+export function writeLevelsPdf(pdf, ctx) {
+  const d = _levelsExportData();
+  if (!d) return ctx.yPos;
+  const { margin, pageWidth, pageHeight } = ctx;
+  const W = pageWidth - 2 * margin;
+  let y;
+  const newPage = () => { pdf.addPage(); y = margin + 5; };
+  const ensure = (h, redraw) => { if (y + h > pageHeight - margin) { newPage(); if (redraw) redraw(); } };
+  const setFill = hex => pdf.setFillColor(parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16));
+  const setColor = hex => pdf.setTextColor(parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16));
+
+  // Generic row-based table: column x offsets + widths, wrapped cells.
+  const drawTable = (widths, header, rows, fs) => {
+    const xs = []; widths.reduce((x, w) => (xs.push(x), x + w), margin);
+    const line = fs * 0.42;
+    const head = () => {
+      pdf.setFontSize(fs); pdf.setFont(undefined, 'bold');
+      const lines = header.map((h, i) => pdf.splitTextToSize(h, widths[i] - 3));
+      const h = Math.max(...lines.map(l => l.length)) * line + 3;
+      setFill('DCDCDC'); pdf.rect(margin, y, W, h, 'F'); setColor('000000');
+      lines.forEach((l, i) => pdf.text(l, xs[i] + 1.5, y + line + 0.5));
+      y += h; pdf.setFont(undefined, 'normal');
+    };
+    head();
+    rows.forEach(r => {
+      pdf.setFontSize(fs);
+      if (r.group) {
+        const h = line + 3;
+        ensure(h + line * 2, head);
+        setFill('EFF6FF'); pdf.rect(margin, y, W, h, 'F');
+        pdf.setFont(undefined, 'bold'); setColor('075985');
+        pdf.text(pdf.splitTextToSize(r.group, W - 3)[0], margin + 1.5, y + line + 0.5);
+        pdf.setFont(undefined, 'normal'); setColor('000000');
+        y += h; return;
+      }
+      const lines = r.cells.map((c, i) => pdf.splitTextToSize(String(c || ''), widths[i] - 3));
+      const h = Math.max(...lines.map(l => l.length), 1) * line + 3;
+      ensure(h, head);
+      lines.forEach((l, i) => {
+        if (r.colors && r.colors[i]) setColor(r.colors[i]);
+        if (r.boldCol === i) pdf.setFont(undefined, 'bold');
+        pdf.text(l, xs[i] + 1.5, y + line + 0.5);
+        if (r.boldCol === i) pdf.setFont(undefined, 'normal');
+        setColor('000000');
+      });
+      y += h;
+      pdf.setDrawColor(226, 232, 240); pdf.line(margin, y, margin + W, y);
+    });
+  };
+
+  newPage();
+  if (d.anyLevel) {
+    pdf.setFontSize(16); pdf.setFont(undefined, 'bold');
+    pdf.text(_tx('expLevelsTitle'), pageWidth / 2, y, { align: 'center' });
+    y += 9;
+    const f = [0.14, 0.40, 0.14, 0.10, 0.22].map(x => x * W);
+    drawTable(f, [_tx('lblModuleLevel'), _tx('expColModule'), _tx('lblModuleTrack'), _tx('expColLOs'), _tx('expColCriteria')],
+      d.structure.map(r => ({ cells: [r.level, r.module, r.track, r.los, r.criteria] })), 9);
+    y += 10;
+    ensure(30);
+  }
+
+  pdf.setFontSize(14); pdf.setFont(undefined, 'bold');
+  pdf.text(_tx('covTitle'), margin, y); y += 6;
+  pdf.setFontSize(9); pdf.setFont(undefined, 'normal');
+  pdf.splitTextToSize(_tx('expCovHint'), W).forEach(l => { pdf.text(l, margin, y); y += 4; });
+  pdf.setFont(undefined, 'bold');
+  pdf.splitTextToSize(d.summary, W).forEach(l => { pdf.text(l, margin, y); y += 4.5; });
+  pdf.setFont(undefined, 'normal');
+  y += 3;
+
+  const statusW = Math.min(45, W * 0.2);
+  const lvlW = Math.max(12, Math.min(22, (W - statusW - 90) / d.levelColumns));
+  const widths = [W - statusW - lvlW * d.levelColumns, ...Array(d.levelColumns).fill(lvlW), statusW];
+  const COLORS = { gap: 'B91C1C', 'lo-only': '92400E', multi: '075985', covered: '166534' };
+  drawTable(widths, d.head, d.body.map(r => r.group ? r : ({
+    cells: r.cells, boldCol: r.cells.length - 1,
+    colors: { 0: r.status === 'gap' ? 'B91C1C' : null, [r.cells.length - 1]: COLORS[r.status] },
+  })), 8);
+  return y + 5;
 }
 
 let _covGapsOnly = false;
