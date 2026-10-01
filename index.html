@@ -108,7 +108,7 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v109';
+      var EXPECTED_SW='v110';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
@@ -1225,17 +1225,15 @@
                 </div>
 
                 <div class="mb-10">
-                    <label for="jobTitle">👔 <span data-i18n="labelJobTitle">Job Title:</span></label>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <label for="jobTitle" style="margin:0;">👔 <span data-i18n="labelJobTitle">Job Title:</span></label>
+                        <button type="button" id="jobTitleHelpBtn" class="tab-help-btn"
+                                title="Occupation vs. Job Title"
+                                data-i18n="ttJobTitleHelp" data-i18n-attr="title"
+                                aria-label="Occupation vs. Job Title"
+                                aria-haspopup="dialog">?</button>
+                    </div>
                     <input type="text" id="jobTitle" placeholder="e.g., Brake and Suspension Technician" data-i18n="phJobTitle" data-i18n-attr="placeholder">
-                    <!-- The two title fields look interchangeable, and the old
-                         placeholder ("Service Technician Level 2") read like an
-                         occupation, so nothing told the facilitator which one
-                         narrows the analysis. This line does — and it is the
-                         only place in the UI that says Job Title is what the AI
-                         generator treats as the primary focus. -->
-                    <p style="margin: 6px 0 0 0; color: #666; font-size: 0.9em;" data-i18n="hintJobTitle">
-                        The occupation is the general category; the job is the specific role within it. When filled, this field is what drives AI generation.
-                    </p>
                 </div>
                 
                 <div class="mb-10">

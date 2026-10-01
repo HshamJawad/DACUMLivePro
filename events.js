@@ -247,6 +247,12 @@ export function setupEvents() {
       .catch(() => {});
   });
   _on('clusterNamingHelpBtn', 'click', () => _showClusterNamingHelp());
+  _on('jobTitleHelpBtn', 'click', () => _showHelpModal({
+    id:    'jobTitleHelpModal',
+    icon:  '\u{1F454}',
+    title: _t('ttJobTitleHelp'),
+    intro: _t('hintJobTitle'),
+  }));
 
   // ── Additional Information tab: AI supporting-info generation ──
   // No markAiGenerated() here — the Refine Results card operates on
