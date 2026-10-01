@@ -1123,7 +1123,20 @@ function _reconcileLearningOutcomes() {
 // saved project reloads them as separate copies, which then never see
 // later changes. Re-point each at the live outcome with the same id.
 // An outcome that no longer exists keeps its copy, exactly as before.
+/* LO numbers are DISPLAY numbers, taken from each outcome's position
+   (LO1, LO2 …) — the same rule codes.js applies to duties and tasks.
+   The id (lo_N) still comes from outcomeCounter and never changes, so
+   module links and saved projects are unaffected. Before this, the
+   number reused the counter, so deleting trial outcomes left the next
+   one starting at e.g. LO8. Saved projects are corrected on open. */
+export function renumberLearningOutcomes() {
+  const lo = appState.learningOutcomesData;
+  if (!lo || !Array.isArray(lo.outcomes)) return;
+  lo.outcomes.forEach((o, i) => { if (o) o.number = `LO${i + 1}`; });
+}
+
 function _refreshModuleOutcomes() {
+  renumberLearningOutcomes();
   const mm = appState.moduleMappingData;
   const lo = appState.learningOutcomesData;
   if (!mm || !Array.isArray(mm.modules) || !lo || !Array.isArray(lo.outcomes)) return;
@@ -1657,7 +1670,7 @@ export function createLearningOutcome() {
   lo.outcomeCounter++;
   lo.outcomes.push({
     id: `lo_${lo.outcomeCounter}`,
-    number: `LO${lo.outcomeCounter}`,
+    number: `LO${lo.outcomes.length + 1}`,
     statement: '',
     linkedCriteria
   });
@@ -1741,6 +1754,8 @@ export function deleteLearningOutcome(loId) {
   const data = appState.learningOutcomesData;
   const idx = data.outcomes.findIndex(o => o.id === loId);
   if (idx !== -1) data.outcomes.splice(idx, 1);
+  renumberLearningOutcomes();
+  _persistClusters();
   renderPCSourceList();
   renderLearningOutcomes();
 }
@@ -2090,6 +2105,7 @@ function _statusWord(r) {
 }
 
 function _levelsExportData() {
+  renumberLearningOutcomes();
   const mm = appState.moduleMappingData || { modules: [] };
   if (!(mm.modules || []).length) return null;
   const cov = computeCoverage();
@@ -2452,6 +2468,7 @@ function _collectModuleTaskAnalysis(module) {
 }
 
 function _buildModuleExport(module, moduleNumber) {
+  _refreshModuleOutcomes();
   const { sourceTaskIds, taskAnalysis } = _collectModuleTaskAnalysis(module);
   return {
     moduleId: module.id,

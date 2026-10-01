@@ -108,18 +108,23 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v115';
+      var EXPECTED_SW='v116';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.26.0';
+      var APP_VERSION = '3.26.1';
       var APP_RELEASED = '2026-10-01';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.26.1 — 2026-10-01 — learning outcome numbering ────
+         PATCH. modules.js: LO numbers follow position (LO1, LO2 …) and
+         renumber after a delete; ids are unchanged. Saved projects that
+         started at e.g. LO8 are shown from LO1 on open.
 
          ── 3.26.0 — 2026-10-01 — clusters, levels & coverage ───
          MINOR. Additive only; projects without the new data export
