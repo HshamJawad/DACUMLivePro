@@ -602,6 +602,8 @@ const _LOCAL_STRINGS = {
     mmOptKeep:                'Keep existing modules — only group outcomes not yet in a module',
     mmOptLevels:              'Suggest a level for each module — levels in the programme:',
     mmOptSingle:              '(single-level programme — no level to suggest)',
+    covShow:                  'Show',
+    covHide:                  'Hide',
     mmHintNew:                '⚡ Instant and offline — one module per outcome. 🤖 Groups related outcomes, names and orders the modules, and can suggest a level for each. With “Keep existing modules” ticked, only outcomes not yet in a module are used; otherwise existing modules are replaced. Your Learning Outcomes are never changed.',
     mmNothingNew:             'Every learning outcome is already in a module.',
     mmAiOrphans:              '{n} outcome(s) placed in a review module',
@@ -691,6 +693,8 @@ const _LOCAL_STRINGS = {
     mmOptKeep:                'Conserver les modules existants — regrouper seulement les résultats sans module',
     mmOptLevels:              'Proposer un niveau pour chaque module — niveaux du programme :',
     mmOptSingle:              '(programme à un seul niveau — aucun niveau à proposer)',
+    covShow:                  'Afficher',
+    covHide:                  'Masquer',
     mmHintNew:                '⚡ Instantané et hors ligne — un module par résultat. 🤖 Regroupe les résultats liés, nomme et ordonne les modules, et peut proposer un niveau pour chacun. Avec « Conserver les modules existants » coché, seuls les résultats sans module sont utilisés ; sinon les modules existants sont remplacés. Vos résultats d’apprentissage ne sont jamais modifiés.',
     mmNothingNew:             'Tous les résultats d’apprentissage sont déjà dans un module.',
     mmAiOrphans:              '{n} résultat(s) placé(s) dans un module à revoir',
@@ -780,6 +784,8 @@ const _LOCAL_STRINGS = {
     mmOptKeep:                'الإبقاء على الوحدات الحالية — تجميع المحصلات غير المُسندة فقط',
     mmOptLevels:              'اقتراح مستوى لكل وحدة — عدد مستويات البرنامج:',
     mmOptSingle:              '(برنامج بمستوى واحد — لا يوجد مستوى لاقتراحه)',
+    covShow:                  'إظهار',
+    covHide:                  'إخفاء',
     mmHintNew:                '⚡ فوري وبلا إنترنت — وحدة لكل محصلة. 🤖 يجمع المحصلات المترابطة ويسمّي الوحدات ويرتّبها، ويمكنه اقتراح مستوى لكل وحدة. عند تفعيل «الإبقاء على الوحدات الحالية» تُستخدم المحصلات غير المُسندة فقط، وإلا تُستبدل الوحدات الحالية. محصلات التعلم نفسها لا تتغير أبداً.',
     mmNothingNew:             'كل محصلات التعلم موجودة في وحدات.',
     mmAiOrphans:              '{n} محصلة وُضعت في وحدة للمراجعة',
@@ -2920,6 +2926,13 @@ export function renderCoverageMatrix() {
   if (!modCont) return;
   const anchor = modCont.closest('.clustering-section') || modCont;
   let sec = document.getElementById('coverageMatrixSection');
+  // No modules → nothing has been mapped yet, so there is no coverage
+  // to report. The section is removed (this is also what makes "Clear
+  // This Tab" and deleting the last module empty it).
+  if (!((appState.moduleMappingData || {}).modules || []).length) {
+    if (sec) sec.remove();
+    return;
+  }
   if (!sec) {
     sec = document.createElement('div');
     sec.id = 'coverageMatrixSection';
@@ -2961,8 +2974,20 @@ export function renderCoverageMatrix() {
   });
 
   const pct = summary.total ? Math.round(summary.covered / summary.total * 100) : 0;
+  _injectCovFoldStyles();
+  // Collapsible: the matrix lists every criterion and makes the tab very
+  // long. Closed, the bar still shows the two numbers that matter.
   sec.innerHTML = `
-    <h3>📊 ${_esc(_tx('covTitle'))}</h3>
+   <details class="cov-fold" ${_covOpen ? 'open' : ''}>
+    <summary class="cov-fold-head">
+      <span class="cov-fold-title">📊 ${_esc(_tx('covTitle'))}</span>
+      ${summary.total ? `<span class="cov-fold-mini">
+        <span class="cov-pill cov-ok">✓ ${_esc(_txf('covCoveredN', { n: summary.covered, p: pct }))}</span>
+        <span class="cov-pill cov-gap">✗ ${_esc(_txf('covGapN', { n: summary.gap }))}</span>
+      </span>` : ''}
+      <span class="cov-fold-toggle">${_esc(_tx(_covOpen ? 'covHide' : 'covShow'))}</span>
+    </summary>
+    <div class="cov-fold-body">
     <p class="cov-hint">${_esc(_tx('covHint'))}</p>
     <div class="cov-controls">
       <label class="mod-meta-field"><span>${_esc(_tx('lblLevelCount'))}</span>
@@ -2989,7 +3014,46 @@ export function renderCoverageMatrix() {
         </tr></thead>
         <tbody>${body || `<tr><td colspan="${levels.length + 3}" class="cov-empty">${_esc(_tx('covNoGaps'))}</td></tr>`}</tbody>
       </table>
-    </div>` : `<div class="no-clusters-message">${_esc(_tx('covEmpty'))}</div>`}`;
+    </div>` : `<div class="no-clusters-message">${_esc(_tx('covEmpty'))}</div>`}
+    </div>
+   </details>`;
+  const det = sec.querySelector('details.cov-fold');
+  det.addEventListener('toggle', () => {
+    _covOpen = det.open;
+    try { localStorage.setItem('dacum_cov_open', _covOpen ? '1' : '0'); } catch (_) {}
+    const t = det.querySelector('.cov-fold-toggle');
+    if (t) t.textContent = _tx(_covOpen ? 'covHide' : 'covShow');
+  });
+}
+
+let _covOpen = (() => { try { return localStorage.getItem('dacum_cov_open') === '1'; } catch (_) { return false; } })();
+
+function _injectCovFoldStyles() {
+  if (document.getElementById('covFoldStyles')) return;
+  const st = document.createElement('style');
+  st.id = 'covFoldStyles';
+  st.textContent = `
+    .cov-fold > summary { list-style: none; }
+    .cov-fold > summary::-webkit-details-marker { display: none; }
+    .cov-fold-head {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; cursor: pointer;
+      padding: 12px 14px; border-radius: 10px; background: #eef2ff; border: 1px solid #c7d2fe;
+      user-select: none;
+    }
+    .cov-fold-head:hover { background: #e0e7ff; }
+    .cov-fold-title { font-weight: 700; font-size: 1.12em; color: #4338ca; }
+    .cov-fold-mini { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+    .cov-fold-mini .cov-pill { font-size: .85em; }
+    .cov-fold-toggle {
+      margin-inline-start: auto; font-size: .88em; font-weight: 700; color: #4338ca;
+      white-space: nowrap;
+    }
+    .cov-fold-toggle::after { content: ' ▾'; }
+    .cov-fold[open] .cov-fold-toggle::after { content: ' ▴'; }
+    .cov-fold[open] > .cov-fold-head { border-radius: 10px 10px 0 0; }
+    .cov-fold-body { padding-top: 12px; }
+  `;
+  document.head.appendChild(st);
 }
 
 export function renameModule(moduleId) {

@@ -108,18 +108,25 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v123';
+      var EXPECTED_SW='v124';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.30.1';
+      var APP_VERSION = '3.30.2';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.30.2 — 2026-10-02 — coverage matrix ──────────────
+         PATCH. modules.js: the coverage matrix is removed when there
+         are no modules (so "Clear This Tab" and deleting the last
+         module empty it), and is now a collapsible bar — closed by
+         default, showing Taught / Not taught; the open/closed choice
+         is remembered on this device.
 
          ── 3.30.1 — 2026-10-02 — levels count in the AI card ──
          PATCH. modules.js: the number of levels can be set right in
