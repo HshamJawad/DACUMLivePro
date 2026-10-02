@@ -2443,6 +2443,7 @@ function _ensureModuleGenOptions() {
       #mmGenOptions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px;
         margin: 14px auto 0; max-width: 760px; color: #fff; font-size: .9em; }
       #mmGenOptions label { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; text-align: start; }
+      #mmGenOptions label, #mmGenOptions label span { color: #fff !important; font-weight: 600; }
       #mmGenOptions input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; accent-color: #fff; cursor: pointer; }
       #mmGenOptions .mm-opt-levels { flex-wrap: nowrap; }
       #mmGenOptions .mm-opt-levels-txt { flex: 0 1 auto; min-width: 0; }
@@ -2698,6 +2699,17 @@ function _injectModuleCardStyles() {
     }
     #modulesContainer .btn-remove-lo:hover { background: #fecaca; }
     #modulesContainer .mod-level-select, #modulesContainer .mod-track-input { border-color: #ddd6fe; }
+    /* Label and field on ONE line. The app's base style gives every text
+       input width:100%, which pushed "Specialisation" above its field. */
+    #modulesContainer .mod-meta-field { flex-wrap: nowrap; }
+    #modulesContainer .mod-meta-field > span { white-space: nowrap; flex-shrink: 0; }
+    #modulesContainer .mod-meta-field .mod-track-input {
+      width: 200px !important; max-width: 100%; min-width: 0; flex: 0 1 200px;
+      display: inline-block !important; margin: 0 !important;
+    }
+    @media (max-width: 600px) {
+      #modulesContainer .mod-meta-field .mod-track-input { width: auto !important; flex: 1 1 auto; }
+    }
   `;
   document.head.appendChild(st);
 }

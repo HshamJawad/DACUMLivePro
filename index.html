@@ -108,18 +108,22 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v126';
+      var EXPECTED_SW='v127';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.31.1';
+      var APP_VERSION = '3.31.2';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.31.2 — 2026-10-02 — Module Mapping polish ─────────
+         PATCH. modules.js: "Specialisation" sits on the same line as its
+         field; the two options in the AI card are white.
 
          ── 3.31.1 — 2026-10-02 — one Undo/Redo in the toolbar ───
          PATCH. history.js + events.js + modules.js. The toolbar Undo /
