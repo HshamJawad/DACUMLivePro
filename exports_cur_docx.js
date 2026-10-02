@@ -129,6 +129,15 @@ export async function exportCurriculumDocx(m) {
             rows,
         });
         const spacer = () => para([run('')], { before: 0, after: 160 });
+        /* Each learning-outcome table starts on a new page (3.33.2). A
+           near-zero-height paragraph with pageBreakBefore, rather than a
+           PageBreak run, so no blank line is left at the top of the page. */
+        const newPage = () => new Paragraph({
+            children: [new TextRun({ text: '', size: 2 })],
+            pageBreakBefore: true,
+            bidirectional: rtl,
+            spacing: { before: 0, after: 0, line: 20, lineRule: 'exact' },
+        });
         const listParas = (items, n0, blankCount) => {
             if (items.length) return items.map(t => txt(t));
             return m.blank ? blankLines(blankCount || 3) : [txt('')];
@@ -200,7 +209,6 @@ export async function exportCurriculumDocx(m) {
             r1.push(new TableRow({ children: [cell([para([run(`${o.n}. `, { bold: true }), ...valueRuns(o.statement)])], { span: 6, width: TABLE_W })] }));
         });
         children.push(table(r1, C6));
-        children.push(spacer());
 
         /* ============================================================
            ONE TABLE PER LEARNING OUTCOME
@@ -208,6 +216,7 @@ export async function exportCurriculumDocx(m) {
         const CM = 3662;                               // methods column
         const C3 = [2400, TABLE_W - 2400 - CM, CM];
         m.los.forEach(o => {
+            children.push(newPage());
             const rows = [];
             rows.push(new TableRow({ cantSplit: true, children: [
                 headCell(L('curLOn', { n: o.n }), { width: C3[0] }),
