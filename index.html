@@ -108,18 +108,35 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v131';
+      var EXPECTED_SW='v132';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.32.3';
+      var APP_VERSION = '3.32.4';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.32.4 — 2026-10-02 — index.html closed properly ─────
+         PATCH. No behaviour change.
+
+         Fixed
+           index.html          the file ended mid-comment ("<!-") after
+                               the Snapshot modal, with no </body> or
+                               </html>. Browsers closed the document
+                               themselves, so nothing visible broke, but
+                               any later edit appended after that point
+                               would have been swallowed by the open
+                               comment. The stray fragment is removed and
+                               the document is closed explicitly. Checked:
+                               every script the page needs is loaded
+                               above that point or imported by app.js /
+                               snapshots.js (error-handler.js).
+           sw.js               v131 → v132, bumped with EXPECTED_SW.
 
          ── 3.32.3 — 2026-10-02 — plain-text key hint ───────────
          PATCH. modules.js: the LO card shortcut hint is plain text
@@ -2806,4 +2823,5 @@
       </div>
     </div>
 
-    <!-
+</body>
+</html>
