@@ -544,7 +544,14 @@ const _LOCAL_STRINGS = {
     expColModule:             'Module',
     expColLOs:                'Learning outcomes',
     expColCriteria:           'Performance criteria',
-    expCovHint:               'Every performance criterion from the Competency Clusters, and the module and level where it is taught. A criterion marked “Not taught” appears in no module of the programme.'
+    expCovHint:               'Every performance criterion from the Competency Clusters, and the module and level where it is taught. A criterion marked “Not taught” appears in no module of the programme.',
+    pcSelCount:               '{n} criteria selected',
+    pcSelCreateOne:           'Create LO',
+    pcSelCreateMerge:         'Create 1 LO from {n} criteria',
+    pcSelClear:               'Clear',
+    pcHideUsed:               'Hide used criteria',
+    pcUnusedCount:            '{u} of {t} not yet used',
+    pcLoCreated:              '{n} created'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -601,7 +608,14 @@ const _LOCAL_STRINGS = {
     expColModule:             'Module',
     expColLOs:                'Résultats d’apprentissage',
     expColCriteria:           'Critères de performance',
-    expCovHint:               'Chaque critère de performance des groupes de compétences, avec le module et le niveau où il est enseigné. Un critère « Non enseigné » ne figure dans aucun module du programme.'
+    expCovHint:               'Chaque critère de performance des groupes de compétences, avec le module et le niveau où il est enseigné. Un critère « Non enseigné » ne figure dans aucun module du programme.',
+    pcSelCount:               '{n} critère(s) sélectionné(s)',
+    pcSelCreateOne:           'Créer un RA',
+    pcSelCreateMerge:         'Créer 1 RA à partir de {n} critères',
+    pcSelClear:               'Effacer',
+    pcHideUsed:               'Masquer les critères utilisés',
+    pcUnusedCount:            '{u} sur {t} pas encore utilisés',
+    pcLoCreated:              '{n} créé'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -658,7 +672,14 @@ const _LOCAL_STRINGS = {
     expColModule:             'الوحدة',
     expColLOs:                'محصلات التعلم',
     expColCriteria:           'معايير الأداء',
-    expCovHint:               'كل معيار أداء من تجمعات الكفاءات، والوحدة والمستوى اللذان يُدرَّس فيهما. المعيار الموسوم «غير مُدرَّس» لا يرد في أي وحدة من البرنامج.'
+    expCovHint:               'كل معيار أداء من تجمعات الكفاءات، والوحدة والمستوى اللذان يُدرَّس فيهما. المعيار الموسوم «غير مُدرَّس» لا يرد في أي وحدة من البرنامج.',
+    pcSelCount:               'تم اختيار {n} من المعايير',
+    pcSelCreateOne:           'إنشاء محصلة تعلم',
+    pcSelCreateMerge:         'إنشاء محصلة واحدة من {n} معايير',
+    pcSelClear:               'إلغاء الاختيار',
+    pcHideUsed:               'إخفاء المعايير المستخدمة',
+    pcUnusedCount:            '{u} من {t} غير مستخدمة بعد',
+    pcLoCreated:              'تم إنشاء {n}'
   }
 };
 
@@ -1544,6 +1565,9 @@ export function proceedToClusteringFromVerification() {
 export function renderPCSourceList() {
   const container = document.getElementById('pcSourceList');
   if (!container) return;
+  // The list scrolls on its own now (see _enhancePCSource); keep the
+  // reader's place across the re-render that follows every action.
+  const _keepScroll = container.scrollTop;
 
   // Pick up any Duties & Tasks change first (also when the user jumps
   // here without passing through Competency Clusters), then bring the
@@ -1555,6 +1579,8 @@ export function renderPCSourceList() {
   const cd = appState.clusteringData;
   if (!cd.clusters || cd.clusters.length === 0) {
     container.innerHTML = `<div class="no-tasks-message">${_t('msgNoPCAvailable')}</div>`;
+    _enhancePCSource(container);
+    updateCreateLOButton();
     return;
   }
 
@@ -1642,6 +1668,8 @@ export function renderPCSourceList() {
     container.innerHTML = html;
   }
 
+  _enhancePCSource(container);
+  container.scrollTop = _keepScroll;
   updateCreateLOButton();
 }
 
@@ -1649,6 +1677,154 @@ export function updateCreateLOButton() {
   const checkboxes = document.querySelectorAll('#pcSourceList input[type="checkbox"]:not([disabled])');
   const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
   document.getElementById('btnCreateLO').disabled = !anyChecked;
+  _updatePCSelectionBar();
+}
+
+/* ── Performance Criteria (Source): long-list helpers ───────────────
+   Additive only. The list gets its own vertical scroll, a small
+   toolbar (hide used criteria + count), and a selection bar that sticks
+   to the bottom of the screen while criteria are ticked. The bar's
+   Create button simply clicks the original #btnCreateLO, so both run
+   exactly the same code; the original button stays where it was. */
+let _pcHideUsed = false;
+
+function _injectPCSourceStyles() {
+  if (document.getElementById('pcSourceEnhanceStyles')) return;
+  const st = document.createElement('style');
+  st.id = 'pcSourceEnhanceStyles';
+  st.textContent = `
+    #pcSourceList.pc-scroll {
+      max-height: min(62vh, 640px); overflow-y: auto; overscroll-behavior: contain;
+      padding-top: 0; scrollbar-width: thin; scrollbar-color: #a5b4fc transparent;
+    }
+    #pcSourceList.pc-scroll::-webkit-scrollbar { width: 8px; }
+    #pcSourceList.pc-scroll::-webkit-scrollbar-thumb { background: #a5b4fc; border-radius: 8px; }
+    #pcSourceList.pc-scroll .pc-cluster-group > h4 {
+      position: sticky; top: 0; z-index: 2; margin: 0 -8px 8px;
+      background: #eef2ff; padding: 10px 12px; border-radius: 0 0 8px 8px;
+      box-shadow: 0 1px 0 #c7d2fe;
+    }
+    #pcSourceList.pc-hide-used .pc-checkbox-item.used,
+    #pcSourceList.pc-hide-used .pc-cluster-group.pc-all-used { display: none; }
+    .pc-src-toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px 16px; margin: 0 0 10px; font-size: 0.92em; color: #475569;
+    }
+    .pc-src-toolbar label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .pc-src-count { font-weight: 600; color: #4338ca; }
+    #pcSelectionBar {
+      position: sticky; bottom: 12px; z-index: 30; margin-top: 12px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 14px; border-radius: 12px; color: #fff;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      box-shadow: 0 8px 24px rgba(79,70,229,.35);
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    #pcSelectionBar[hidden] { display: none; }
+    #pcSelectionBar .pc-sel-info { flex: 1 1 200px; min-width: 0; }
+    #pcSelectionBar .pc-sel-count { font-weight: 700; }
+    #pcSelectionBar .pc-sel-ids { display: block; font-size: .85em; opacity: .9;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; }
+    #pcSelectionBar button { border: none; border-radius: 8px; cursor: pointer; font-weight: 700;
+      padding: 9px 14px; font-size: .95em; min-height: 40px; }
+    #pcSelectionBar .pc-sel-clear { background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.5); }
+    #pcSelectionBar .pc-sel-create { background: #fff; color: #4338ca; }
+    #pcSelectionBar .pc-sel-create:hover { background: #eef2ff; }
+    #pcSelectionBar.pc-sel-flash { background: linear-gradient(135deg, #059669, #10b981); }
+    @media (max-width: 600px) {
+      #pcSourceList.pc-scroll { max-height: 58vh; }
+      #pcSelectionBar { bottom: 8px; }
+      #pcSelectionBar .pc-sel-info { flex-basis: 100%; }
+      #pcSelectionBar button { flex: 1 1 auto; }
+    }
+  `;
+  document.head.appendChild(st);
+}
+
+function _enhancePCSource(container) {
+  _injectPCSourceStyles();
+  const items = container.querySelectorAll('.pc-checkbox-item');
+  container.classList.toggle('pc-scroll', items.length > 0);
+  container.classList.toggle('pc-hide-used', _pcHideUsed);
+  container.querySelectorAll('.pc-cluster-group').forEach(g => {
+    const all = g.querySelectorAll('.pc-checkbox-item').length;
+    const used = g.querySelectorAll('.pc-checkbox-item.used').length;
+    g.classList.toggle('pc-all-used', all > 0 && used === all);
+  });
+
+  // Toolbar above the list.
+  let bar = document.getElementById('pcSourceToolbar');
+  if (!items.length) { if (bar) bar.remove(); }
+  else {
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'pcSourceToolbar';
+      bar.className = 'pc-src-toolbar';
+      container.parentNode.insertBefore(bar, container);
+      bar.addEventListener('change', e => {
+        if (!e.target.matches('#pcHideUsedToggle')) return;
+        _pcHideUsed = e.target.checked;
+        container.classList.toggle('pc-hide-used', _pcHideUsed);
+      });
+    }
+    const total = items.length;
+    const unused = total - container.querySelectorAll('.pc-checkbox-item.used').length;
+    bar.innerHTML = `
+      <label><input type="checkbox" id="pcHideUsedToggle" ${_pcHideUsed ? 'checked' : ''}> ${_esc(_tx('pcHideUsed'))}</label>
+      <span class="pc-src-count">${_esc(_txf('pcUnusedCount', { u: unused, t: total }))}</span>`;
+  }
+
+  // Selection bar after the list (sticky to the bottom of the screen).
+  let sel = document.getElementById('pcSelectionBar');
+  if (!sel) {
+    sel = document.createElement('div');
+    sel.id = 'pcSelectionBar';
+    sel.setAttribute('role', 'region');
+    sel.setAttribute('aria-live', 'polite');
+    sel.hidden = true;
+    container.parentNode.insertBefore(sel, container.nextSibling);
+    sel.addEventListener('click', e => {
+      if (e.target.closest('.pc-sel-clear')) {
+        document.querySelectorAll('#pcSourceList input[type="checkbox"]:checked').forEach(cb => { cb.checked = false; });
+        updateCreateLOButton();
+      } else if (e.target.closest('.pc-sel-create')) {
+        const btn = document.getElementById('btnCreateLO');
+        if (!btn || btn.disabled) return;
+        const before = (appState.learningOutcomesData.outcomes || []).length;
+        btn.click();
+        const outs = appState.learningOutcomesData.outcomes || [];
+        if (outs.length > before) _flashPCSelectionBar(_txf('pcLoCreated', { n: outs[outs.length - 1].number }));
+      }
+    });
+  }
+}
+
+let _pcFlashTimer = null;
+function _flashPCSelectionBar(msg) {
+  const sel = document.getElementById('pcSelectionBar');
+  if (!sel) return;
+  clearTimeout(_pcFlashTimer);
+  sel.hidden = false;
+  sel.classList.add('pc-sel-flash');
+  sel.innerHTML = `<div class="pc-sel-info"><span class="pc-sel-count">✓ ${_esc(msg)}</span></div>`;
+  _pcFlashTimer = setTimeout(() => { sel.classList.remove('pc-sel-flash'); _pcFlashTimer = null; _updatePCSelectionBar(); }, 1800);
+}
+
+function _updatePCSelectionBar() {
+  const sel = document.getElementById('pcSelectionBar');
+  if (!sel || _pcFlashTimer) return;
+  const ids = Array.from(document.querySelectorAll('#pcSourceList input[type="checkbox"]:checked:not([disabled])'))
+    .map(cb => cb.getAttribute('data-pc-id'));
+  if (!ids.length) { sel.hidden = true; sel.innerHTML = ''; return; }
+  sel.hidden = false;
+  const label = ids.length === 1 ? _tx('pcSelCreateOne') : _txf('pcSelCreateMerge', { n: ids.length });
+  sel.innerHTML = `
+    <div class="pc-sel-info">
+      <span class="pc-sel-count">${_esc(_txf('pcSelCount', { n: ids.length }))}</span>
+      <span class="pc-sel-ids">${ids.map(id => `<bdi>${_esc(id)}</bdi>`).join(' · ')}</span>
+    </div>
+    <button type="button" class="pc-sel-clear">${_esc(_tx('pcSelClear'))}</button>
+    <button type="button" class="pc-sel-create">✨ ${_esc(label)}</button>`;
 }
 
 export function createLearningOutcome() {
