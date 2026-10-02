@@ -594,6 +594,8 @@ const _LOCAL_STRINGS = {
     loInlineHint:             'Type directly in each card. Changes save automatically; Enter moves to the next outcome.',
     loKeyNext:                'next outcome',
     loKeyNewLine:             'new line',
+    loKeyHintFine:            'Press Enter: next outcome · Press Shift+Enter: new line',
+    loKeyHintCoarse:          'Press Enter: next outcome',
     loKeySaved:               'saved automatically',
     loAiSkipped:              '{n} criteria left unlinked — still available in the list',
     loAiNot1to1:              'the one-to-one mapping was not exact — review the linked criteria',
@@ -695,6 +697,8 @@ const _LOCAL_STRINGS = {
     loInlineHint:             'Saisissez directement dans chaque carte. L’enregistrement est automatique ; Entrée passe au résultat suivant.',
     loKeyNext:                'résultat suivant',
     loKeyNewLine:             'nouvelle ligne',
+    loKeyHintFine:            'Appuyez sur Entrée : résultat suivant · Appuyez sur Maj+Entrée : nouvelle ligne',
+    loKeyHintCoarse:          'Appuyez sur Entrée : résultat suivant',
     loKeySaved:               'enregistrement automatique',
     loAiSkipped:              '{n} critère(s) non lié(s) — toujours disponibles dans la liste',
     loAiNot1to1:              'la correspondance un-à-un n’est pas exacte — vérifiez les critères liés',
@@ -796,6 +800,8 @@ const _LOCAL_STRINGS = {
     loInlineHint:             'اكتب مباشرة في كل بطاقة. الحفظ تلقائي، وزر Enter ينقلك إلى المحصلة التالية.',
     loKeyNext:                'المحصلة التالية',
     loKeyNewLine:             'سطر جديد',
+    loKeyHintFine:            'اضغط Enter: المحصلة التالية · اضغط Shift+Enter: سطر جديد',
+    loKeyHintCoarse:          'اضغط Enter: المحصلة التالية',
     loKeySaved:               'حفظ تلقائي',
     loAiSkipped:              '{n} من المعايير بقيت دون ربط — ما زالت متاحة في القائمة',
     loAiNot1to1:              'التطابق واحد لواحد لم يكن تاماً — راجع المعايير المرتبطة',
@@ -2091,7 +2097,7 @@ function _injectLOInlineStyles() {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
       gap: 4px 12px; margin-top: 6px; min-height: 22px;
     }
-    .lo-key-hint { margin-inline-start: auto; font-size: .78em; color: #92400e; opacity: .75; }
+    .lo-key-hint { margin-inline-start: auto; font-size: .8em; color: #92400e; opacity: .7; font-style: italic; cursor: default; user-select: none; }
     .lo-key-hint kbd {
       display: inline-block; font: inherit; font-size: .95em; font-weight: 700; line-height: 1.3;
       padding: 0 5px; border: 1px solid #f59e0b; border-bottom-width: 2px; border-radius: 4px;
@@ -2131,10 +2137,11 @@ function _injectLOInlineStyles() {
   document.head.appendChild(st);
 }
 
+/* Plain text on purpose: key caps drawn as little boxes looked like
+   buttons and invited a click. */
 function _loKeyHintHtml() {
-  const k = t => `<kbd>${t}</kbd>`;
-  return `<span class="lo-hint-fine">${k('Enter')} ${_esc(_tx('loKeyNext'))} · ${k('Shift')}+${k('Enter')} ${_esc(_tx('loKeyNewLine'))}</span>`
-       + `<span class="lo-hint-coarse">${k('↵')} ${_esc(_tx('loKeyNext'))}</span>`;
+  return `<span class="lo-hint-fine">${_esc(_tx('loKeyHintFine'))}</span>`
+       + `<span class="lo-hint-coarse">${_esc(_tx('loKeyHintCoarse'))}</span>`;
 }
 
 function _autoGrow(ta) {

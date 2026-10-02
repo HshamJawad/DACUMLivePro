@@ -108,18 +108,23 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v130';
+      var EXPECTED_SW='v131';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.32.2';
+      var APP_VERSION = '3.32.3';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.32.3 — 2026-10-02 — plain-text key hint ───────────
+         PATCH. modules.js: the LO card shortcut hint is plain text
+         ("Press Enter: next outcome · Press Shift+Enter: new line");
+         the key-cap boxes looked like buttons.
 
          ── 3.32.2 — 2026-10-02 — levels field in the heading ───
          PATCH. modules.js: the levels field sits on the "Modules"
