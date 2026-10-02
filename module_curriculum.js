@@ -1202,29 +1202,30 @@ function _closeModal(ov) {
 const _GUIDE = {
   en: {
     title: 'Writing a module curriculum (CUR)',
-    intro: 'A CUR turns one module into a teaching plan: what it is for, how long it takes, how each learning outcome is taught and checked, and what the workshop needs. Examples below come from the computer maintenance module “CMCN 1-1 — Implementing Hardware Procedures in the workplace”.',
+    intro: 'A CUR turns one module into a teaching plan: what it is for, how long it takes, how each learning outcome is taught and checked, and what the workshop needs. The examples below use a general computer maintenance module, “Assemble and maintain computer hardware”.',
     sections: [
       { h: '🏷️ Header', items: [
-        '<strong>Module code</strong> — track + level + position in the level. Example: <em><bdi>CMCN 1-1</bdi></em>.',
-        '<strong>Purpose statement</strong> — why the module exists, in one or two sentences. Example: <em>To enable learners to use hand tools, assemble computer components and install printers and scanners to the manufacturer’s specifications.</em>',
-        '<strong>Credits</strong> — the module’s weight. Hours are computed: credits × hours per credit (Programme settings), then split by the percentages. Example with 50 h per credit: 3 credits = 150 h → Theory 15, Practical 67, Formative 8 (Institutional 90) · Practice 52, Summative 8 (Industry 60). The expert file printed 77 instead of 67 — computing the table removes that risk.',
-        '<strong>Pre-requisites</strong> — tick the modules that must come first. Example: <em><bdi>CMCN 1-2</bdi> Implementing storage procedures in the Workplace</em>.' ] },
+        '<strong>Module code</strong> — track + level + position of the module in that level. Example: <em><bdi>CMT 1-1</bdi></em> (first module of level 1).',
+        '<strong>Purpose statement</strong> — why the module exists and what learners will be able to do at the end, in one or two sentences. Example: <em>To enable learners to use hand tools, assemble computer components and install peripherals according to manufacturer’s specifications.</em>',
+        '<strong>Credits</strong> — the weight of the module. You enter only the credits; the hours are calculated for you: credits × hours per credit (set in Programme settings), then shared out by the time-split percentages, in whole hours that always add up to the total. Example with 50 hours per credit: 3 credits = 150 h → Theory 15, Practical 67, Formative assessment 8 (Institutional 90 h) · Industry practice 52, Summative assessment 8 (Industry 60 h).',
+        '<strong>Pre-requisite modules</strong> — tick the modules a learner must complete before this one. Example: <em>a workplace safety module</em> before a module that uses power tools.' ] },
       { h: '🎯 For each learning outcome', items: [
-        '<strong>Learning context</strong> — where it is learned. Example: <em>Workshop, classroom or a real or simulated workplace.</em>',
-        '<strong>Teaching and learning methodology</strong> — the overall approach. Example: <em>The teacher introduces the tools used to open and tighten computer parts (screwdrivers, cutters…).</em>',
-        '<strong>Teacher-led discussion</strong> — the teacher TALKS with the learners. Example: <em>The teacher leads a discussion about these tools and when each one is used.</em>',
-        '<strong>Teacher demonstration</strong> — the teacher SHOWS and DOES. Example: <em>The teacher shows how to use each hand tool correctly and safely.</em>',
-        '<strong>Learners will practice</strong> — what learners do with their own hands. Example: <em>Learners open and close a computer case using the correct tools.</em>',
-        '<strong>Self-directed learning</strong> — what learners look up on their own. Example: <em>Searching for new types of tools and how to use them.</em>',
-        '<strong>Formative assessment statements</strong> — short, observable checks, numbered n-1, n-2… “Suggest from criteria” copies the outcome’s performance criteria as a start. Example: <em>1-1 Uses screwdrivers and hand tools correctly.</em>',
-        '<strong>Formative assessment method</strong> — how the check is done. Example: <em>Direct observation of using the tools correctly and safely.</em>' ] },
-      { h: '⚠️ Discussion is not demonstration', items: [
-        'Discussion = talking and questioning; demonstration = showing and doing. The sample swaps them in LO1 (it describes the discussion under “demonstration” and the explanation under “discussion”) — keep each in its own field.' ] },
+        '<strong>Learning context</strong> — where the learning takes place. Example: <em>Workshop, classroom or a real or simulated workplace.</em>',
+        '<strong>Teaching and learning methodology</strong> — the overall approach. Example: <em>The teacher introduces the hand tools used to open and fasten computer parts (screwdrivers, cutters, pliers).</em>',
+        '<strong>Teacher-led discussion</strong> — what the teacher talks through and asks. Example: <em>The teacher leads a discussion on each tool, when it is used and the safety risks.</em>',
+        '<strong>Teacher demonstration</strong> — what the teacher shows and does in front of the learners. Example: <em>The teacher demonstrates how to use each tool correctly and safely.</em>',
+        '<strong>Learners will practice</strong> — what the learners do with their own hands. Example: <em>Learners open and close a computer case using the correct tools.</em>',
+        '<strong>Self-directed learning</strong> — what learners look up or prepare on their own. Example: <em>Searching for other types of tools and how they are used.</em>',
+        '<strong>Formative assessment statements</strong> — short, observable checks, numbered n-1, n-2… (n = the outcome’s number). “Suggest from criteria” copies the outcome’s performance criteria as a starting point. Example: <em>1-1 Uses screwdrivers and hand tools correctly and safely.</em>',
+        '<strong>Formative assessment method</strong> — how each check is carried out. Example: <em>Direct observation; oral questions.</em>',
+        '<strong>Duration (hours)</strong> — optional. When filled, the outcome hours should add up to the module’s institutional time; a warning shows if they do not.' ] },
+      { h: '💡 Discussion and demonstration are different', items: [
+        'Discussion = the teacher talks, explains and asks questions. Demonstration = the teacher shows and does the task. Write each in its own field so the teaching plan stays clear.' ] },
       { h: '🧰 Resources', items: [
-        '<strong>Tools</strong> — hand-held items: <em>screwdrivers, tweezers, multimeter</em>.',
+        '<strong>Tools</strong> — items held in the hand: <em>screwdrivers, tweezers, multimeter</em>.',
         '<strong>Equipment</strong> — devices and machines: <em>laptop, printer, soldering station, UPS</em>.',
         '<strong>Personal protective equipment (per learner)</strong> — <em>safety goggles, gloves, dust mask</em>.',
-        '<strong>Materials</strong> — consumables: <em>A4 paper, printer cartridge, blank CDs</em>.',
+        '<strong>Materials</strong> — consumables: <em>A4 paper, printer cartridge, blank discs</em>.',
         '<strong>Recommended resources</strong> — the learner’s guide, books and links.',
         '<strong>Physical facilities</strong> — rooms and furniture with quantities for one group: <em>Classroom 8 m × 7 m — 1; Desks — 15</em>.',
         '“Suggest from Task Analysis” brings in tools and safety items from the tasks behind the outcomes; you choose which list each one goes to.' ] }
@@ -1232,29 +1233,30 @@ const _GUIDE = {
   },
   fr: {
     title: 'Rédiger un curriculum de module (CUR)',
-    intro: 'Un CUR transforme un module en plan d’enseignement : à quoi il sert, combien de temps il dure, comment chaque résultat est enseigné et vérifié, et ce dont l’atelier a besoin. Les exemples viennent du module de maintenance informatique « CMCN 1-1 — Implementing Hardware Procedures in the workplace ».',
+    intro: 'Un CUR transforme un module en plan d’enseignement : à quoi il sert, combien de temps il dure, comment chaque résultat est enseigné et vérifié, et ce dont l’atelier a besoin. Les exemples ci-dessous portent sur un module général de maintenance informatique, « Assembler et entretenir le matériel informatique ».',
     sections: [
       { h: '🏷️ En-tête', items: [
-        '<strong>Code du module</strong> — filière + niveau + position dans le niveau. Exemple : <em><bdi>CMCN 1-1</bdi></em>.',
-        '<strong>Énoncé de l’objectif</strong> — pourquoi le module existe, en une ou deux phrases. Exemple : <em>Permettre aux apprenants d’utiliser les outils à main, d’assembler les composants d’un ordinateur et d’installer imprimantes et scanners selon les spécifications du fabricant.</em>',
-        '<strong>Crédits</strong> — le poids du module. Les heures sont calculées : crédits × heures par crédit (Paramètres du programme), puis réparties selon les pourcentages. Exemple avec 50 h par crédit : 3 crédits = 150 h → Théorie 15, Pratique 67, Formative 8 (Établissement 90) · Entreprise 52, Sommative 8 (Entreprise 60). Le fichier de l’expert indiquait 77 au lieu de 67 — le calcul automatique supprime ce risque.',
-        '<strong>Modules préalables</strong> — cochez les modules à suivre avant. Exemple : <em><bdi>CMCN 1-2</bdi> Implementing storage procedures in the Workplace</em>.' ] },
+        '<strong>Code du module</strong> — filière + niveau + position du module dans ce niveau. Exemple : <em><bdi>CMT 1-1</bdi></em> (premier module du niveau 1).',
+        '<strong>Énoncé de l’objectif</strong> — pourquoi le module existe et ce que l’apprenant saura faire à la fin, en une ou deux phrases. Exemple : <em>Permettre aux apprenants d’utiliser les outils à main, d’assembler les composants d’un ordinateur et d’installer les périphériques selon les spécifications du fabricant.</em>',
+        '<strong>Crédits</strong> — le poids du module. Vous saisissez seulement les crédits ; les heures sont calculées : crédits × heures par crédit (Paramètres du programme), puis réparties selon les pourcentages, en heures entières dont la somme égale toujours le total. Exemple avec 50 h par crédit : 3 crédits = 150 h → Théorie 15, Pratique 67, Évaluation formative 8 (Établissement 90 h) · Pratique en entreprise 52, Évaluation sommative 8 (Entreprise 60 h).',
+        '<strong>Modules préalables</strong> — cochez les modules à terminer avant celui-ci. Exemple : <em>un module de sécurité au travail</em> avant un module qui utilise des outils électriques.' ] },
       { h: '🎯 Pour chaque résultat d’apprentissage', items: [
-        '<strong>Contexte d’apprentissage</strong> — où il s’apprend. Exemple : <em>Atelier, salle de classe ou lieu de travail réel ou simulé.</em>',
-        '<strong>Méthodologie</strong> — l’approche générale. Exemple : <em>Le formateur présente les outils servant à ouvrir et serrer les pièces (tournevis, pinces coupantes…).</em>',
-        '<strong>Discussion dirigée</strong> — le formateur PARLE avec les apprenants. Exemple : <em>Il anime une discussion sur ces outils et leur usage.</em>',
-        '<strong>Démonstration</strong> — le formateur MONTRE et FAIT. Exemple : <em>Il montre comment utiliser chaque outil correctement et en sécurité.</em>',
+        '<strong>Contexte d’apprentissage</strong> — où l’apprentissage a lieu. Exemple : <em>Atelier, salle de classe ou lieu de travail réel ou simulé.</em>',
+        '<strong>Méthodologie</strong> — l’approche générale. Exemple : <em>Le formateur présente les outils à main servant à ouvrir et fixer les pièces (tournevis, pinces coupantes, pinces).</em>',
+        '<strong>Discussion dirigée</strong> — ce que le formateur explique et demande. Exemple : <em>Il anime une discussion sur chaque outil, son usage et les risques.</em>',
+        '<strong>Démonstration</strong> — ce que le formateur montre et fait devant les apprenants. Exemple : <em>Il montre comment utiliser chaque outil correctement et en sécurité.</em>',
         '<strong>Les apprenants s’exerceront</strong> — ce que les apprenants font eux-mêmes. Exemple : <em>Ouvrir et refermer un boîtier avec les bons outils.</em>',
-        '<strong>Apprentissage autonome</strong> — ce qu’ils recherchent seuls. Exemple : <em>Rechercher de nouveaux types d’outils et leur utilisation.</em>',
-        '<strong>Énoncés d’évaluation formative</strong> — vérifications courtes et observables, numérotées n-1, n-2… « Proposer depuis les critères » copie les critères de performance pour démarrer. Exemple : <em>1-1 Utilise correctement les tournevis et outils à main.</em>',
-        '<strong>Méthode d’évaluation formative</strong> — comment la vérification se fait. Exemple : <em>Observation directe de l’utilisation correcte et sûre des outils.</em>' ] },
-      { h: '⚠️ Discussion ≠ démonstration', items: [
-        'Discussion = parler et questionner ; démonstration = montrer et faire. L’exemple les inverse dans le RA1 — gardez chacune dans son champ.' ] },
+        '<strong>Apprentissage autonome</strong> — ce qu’ils recherchent ou préparent seuls. Exemple : <em>Rechercher d’autres types d’outils et leur utilisation.</em>',
+        '<strong>Énoncés d’évaluation formative</strong> — vérifications courtes et observables, numérotées n-1, n-2… (n = numéro du résultat). « Proposer depuis les critères » copie les critères de performance pour démarrer. Exemple : <em>1-1 Utilise correctement et en sécurité les tournevis et outils à main.</em>',
+        '<strong>Méthode d’évaluation formative</strong> — comment chaque vérification se fait. Exemple : <em>Observation directe ; questions orales.</em>',
+        '<strong>Durée (heures)</strong> — facultative. Si elle est remplie, la somme des heures des résultats doit égaler le temps en établissement ; un avertissement s’affiche sinon.' ] },
+      { h: '💡 Discussion et démonstration sont différentes', items: [
+        'Discussion = le formateur parle, explique et pose des questions. Démonstration = le formateur montre et réalise la tâche. Écrivez chacune dans son champ pour un plan clair.' ] },
       { h: '🧰 Ressources', items: [
         '<strong>Outils</strong> — objets tenus en main : <em>tournevis, pincettes, multimètre</em>.',
         '<strong>Équipements</strong> — appareils et machines : <em>ordinateur portable, imprimante, station de soudage, onduleur</em>.',
         '<strong>EPI (par apprenant)</strong> — <em>lunettes, gants, masque anti-poussière</em>.',
-        '<strong>Matériaux</strong> — consommables : <em>papier A4, cartouche, CD vierges</em>.',
+        '<strong>Matériaux</strong> — consommables : <em>papier A4, cartouche, disques vierges</em>.',
         '<strong>Ressources recommandées</strong> — guide de l’apprenant, livres et liens.',
         '<strong>Installations physiques</strong> — salles et mobilier avec quantités pour un groupe : <em>Salle 8 m × 7 m — 1 ; Bureaux — 15</em>.',
         '« Proposer depuis l’analyse des tâches » reprend outils et éléments de sécurité des tâches liées ; vous choisissez la liste de chacun.' ] }
@@ -1262,24 +1264,25 @@ const _GUIDE = {
   },
   ar: {
     title: 'كتابة منهج الوحدة (CUR)',
-    intro: 'يحوّل منهج الوحدة (CUR) الوحدة إلى خطة تدريس: الغرض منها، ومدتها، وكيف تُدرَّس كل محصلة تعلم وتُقيَّم، وما تحتاجه الورشة. الأمثلة أدناه من وحدة صيانة الحاسوب «CMCN 1-1 — تنفيذ إجراءات العتاد في مكان العمل».',
+    intro: 'يحوّل منهج الوحدة (CUR) الوحدة إلى خطة تدريس: الغرض منها، ومدتها، وكيف تُدرَّس كل محصلة تعلم وتُقيَّم، وما تحتاجه الورشة. الأمثلة أدناه من وحدة عامة في صيانة الحاسوب بعنوان «تجميع عتاد الحاسوب وصيانته».',
     sections: [
       { h: '🏷️ الترويسة', items: [
-        '<strong>رمز الوحدة</strong> — المسار + المستوى + ترتيب الوحدة في المستوى. مثال: <em><bdi>CMCN 1-1</bdi></em>.',
-        '<strong>بيان الغرض</strong> — لماذا وُجدت الوحدة، في جملة أو جملتين. مثال: <em>تمكين المتدربين من استخدام العدد اليدوية وتجميع مكونات الحاسوب وتنصيب الطابعات والماسحات وفق مواصفات الصانع.</em>',
-        '<strong>الرصيد / الساعات المعتمدة</strong> — وزن الوحدة. الساعات تُحسب تلقائياً: الرصيد × الساعات لكل ساعة معتمدة (من إعدادات البرنامج)، ثم تُوزَّع حسب النسب. مثال بـ 50 ساعة لكل ساعة معتمدة: 3 = 150 ساعة ← نظري 15، عملي 67، تقييم تكويني 8 (المؤسسة 90) · تطبيق 52، تقييم ختامي 8 (موقع العمل 60). ملف الخبير كتب 77 بدل 67 — الحساب التلقائي يمنع هذا الخطأ.',
-        '<strong>الوحدات المتطلبة سابقاً</strong> — ضع علامة على الوحدات التي يجب أن تسبقها. مثال: <em><bdi>CMCN 1-2</bdi> تنفيذ إجراءات التخزين في مكان العمل</em>.' ] },
+        '<strong>رمز الوحدة</strong> — المسار + المستوى + ترتيب الوحدة داخل ذلك المستوى. مثال: <em><bdi>CMT 1-1</bdi></em> (الوحدة الأولى في المستوى 1).',
+        '<strong>بيان الغرض</strong> — لماذا وُجدت الوحدة وما الذي سيستطيع المتدرب فعله في نهايتها، في جملة أو جملتين. مثال: <em>تمكين المتدربين من استخدام العدد اليدوية وتجميع مكونات الحاسوب وتنصيب الأجهزة الطرفية وفق مواصفات الصانع.</em>',
+        '<strong>الرصيد / الساعات المعتمدة</strong> — وزن الوحدة. تُدخل الرصيد فقط، والساعات تُحسب تلقائياً: الرصيد × الساعات لكل ساعة معتمدة (من إعدادات البرنامج)، ثم تُوزَّع حسب نسب توزيع الوقت بساعات صحيحة مجموعها يساوي الإجمالي دائماً. مثال بـ 50 ساعة لكل ساعة معتمدة: 3 = 150 ساعة ← نظري 15، عملي 67، تقييم تكويني 8 (المؤسسة 90 ساعة) · تطبيق في موقع العمل 52، تقييم ختامي 8 (موقع العمل 60 ساعة).',
+        '<strong>الوحدات المتطلبة سابقاً</strong> — ضع علامة على الوحدات التي يجب أن يُكملها المتدرب قبل هذه الوحدة. مثال: <em>وحدة السلامة في مكان العمل</em> قبل وحدة تستخدم العدد الكهربائية.' ] },
       { h: '🎯 لكل محصلة تعلم', items: [
         '<strong>سياق التعلم</strong> — أين يحدث التعلم. مثال: <em>ورشة أو قاعة دراسية أو موقع عمل حقيقي أو محاكى.</em>',
-        '<strong>منهجية التعليم والتعلم</strong> — الأسلوب العام. مثال: <em>يعرّف المدرب المتدربين بالعدد المستخدمة في فتح أجزاء الحاسوب وشدّها (المفكات، القطّاعات…).</em>',
-        '<strong>نقاش يقوده المدرب</strong> — المدرب يتحدث ويسأل. مثال: <em>يدير المدرب نقاشاً حول هذه العدد ومتى تُستخدم كل منها.</em>',
-        '<strong>عرض توضيحي من المدرب</strong> — المدرب يُري وينفّذ. مثال: <em>يعرض المدرب طريقة استخدام كل عدة يدوية بشكل صحيح وآمن.</em>',
-        '<strong>ممارسة المتدربين</strong> — ما يفعله المتدربون بأيديهم. مثال: <em>يفتح المتدربون صندوق الحاسوب ويغلقونه بالعدد الصحيحة.</em>',
-        '<strong>التعلم الذاتي</strong> — ما يبحث عنه المتدربون بأنفسهم. مثال: <em>البحث عن أنواع جديدة من العدد وطريقة استخدامها.</em>',
-        '<strong>عبارات التقييم التكويني</strong> — تحققات قصيرة قابلة للملاحظة، مرقّمة n-1، n-2… زر «اقتراح من معايير الأداء» ينسخ معايير المحصلة كبداية. مثال: <em>1-1 يستخدم المفكات والعدد اليدوية بشكل صحيح.</em>',
-        '<strong>طريقة التقييم التكويني</strong> — كيف يتم التحقق. مثال: <em>الملاحظة المباشرة لاستخدام العدد بشكل صحيح وآمن.</em>' ] },
-      { h: '⚠️ النقاش ليس عرضاً توضيحياً', items: [
-        'النقاش = حديث وأسئلة؛ العرض التوضيحي = إراءة وتنفيذ. النموذج المرفق بدّل بينهما في المحصلة الأولى — اكتب كلاً منهما في خانته.' ] },
+        '<strong>منهجية التعليم والتعلم</strong> — الأسلوب العام. مثال: <em>يعرّف المدرب المتدربين بالعدد اليدوية المستخدمة في فتح أجزاء الحاسوب وتثبيتها (المفكات، القطّاعات، الزرادية).</em>',
+        '<strong>نقاش يقوده المدرب</strong> — ما يشرحه المدرب ويسأل عنه. مثال: <em>يدير المدرب نقاشاً حول كل عدة ومتى تُستخدم ومخاطرها.</em>',
+        '<strong>عرض توضيحي من المدرب</strong> — ما يُريه المدرب وينفّذه أمام المتدربين. مثال: <em>يعرض المدرب طريقة استخدام كل عدة بشكل صحيح وآمن.</em>',
+        '<strong>ممارسة المتدربين</strong> — ما ينفّذه المتدربون بأيديهم. مثال: <em>يفتح المتدربون صندوق الحاسوب ويغلقونه بالعدد الصحيحة.</em>',
+        '<strong>التعلم الذاتي</strong> — ما يبحث عنه المتدربون أو يحضّرونه بأنفسهم. مثال: <em>البحث عن أنواع أخرى من العدد وطريقة استخدامها.</em>',
+        '<strong>عبارات التقييم التكويني</strong> — تحققات قصيرة قابلة للملاحظة، مرقّمة n-1، n-2… (n = رقم المحصلة). زر «اقتراح من معايير الأداء» ينسخ معايير المحصلة كبداية. مثال: <em>1-1 يستخدم المفكات والعدد اليدوية بشكل صحيح وآمن.</em>',
+        '<strong>طريقة التقييم التكويني</strong> — كيف يتم كل تحقق. مثال: <em>الملاحظة المباشرة؛ أسئلة شفوية.</em>',
+        '<strong>المدة (ساعات)</strong> — اختيارية. عند تعبئتها ينبغي أن يساوي مجموع ساعات المحصلات الوقتَ المؤسسي للوحدة، ويظهر تنبيه إن لم يتساويا.' ] },
+      { h: '💡 النقاش يختلف عن العرض التوضيحي', items: [
+        'النقاش = المدرب يتحدث ويشرح ويطرح الأسئلة. العرض التوضيحي = المدرب يُري المهمة وينفّذها. اكتب كلاً منهما في خانته لتبقى خطة التدريس واضحة.' ] },
       { h: '🧰 الموارد', items: [
         '<strong>الأدوات</strong> — ما يُمسك باليد: <em>مفكات، ملقط، مقياس متعدد</em>.',
         '<strong>الأجهزة والمعدات</strong> — أجهزة وآلات: <em>حاسوب محمول، طابعة، محطة لحام، جهاز UPS</em>.',
