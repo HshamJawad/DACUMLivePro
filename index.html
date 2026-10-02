@@ -108,18 +108,26 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v117';
+      var EXPECTED_SW='v118';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.27.0';
+      var APP_VERSION = '3.28.0';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.28.0 — 2026-10-02 — inline learning outcome text ──
+         MINOR. modules.js: each Learning Outcome statement is an
+         always-editable field, saved automatically (no Edit → Save).
+         Empty statements are flagged on the card and counted above
+         the list with a "Next empty" jump; Enter moves to the next
+         outcome; "Use criterion text" pre-fills an empty one. The
+         Edit button stays and now focuses the field.
 
          ── 3.27.0 — 2026-10-02 — criteria source list ──────────
          MINOR. modules.js, Learning Outcomes tab: the Performance

@@ -551,7 +551,14 @@ const _LOCAL_STRINGS = {
     pcSelClear:               'Clear',
     pcHideUsed:               'Hide used criteria',
     pcUnusedCount:            '{u} of {t} not yet used',
-    pcLoCreated:              '{n} created'
+    pcLoCreated:              '{n} created',
+    loNeedStatement:          'Statement needed',
+    loSummaryMissing:         '{n} of {t} learning outcomes still need a statement',
+    loSummaryDone:            'All {t} learning outcomes have a statement',
+    loNextEmpty:              'Next empty',
+    loUsePC:                  'Use criterion text',
+    loInlinePh:               'Type the learning outcome statement here — saved automatically',
+    loInlineHint:             'Type directly in each card. Changes save automatically; Enter moves to the next outcome.'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -615,7 +622,14 @@ const _LOCAL_STRINGS = {
     pcSelClear:               'Effacer',
     pcHideUsed:               'Masquer les critères utilisés',
     pcUnusedCount:            '{u} sur {t} pas encore utilisés',
-    pcLoCreated:              '{n} créé'
+    pcLoCreated:              '{n} créé',
+    loNeedStatement:          'Énoncé à saisir',
+    loSummaryMissing:         '{n} sur {t} résultats d’apprentissage sans énoncé',
+    loSummaryDone:            'Les {t} résultats d’apprentissage ont un énoncé',
+    loNextEmpty:              'Suivant vide',
+    loUsePC:                  'Reprendre le texte du critère',
+    loInlinePh:               'Saisissez l’énoncé du résultat d’apprentissage ici — enregistré automatiquement',
+    loInlineHint:             'Saisissez directement dans chaque carte. L’enregistrement est automatique ; Entrée passe au résultat suivant.'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -679,7 +693,14 @@ const _LOCAL_STRINGS = {
     pcSelClear:               'إلغاء الاختيار',
     pcHideUsed:               'إخفاء المعايير المستخدمة',
     pcUnusedCount:            '{u} من {t} غير مستخدمة بعد',
-    pcLoCreated:              'تم إنشاء {n}'
+    pcLoCreated:              'تم إنشاء {n}',
+    loNeedStatement:          'يحتاج إلى نص',
+    loSummaryMissing:         '{n} من {t} محصلات تعلم ما زالت بلا نص',
+    loSummaryDone:            'كل محصلات التعلم ({t}) لها نص',
+    loNextEmpty:              'التالية الفارغة',
+    loUsePC:                  'استخدام نص المعيار',
+    loInlinePh:               'اكتب نص محصلة التعلم هنا — يُحفظ تلقائياً',
+    loInlineHint:             'اكتب مباشرة في كل بطاقة. الحفظ تلقائي، وزر Enter ينقلك إلى المحصلة التالية.'
   }
 };
 
@@ -1862,28 +1883,27 @@ export function renderLearningOutcomes() {
 
   if (lo.outcomes.length === 0) {
     container.innerHTML = `<div class="no-clusters-message">${_t('msgNoLOs')}</div>`;
+    _renderLOStatementSummary(container);
     return;
   }
 
   let html = '';
   lo.outcomes.forEach(outcome => {
-    const isEditing = outcome.editing || false;
     html += `
       <div class="lo-block" id="${outcome.id}">
         <div class="lo-block-header">
-          <div class="lo-number">${outcome.number}</div>
+          <div class="lo-number">${outcome.number}<span class="lo-need-badge"${(outcome.statement || '').trim() ? ' hidden' : ''}>✎ ${_esc(_tx('loNeedStatement'))}</span></div>
           <div class="lo-actions">
-            <button class="btn-edit-lo" data-action="toggle-edit-lo" data-lo-id="${outcome.id}">
-              ${isEditing ? '💾 ' + _t('btnSave') : '✏️ ' + _t('btnEdit')}
-            </button>
+            <button class="btn-edit-lo" data-action="toggle-edit-lo" data-lo-id="${outcome.id}">✏️ ${_t('btnEdit')}</button>
             <button class="btn-delete-lo" data-action="delete-lo" data-lo-id="${outcome.id}">❌ ${_t('btnDelete')}</button>
           </div>
         </div>
-        <div class="lo-statement" id="statement_${outcome.id}">
-          ${isEditing
-            ? `<textarea id="textarea_${outcome.id}" data-action-blur="save-lo-statement" data-lo-id="${outcome.id}">${outcome.statement}</textarea>`
-            : `${outcome.statement || `<em style="color:#999;">${_t('phLOStatement')}</em>`}`
-          }
+        <div class="lo-statement lo-statement-inline" id="statement_${outcome.id}">
+          <textarea id="textarea_${outcome.id}" class="lo-inline-input" rows="1"
+            data-action-blur="save-lo-statement" data-lo-id="${outcome.id}"
+            placeholder="${_esc(_tx('loInlinePh'))}" aria-label="${_esc(outcome.number)}">${_esc(outcome.statement || '')}</textarea>
+          ${(outcome.statement || '').trim() || !outcome.linkedCriteria.some(pc => !pc.stale) ? '' :
+            `<button type="button" class="lo-use-pc" data-lo-id="${outcome.id}">↳ ${_esc(_tx('loUsePC'))}</button>`}
         </div>
         <div class="lo-linked-criteria">
           <h5>📎 ${_t('lblMappedPC')}</h5>
@@ -1898,24 +1918,193 @@ export function renderLearningOutcomes() {
   });
 
   container.innerHTML = html;
+  _wireInlineLOEditing(container);
+  container.querySelectorAll('textarea.lo-inline-input').forEach(_autoGrow);
+  _renderLOStatementSummary(container);
+}
+
+/* ── Inline Learning Outcome statements ─────────────────────────────
+   The statement is always an editable field: type, and it is saved —
+   no Edit → type → Save round trip per card. Empty statements are
+   flagged on the card and counted above the list, with a "Next empty"
+   jump. Enter moves to the next card (Shift+Enter = new line). The
+   Edit button is kept and now simply puts the cursor in the field. */
+function _injectLOInlineStyles() {
+  if (document.getElementById('loInlineStyles')) return;
+  const st = document.createElement('style');
+  st.id = 'loInlineStyles';
+  st.textContent = `
+    .lo-statement-inline { padding: 0 !important; background: transparent !important; }
+    textarea.lo-inline-input {
+      display: block; width: 100%; box-sizing: border-box; resize: none; overflow: hidden;
+      min-height: 48px; padding: 14px 16px; margin: 0;
+      font: inherit; font-size: 1em; line-height: 1.55; color: #1f2937;
+      background: #fff; border: 2px solid transparent; border-radius: 10px;
+      unicode-bidi: plaintext; text-align: start;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    textarea.lo-inline-input:hover { border-color: #fcd34d; }
+    textarea.lo-inline-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.25); }
+    textarea.lo-inline-input:placeholder-shown { background: #fffbeb; border: 2px dashed #f59e0b; }
+    textarea.lo-inline-input::placeholder { color: #b45309; opacity: .85; font-style: italic; }
+    html[dir="rtl"] .lo-statement textarea.lo-inline-input { direction: rtl; unicode-bidi: plaintext; text-align: start; }
+    .lo-use-pc {
+      margin-top: 6px; background: transparent !important; color: #92400e !important;
+      border: none; padding: 4px 6px !important; font-size: .88em; font-weight: 600;
+      cursor: pointer; min-height: 0 !important; box-shadow: none !important;
+    }
+    .lo-use-pc:hover { text-decoration: underline; }
+    .lo-need-badge {
+      display: inline-block; margin-inline-start: 10px; vertical-align: middle;
+      background: #fef3c7; color: #b45309; border: 1px solid #f59e0b;
+      border-radius: 999px; padding: 2px 10px; font-size: .62em; font-weight: 700;
+    }
+    .lo-need-badge[hidden] { display: none; }
+    .lo-block.lo-saved textarea.lo-inline-input { border-color: #10b981; }
+    #loStatementSummary {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px 14px; margin: 0 0 14px; padding: 10px 14px; border-radius: 10px;
+      background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; font-weight: 600;
+    }
+    #loStatementSummary.lo-sum-done { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+    #loStatementSummary .lo-sum-hint { flex-basis: 100%; font-weight: 400; font-size: .86em; opacity: .9; }
+    #loStatementSummary button {
+      background: #f59e0b; color: #fff; border: none; border-radius: 8px;
+      padding: 7px 14px !important; font-weight: 700; cursor: pointer; font-size: .9em;
+    }
+  `;
+  document.head.appendChild(st);
+}
+
+function _autoGrow(ta) {
+  if (!ta) return;
+  ta.style.height = 'auto';
+  ta.style.height = (ta.scrollHeight + 4) + 'px';
+}
+
+let _loPersistTimer = null;
+function _schedulePersistLO() {
+  clearTimeout(_loPersistTimer);
+  _loPersistTimer = setTimeout(() => { _loPersistTimer = null; _persistClusters(); }, 700);
+}
+
+function _loFromTextarea(ta) {
+  const id = ta && ta.getAttribute('data-lo-id');
+  return id ? appState.learningOutcomesData.outcomes.find(o => o.id === id) : null;
+}
+
+function _refreshLOCardState(ta) {
+  const lo = _loFromTextarea(ta);
+  const block = ta.closest('.lo-block');
+  if (!lo || !block) return;
+  const has = !!(lo.statement || '').trim();
+  const badge = block.querySelector('.lo-need-badge');
+  if (badge) badge.hidden = has;
+  const use = block.querySelector('.lo-use-pc');
+  if (use) use.hidden = has;
+}
+
+function _focusLOTextarea(ta) {
+  if (!ta) return;
+  ta.focus();
+  try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {}
+  ta.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function _wireInlineLOEditing(container) {
+  _injectLOInlineStyles();
+  if (container.__loInlineWired) return;
+  container.__loInlineWired = true;
+
+  container.addEventListener('input', e => {
+    const ta = e.target.closest('textarea.lo-inline-input');
+    if (!ta) return;
+    const lo = _loFromTextarea(ta);
+    if (!lo) return;
+    lo.statement = ta.value;
+    _autoGrow(ta);
+    _refreshLOCardState(ta);
+    _renderLOStatementSummary(container);
+    _schedulePersistLO();
+  });
+
+  container.addEventListener('focusout', e => {
+    const ta = e.target.closest('textarea.lo-inline-input');
+    if (!ta) return;
+    const lo = _loFromTextarea(ta);
+    if (!lo) return;
+    const clean = ta.value.replace(/\s+\n/g, '\n').trim();
+    if (clean !== ta.value) { ta.value = clean; _autoGrow(ta); }
+    lo.statement = clean;
+    delete lo.editing;
+    _refreshLOCardState(ta);
+    _renderLOStatementSummary(container);
+    clearTimeout(_loPersistTimer); _loPersistTimer = null;
+    _persistClusters();
+    const block = ta.closest('.lo-block');
+    if (block && clean) { block.classList.add('lo-saved'); setTimeout(() => block.classList.remove('lo-saved'), 700); }
+  });
+
+  container.addEventListener('keydown', e => {
+    const ta = e.target.closest('textarea.lo-inline-input');
+    if (!ta || e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+    e.preventDefault();
+    const all = Array.from(container.querySelectorAll('textarea.lo-inline-input'));
+    const next = all[all.indexOf(ta) + 1];
+    if (next) _focusLOTextarea(next); else ta.blur();
+  });
+
+  container.addEventListener('click', e => {
+    const btn = e.target.closest('.lo-use-pc');
+    if (!btn) return;
+    const lo = appState.learningOutcomesData.outcomes.find(o => o.id === btn.getAttribute('data-lo-id'));
+    const ta = document.getElementById(`textarea_${btn.getAttribute('data-lo-id')}`);
+    if (!lo || !ta) return;
+    ta.value = lo.linkedCriteria.filter(pc => !pc.stale).map(pc => (pc.text || '').trim()).filter(Boolean).join(' ');
+    lo.statement = ta.value;
+    _autoGrow(ta);
+    _refreshLOCardState(ta);
+    _renderLOStatementSummary(container);
+    _schedulePersistLO();
+    _focusLOTextarea(ta);
+  });
+}
+
+function _renderLOStatementSummary(container) {
+  if (!container || !container.parentNode) return;
+  let box = document.getElementById('loStatementSummary');
+  const outs = appState.learningOutcomesData.outcomes || [];
+  if (!outs.length) { if (box) box.remove(); return; }
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'loStatementSummary';
+    box.setAttribute('aria-live', 'polite');
+    container.parentNode.insertBefore(box, container);
+    box.addEventListener('click', e => {
+      if (!e.target.closest('.lo-sum-next')) return;
+      const empty = Array.from(document.querySelectorAll('#loBlocksContainer textarea.lo-inline-input'))
+        .find(t => !t.value.trim() && t !== document.activeElement)
+        || Array.from(document.querySelectorAll('#loBlocksContainer textarea.lo-inline-input')).find(t => !t.value.trim());
+      _focusLOTextarea(empty);
+    });
+  }
+  const missing = outs.filter(o => !(o.statement || '').trim()).length;
+  box.classList.toggle('lo-sum-done', missing === 0);
+  box.innerHTML = missing
+    ? `<span>✎ ${_esc(_txf('loSummaryMissing', { n: missing, t: outs.length }))}</span>
+       <button type="button" class="lo-sum-next">${_esc(_tx('loNextEmpty'))} ${(window.i18n && window.i18n.isRTL && window.i18n.isRTL()) ? '◂' : '▸'}</button>
+       <span class="lo-sum-hint">${_esc(_tx('loInlineHint'))}</span>`
+    : `<span>✓ ${_esc(_txf('loSummaryDone', { t: outs.length }))}</span>`;
 }
 
 export function toggleEditLO(loId) {
+  // Statements are edited inline now; Edit just puts the cursor there.
   const lo = appState.learningOutcomesData.outcomes.find(o => o.id === loId);
   if (!lo) return;
-  if (lo.editing) {
-    saveLOStatement(loId);
-    lo.editing = false;
-  } else {
-    lo.editing = true;
-  }
-  renderLearningOutcomes();
-  if (lo.editing) {
-    setTimeout(() => {
-      const ta = document.getElementById(`textarea_${loId}`);
-      if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
-    }, 50);
-  }
+  delete lo.editing;
+  let ta = document.getElementById(`textarea_${loId}`);
+  if (!ta) { renderLearningOutcomes(); ta = document.getElementById(`textarea_${loId}`); }
+  _focusLOTextarea(ta);
 }
 
 export function saveLOStatement(loId) {
