@@ -22,6 +22,27 @@ let redoStack        = [];
 let baselineSnapshot = null;
 let _restoring       = false;   // re-entrancy guard
 
+// ── Context scope (added 3.31.1) ──────────────────────────────
+// Another part of the app can lend the toolbar Undo / Redo buttons its
+// own history while it is on screen — the Learning Outcomes and Module
+// Mapping tabs do (modules.js). When the registered scope reports
+// itself active, undo()/redo() and the button states go to it; on
+// every other tab they work on the Duties & Tasks history exactly as
+// before. One scope at a time; registering again replaces it.
+let _scope = null;
+
+export function registerHistoryScope(scope) {
+  _scope = scope || null;
+  _updateButtons();
+}
+
+/** Re-read button states (scope changed its stacks, or the tab changed). */
+export function refreshHistoryButtons() { _updateButtons(); }
+
+function _activeScope() {
+  try { return _scope && _scope.isActive() ? _scope : null; } catch (_) { return null; }
+}
+
 const MAX_HISTORY = 100;
 
 // ── Snapshot helpers ──────────────────────────────────────────
@@ -85,6 +106,8 @@ export function resetHistoryToCurrentState() {
  *   3. Apply + re-render
  */
 export function undo() {
+  const sc = _activeScope();
+  if (sc) { try { sc.undo(); } finally { _updateButtons(); } return; }
   if (historyStack.length === 0) return;   // at baseline — nothing to undo
   _restoring = true;
   try {
@@ -105,6 +128,8 @@ export function undo() {
  *   3. Apply + re-render
  */
 export function redo() {
+  const sc = _activeScope();
+  if (sc) { try { sc.redo(); } finally { _updateButtons(); } return; }
   if (redoStack.length === 0) return;
   _restoring = true;
   try {
@@ -159,6 +184,20 @@ export function ensureMinimumStructure() {
 function _updateButtons() {
   const btnU = document.getElementById('btnUndo');
   const btnR = document.getElementById('btnRedo');
+  const sc = _activeScope();
+  if (sc) {
+    let canU = false, canR = false, lu = '', lr = '';
+    try { canU = !!sc.canUndo(); canR = !!sc.canRedo(); lu = sc.undoLabel() || ''; lr = sc.redoLabel() || ''; } catch (_) {}
+    if (btnU) {
+      btnU.disabled = !canU;
+      btnU.title = canU ? `Undo: ${lu}  (Ctrl+Z)` : 'Nothing to undo  (Ctrl+Z)';
+    }
+    if (btnR) {
+      btnR.disabled = !canR;
+      btnR.title = canR ? `Redo: ${lr}  (Ctrl+Y)` : 'Nothing to redo  (Ctrl+Y)';
+    }
+    return;
+  }
   if (btnU) {
     btnU.disabled = historyStack.length === 0;
     btnU.title    = btnU.disabled ? 'Nothing to undo  (Ctrl+Z)' : 'Undo  (Ctrl+Z)';
@@ -167,4 +206,18 @@ function _updateButtons() {
     btnR.disabled = redoStack.length === 0;
     btnR.title    = btnR.disabled ? 'Nothing to redo  (Ctrl+Y)' : 'Redo  (Ctrl+Y)';
   }
+}
+
+// The buttons must follow the visible tab: re-read them whenever a tab
+// panel is shown or hidden, whichever code path switched it.
+function _watchTabs() {
+  if (typeof MutationObserver !== 'function') return;
+  const panels = document.querySelectorAll('.tab-content');
+  if (!panels.length) return;
+  const mo = new MutationObserver(() => _updateButtons());
+  panels.forEach(p => mo.observe(p, { attributes: true, attributeFilter: ['class'] }));
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _watchTabs);
+  else _watchTabs();
 }

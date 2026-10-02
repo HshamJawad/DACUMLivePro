@@ -108,18 +108,41 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v124';
+      var EXPECTED_SW='v126';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.30.2';
+      var APP_VERSION = '3.31.1';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.31.1 — 2026-10-02 — one Undo/Redo in the toolbar ───
+         PATCH. history.js + events.js + modules.js. The toolbar Undo /
+         Redo now follow the visible tab: on Learning Outcomes and
+         Module Mapping they undo/redo those tabs' steps (scope lent by
+         modules.js via registerHistoryScope; tooltip names the step);
+         everywhere else they work on the Duties & Tasks history as
+         before. Ctrl+Z / Ctrl+Y work on those two tabs too (outside
+         text fields). The extra Undo bar inside the tabs is removed;
+         the 7-second Undo toast stays.
+
+         ── 3.31.0 — 2026-10-02 — undo/redo for LOs & modules ───
+         MINOR. modules.js.
+         Added   Undo / Redo for the Learning Outcomes and Module Mapping
+                 tabs (separate from the Duties & Tasks history): delete
+                 module, delete outcome, remove outcome from module,
+                 unlink criterion. A toast offers Undo for 7 s; a bar at
+                 the top of each tab and Ctrl+Z / Ctrl+Y (outside text
+                 fields) do the same. History is dropped on project
+                 change or when the data is replaced elsewhere; undo
+                 asks first if other changes were made since.
+         Changed Module cards restyled (light violet), scoped to the
+                 modules list.
 
          ── 3.30.2 — 2026-10-02 — coverage matrix ──────────────
          PATCH. modules.js: the coverage matrix is removed when there

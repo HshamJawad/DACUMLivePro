@@ -11,6 +11,7 @@ import { getTaskCode, getDutyLabel,
          getAddedTaskLabel } from './codes.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
 import { getSupplementaryVerificationData } from './supplementary_verification.js';
+import { registerHistoryScope, refreshHistoryButtons } from './history.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -604,6 +605,16 @@ const _LOCAL_STRINGS = {
     mmOptSingle:              '(single-level programme — no level to suggest)',
     covShow:                  'Show',
     covHide:                  'Hide',
+    undoBtn:                  'Undo',
+    redoBtn:                  'Redo',
+    undoLast:                 'Last: {a}',
+    undoDone:                 'Undone: {a}',
+    redoDone:                 'Redone: {a}',
+    undoDeleteModule:         'Deleted module {m} “{name}”',
+    undoDeleteLO:             'Deleted {lo}',
+    undoRemoveLO:             'Removed {lo} from {m}',
+    undoUnlinkPC:             'Unlinked {pc} from {lo}',
+    undoLaterChanges:         'Other changes were made after this step. Undoing it will also reverse those later changes. Continue?',
     mmHintNew:                '⚡ Instant and offline — one module per outcome. 🤖 Groups related outcomes, names and orders the modules, and can suggest a level for each. With “Keep existing modules” ticked, only outcomes not yet in a module are used; otherwise existing modules are replaced. Your Learning Outcomes are never changed.',
     mmNothingNew:             'Every learning outcome is already in a module.',
     mmAiOrphans:              '{n} outcome(s) placed in a review module',
@@ -695,6 +706,16 @@ const _LOCAL_STRINGS = {
     mmOptSingle:              '(programme à un seul niveau — aucun niveau à proposer)',
     covShow:                  'Afficher',
     covHide:                  'Masquer',
+    undoBtn:                  'Annuler',
+    redoBtn:                  'Rétablir',
+    undoLast:                 'Dernier : {a}',
+    undoDone:                 'Annulé : {a}',
+    redoDone:                 'Rétabli : {a}',
+    undoDeleteModule:         'Module {m} « {name} » supprimé',
+    undoDeleteLO:             '{lo} supprimé',
+    undoRemoveLO:             '{lo} retiré de {m}',
+    undoUnlinkPC:             '{pc} délié de {lo}',
+    undoLaterChanges:         'D’autres modifications ont été faites après cette étape. L’annuler annulera aussi ces modifications. Continuer ?',
     mmHintNew:                '⚡ Instantané et hors ligne — un module par résultat. 🤖 Regroupe les résultats liés, nomme et ordonne les modules, et peut proposer un niveau pour chacun. Avec « Conserver les modules existants » coché, seuls les résultats sans module sont utilisés ; sinon les modules existants sont remplacés. Vos résultats d’apprentissage ne sont jamais modifiés.',
     mmNothingNew:             'Tous les résultats d’apprentissage sont déjà dans un module.',
     mmAiOrphans:              '{n} résultat(s) placé(s) dans un module à revoir',
@@ -786,6 +807,16 @@ const _LOCAL_STRINGS = {
     mmOptSingle:              '(برنامج بمستوى واحد — لا يوجد مستوى لاقتراحه)',
     covShow:                  'إظهار',
     covHide:                  'إخفاء',
+    undoBtn:                  'تراجع',
+    redoBtn:                  'إعادة',
+    undoLast:                 'آخر إجراء: {a}',
+    undoDone:                 'تم التراجع: {a}',
+    redoDone:                 'تمت الإعادة: {a}',
+    undoDeleteModule:         'حُذفت الوحدة {m} «{name}»',
+    undoDeleteLO:             'حُذفت {lo}',
+    undoRemoveLO:             'أُزيلت {lo} من {m}',
+    undoUnlinkPC:             'فُصل المعيار {pc} عن {lo}',
+    undoLaterChanges:         'أُجريت تغييرات أخرى بعد هذه الخطوة، والتراجع عنها سيلغي تلك التغييرات أيضاً. هل تريد المتابعة؟',
     mmHintNew:                '⚡ فوري وبلا إنترنت — وحدة لكل محصلة. 🤖 يجمع المحصلات المترابطة ويسمّي الوحدات ويرتّبها، ويمكنه اقتراح مستوى لكل وحدة. عند تفعيل «الإبقاء على الوحدات الحالية» تُستخدم المحصلات غير المُسندة فقط، وإلا تُستبدل الوحدات الحالية. محصلات التعلم نفسها لا تتغير أبداً.',
     mmNothingNew:             'كل محصلات التعلم موجودة في وحدات.',
     mmAiOrphans:              '{n} محصلة وُضعت في وحدة للمراجعة',
@@ -1982,6 +2013,7 @@ export function createLearningOutcome() {
 
 export function renderLearningOutcomes() {
   const container = document.getElementById('loBlocksContainer');
+  _renderUndoBars();
   _reconcileLearningOutcomes();   // idempotent — no-op when nothing changed
   const lo = appState.learningOutcomesData;
 
@@ -2245,7 +2277,10 @@ export function deleteLearningOutcome(loId) {
   if (!confirm(_t('confirmDeleteLO'))) return;
   const data = appState.learningOutcomesData;
   const idx = data.outcomes.findIndex(o => o.id === loId);
+  const before = _undoSnap();
+  const label = idx !== -1 ? _txf('undoDeleteLO', { lo: data.outcomes[idx].number }) : '';
   if (idx !== -1) data.outcomes.splice(idx, 1);
+  if (idx !== -1) _undoRecord(label, before);
   renumberLearningOutcomes();
   _persistClusters();
   renderPCSourceList();
@@ -2285,7 +2320,12 @@ export function unassignPCFromLO(loId, pcId) {
   // number" could take out the wrong criterion. A plain id still works.
   const m = /^#idx:(\d+)$/.exec(String(pcId));
   const idx = m ? parseInt(m[1], 10) : lo.linkedCriteria.findIndex(pc => pc.id === pcId);
-  if (idx >= 0 && idx < lo.linkedCriteria.length) lo.linkedCriteria.splice(idx, 1);
+  if (idx >= 0 && idx < lo.linkedCriteria.length) {
+    const before = _undoSnap();
+    const label = _txf('undoUnlinkPC', { pc: lo.linkedCriteria[idx].id, lo: lo.number });
+    lo.linkedCriteria.splice(idx, 1);
+    _undoRecord(label, before);
+  }
   _persistClusters();
   renderPCSourceList();
   renderLearningOutcomes();
@@ -2469,10 +2509,205 @@ function _ensureModuleGenOptions() {
   }
 }
 
+/* ── Undo / Redo for Learning Outcomes and Module Mapping ───────────
+   The toolbar Undo/Redo belongs to the Duties & Tasks history
+   (history.js) and does not cover these two tabs. This is a separate,
+   self-contained history for the destructive actions here: delete a
+   module, delete a learning outcome, remove an outcome from a module,
+   unlink a criterion from an outcome. Each step stores the two data
+   blocks before and after (JSON), so an undone module returns to its
+   place with its level, track and outcomes.
+
+   Safety rules:
+   • The history is dropped when the project changes, or when the data
+     is replaced from elsewhere (project load, Clear This Tab, import),
+     so an undo can never write one project's data into another.
+   • If something else changed after the step (e.g. AI generation or
+     typing a statement), undo asks first, because going back also
+     reverses those later changes. */
+const _UNDO_MAX = 30;
+const _hist = { undo: [], redo: [], project: null, loRef: null, mmRef: null };
+
+function _activeProjectId() {
+  try { return localStorage.getItem('dacum_active_project'); } catch (_) { return null; }
+}
+function _undoSnap() {
+  return JSON.stringify({ lo: appState.learningOutcomesData, mm: appState.moduleMappingData });
+}
+function _undoValid() {
+  if (_hist.project !== _activeProjectId() ||
+      _hist.loRef !== appState.learningOutcomesData ||
+      _hist.mmRef !== appState.moduleMappingData) {
+    _hist.undo = []; _hist.redo = [];
+    _hist.project = _activeProjectId();
+    _hist.loRef = appState.learningOutcomesData;
+    _hist.mmRef = appState.moduleMappingData;
+    return false;
+  }
+  return true;
+}
+function _undoRecord(label, before) {
+  _undoValid();
+  _hist.undo.push({ label, before, after: _undoSnap() });
+  if (_hist.undo.length > _UNDO_MAX) _hist.undo.shift();
+  _hist.redo = [];
+  _renderUndoBars();
+  _showUndoToast(label);
+}
+function _undoApply(json) {
+  const d = JSON.parse(json);
+  appState.learningOutcomesData = d.lo;
+  appState.moduleMappingData = d.mm;
+  _hist.loRef = appState.learningOutcomesData;
+  _hist.mmRef = appState.moduleMappingData;
+  _persistClusters();
+  renderPCSourceList(); renderLearningOutcomes();
+  renderModuleLoList(); renderModules();
+}
+export function undoLearningStep() {
+  if (!_undoValid() || !_hist.undo.length) { _renderUndoBars(); return false; }
+  const step = _hist.undo[_hist.undo.length - 1];
+  if (_undoSnap() !== step.after && !confirm(_tx('undoLaterChanges'))) return false;
+  _hist.undo.pop();
+  _hist.redo.push({ ...step, after: _undoSnap() });
+  _undoApply(step.before);
+  _hideUndoToast();
+  _renderUndoBars();
+  showStatus('↶ ' + _txf('undoDone', { a: step.label }), 'success');
+  return true;
+}
+export function redoLearningStep() {
+  if (!_undoValid() || !_hist.redo.length) { _renderUndoBars(); return false; }
+  const step = _hist.redo.pop();
+  _hist.undo.push({ label: step.label, before: _undoSnap(), after: step.after });
+  _undoApply(step.after);
+  _renderUndoBars();
+  showStatus('↷ ' + _txf('redoDone', { a: step.label }), 'success');
+  return true;
+}
+
+function _injectUndoStyles() {
+  if (document.getElementById('lommUndoStyles')) return;
+  const st = document.createElement('style');
+  st.id = 'lommUndoStyles';
+  st.textContent = `
+    .lomm-undo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
+    .lomm-undo-bar button {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 34px;
+      padding: 6px 14px !important; border-radius: 8px; font-size: .88em; font-weight: 600;
+      background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; cursor: pointer;
+    }
+    .lomm-undo-bar button:hover:not(:disabled) { background: #eef2ff; border-color: #a5b4fc; color: #4338ca; }
+    .lomm-undo-bar button:disabled { opacity: .45; cursor: not-allowed; }
+    .lomm-undo-bar .lomm-undo-last { font-size: .82em; color: #64748b; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    #lommUndoToast {
+      position: fixed; z-index: 100001; left: 50%; bottom: 20px; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; max-width: calc(100vw - 32px);
+      background: #1e293b; color: #fff; padding: 10px 12px 10px 16px; border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.3); font-size: .92em;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    #lommUndoToast[hidden] { display: none; }
+    #lommUndoToast .lomm-toast-msg { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #lommUndoToast button {
+      flex-shrink: 0; background: #fbbf24 !important; color: #1e293b !important; border: none;
+      border-radius: 7px; padding: 6px 14px !important; font-weight: 800; cursor: pointer; min-height: 0;
+    }
+  `;
+  document.head.appendChild(st);
+}
+
+/* The toolbar Undo / Redo buttons are lent to this history while the
+   Learning Outcomes or Module Mapping tab is on screen (history.js
+   registerHistoryScope). Registered lazily, on first render, so module
+   load order can never matter. */
+let _scopeRegistered = false;
+function _lommTabActive() {
+  return ['learning-outcomes-tab', 'module-mapping-tab']
+    .some(id => document.getElementById(id)?.classList.contains('active'));
+}
+function _renderUndoBars() {
+  _injectUndoStyles();
+  if (!_scopeRegistered) {
+    _scopeRegistered = true;
+    try {
+      registerHistoryScope({
+        isActive:  _lommTabActive,
+        canUndo:   () => { _undoValid(); return _hist.undo.length > 0; },
+        canRedo:   () => { _undoValid(); return _hist.redo.length > 0; },
+        undoLabel: () => (_hist.undo[_hist.undo.length - 1] || {}).label || '',
+        redoLabel: () => (_hist.redo[_hist.redo.length - 1] || {}).label || '',
+        undo:      () => undoLearningStep(),
+        redo:      () => redoLearningStep(),
+      });
+    } catch (e) { console.warn('[modules] undo scope not registered:', e); }
+  }
+  // Older builds drew an Undo/Redo bar inside the two tabs; the toolbar
+  // buttons do that job now.
+  document.querySelectorAll('.lomm-undo-bar').forEach(b => b.remove());
+  try { refreshHistoryButtons(); } catch (_) {}
+}
+
+let _toastTimer = null;
+function _showUndoToast(label) {
+  _injectUndoStyles();
+  let t = document.getElementById('lommUndoToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'lommUndoToast';
+    t.setAttribute('role', 'status');
+    document.body.appendChild(t);
+    t.addEventListener('click', e => { if (e.target.closest('button')) undoLearningStep(); });
+  }
+  t.innerHTML = `<span class="lomm-toast-msg">${_esc(label)}</span><button type="button">↶ ${_esc(_tx('undoBtn'))}</button>`;
+  t.hidden = false;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(_hideUndoToast, 7000);
+}
+function _hideUndoToast() {
+  clearTimeout(_toastTimer);
+  const t = document.getElementById('lommUndoToast');
+  if (t) t.hidden = true;
+}
+
+/* Module cards — lighter violet look (scoped to the modules list). */
+function _injectModuleCardStyles() {
+  if (document.getElementById('moduleCardStyles')) return;
+  const st = document.createElement('style');
+  st.id = 'moduleCardStyles';
+  st.textContent = `
+    #modulesContainer .module-item {
+      background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+      border: 2px solid #c4b5fd; border-radius: 14px; padding: 18px;
+      box-shadow: 0 2px 10px rgba(124,58,237,.06);
+    }
+    #modulesContainer .module-header {
+      border-bottom: none; padding-bottom: 0; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
+    }
+    #modulesContainer .module-title { color: #6d28d9; font-weight: 700; font-size: 1.15em; }
+    #modulesContainer .module-actions { flex-wrap: wrap; gap: 8px; }
+    #modulesContainer .btn-rename-module { background: #8b5cf6; padding: 7px 14px; font-size: .88em; }
+    #modulesContainer .btn-delete-module { background: #ef4444; padding: 7px 14px; font-size: .88em; }
+    #modulesContainer .module-lo-assigned {
+      background: #fff; border: 1px solid #ede9fe; border-radius: 8px; align-items: center; gap: 10px;
+    }
+    #modulesContainer .module-lo-assigned-number { color: #6d28d9; }
+    #modulesContainer .btn-remove-lo {
+      background: #fee2e2; color: #991b1b; border-radius: 8px; padding: 6px 12px; flex-shrink: 0;
+    }
+    #modulesContainer .btn-remove-lo:hover { background: #fecaca; }
+    #modulesContainer .mod-level-select, #modulesContainer .mod-track-input { border-color: #ddd6fe; }
+  `;
+  document.head.appendChild(st);
+}
+
 export function renderModules() {
   const container = document.getElementById('modulesContainer');
   _refreshModuleOutcomes();
   _ensureModuleGenOptions();
+  _injectModuleCardStyles();
+  _renderUndoBars();
   const mm = appState.moduleMappingData;
 
   if (mm.modules.length === 0) {
@@ -3071,7 +3306,11 @@ export function deleteModule(moduleId) {
   const idx = mm.modules.findIndex(m => m.id === moduleId);
   if (idx === -1) return;
   if (!confirm(_t('confirmDeleteModule'))) return;
+  const before = _undoSnap();
+  const label = _txf('undoDeleteModule', { m: `M${idx + 1}`, name: mm.modules[idx].title || '' });
   mm.modules.splice(idx, 1);
+  _undoRecord(label, before);
+  _persistClusters();
   renderModuleLoList();
   renderModules();
 }
@@ -3080,7 +3319,14 @@ export function removeLoFromModule(moduleId, loId) {
   const module = appState.moduleMappingData.modules.find(m => m.id === moduleId);
   if (!module) return;
   const idx = module.learningOutcomes.findIndex(o => o.id === loId);
-  if (idx !== -1) module.learningOutcomes.splice(idx, 1);
+  if (idx !== -1) {
+    const before = _undoSnap();
+    const mi = appState.moduleMappingData.modules.indexOf(module);
+    const label = _txf('undoRemoveLO', { lo: module.learningOutcomes[idx].number, m: `M${mi + 1}` });
+    module.learningOutcomes.splice(idx, 1);
+    _undoRecord(label, before);
+    _persistClusters();
+  }
   renderModuleLoList();
   renderModules();
 }

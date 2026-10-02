@@ -115,10 +115,18 @@ export function setupEvents() {
   _on('btnUndo', 'click', () => undo());
   _on('btnRedo', 'click', () => redo());
 
-  // Keyboard shortcuts (active only on duties tab)
+  // Keyboard shortcuts — Duties tab, plus the Learning Outcomes and
+  // Module Mapping tabs, whose undo/redo history.js routes to modules.js.
+  // On those two tabs a text field keeps the browser's own text undo.
   document.addEventListener('keydown', function (e) {
-    const dutiesTab = document.getElementById('duties-tab');
-    if (!dutiesTab || !dutiesTab.classList.contains('active')) return;
+    const _isActive = id => document.getElementById(id)?.classList.contains('active');
+    const onDuties = _isActive('duties-tab');
+    const onLOMM   = _isActive('learning-outcomes-tab') || _isActive('module-mapping-tab');
+    if (!onDuties && !onLOMM) return;
+    if (onLOMM) {
+      const el = e.target;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+    }
     if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
     if (e.ctrlKey && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); }
   });
