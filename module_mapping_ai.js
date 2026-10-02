@@ -11,28 +11,38 @@
 //      offline, and risk a slightly different answer each run. It runs
 //      in the browser and is always correct.
 //
-//   2. generateModulesAI() — grouping + naming + SEQUENCING.
-//      "Which outcomes belong together in one training module?" is a
+//   2. generateModulesAI() — grouping + naming + SEQUENCING, and
+//      (optionally) a suggested LEVEL and specialisation per module.
+//      "Which outcomes belong together, and at which level?" is a
 //      pedagogical judgement that needs to read the content, which is
-//      exactly what the model is good at. It also names each module
-//      properly (instead of "Module 1") and orders the modules from
-//      foundational to advanced so the result is a teachable sequence,
-//      not just a set of buckets.
+//      exactly what the model is good at.
+//
+// Options (modules.js → getModuleGenOptions, shown inside the card):
+//   • keepExisting — only outcomes not yet in a module are used and the
+//     new modules are ADDED; hand-built modules are never touched.
+//     Otherwise the generated set replaces the existing modules (after
+//     a confirmation naming how many would be lost).
+//   • assignLevels — the model also proposes a level (1..levelCount)
+//     and, where the programme specialises, a track code.
 //
 // Manual grouping via the existing controls is untouched by both.
 //
 // Hard guarantees enforced in code, not just asked for in the prompt:
 //   • Only EXISTING learning outcomes are used — any id the model
 //     invents is discarded (_resolveOutcomeIds).
-//   • Every outcome lands in exactly one module; anything the model
-//     forgot is swept into a final "Additional Outcomes" module rather
-//     than silently vanishing from the curriculum.
-//   • Module sizes are clamped to MIN/MAX_LOS_PER_MODULE.
+//   • Every outcome in scope lands in exactly one module; anything the
+//     model forgot is swept into a final review module rather than
+//     silently vanishing from the curriculum.
+//   • Module size is capped at MAX_LOS_PER_MODULE.
+//   • Levels are clamped to 1..levelCount; anything else is left blank.
+//   • Titles are stored WITHOUT a number — "M1, M2 …" is display-only
+//     and follows position, so it stays right after any reorder.
 // ============================================================
 
 import { appState }        from './state.js';
 import { showStatus }      from './renderer.js';
-import { renderModules, renderModuleLoList } from './modules.js';
+import { renderModules, renderModuleLoList,
+         getModuleGenOptions, persistModuleMapping, loText } from './modules.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
@@ -51,16 +61,30 @@ const _aiDir = () => (window.i18n ? window.i18n.aiDirective() : '');
 
 const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 
-// Grouping bounds. Without these the model drifts to one of two
-// useless extremes: a module per outcome (which is Mode 1 in disguise)
-// or one giant module containing everything.
-const MIN_LOS_PER_MODULE = 2;
+// Grouping bounds. MAX is enforced in code; inside it the model is
+// guided (2-4 outcomes is typical). A single-outcome module is allowed
+// when that outcome is a large, stand-alone capability.
+const TYPICAL_MIN_LOS    = 2;
+const TYPICAL_MAX_LOS    = 4;
 const MAX_LOS_PER_MODULE = 6;
 
 // ── Shared helpers ────────────────────────────────────────────
 
 function _outcomes() {
   return (appState.learningOutcomesData?.outcomes) || [];
+}
+
+function _modules() {
+  return (appState.moduleMappingData?.modules) || [];
+}
+
+/** Outcomes the run works on: all of them, or only unassigned ones. */
+function _scope(keepExisting) {
+  const all = _outcomes();
+  if (!keepExisting) return all;
+  const inModule = new Set();
+  _modules().forEach(m => (m.learningOutcomes || []).forEach(o => o && inModule.add(o.id)));
+  return all.filter(o => !inModule.has(o.id));
 }
 
 /** Human-readable text for an outcome: its own statement, or its criteria. */
@@ -73,11 +97,31 @@ function _outcomeText(o) {
   return crit.length ? crit.join('; ') : '(no statement yet)';
 }
 
-/** Replace all modules with a new set, then refresh both panels. */
-function _commitModules(modules) {
+/** Strip any number the model (or an old version) put in a title. */
+function _cleanTitle(t) {
+  return String(t || '').trim()
+    .replace(/^\s*(module|unit|m)\s*\d+\s*[:.\-–—]\s*/i, '')
+    .replace(/^\s*\d+\s*[.)\-–—:]\s*/, '')
+    .trim();
+}
+
+/** A unique module id that never collides with an existing one. */
+function _newModuleId(keepExisting = true) {
   const mm = appState.moduleMappingData;
-  mm.modules = modules;
-  mm.moduleCounter = modules.length;
+  // In replace mode the old modules are about to go, so their ids are free.
+  const taken = new Set(keepExisting ? _modules().map(m => m.id) : []);
+  let id;
+  do { mm.moduleCounter = (mm.moduleCounter || 0) + 1; id = `module_${mm.moduleCounter}`; }
+  while (taken.has(id));
+  return id;
+}
+
+/** Add to, or replace, the module list; then refresh, persist, render. */
+function _commitModules(newModules, keepExisting) {
+  const mm = appState.moduleMappingData;
+  if (keepExisting) mm.modules = _modules().concat(newModules);
+  else              mm.modules = newModules;
+  persistModuleMapping();
   renderModuleLoList();
   renderModules();
 }
@@ -85,43 +129,56 @@ function _commitModules(modules) {
 /**
  * Confirm before discarding existing modules. Names the count so the
  * user knows exactly what is at stake rather than facing a generic
- * "are you sure?".
+ * "are you sure?". Nothing to confirm when existing modules are kept.
  */
-function _confirmOverwrite() {
-  const existing = appState.moduleMappingData?.modules || [];
-  if (existing.length === 0) return true;
+function _confirmOverwrite(keepExisting) {
+  const existing = _modules();
+  if (keepExisting || existing.length === 0) return true;
   /* The Full Draft run asks about overwriting ONCE, up front, naming
      every tab at stake. Re-asking here would mean four or five
      dialogs during a run the user has already authorised — and each
      one silently stalls the pipeline until someone notices. */
   if (isBatchRun()) return true;
-  return confirm('\u26A0\uFE0F ' + _tf(
+  return confirm('⚠️ ' + _tf(
     existing.length === 1 ? 'confirmReplaceModulesOne' : 'confirmReplaceModulesMany',
     { n: existing.length }
   ));
 }
 
+/* In a Full Draft run (batch) the generators always rebuild the whole
+   set — that run starts from a fresh draft by design. */
+function _options() {
+  const o = getModuleGenOptions();
+  if (isBatchRun()) o.keepExisting = false;
+  return o;
+}
+
 // ── Mode 1: one module per outcome (local, instant) ───────────
 
 export function generateOneModulePerOutcome() {
-  const outcomes = _outcomes();
-
-  if (outcomes.length === 0) {
+  const opts = _options();
+  if (_outcomes().length === 0) {
     showStatus(_t('msgNoLOsYet'), 'error');
     return false;
   }
-  if (!_confirmOverwrite()) {
+  const outcomes = _scope(opts.keepExisting);
+  if (outcomes.length === 0) {
+    showStatus(loText('mmNothingNew'), 'error');
+    return false;
+  }
+  if (!_confirmOverwrite(opts.keepExisting)) {
     showStatus(_t('msgCancelModules'), 'error');
     return false;
   }
 
-  const modules = outcomes.map((o, i) => ({
-    id:    `module_${i + 1}`,
-    title: `Module ${i + 1}: ${_shortTitle(o)}`,
+  if (!opts.keepExisting) appState.moduleMappingData.moduleCounter = 0;
+  const modules = outcomes.map(o => ({
+    id:    _newModuleId(opts.keepExisting),
+    title: _shortTitle(o),
     learningOutcomes: [o],
   }));
 
-  _commitModules(modules);
+  _commitModules(modules, opts.keepExisting);
   showStatus('✓ ' + _tf('msgModulesOnePerLO', { n: modules.length }), 'success');
   return true;
 }
@@ -134,71 +191,115 @@ function _shortTitle(o) {
   return words.length < text.length ? `${words}…` : words;
 }
 
-// ── Mode 2: AI grouping + naming + sequencing ─────────────────
+// ── Mode 2: AI grouping + naming + sequencing (+ levels) ──────
 
-function _buildPrompt(outcomes) {
+function _levelRules(levelCount, tracks) {
+  return `
+LEVELS (IMPORTANT):
+The programme has ${levelCount} levels: 1 = entry level ... ${levelCount} = highest.
+For EACH module also return "level" (an integer from 1 to ${levelCount}) and
+"track" (a short specialisation code, or "" when the module is common to all learners).
+Decide the level with these rules:
+- PREREQUISITES FIRST: a module whose skills other modules build on goes at a
+  lower level than the modules that depend on it.
+- COMPLEXITY AND AUTONOMY: routine work done under supervision belongs at lower
+  levels; diagnosing, planning, decision-making, financial responsibility and
+  supervising others belong at higher levels.
+- PERFORM -> CHECK -> DIAGNOSE: carrying out a task comes before testing and
+  documenting it, which comes before diagnosing and rectifying faults.
+- SPIRAL IS ALLOWED: the same theme (e.g. hardware, safety, finance) MAY appear
+  at several levels as separate modules of increasing difficulty — do not force
+  a whole theme into one level.
+- SPECIALISATION: only the highest level(s) may split into tracks; lower levels
+  are common ("").${tracks.length ? `
+  Track codes already used in this programme: ${tracks.join(', ')} — reuse them where they fit.` : ''}
+- BALANCE: every level should receive modules; avoid placing nearly everything
+  at one level.
+Return the modules ordered by level (1 first), and foundational -> advanced
+within each level.`;
+}
+
+function _buildPrompt(outcomes, opts) {
   const occupation = (document.getElementById('occupationTitle')?.value || '').trim();
   const jobTitle   = (document.getElementById('jobTitle')?.value || '').trim();
   const scope      = (document.getElementById('scopeOfWork')?.value || '').trim();
 
-  // Each outcome is listed with its cluster and criteria so the model
-  // can group on substance rather than on wording alone.
+  // Each outcome is listed with its competency and criteria so the
+  // model can group on substance rather than on wording alone.
+  const clusters = appState.clusteringData?.clusters || [];
+  const compName = n => (clusters[n - 1] && clusters[n - 1].name) || `Competency ${n}`;
   const list = outcomes.map(o => {
     const crit = (o.linkedCriteria || [])
-      .map(c => `      · [Cluster ${c.clusterNumber}] ${(c.text || '').trim()}`)
-      .filter(l => l.trim().length > 20);
+      .filter(c => (c.text || '').trim())
+      .map(c => `      · [${compName(c.clusterNumber)}] ${(c.text || '').trim()}`);
     return `  - id: ${o.id}\n    outcome: ${_outcomeText(o)}` +
            (crit.length ? `\n    performance criteria:\n${crit.join('\n')}` : '');
   }).join('\n');
 
-  const suggested = Math.max(2, Math.ceil(outcomes.length / MAX_LOS_PER_MODULE));
+  const suggested = Math.max(1, Math.round(outcomes.length / 3));
+
+  const existing = opts.keepExisting ? _modules() : [];
+  const existingBlock = existing.length ? `
+EXISTING MODULES (already built — do NOT change or repeat them; use them as
+context so the new modules fit around them):
+${existing.map(m => {
+    const l = parseInt(m.level, 10);
+    return `  - ${m.title}${l ? ` (level ${l}${m.track ? `, track ${m.track}` : ''})` : ''}`;
+  }).join('\n')}
+` : '';
+
+  const tracks = Array.from(new Set(_modules().map(m => (m.track || '').trim()).filter(Boolean)));
 
   return `You are a curriculum design engine specialized in competency-based training (CBT) derived from DACUM analysis.
 
 OCCUPATION: ${occupation || '(not specified)'}${jobTitle ? `
 JOB / ROLE: ${jobTitle}` : ''}${scope ? `
 SCOPE OF WORK: ${scope}` : ''}
-
+${existingBlock}
 LEARNING OUTCOMES TO ORGANISE (${outcomes.length} total):
 ${list}
 
 TASK:
-Group these Learning Outcomes into training modules (units of competency),
-name each module, and ORDER THE MODULES AS A TEACHING SEQUENCE.
+Group these Learning Outcomes into training modules, name each module, and
+ORDER THE MODULES AS A TEACHING SEQUENCE.
 
 GROUPING RULES:
 - Group outcomes that share a common workflow, phase of work, or body of
   underpinning knowledge and skill.
-- Each module must contain between ${MIN_LOS_PER_MODULE} and ${MAX_LOS_PER_MODULE} outcomes.
-- Aim for roughly ${suggested} modules, adjusting where the content clearly justifies it.
+- A module usually holds ${TYPICAL_MIN_LOS}-${TYPICAL_MAX_LOS} outcomes and NEVER more than ${MAX_LOS_PER_MODULE}.
+  A module with a single outcome is acceptable only when that outcome is a
+  large, stand-alone capability.
+- Aim for roughly ${suggested} module(s), adjusting where the content clearly justifies it.
 - EVERY outcome id listed above must appear in exactly ONE module.
 - Use ONLY the ids given above. Do NOT invent, merge, split or reword outcomes.
 
 MODULE TITLE RULES:
-- Name the module for the COMPETENCE it develops, not "Module 1".
-- Format: Action-oriented noun phrase, e.g. "Preparing and Processing Materials".
-- 3-8 words, specific to this occupation, no numbering (numbering is added by the app).
-
-SEQUENCING RULES (IMPORTANT):
-- Order the modules from FOUNDATIONAL to ADVANCED — the order they would
-  be delivered in a training programme.
-- Earlier modules should build the knowledge and skills that later
-  modules assume: safety and preparation first, core production work
-  next, then finishing, quality assurance, and complex or supervisory
-  work last.
-- Where two modules are independent, place the one with broader
-  transferable value first.
-- Return them ALREADY IN THAT ORDER — position in the array IS the sequence.
-- For each module, give a one-sentence "rationale" explaining its place
-  in the sequence (what it builds on, or what it prepares for).
+- Name the module for the COMPETENCE it develops.
+- Action-oriented noun phrase, e.g. "Implementing Hardware Procedures".
+- 3-8 words, specific to this occupation.
+- NO numbering of any kind ("Module 1", "1.", "M1") — the app numbers modules.
+${opts.assignLevels ? _levelRules(opts.levelCount, tracks) : `
+SEQUENCING RULES:
+- Order the modules from FOUNDATIONAL to ADVANCED — the order they would be
+  delivered in a training programme.
+- Earlier modules build the knowledge and skills later modules assume:
+  safety and preparation first, core work next, then checking and quality,
+  and diagnosis, complex or supervisory work last.
+- Where two modules are independent, place the one with broader transferable
+  value first.`}
+- Return the modules ALREADY IN ORDER — position in the array IS the sequence.
+- For each module give a one-sentence "rationale" explaining its place in the
+  sequence${opts.assignLevels ? ' and its level' : ''} (what it builds on, or what it prepares for).
 
 OUTPUT FORMAT (STRICT — NO EXTRA TEXT, NO MARKDOWN):
 {
   "modules": [
     {
-      "title": "Preparing and Processing Materials",
-      "rationale": "Establishes the material handling skills every later module depends on.",
-      "outcomeIds": ["lo_1", "lo_4"]
+      "title": "Implementing Hardware Procedures",
+      "rationale": "Builds the basic tool and assembly skills every later hardware module depends on.",${opts.assignLevels ? `
+      "level": 1,
+      "track": "",` : ''}
+      "outcomeIds": ["${outcomes[0] ? outcomes[0].id : 'lo_1'}"]
     }
   ]
 }
@@ -223,11 +324,76 @@ function _resolveOutcomeIds(ids, byId, alreadyUsed) {
   return resolved;
 }
 
-export async function generateModulesAI() {
-  const outcomes = _outcomes();
+/* Pure step, exported for testing: turns the model's JSON into module
+   objects, enforcing every guarantee listed at the top of this file. */
+export function buildModulesFromResponse(parsed, outcomes, opts) {
+  const byId = {};
+  outcomes.forEach(o => { byId[o.id] = o; });
 
-  if (outcomes.length === 0) {
+  const used    = new Set();
+  const modules = [];
+  let   trimmed = 0;
+
+  (parsed && Array.isArray(parsed.modules) ? parsed.modules : []).forEach(m => {
+    let members = _resolveOutcomeIds(m && m.outcomeIds, byId, used);
+
+    // Hard cap — release the surplus so it can be picked up by the
+    // sweep below instead of bloating one module.
+    if (members.length > MAX_LOS_PER_MODULE) {
+      members.slice(MAX_LOS_PER_MODULE).forEach(o => used.delete(o.id));
+      members = members.slice(0, MAX_LOS_PER_MODULE);
+      trimmed++;
+    }
+    if (members.length === 0) return;
+
+    const mod = {
+      title: _cleanTitle(m.title) || 'Untitled Module',
+      rationale: String(m.rationale || '').trim(),
+      learningOutcomes: members,
+    };
+    if (opts.assignLevels) {
+      const l = parseInt(m.level, 10);
+      if (Number.isInteger(l) && l >= 1 && l <= opts.levelCount) mod.level = l;
+      const tr = String(m.track || '').trim().slice(0, 40);
+      if (tr) mod.track = tr;
+    }
+    modules.push(mod);
+  });
+
+  // Keep the model's order inside each level; levels ascending, any
+  // module without a level at the end.
+  if (opts.assignLevels) {
+    modules.forEach((m, i) => { m._i = i; });
+    modules.sort((a, b) => ((a.level || 99) - (b.level || 99)) || (a._i - b._i));
+    modules.forEach(m => { delete m._i; });
+  }
+
+  // ── Safety net: nothing may be lost ────────────────────────
+  // An outcome the model skipped would otherwise disappear from the
+  // curriculum without any warning — the most damaging failure mode
+  // here, since the omission is invisible in the UI.
+  const orphans = outcomes.filter(o => !used.has(o.id));
+  if (orphans.length) {
+    modules.push({
+      title: loText('mmAiReviewTitle'),
+      rationale: loText('mmAiReviewWhy'),
+      learningOutcomes: orphans,
+    });
+  }
+
+  return { modules, orphans: orphans.length, trimmed };
+}
+
+export async function generateModulesAI() {
+  const opts = _options();
+
+  if (_outcomes().length === 0) {
     showStatus(_t('msgNoLOsYet'), 'error');
+    return false;
+  }
+  const outcomes = _scope(opts.keepExisting);
+  if (outcomes.length === 0) {
+    showStatus(loText('mmNothingNew'), 'error');
     return false;
   }
   if (outcomes.length < 2) {
@@ -241,7 +407,7 @@ export async function generateModulesAI() {
     return false;
   }
 
-  if (!_confirmOverwrite()) {
+  if (!_confirmOverwrite(opts.keepExisting)) {
     showStatus(_t('msgCancelModules'), 'error');
     return false;
   }
@@ -253,7 +419,7 @@ export async function generateModulesAI() {
     const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ prompt: _buildPrompt(outcomes) + _aiDir() }),
+      body:    JSON.stringify({ prompt: _buildPrompt(outcomes, opts) + _aiDir() }),
     });
 
     await throwIfAIError(response);
@@ -274,58 +440,20 @@ export async function generateModulesAI() {
       throw new Error('AI response contained no modules');
     }
 
-    // ── Rebuild against real data ──────────────────────────────
-    const byId = {};
-    outcomes.forEach(o => { byId[o.id] = o; });
-
-    const used     = new Set();
-    const modules  = [];
-    let   trimmed  = 0;
-
-    parsed.modules.forEach(m => {
-      let members = _resolveOutcomeIds(m.outcomeIds, byId, used);
-
-      // Hard cap — release the surplus so it can be picked up by the
-      // sweep below instead of bloating one module.
-      if (members.length > MAX_LOS_PER_MODULE) {
-        members.slice(MAX_LOS_PER_MODULE).forEach(o => used.delete(o.id));
-        members = members.slice(0, MAX_LOS_PER_MODULE);
-        trimmed++;
-      }
-      if (members.length === 0) return;
-
-      const title = String(m.title || '').trim() || 'Untitled Module';
-      modules.push({
-        id:    `module_${modules.length + 1}`,
-        title: `Module ${modules.length + 1}: ${title}`,
-        rationale: String(m.rationale || '').trim(),
-        learningOutcomes: members,
-      });
-    });
-
-    // ── Safety net: nothing may be lost ────────────────────────
-    // An outcome the model skipped would otherwise disappear from the
-    // curriculum without any warning — the most damaging failure mode
-    // here, since the omission is invisible in the UI.
-    const orphans = outcomes.filter(o => !used.has(o.id));
-    if (orphans.length) {
-      modules.push({
-        id:    `module_${modules.length + 1}`,
-        title: `Module ${modules.length + 1}: Additional Outcomes`,
-        rationale: 'Outcomes not placed by the grouping — review and reassign as needed.',
-        learningOutcomes: orphans,
-      });
-    }
-
+    const { modules, orphans, trimmed } = buildModulesFromResponse(parsed, outcomes, opts);
     if (modules.length === 0) throw new Error('No valid modules could be built from the response');
 
-    _commitModules(modules);
+    if (!opts.keepExisting) appState.moduleMappingData.moduleCounter = 0;
+    modules.forEach(m => { m.id = _newModuleId(opts.keepExisting); });
+
+    _commitModules(modules, opts.keepExisting);
     hideLoadingModal();
     incrementUsage();
 
     const notes = [];
-    if (orphans.length) notes.push(`${orphans.length} outcome${orphans.length > 1 ? 's' : ''} placed in a review module`);
-    if (trimmed)        notes.push(`${trimmed} oversized module${trimmed > 1 ? 's' : ''} trimmed`);
+    if (orphans)  notes.push(loText('mmAiOrphans', { n: orphans }));
+    if (trimmed)  notes.push(loText('mmAiTrimmed', { n: trimmed }));
+    if (opts.assignLevels) notes.push(loText('mmAiLevelsNote'));
 
     showStatus(
       '✓ ' + _tf('msgModulesSequenced', { n: modules.length }) +

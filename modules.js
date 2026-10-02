@@ -598,7 +598,17 @@ const _LOCAL_STRINGS = {
     loAiNot1to1:              'the one-to-one mapping was not exact — review the linked criteria',
     loAiNoIntegration:        'no criteria were integrated — this result is effectively Pattern A',
     loAiAllIntegrated:        'every outcome integrates several criteria — closer to Pattern B',
-    loAiCrossComp:            '{n} outcome(s) combine criteria from different competencies — please review'
+    loAiCrossComp:            '{n} outcome(s) combine criteria from different competencies — please review',
+    mmOptKeep:                'Keep existing modules — only group outcomes not yet in a module',
+    mmOptLevels:              'Suggest a level for each module — levels in the programme:',
+    mmOptSingle:              '(single-level programme — no level to suggest)',
+    mmHintNew:                '⚡ Instant and offline — one module per outcome. 🤖 Groups related outcomes, names and orders the modules, and can suggest a level for each. With “Keep existing modules” ticked, only outcomes not yet in a module are used; otherwise existing modules are replaced. Your Learning Outcomes are never changed.',
+    mmNothingNew:             'Every learning outcome is already in a module.',
+    mmAiOrphans:              '{n} outcome(s) placed in a review module',
+    mmAiTrimmed:              '{n} oversized module(s) trimmed',
+    mmAiLevelsNote:           'levels and specialisations are suggestions — review them on each module',
+    mmAiReviewTitle:          'Additional Outcomes',
+    mmAiReviewWhy:            'Outcomes not placed by the grouping — review and reassign as needed.'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -677,7 +687,17 @@ const _LOCAL_STRINGS = {
     loAiNot1to1:              'la correspondance un-à-un n’est pas exacte — vérifiez les critères liés',
     loAiNoIntegration:        'aucun critère intégré — ce résultat équivaut au modèle A',
     loAiAllIntegrated:        'chaque résultat intègre plusieurs critères — plus proche du modèle B',
-    loAiCrossComp:            '{n} résultat(s) combinent des critères de compétences différentes — à vérifier'
+    loAiCrossComp:            '{n} résultat(s) combinent des critères de compétences différentes — à vérifier',
+    mmOptKeep:                'Conserver les modules existants — regrouper seulement les résultats sans module',
+    mmOptLevels:              'Proposer un niveau pour chaque module — niveaux du programme :',
+    mmOptSingle:              '(programme à un seul niveau — aucun niveau à proposer)',
+    mmHintNew:                '⚡ Instantané et hors ligne — un module par résultat. 🤖 Regroupe les résultats liés, nomme et ordonne les modules, et peut proposer un niveau pour chacun. Avec « Conserver les modules existants » coché, seuls les résultats sans module sont utilisés ; sinon les modules existants sont remplacés. Vos résultats d’apprentissage ne sont jamais modifiés.',
+    mmNothingNew:             'Tous les résultats d’apprentissage sont déjà dans un module.',
+    mmAiOrphans:              '{n} résultat(s) placé(s) dans un module à revoir',
+    mmAiTrimmed:              '{n} module(s) trop volumineux réduit(s)',
+    mmAiLevelsNote:           'les niveaux et spécialisations sont des propositions — vérifiez-les sur chaque module',
+    mmAiReviewTitle:          'Résultats supplémentaires',
+    mmAiReviewWhy:            'Résultats non placés par le regroupement — à vérifier et réaffecter.'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -756,7 +776,17 @@ const _LOCAL_STRINGS = {
     loAiNot1to1:              'التطابق واحد لواحد لم يكن تاماً — راجع المعايير المرتبطة',
     loAiNoIntegration:        'لم يُدمج أي معيار — النتيجة فعلياً هي النمط A',
     loAiAllIntegrated:        'كل المحصلات دمجت عدة معايير — النتيجة أقرب إلى النمط B',
-    loAiCrossComp:            '{n} محصلة دمجت معايير من كفاءات مختلفة — يرجى مراجعتها'
+    loAiCrossComp:            '{n} محصلة دمجت معايير من كفاءات مختلفة — يرجى مراجعتها',
+    mmOptKeep:                'الإبقاء على الوحدات الحالية — تجميع المحصلات غير المُسندة فقط',
+    mmOptLevels:              'اقتراح مستوى لكل وحدة — عدد مستويات البرنامج:',
+    mmOptSingle:              '(برنامج بمستوى واحد — لا يوجد مستوى لاقتراحه)',
+    mmHintNew:                '⚡ فوري وبلا إنترنت — وحدة لكل محصلة. 🤖 يجمع المحصلات المترابطة ويسمّي الوحدات ويرتّبها، ويمكنه اقتراح مستوى لكل وحدة. عند تفعيل «الإبقاء على الوحدات الحالية» تُستخدم المحصلات غير المُسندة فقط، وإلا تُستبدل الوحدات الحالية. محصلات التعلم نفسها لا تتغير أبداً.',
+    mmNothingNew:             'كل محصلات التعلم موجودة في وحدات.',
+    mmAiOrphans:              '{n} محصلة وُضعت في وحدة للمراجعة',
+    mmAiTrimmed:              'تم تقليص {n} وحدة كبيرة الحجم',
+    mmAiLevelsNote:           'المستويات والتخصصات مقترحة — راجعها في كل وحدة',
+    mmAiReviewTitle:          'محصلات إضافية',
+    mmAiReviewWhy:            'محصلات لم يضعها التجميع في وحدة — راجعها وأعد إسنادها.'
   }
 };
 
@@ -1237,6 +1267,18 @@ function _refreshModuleOutcomes() {
   renumberLearningOutcomes();
   const mm = appState.moduleMappingData;
   const lo = appState.learningOutcomesData;
+  // The AI generator used to bake its position into the title
+  // ("Module 3: Installing …"), which the cards then showed twice
+  // ("M3 — Module 3: …") and which went wrong after any reorder or
+  // delete. The number is display-only (M1, M2 … by position), so the
+  // baked prefix is removed. A plain "Module 17" with no colon is a
+  // name the user kept, and is left alone.
+  if (mm && Array.isArray(mm.modules)) mm.modules.forEach(m => {
+    if (m && typeof m.title === 'string') {
+      const t = m.title.replace(/^\s*Module\s+\d+\s*:\s*/i, '');
+      if (t && t !== m.title) m.title = t;
+    }
+  });
   if (!mm || !Array.isArray(mm.modules) || !lo || !Array.isArray(lo.outcomes)) return;
   const byId = new Map(lo.outcomes.map(o => [o.id, o]));
   mm.modules.forEach(m => {
@@ -2247,6 +2289,7 @@ export function unassignPCFromLO(loId, pcId) {
 
 export function renderModuleLoList() {
   const container = document.getElementById('moduleLoList');
+  _ensureModuleGenOptions();
   _reconcileLearningOutcomes();   // also re-links module copies to live outcomes
   const lo = appState.learningOutcomesData;
   const mm = appState.moduleMappingData;
@@ -2321,9 +2364,109 @@ export function createModule() {
   renderModules();
 }
 
+/* ── Automatic Module Generation: options ───────────────────────────
+   Two choices shown inside the existing AI card, read by
+   module_mapping_ai.js through getModuleGenOptions():
+     • keep existing modules — only outcomes not yet in a module are
+       grouped, so hand-built modules are never wiped (default ON as
+       soon as any module exists);
+     • suggest a level (and specialisation) for each module. */
+const _mmGenOpts = { keepExisting: null, assignLevels: true };
+
+export function getModuleGenOptions() {
+  const mm = appState.moduleMappingData || {};
+  const hasModules = (mm.modules || []).length > 0;
+  return {
+    keepExisting: _mmGenOpts.keepExisting === null ? hasModules : !!_mmGenOpts.keepExisting,
+    // A single-level programme has nothing to distribute.
+    assignLevels: !!_mmGenOpts.assignLevels && getModuleLevelCount() > 1,
+    levelCount:   getModuleLevelCount(),
+  };
+}
+
+export function persistModuleMapping() { _persistClusters(); }
+
+function _ensureModuleGenOptions() {
+  const aiBtn = document.getElementById('mmGenAIBtn');
+  if (!aiBtn || !aiBtn.parentElement) return;
+  const row = aiBtn.parentElement;
+  if (!document.getElementById('mmGenOptStyles')) {
+    const st = document.createElement('style');
+    st.id = 'mmGenOptStyles';
+    st.textContent = `
+      #mmGenOptions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px;
+        margin: 14px auto 0; max-width: 760px; color: #fff; font-size: .9em; }
+      #mmGenOptions label { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; text-align: start; }
+      #mmGenOptions input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; accent-color: #fff; cursor: pointer; }
+      #mmGenOptions .mm-opt-levels { flex-wrap: nowrap; }
+      #mmGenOptions .mm-opt-levels-txt { flex: 0 1 auto; min-width: 0; }
+      #mmGenOptions input[type=number] { flex: 0 0 auto; }
+      #mmGenOptions .mm-opt-note:empty { display: none; }
+      #mmGenOptions .mm-opt-levels.mm-disabled { flex-wrap: wrap; }
+      #mmGenOptions .mm-opt-levels.mm-disabled .mm-opt-note { flex-basis: 100%; }
+      #mmGenOptions input[type=number] { width: 58px; min-height: 0; padding: 4px 6px; border-radius: 6px;
+        border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.95); color: #4338ca;
+        font-weight: 700; font-size: 1em; text-align: center; }
+      #mmGenOptions .mm-opt-note { font-size: .88em; opacity: .85; font-style: italic; }
+      #mmGenOptions label.mm-disabled > span:first-of-type { opacity: .6; }
+      .mod-rationale { font-size: .86em; color: #6b21a8; font-style: italic; margin: -4px 0 10px; unicode-bidi: plaintext; text-align: start;
+        background: rgba(255,255,255,.55); border-radius: 6px; padding: 6px 10px; }
+      @media (max-width: 600px) { #mmGenOptions { justify-content: flex-start; } }
+    `;
+    document.head.appendChild(st);
+  }
+  let box = document.getElementById('mmGenOptions');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'mmGenOptions';
+    row.parentNode.insertBefore(box, row.nextSibling);
+    box.addEventListener('change', e => {
+      if (e.target.id === 'mmOptKeep')   _mmGenOpts.keepExisting = e.target.checked;
+      if (e.target.id === 'mmOptLevels') _mmGenOpts.assignLevels = e.target.checked;
+      // Same setting as "Number of levels in the programme" above the
+      // coverage matrix — one value, two places to change it.
+      if (e.target.id === 'mmOptLevelCount') setModuleLevelCount(e.target.value);
+    });
+    box.innerHTML = `
+      <label><input type="checkbox" id="mmOptKeep"> <span class="mm-opt-keep-txt"></span></label>
+      <label class="mm-opt-levels"><input type="checkbox" id="mmOptLevels">
+        <span class="mm-opt-levels-txt"></span>
+        <input type="number" id="mmOptLevelCount" min="1" max="${MAX_LEVELS}" step="1" inputmode="numeric">
+        <span class="mm-opt-note"></span></label>`;
+  }
+  // Updated in place (not rebuilt) so the number field keeps focus
+  // while the user steps it up or down.
+  const o = getModuleGenOptions();
+  const mm = appState.moduleMappingData || {};
+  const minLevels = Math.max(1, ...(mm.modules || []).map(m => _moduleLevel(m) || 0));
+  const single = o.levelCount <= 1;
+  const keep = box.querySelector('#mmOptKeep');
+  const lv   = box.querySelector('#mmOptLevels');
+  const cnt  = box.querySelector('#mmOptLevelCount');
+  keep.checked = o.keepExisting;
+  lv.checked = o.assignLevels;
+  lv.disabled = single;
+  box.querySelector('.mm-opt-levels').classList.toggle('mm-disabled', single);
+  if (document.activeElement !== cnt) cnt.value = o.levelCount;
+  cnt.min = minLevels;
+  box.querySelector('.mm-opt-keep-txt').textContent = _tx('mmOptKeep');
+  box.querySelector('.mm-opt-levels-txt').textContent = _tx('mmOptLevels');
+  box.querySelector('.mm-opt-note').textContent = single ? _tx('mmOptSingle') : '';
+  cnt.title = _tx('covLevelsLabel') !== 'covLevelsLabel' ? _tx('covLevelsLabel') : '';
+  // The card's own hint said "Both replace existing modules", which is
+  // no longer always true. Taken over here so it follows the options.
+  const hint = row.parentNode.querySelector('[data-i18n="aiMMHint"], [data-mm-hint]');
+  if (hint) {
+    hint.removeAttribute('data-i18n');
+    hint.setAttribute('data-mm-hint', '1');
+    hint.textContent = _tx('mmHintNew');
+  }
+}
+
 export function renderModules() {
   const container = document.getElementById('modulesContainer');
   _refreshModuleOutcomes();
+  _ensureModuleGenOptions();
   const mm = appState.moduleMappingData;
 
   if (mm.modules.length === 0) {
@@ -2354,6 +2497,7 @@ export function renderModules() {
             <button class="btn-delete-module" data-action="delete-module" data-module-id="${module.id}">🗑️ ${_t('btnDeleteModule')}</button>
           </div>
         </div>
+        ${module.rationale ? `<div class="mod-rationale">💡 ${_esc(module.rationale)}</div>` : ''}
         <div class="mod-meta-row">
           <label class="mod-meta-field"><span>${_esc(_tx('lblModuleLevel'))}</span>
             <select class="mod-level-select" data-module-id="${_esc(module.id)}">${levelOpts}</select>

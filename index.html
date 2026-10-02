@@ -108,18 +108,41 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v121';
+      var EXPECTED_SW='v123';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.29.0';
+      var APP_VERSION = '3.30.1';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.30.1 — 2026-10-02 — levels count in the AI card ──
+         PATCH. modules.js: the number of levels can be set right in
+         the module-generation card (same value as the field above the
+         coverage matrix, kept in sync; never below the highest level
+         in use). With a single-level programme the level suggestion
+         switches off automatically.
+
+         ── 3.30.0 — 2026-10-02 — AI module generation ──────────
+         MINOR. module_mapping_ai.js + modules.js.
+         Fixed   Titles no longer carry a baked "Module N:" (shown twice
+                 as "M3 — Module 3: …" and wrong after any reorder);
+                 old titles are cleaned on open. Saves after a run.
+                 Result notes translated (EN/FR/AR).
+         Added   Two options in the card: "Keep existing modules" (only
+                 outcomes not yet in a module are grouped; new modules
+                 are added — default on once modules exist) and
+                 "Suggest a level for each module" (level 1..N and a
+                 track code, using prerequisite / complexity / spiral /
+                 specialisation rules; clamped in code). The model's
+                 rationale is shown under each module title.
+         Changed Guidance 2-4 outcomes per module (1 allowed for a large
+                 stand-alone outcome); ceiling of 6 still enforced.
 
          ── 3.29.0 — 2026-10-02 — AI learning outcomes ──────────
          MINOR. learning_outcomes_ai.js + modules.js.
