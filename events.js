@@ -43,6 +43,7 @@ import { showStatus, escapeHtml,
 import { exportToPDF, exportTaskVerificationPDF }         from './exports_pdf.js';
 import { exportToWord, exportTaskVerificationWord }       from './exports_docx.js';
 import { exportOccupationalStandardWord }                 from './exports_os_docx.js';
+import { setupStandardExportMenu }                        from './module_curriculum.js';
 import { clearAll, clearAllSilent, clearCurrentTab, generateAIDacum,
          switchTab } from './projects.js';
 import { handleImageUpload, removeImage }                  from './storage.js';
@@ -292,7 +293,11 @@ export function setupEvents() {
   _on('btnRefineResults', 'click', () => refineResults());
   _on('btnExportPDF',          'click', () => exportToPDF());
   _on('btnExportWord',         'click', () => exportToWord());
-  _on('btnExportOS',           'click', () => exportOccupationalStandardWord());
+  /* "Standard" now opens a menu (3.33.0): Occupational Standard (Word) —
+     the same exportOccupationalStandardWord() as before — Module
+     Curriculum (CUR) and CBC (coming soon). Same id, same tooltip key. */
+  setupStandardExportMenu();
+  void exportOccupationalStandardWord;
 
   // Task Verification controls
   _onRadioGroup('collectionMode',  () => { updateCollectionMode(); });

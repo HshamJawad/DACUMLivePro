@@ -11,7 +11,8 @@
 // Max projects     : 50
 // ============================================================
 
-import { appState, defaultSupplementaryVerification } from './state.js';
+import { appState, defaultSupplementaryVerification,
+         normalizeModuleCurriculumData } from './state.js';
 import { showStatus }         from './renderer.js';
 import { syncAllFromDOM }     from './duties.js';
 import { clearAllSilent }     from './projects.js';
@@ -22,6 +23,7 @@ import { renderAvailableTasks, renderClusters,
          renderModuleLoList, renderModules } from './modules.js';
 import { renderAll }          from './workshop_snapshots.js';
 import { resetHistoryToCurrentState } from './history.js';
+import { renderModuleCurriculum } from './module_curriculum.js';
 
 /* i18n access — resolved lazily; see duties.js for why.
    _tp() picks the correct plural form: Arabic has six categories and
@@ -149,8 +151,13 @@ export function importProjectFromData(data, fileName) {
                               : { outcomes: [], outcomeCounter: 0 },
     moduleMappingData:        s.moduleMapping
                               ? { modules: s.moduleMapping.modules || [],
-                                  moduleCounter: s.moduleMapping.moduleCounter || 0 }
+                                  moduleCounter: s.moduleMapping.moduleCounter || 0,
+                                  // Absent in files exported before 3.33.0.
+                                  ...(s.moduleMapping.levelCount ? { levelCount: s.moduleMapping.levelCount } : {}) }
                               : { modules: [], moduleCounter: 0 },
+    // Module Curriculum (3.33.0). Absent in older files — normalised to
+    // the default when the project is opened (_applyState).
+    moduleCurriculumData:     s.moduleCurriculum || null,
     // An imported chart that already contains clusters has, by
     // definition, been through the verification decision already —
     // forcing the gate shut would lock the user out of their own
@@ -577,6 +584,10 @@ export function initProjectsSidebar() {
         <span class="dps-nav-icon">📦</span>
         <span class="dps-nav-text">${_t('tabModuleMapping')}</span>
       </button>
+      <button class="dps-nav-item" data-target-tab="module-curriculum-tab" data-tooltip="${_t('tabModuleCurriculum')}">
+        <span class="dps-nav-icon">📘</span>
+        <span class="dps-nav-text">${_t('tabModuleCurriculum')}</span>
+      </button>
       <!-- ── Export Settings ──────────────────────────────────────
            Sits immediately before Help, and takes its SHAPE from
            .dps-nav-item (icon, size, padding, collapsed-rail tooltip)
@@ -891,6 +902,7 @@ function _captureState() {
     clusteringData:           appState.clusteringData,
     learningOutcomesData:     appState.learningOutcomesData,
     moduleMappingData:        appState.moduleMappingData,
+    moduleCurriculumData:     appState.moduleCurriculumData    || null,
     verificationDecisionMade: appState.verificationDecisionMade,
     clusteringAllowed:        appState.clusteringAllowed,
     _chartInfo:               chartInfo,
@@ -945,6 +957,9 @@ function _applyState(s) {
   appState.clusteringData           = s.clusteringData           || { clusters: [], availableTasks: [], clusterCounter: 0 };
   appState.learningOutcomesData     = s.learningOutcomesData     || { outcomes: [], outcomeCounter: 0 };
   appState.moduleMappingData        = s.moduleMappingData        || { modules: [], moduleCounter: 0 };
+  // Projects saved before 3.33.0 have no curriculum — the default
+  // (empty, 25 h per credit, 10/45/5/35/5) is what they get.
+  appState.moduleCurriculumData     = normalizeModuleCurriculumData(s.moduleCurriculumData);
   appState.verificationDecisionMade = s.verificationDecisionMade || false;
   appState.clusteringAllowed        = s.clusteringAllowed        || false;
   appState._chartInfo               = s._chartInfo               || {};
@@ -975,7 +990,7 @@ function _applyState(s) {
   // one failure can't abort the rest of the load.
   [renderAvailableTasks, renderClusters,
    renderPCSourceList,   renderLearningOutcomes,
-   renderModuleLoList,   renderModules].forEach(fn => {
+   renderModuleLoList,   renderModules, renderModuleCurriculum].forEach(fn => {
     try { fn(); } catch (err) { console.warn('[project] render skipped:', err); }
   });
 }
@@ -1927,6 +1942,7 @@ window.addEventListener('dacum:langchange', () => {
     'clustering-tab':        'tabClustering',
     'learning-outcomes-tab': 'tabLearningOutcomes',
     'module-mapping-tab':    'tabModuleMapping',
+    'module-curriculum-tab': 'tabModuleCurriculum',
     'contact-tab':           'tabHelp',
   };
   document.querySelectorAll('.dps-nav-item').forEach(btn => {

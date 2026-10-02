@@ -3,7 +3,7 @@
 // Save / Load entire application state as a JSON file.
 // ============================================================
 
-import { appState } from './state.js';
+import { appState, normalizeModuleCurriculumData } from './state.js';
 import { showStatus } from './renderer.js';
 import { addDuty, addTask, syncAllFromDOM, renderDutiesFromState } from './duties.js';
 import { renderSkillsLevel } from './renderer.js';
@@ -132,6 +132,16 @@ export function saveToJSON() {
       modules: appState.moduleMappingData.modules || [],
       moduleCounter: appState.moduleMappingData.moduleCounter || 0
     };
+    // Programme level count (was dropped on export before 3.33.0).
+    if (appState.moduleMappingData.levelCount) {
+      data.moduleMapping.levelCount = appState.moduleMappingData.levelCount;
+    }
+
+    // Module Curriculum (3.33.0) — its own top-level key. Read back by
+    // importProjectFromData(); older files simply lack it.
+    if (appState.moduleCurriculumData) {
+      data.moduleCurriculum = appState.moduleCurriculumData;
+    }
 
     // Skills Level Matrix
     data.skillsLevelMatrix = appState.skillsLevelData;
@@ -467,12 +477,16 @@ export function loadFromJSONLegacy(event) {
         if (data.moduleMapping) {
           appState.moduleMappingData.modules = data.moduleMapping.modules || [];
           appState.moduleMappingData.moduleCounter = data.moduleMapping.moduleCounter || 0;
+          if (data.moduleMapping.levelCount) appState.moduleMappingData.levelCount = data.moduleMapping.levelCount;
         } else {
           appState.moduleMappingData.modules = [];
           appState.moduleMappingData.moduleCounter = 0;
         }
         renderModules();
         renderModuleLoList();
+
+        // Module Curriculum (absent in files saved before 3.33.0)
+        appState.moduleCurriculumData = normalizeModuleCurriculumData(data.moduleCurriculum);
 
         // Skills Level Matrix
         if (data.skillsLevelMatrix) {

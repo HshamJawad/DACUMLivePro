@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v132';
+const CACHE_VERSION = 'v133';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -58,6 +58,8 @@ const PRECACHE_URLS = [
   BASE + 'dacum-components.css',
   // RTL mirroring + language switcher (loads last, see index.html).
   BASE + 'dacum-draft.css',
+  // Module Curriculum tab + Standard export menu (3.33.0).
+  BASE + 'dacum-curriculum.css',
   BASE + 'dacum-rtl.css',
 
   // ── Non-module scripts ───────────────────────────────────
@@ -91,6 +93,10 @@ const PRECACHE_URLS = [
   // miss here is invisible online and fails only in the training room,
   // which is the one place the export is actually wanted.
   BASE + 'exports_os_docx.js',
+  // Module Curriculum tab (3.33.0) and its CUR Word layout. Imported by
+  // events.js / tabs.js / projects.js; the exporter only through it.
+  BASE + 'module_curriculum.js',
+  BASE + 'exports_cur_docx.js',
   // Export Settings: the store + modal that both exporters read from.
   // Loaded lazily by the sidebar button and statically by the two
   // exporters, so an installed copy must carry it or a coloured
@@ -201,6 +207,11 @@ self.addEventListener('activate', function (event) {
           // the HTML or an updated page paints unstyled for one cycle.
           BASE + 'dacum-typography.css',
           BASE + 'dacum-rtl.css',
+          // 3.33.0: the curriculum tab's own stylesheet, linked by
+          // index.html like the others.
+          BASE + 'dacum-curriculum.css',
+          // Flagged by preflight (pre-existing): linked by index.html too.
+          BASE + 'dacum-draft.css',
           // Without this the Arabic UI repaints in a fallback face for
           // one cycle after every update.
           BASE + 'fonts/Cairo.woff2',

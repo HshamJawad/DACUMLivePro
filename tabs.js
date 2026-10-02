@@ -12,6 +12,7 @@ import { renderPCSourceList, renderLearningOutcomes,
   renderModuleLoList, renderModules,
   renderAvailableTasks, renderClusters } from './modules.js';
 import { syncTaskAnalysisTab } from './task_analysis.js';
+import { renderModuleCurriculum } from './module_curriculum.js';
 
 export function setupTabs() {
   document.querySelectorAll('.tab').forEach(tab => {
@@ -67,6 +68,10 @@ export function setupTabs() {
       if (tabId === 'module-mapping-tab') {
         renderModuleLoList();
         renderModules();
+      }
+
+      if (tabId === 'module-curriculum-tab') {
+        renderModuleCurriculum();
       }
     });
   });

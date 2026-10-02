@@ -3,7 +3,8 @@
 // Project-level ops: clear, switch tab, AI generation
 // ============================================================
 
-import { appState, defaultSupplementaryVerification } from './state.js';
+import { appState, defaultSupplementaryVerification,
+         defaultModuleCurriculumData } from './state.js';
 import { showStatus } from './renderer.js';
 import { addDuty, renderDutiesFromState } from './duties.js';
 import { resetSkillsLevel, renderSkillsLevel } from './renderer.js';
@@ -15,6 +16,8 @@ import { syncTaskAnalysisTab, clearAllTaskAnalysis, hasAnyTaskAnalysis,
          countTaskAnalysisRecords } from './task_analysis.js';
 import { isBatchRun } from './draft_mode.js';
 import { throwIfAIError, showAIServiceError } from './ai_client.js';
+import { renderModuleCurriculum, clearModuleCurriculum,
+         isModuleCurriculumEmpty } from './module_curriculum.js';
 import { verifyOccupation, needsConfirmation, VERDICT,
          markBypassed, wasBypassed, clearBypass } from './occupation_check.js';
 
@@ -86,6 +89,9 @@ export function switchTab(tabId) {
     if (tabId === 'module-mapping-tab') {
       renderModuleLoList();
       renderModules();
+    }
+    if (tabId === 'module-curriculum-tab') {
+      renderModuleCurriculum();
     }
   }
 }
@@ -264,6 +270,10 @@ function _doClear() {
   renderModules();
   renderModuleLoList();
 
+  // ── Module Curriculum (3.33.0) ────────────────────────────
+  appState.moduleCurriculumData = defaultModuleCurriculumData();
+  try { renderModuleCurriculum(); } catch (_) {}
+
   // ── Switch to Chart Info tab ──────────────────────────────
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -297,6 +307,7 @@ const _DOWNSTREAM_OF = {
   'clustering-tab':        ['outcomes', 'modules'],
   'learning-outcomes-tab': ['modules'],
   'module-mapping-tab':    [],
+  'module-curriculum-tab': [],
   'info-tab':              [],
   'additional-info-tab':   [],
 };
@@ -376,6 +387,9 @@ function _isTabEmpty(tabId) {
 
     case 'module-mapping-tab':
       return !(s.moduleMappingData?.modules?.length);
+
+    case 'module-curriculum-tab':
+      return isModuleCurriculumEmpty();
 
     default:
       return false;   // unknown tab: never suppress the warning
@@ -502,6 +516,11 @@ export function clearCurrentTab(tabId) {
     renderModules();
     renderModuleLoList();
     showStatus(_tf('msgTabCleared', { v: _t('tabModuleMapping') }), 'success');
+
+  } else if (tabId === 'module-curriculum-tab') {
+    // Curriculum data only — modules and learning outcomes stay.
+    clearModuleCurriculum();
+    showStatus(_tf('msgTabCleared', { v: _t('tabModuleCurriculum') }), 'success');
   }
 }
 

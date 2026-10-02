@@ -96,8 +96,60 @@ export const appState = {
   moduleMappingData: {
     modules: [],
     moduleCounter: 0
-  }
+  },
+
+  // ── Module Curriculum (CUR/CBC) ────────────────────────────
+  // Owned by module_curriculum.js. Keyed by module id and LO id, never
+  // by position, so data for a deleted module/outcome stays (hidden)
+  // and comes back if Module Mapping's Undo restores it. Projects saved
+  // before this feature simply lack the key and get the default below.
+  moduleCurriculumData: null
 };
+
+/* ── Module Curriculum defaults ───────────────────────────────
+   Kept here (no imports) so every save/load path — projects, JSON,
+   snapshots — can normalise the block without importing the tab's
+   module. */
+export const CUR_DEFAULT_SPLIT = Object.freeze({ theory: 10, practical: 45, formative: 5, practice: 35, summative: 5 });
+
+export function defaultModuleCurriculumData() {
+  return {
+    settings: {
+      programmeName: '',
+      hoursPerCredit: 25,
+      groupSize: 15,
+      split: { ...CUR_DEFAULT_SPLIT }
+    },
+    byModule: {}
+  };
+}
+
+/** Returns a well-formed curriculum block from anything (null, an old
+ *  or partial object). Never throws; unknown extra keys are kept. */
+export function normalizeModuleCurriculumData(d) {
+  const def = defaultModuleCurriculumData();
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return def;
+  const s = (d.settings && typeof d.settings === 'object') ? d.settings : {};
+  const num = (v, fb) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : fb; };
+  const split = { ...CUR_DEFAULT_SPLIT };
+  if (s.split && typeof s.split === 'object') {
+    Object.keys(split).forEach(k => {
+      const n = Number(s.split[k]);
+      if (Number.isFinite(n) && n >= 0) split[k] = n;
+    });
+  }
+  return {
+    ...d,
+    settings: {
+      ...s,
+      programmeName: typeof s.programmeName === 'string' ? s.programmeName : '',
+      hoursPerCredit: num(s.hoursPerCredit, def.settings.hoursPerCredit),
+      groupSize: num(s.groupSize, def.settings.groupSize),
+      split
+    },
+    byModule: (d.byModule && typeof d.byModule === 'object' && !Array.isArray(d.byModule)) ? d.byModule : {}
+  };
+}
 
 /* ── Skills Level Matrix defaults ─────────────────────────────
    The seed used to be written out twice as English literals: once in

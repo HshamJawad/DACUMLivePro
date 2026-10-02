@@ -7,7 +7,7 @@
 // Max entries      : 30  (oldest removed when exceeded)
 // ============================================================
 
-import { appState }                  from './state.js';
+import { appState, normalizeModuleCurriculumData } from './state.js';
 import { showStatus }                from './renderer.js';
 import { renderDutiesFromState, syncAllFromDOM } from './duties.js';
 import { renderSkillsLevel }         from './renderer.js';
@@ -15,6 +15,7 @@ import { renderLearningOutcomes, renderPCSourceList,
          renderModules, renderModuleLoList,
          renderClusters, renderAvailableTasks } from './modules.js';
 import { resetHistoryToCurrentState } from './history.js';
+import { renderModuleCurriculum }     from './module_curriculum.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -143,6 +144,7 @@ export function renderAll() {
   renderAvailableTasks();
   renderModules();
   renderModuleLoList();
+  renderModuleCurriculum();
 }
 
 // ── Full state capture / apply ────────────────────────────────
@@ -211,6 +213,7 @@ function _captureFullState() {
     clusteringData:          appState.clusteringData,
     learningOutcomesData:    appState.learningOutcomesData,
     moduleMappingData:       appState.moduleMappingData,
+    moduleCurriculumData:    appState.moduleCurriculumData    || null,
     verificationDecisionMade: appState.verificationDecisionMade,
     clusteringAllowed:       appState.clusteringAllowed,
     // DOM-sourced slices
@@ -241,6 +244,8 @@ function _applyFullState(s) {
   appState.clusteringData          = s.clusteringData          || { clusters: [], availableTasks: [], clusterCounter: 0 };
   appState.learningOutcomesData    = s.learningOutcomesData    || { outcomes: [], outcomeCounter: 0 };
   appState.moduleMappingData       = s.moduleMappingData       || { modules: [], moduleCounter: 0 };
+  // Snapshots taken before 3.33.0 have no curriculum — default then.
+  appState.moduleCurriculumData    = normalizeModuleCurriculumData(s.moduleCurriculumData);
   appState.verificationDecisionMade = s.verificationDecisionMade || false;
   appState.clusteringAllowed       = s.clusteringAllowed       || false;
 

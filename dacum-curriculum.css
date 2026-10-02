@@ -1,0 +1,415 @@
+/* ============================================================
+   dacum-curriculum.css — "Module Curriculum CUR/CBC" tab and the
+   "Standard" toolbar export menu (module_curriculum.js).
+
+   Scoped: every rule starts at #module-curriculum-tab, #curStdMenu or
+   a .cur-modal-* class, so nothing here can touch an existing tab.
+   Logical properties (inline-start/-end) throughout, so Arabic mirrors
+   without a separate RTL block; the few physical cases are noted.
+   Loaded after dacum-rtl.css (index.html) and listed in sw.js
+   PRECACHE_URLS + criticalUrls.
+   ============================================================ */
+
+#module-curriculum-tab {
+  --cur-violet: #6d28d9;
+  --cur-violet-2: #8b5cf6;
+  --cur-violet-bg: #faf5ff;
+  --cur-violet-line: #ddd6fe;
+  --cur-ink: #1e293b;
+  --cur-muted: #64748b;
+  --cur-line: #e2e8f0;
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+#module-curriculum-tab .cur-empty {
+  text-align: center; padding: 40px 20px; margin: 10px 0 20px;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border: 2px dashed #c4b5fd; border-radius: 16px; color: #4c1d95;
+}
+#module-curriculum-tab .cur-empty-icon { font-size: 2.6em; line-height: 1; margin-bottom: 8px; }
+#module-curriculum-tab .cur-empty h3 { margin: 0 0 8px; color: var(--cur-violet); }
+#module-curriculum-tab .cur-empty p { margin: 0 auto 18px; max-width: 520px; color: #5b21b6; line-height: 1.6; }
+
+/* ── Top bar ─────────────────────────────────────────────── */
+#module-curriculum-tab .cur-topbar {
+  position: sticky; top: 64px; z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  padding: 12px 14px; margin: 0 0 16px;
+  background: #ffffffee; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  border: 1px solid var(--cur-violet-line); border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, .08);
+}
+#module-curriculum-tab .cur-sel-wrap { display: flex; align-items: center; gap: 8px; flex: 1 1 320px; min-width: 0; margin: 0; }
+#module-curriculum-tab .cur-sel-label { font-weight: 700; color: var(--cur-violet); white-space: nowrap; font-size: .9em; }
+#module-curriculum-tab .cur-module-select {
+  flex: 1 1 auto; min-width: 0; width: 100%; max-width: 100%; margin: 0;
+  padding: 8px 10px; border: 1.5px solid var(--cur-violet-line); border-radius: 8px;
+  font: inherit; font-weight: 600; color: var(--cur-ink); background: #fff; text-overflow: ellipsis;
+}
+#module-curriculum-tab .cur-topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#module-curriculum-tab .cur-icon-btn {
+  box-sizing: border-box; width: 36px; height: 36px; min-width: 36px; max-width: 36px;
+  min-height: 36px; max-height: 36px; padding: 0 !important; margin: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #475569;
+  font-size: 1.3em; line-height: 1; cursor: pointer;
+}
+#module-curriculum-tab .cur-icon-btn:hover:not(:disabled) { background: #eef2ff; border-color: #a5b4fc; color: #4338ca; }
+#module-curriculum-tab .cur-icon-btn:disabled { opacity: .4; cursor: not-allowed; }
+#module-curriculum-tab .cur-progress {
+  padding: 5px 12px; border-radius: 999px; font-size: .82em; font-weight: 700; white-space: nowrap;
+  background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
+}
+#module-curriculum-tab .cur-progress.is-done { background: #dcfce7; color: #166534; border-color: #86efac; }
+#module-curriculum-tab .cur-export-btn {
+  margin: 0; padding: 8px 14px !important; border-radius: 8px; border: none; cursor: pointer;
+  font: inherit; font-size: .88em; font-weight: 700; color: #fff; white-space: nowrap;
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+}
+#module-curriculum-tab .cur-export-btn:hover { filter: brightness(1.08); }
+
+/* ── Cards / sections ─────────────────────────────────────── */
+#module-curriculum-tab .cur-card {
+  background: #fff; border: 1px solid var(--cur-line); border-radius: 14px;
+  padding: 18px; margin: 0 0 18px; box-shadow: 0 1px 4px rgba(15, 23, 42, .04);
+}
+#module-curriculum-tab details.cur-card { padding: 0; }
+#module-curriculum-tab .cur-card-sum {
+  list-style: none; cursor: pointer; padding: 14px 18px; border-radius: 14px;
+  font-weight: 700; color: #334155; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;
+}
+#module-curriculum-tab .cur-card-sum::-webkit-details-marker { display: none; }
+#module-curriculum-tab .cur-card-sum::after { content: '▾'; margin-inline-start: auto; color: var(--cur-muted); }
+#module-curriculum-tab details[open] > .cur-card-sum::after { content: '▴'; }
+#module-curriculum-tab details[open] > .cur-card-sum { border-bottom: 1px solid var(--cur-line); border-radius: 14px 14px 0 0; }
+#module-curriculum-tab .cur-sum-meta { font-weight: 500; font-size: .85em; color: var(--cur-muted); min-width: 0; overflow-wrap: anywhere; }
+#module-curriculum-tab .cur-card-body { padding: 14px 18px 18px; }
+#module-curriculum-tab .cur-sec-title {
+  margin: 0 0 14px; font-size: 1.12em; color: var(--cur-violet);
+  padding-bottom: 8px; border-bottom: 2px solid var(--cur-violet-line);
+}
+#module-curriculum-tab .cur-sec-head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+  margin: 0 0 14px; padding-bottom: 8px; border-bottom: 2px solid var(--cur-violet-line);
+}
+#module-curriculum-tab .cur-sec-head .cur-sec-title { margin: 0; padding: 0; border: none; }
+#module-curriculum-tab .cur-subhead { margin: 16px 0 8px; font-weight: 700; color: #334155; font-size: .95em; }
+#module-curriculum-tab .cur-hint { color: var(--cur-muted); font-size: .85em; line-height: 1.5; margin: 4px 0 0; }
+#module-curriculum-tab p.cur-hint { margin: 0 0 12px; }
+
+/* Read-only block from Module Mapping */
+#module-curriculum-tab .cur-fromMM {
+  background: var(--cur-violet-bg); border: 1px solid var(--cur-violet-line);
+  border-radius: 10px; padding: 10px 14px; margin: 0 0 14px;
+}
+#module-curriculum-tab .cur-fromMM-head {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px;
+  font-size: .8em; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: .02em;
+}
+#module-curriculum-tab .cur-link-btn {
+  background: none !important; border: none; color: #6d28d9 !important; padding: 2px 4px !important;
+  font: inherit; font-size: 1em; text-transform: none; cursor: pointer; text-decoration: underline; min-height: 0 !important;
+  box-shadow: none !important; margin: 0;
+}
+#module-curriculum-tab .cur-ro { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px 16px; margin: 8px 0 0; }
+#module-curriculum-tab .cur-ro div { min-width: 0; }
+#module-curriculum-tab .cur-ro dt { font-size: .75em; color: var(--cur-muted); font-weight: 600; }
+#module-curriculum-tab .cur-ro dd { margin: 2px 0 0; font-weight: 700; color: var(--cur-ink); overflow-wrap: anywhere; }
+
+/* ── Fields ───────────────────────────────────────────────── */
+#module-curriculum-tab .cur-field { display: block; margin: 0 0 14px; min-width: 0; }
+#module-curriculum-tab .cur-field > span:first-child,
+#module-curriculum-tab .cur-field-label,
+#module-curriculum-tab .cur-field-head > span {
+  display: block; font-weight: 700; color: #334155; font-size: .88em; margin-bottom: 6px;
+}
+#module-curriculum-tab .cur-field-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin-bottom: 6px; }
+#module-curriculum-tab .cur-field-head > span { margin: 0; }
+#module-curriculum-tab .cur-field input[type=text],
+#module-curriculum-tab .cur-field input[type=number],
+#module-curriculum-tab .cur-field textarea,
+#module-curriculum-tab .cur-fac textarea,
+#module-curriculum-tab .cur-fac input {
+  width: 100%; max-width: 100%; box-sizing: border-box; margin: 0;
+  padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+  font: inherit; font-size: .95em; color: var(--cur-ink); background: #fff;
+}
+#module-curriculum-tab textarea { resize: vertical; line-height: 1.5; unicode-bidi: plaintext; text-align: start; min-height: 38px; }
+#module-curriculum-tab textarea.cur-auto { resize: none; overflow: hidden; }
+#module-curriculum-tab input:focus, #module-curriculum-tab textarea:focus, #module-curriculum-tab select:focus {
+  outline: none; border-color: var(--cur-violet-2); box-shadow: 0 0 0 3px rgba(139, 92, 246, .2);
+}
+#module-curriculum-tab .cur-num { max-width: 140px !important; }
+#module-curriculum-tab .cur-inline { display: flex; gap: 8px; align-items: center; }
+#module-curriculum-tab .cur-inline input { flex: 1 1 auto; min-width: 0; }
+#module-curriculum-tab .cur-chip {
+  display: inline-block; font-style: normal; font-weight: 700; font-size: .78em; margin-inline-start: 6px;
+  padding: 1px 8px; border-radius: 999px; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; vertical-align: middle;
+}
+#module-curriculum-tab .cur-chip[hidden] { display: none; }
+#module-curriculum-tab .cur-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+#module-curriculum-tab .cur-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 16px; }
+#module-curriculum-tab .cur-span-3 { grid-column: 1 / -1; }
+
+#module-curriculum-tab .cur-mini-btn, #module-curriculum-tab .cur-chip-btn {
+  margin: 0; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  padding: 6px 12px !important; border-radius: 8px; cursor: pointer; min-height: 34px;
+  font: inherit; font-size: .82em; font-weight: 700;
+  background: #f5f3ff; color: #5b21b6; border: 1px solid var(--cur-violet-line); box-shadow: none !important;
+}
+#module-curriculum-tab .cur-mini-btn:hover, #module-curriculum-tab .cur-chip-btn:hover { background: #ede9fe; border-color: #c4b5fd; }
+#module-curriculum-tab .cur-chip-btn { font-weight: 600; padding: 4px 10px !important; min-height: 30px; border-radius: 999px; }
+#module-curriculum-tab .cur-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; font-size: .9em; color: var(--cur-muted); }
+
+#module-curriculum-tab .cur-check { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0; font-weight: 500; color: #334155; }
+#module-curriculum-tab .cur-check input { width: 18px; height: 18px; flex-shrink: 0; margin: 2px 0 0; accent-color: var(--cur-violet); }
+#module-curriculum-tab .cur-check small { color: var(--cur-muted); }
+#module-curriculum-tab .cur-checklist {
+  max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+  padding: 8px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #fff;
+}
+#module-curriculum-tab .cur-override { margin: 12px 0 8px; }
+
+/* ── Time split & hours ───────────────────────────────────── */
+#module-curriculum-tab .cur-split-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+#module-curriculum-tab .cur-split-cell { display: flex; flex-direction: column; gap: 4px; margin: 0; min-width: 0; font-size: .8em; font-weight: 600; color: #475569; }
+#module-curriculum-tab .cur-split-cell span { overflow-wrap: anywhere; }
+#module-curriculum-tab .cur-split-cell input {
+  width: 100%; box-sizing: border-box; margin: 0; padding: 7px 8px; text-align: center;
+  border: 1.5px solid #cbd5e1; border-radius: 8px; font: inherit; font-size: 1.05em; font-weight: 700; color: var(--cur-ink);
+}
+#module-curriculum-tab .cur-split-note { margin: 8px 0 0; font-size: .85em; }
+#module-curriculum-tab .cur-sum-ok { color: #166534; font-weight: 700; }
+#module-curriculum-tab .cur-warn { color: #b45309; font-weight: 600; font-size: .88em; line-height: 1.5; }
+#module-curriculum-tab .cur-warn.cur-block {
+  display: block; padding: 8px 12px; margin: 0 0 12px; border-radius: 8px; background: #fffbeb; border: 1px solid #fde68a;
+}
+#module-curriculum-tab .cur-hours-empty {
+  padding: 10px 12px; border-radius: 8px; background: #f8fafc; border: 1px dashed #cbd5e1; color: var(--cur-muted); font-size: .9em;
+}
+#module-curriculum-tab .cur-hours-formula { font-size: .85em; color: var(--cur-muted); margin: 0 0 6px; }
+#module-curriculum-tab .cur-hours { display: grid; grid-template-columns: 3fr 2fr auto; gap: 8px; }
+#module-curriculum-tab .cur-h-group { border: 1px solid var(--cur-line); border-radius: 10px; overflow: hidden; min-width: 0; }
+#module-curriculum-tab .cur-h-inst { border-color: #c7d2fe; }
+#module-curriculum-tab .cur-h-ind  { border-color: #a7f3d0; }
+#module-curriculum-tab .cur-h-head { padding: 6px 10px; font-size: .82em; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+#module-curriculum-tab .cur-h-inst .cur-h-head { background: #eef2ff; color: #3730a3; }
+#module-curriculum-tab .cur-h-ind  .cur-h-head { background: #ecfdf5; color: #065f46; }
+#module-curriculum-tab .cur-h-row { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+#module-curriculum-tab .cur-h-cell { padding: 6px 8px; text-align: center; border-inline-start: 1px solid var(--cur-line); min-width: 0; }
+#module-curriculum-tab .cur-h-cell:first-child { border-inline-start: none; }
+#module-curriculum-tab .cur-h-lbl { display: block; font-size: .72em; color: var(--cur-muted); font-weight: 600; overflow-wrap: anywhere; }
+#module-curriculum-tab .cur-h-cell strong { font-size: 1.15em; color: var(--cur-ink); }
+#module-curriculum-tab .cur-h-total {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  padding: 8px 14px; border-radius: 10px; background: linear-gradient(135deg, #6d28d9, #8b5cf6); color: #fff; min-width: 84px;
+}
+#module-curriculum-tab .cur-h-total span { font-size: .78em; font-weight: 600; opacity: .9; }
+#module-curriculum-tab .cur-h-total strong { font-size: 1.3em; }
+
+/* OS link + LO list */
+#module-curriculum-tab .cur-oslink { margin: 0; padding-inline-start: 20px; }
+#module-curriculum-tab .cur-oslink li { margin: 0 0 8px; line-height: 1.5; color: #334155; font-size: .92em; }
+#module-curriculum-tab .cur-oslink-ids { margin-top: 3px; font-size: .92em; color: var(--cur-muted); }
+#module-curriculum-tab .cur-pc, #module-curriculum-tab .cur-task, #module-curriculum-tab .cur-lonum {
+  display: inline-block; padding: 0 7px; border-radius: 6px; font-weight: 700; font-size: .92em; margin: 1px 2px;
+}
+#module-curriculum-tab .cur-pc { background: #e0e7ff; color: #3730a3; }
+#module-curriculum-tab .cur-task { background: #fef3c7; color: #92400e; }
+#module-curriculum-tab .cur-lonum { background: #f3e8ff; color: #6d28d9; }
+#module-curriculum-tab .cur-lolist { margin: 0; padding-inline-start: 22px; }
+#module-curriculum-tab .cur-lolist li { margin: 0 0 6px; line-height: 1.5; color: #334155; }
+
+/* ── LO cards ─────────────────────────────────────────────── */
+#module-curriculum-tab .cur-lo {
+  border: 2px solid #c4b5fd; border-radius: 12px; margin: 0 0 12px;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+}
+#module-curriculum-tab .cur-lo-sum {
+  list-style: none; cursor: pointer; padding: 12px 14px; display: flex; align-items: flex-start; gap: 10px;
+}
+#module-curriculum-tab .cur-lo-sum::-webkit-details-marker { display: none; }
+#module-curriculum-tab .cur-lo-sum::before { content: '▸'; color: var(--cur-violet); font-weight: 700; line-height: 1.6; }
+html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
+#module-curriculum-tab .cur-lo[open] > .cur-lo-sum::before { content: '▾'; }
+#module-curriculum-tab .cur-lo-title { flex: 1 1 auto; min-width: 0; line-height: 1.6; font-weight: 600; color: var(--cur-ink); overflow-wrap: anywhere; }
+#module-curriculum-tab .cur-lo-badge {
+  flex-shrink: 0; padding: 2px 10px; border-radius: 999px; font-size: .78em; font-weight: 700; white-space: nowrap;
+  background: #fff; color: #92400e; border: 1px solid #fde68a;
+}
+#module-curriculum-tab .cur-lo-badge.is-done { color: #166534; border-color: #86efac; background: #f0fdf4; }
+#module-curriculum-tab .cur-lo-body { padding: 4px 14px 14px; background: rgba(255, 255, 255, .7); border-radius: 0 0 10px 10px; }
+#module-curriculum-tab .cur-hours-field input { max-width: 140px; }
+
+/* ── List editor ──────────────────────────────────────────── */
+#module-curriculum-tab .cur-list { display: flex; flex-direction: column; gap: 6px; }
+#module-curriculum-tab .cur-li { display: flex; align-items: flex-start; gap: 6px; }
+#module-curriculum-tab .cur-li-num {
+  flex: 0 0 auto; min-width: 36px; padding: 8px 4px 0; text-align: center;
+  font-weight: 700; font-size: .85em; color: var(--cur-violet); direction: ltr; unicode-bidi: isolate;
+}
+#module-curriculum-tab .cur-li-input {
+  flex: 1 1 auto; min-width: 0; width: auto !important; box-sizing: border-box; margin: 0;
+  padding: 7px 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; font: inherit; font-size: .93em; background: #fff;
+}
+#module-curriculum-tab .cur-li-del {
+  box-sizing: border-box; flex: 0 0 auto; width: 34px; height: 34px; min-width: 34px; max-width: 34px;
+  min-height: 34px; max-height: 34px; padding: 0 !important; margin: 2px 0 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px; border: 1px solid #fecaca; background: #fff5f5; color: #b91c1c; cursor: pointer; font-size: 13px; line-height: 1;
+}
+#module-curriculum-tab .cur-li-del:hover { background: #fee2e2; }
+#module-curriculum-tab .cur-li-add {
+  align-self: flex-start; margin: 2px 0 0; padding: 6px 14px !important; min-height: 34px;
+  border: 1.5px dashed #a78bfa; border-radius: 8px; background: #fff; color: #6d28d9;
+  font: inherit; font-size: .85em; font-weight: 700; cursor: pointer; box-shadow: none !important;
+}
+#module-curriculum-tab .cur-li-add:hover { background: #f5f3ff; }
+#module-curriculum-tab .cur-res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+
+/* Facilities table */
+#module-curriculum-tab .cur-fac { display: flex; flex-direction: column; gap: 6px; }
+#module-curriculum-tab .cur-fac-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 34px; gap: 6px; align-items: start; }
+#module-curriculum-tab .cur-fac-head { font-size: .8em; font-weight: 700; color: var(--cur-muted); }
+#module-curriculum-tab .cur-fac-qty { text-align: center; }
+
+/* ── Help "?" in the tab header ───────────────────────────── */
+#module-curriculum-tab .cur-step-row { justify-content: space-between; }
+
+/* ── Touch screens: full 44px targets, still square ──────── */
+@media (hover: none) and (pointer: coarse) {
+  #module-curriculum-tab .cur-icon-btn, #module-curriculum-tab .cur-li-del {
+    width: 44px; height: 44px; min-width: 44px; max-width: 44px; min-height: 44px; max-height: 44px;
+  }
+  #module-curriculum-tab .cur-fac-row { grid-template-columns: minmax(0, 1fr) 70px 44px; }
+  #module-curriculum-tab .cur-mini-btn, #module-curriculum-tab .cur-li-add { min-height: 44px; }
+}
+
+/* ── Phones ───────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  #module-curriculum-tab .cur-grid-2, #module-curriculum-tab .cur-grid-3,
+  #module-curriculum-tab .cur-res-grid { grid-template-columns: 1fr; }
+  #module-curriculum-tab .cur-ro { grid-template-columns: 1fr 1fr; }
+  #module-curriculum-tab .cur-ro div:first-child { grid-column: 1 / -1; }
+  #module-curriculum-tab .cur-hours { grid-template-columns: 1fr; }
+  #module-curriculum-tab .cur-h-total { flex-direction: row; justify-content: space-between; }
+  #module-curriculum-tab .cur-split-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  #module-curriculum-tab .cur-topbar { position: static; padding: 10px; }
+  #module-curriculum-tab .cur-sel-wrap { flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 4px; }
+  #module-curriculum-tab .cur-topbar-actions { width: 100%; }
+  #module-curriculum-tab .cur-export-btn { flex: 1 1 100%; }
+  #module-curriculum-tab .cur-card { padding: 14px 12px; }
+  #module-curriculum-tab .cur-card-body { padding: 12px; }
+  #module-curriculum-tab .cur-lo-sum { flex-wrap: wrap; }
+  #module-curriculum-tab .cur-lo-badge { margin-inline-start: 24px; }
+  #module-curriculum-tab .cur-lo-body { padding: 4px 10px 12px; }
+  #module-curriculum-tab .cur-split-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #module-curriculum-tab .cur-li-num { min-width: 28px; }
+}
+
+/* ============================================================
+   "Standard" toolbar menu (body-level, positioned by JS)
+   ============================================================ */
+#curStdMenu.cur-menu {
+  position: fixed; z-index: 2147483000; min-width: 240px; max-width: calc(100vw - 16px); box-sizing: border-box;
+  padding: 6px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .22); font-family: inherit;
+  animation: curMenuIn .14s ease-out;
+}
+@keyframes curMenuIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+#curStdMenu .cur-menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; margin: 0;
+  padding: 10px 12px !important; min-height: 44px; border: none; border-radius: 8px; background: none;
+  font: inherit; font-size: .9em; font-weight: 600; color: #1e293b; text-align: start; cursor: pointer;
+}
+#curStdMenu .cur-menu-item:hover:not([disabled]), #curStdMenu .cur-menu-item:focus-visible:not([disabled]) {
+  background: #f1f5f9; outline: none;
+}
+#curStdMenu .cur-menu-item:focus-visible { box-shadow: inset 0 0 0 2px #667eea; }
+#curStdMenu .cur-menu-item[disabled] { color: #94a3b8; cursor: not-allowed; }
+#curStdMenu .cur-menu-ic {
+  flex: 0 0 auto; min-width: 34px; height: 22px; padding: 0 4px; box-sizing: border-box; border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; font-size: .68em; font-weight: 800; letter-spacing: .02em; font-family: Arial, sans-serif;
+}
+#curStdMenu .cur-ic-os  { background: #0f766e; }
+#curStdMenu .cur-ic-cur { background: #6d28d9; }
+#curStdMenu .cur-ic-cbc { background: #cbd5e1; }
+#curStdMenu .cur-soon {
+  margin-inline-start: auto; padding: 1px 8px; border-radius: 999px; font-size: .78em; font-weight: 700;
+  background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; white-space: nowrap;
+}
+
+/* ============================================================
+   Modals (export dialog, Task Analysis picker, guidelines)
+   ============================================================ */
+.cur-modal-ov {
+  position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(0, 0, 0, .55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.cur-modal {
+  background: #fff; border-radius: 16px; width: 100%; max-width: 520px; max-height: 88vh;
+  display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+  font-family: inherit; text-align: start;
+}
+.cur-modal.is-wide { max-width: 660px; }
+.cur-modal-head {
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px 14px; flex-shrink: 0;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff); border-bottom: 1px solid #c7d2fe;
+}
+.cur-modal-head p { margin: 0; flex: 1 1 auto; font-weight: 800; color: #3730a3; font-size: 1em; min-width: 0; }
+.cur-modal-icon { font-size: 1.5em; line-height: 1; }
+.cur-modal-x {
+  box-sizing: border-box; flex: 0 0 auto; width: 32px; height: 32px; min-width: 32px; max-width: 32px;
+  min-height: 32px; max-height: 32px; padding: 0 !important; margin: 0; border-radius: 8px;
+  border: 1px solid #c7d2fe; background: #fff; color: #3730a3; cursor: pointer; font-size: 14px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.cur-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1 1 auto; }
+.cur-modal-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 12px 20px; border-top: 1px solid #eef0f4; flex-shrink: 0; }
+.cur-modal-intro {
+  margin: 0 0 14px; font-size: .88em; line-height: 1.65; color: #475569;
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;
+}
+.cur-btn-primary, .cur-btn-ghost {
+  margin: 0; padding: 9px 18px !important; border-radius: 8px; font: inherit; font-size: .9em; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.cur-btn-primary { background: #667eea; color: #fff; border: none; }
+.cur-btn-primary:hover:not(:disabled) { background: #5a67d8; }
+.cur-btn-primary:disabled { opacity: .6; cursor: wait; }
+.cur-btn-primary.is-done { background: #16a34a; }
+.cur-btn-ghost { background: #f1f5f9; color: #334155; border: none; }
+.cur-modal .cur-check { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0; font-size: .9em; color: #334155; }
+.cur-modal .cur-check input { width: 18px; height: 18px; flex-shrink: 0; margin: 2px 0 0; }
+.cur-modal .cur-check small { color: #64748b; }
+.cur-blank-opt { padding: 10px 12px; margin: 0 0 14px !important; border: 1px solid #ddd6fe; border-radius: 10px; background: #faf5ff; }
+.cur-exp-list { display: flex; flex-direction: column; gap: 8px; }
+.cur-exp-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px;
+}
+.cur-exp-row.is-current { border-color: #a78bfa; background: #faf5ff; }
+.cur-exp-name { min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: .9em; font-weight: 600; color: #1e293b; overflow-wrap: anywhere; }
+.cur-exp-name small { color: #64748b; font-weight: 500; }
+.cur-exp-dl { flex: 0 0 auto; }
+.cur-ta-list { display: flex; flex-direction: column; }
+.cur-ta-row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+  padding: 8px 2px; border-bottom: 1px solid #f1f5f9;
+}
+.cur-ta-row .cur-check { flex: 1 1 200px; min-width: 0; }
+.cur-ta-row.is-done { opacity: .55; }
+.cur-ta-row select { flex: 0 1 260px; max-width: 100%; min-width: 0; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; font-size: .85em; }
+.cur-guide-sec { margin: 0 0 14px; }
+.cur-guide-h { margin: 0 0 6px; font-size: .9em; font-weight: 800; color: #1e293b; }
+.cur-guide-sec ul { margin: 0; padding-inline-start: 20px; }
+.cur-guide-sec li { font-size: .86em; line-height: 1.65; color: #334155; margin-bottom: 4px; }
+@media (max-width: 480px) {
+  .cur-modal-ov { padding: 8px; align-items: flex-end; }
+  .cur-modal { max-height: 92vh; border-radius: 14px; }
+  .cur-modal-body, .cur-modal-head, .cur-modal-foot { padding-left: 14px; padding-right: 14px; }
+  .cur-exp-row { flex-wrap: wrap; }
+  .cur-exp-dl { width: 100%; }
+}

@@ -108,18 +108,79 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v132';
+      var EXPECTED_SW='v133';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.32.4';
+      var APP_VERSION = '3.33.0';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.33.0 — 2026-10-02 — Module Curriculum CUR/CBC ──────
+         MINOR. Additive only; projects without the new data load and
+         export exactly as before.
+
+         Added
+           module_curriculum.js  NEW tab "📘 Module Curriculum CUR/CBC"
+                                 after Module Mapping (one i18n key,
+                                 tabModuleCurriculum). Per module: code
+                                 (suggested from track + level +
+                                 position, or the job-title initials),
+                                 purpose, credits, pre-requisites
+                                 (checkboxes), a COMPUTED time table
+                                 (credits × hours per credit, split by
+                                 %, largest-remainder rounding so the
+                                 parts always add up — the expert
+                                 file's 77-for-67 cannot recur), link to
+                                 the Occupational Standard, LO list.
+                                 Per LO: context, methodology,
+                                 discussion, demonstration, practice,
+                                 self-directed learning, numbered
+                                 formative statements ("Suggest from
+                                 criteria"), methods, optional hours
+                                 (warns when they do not match the
+                                 institutional time), "x/8 filled".
+                                 Resources: tools, equipment, PPE,
+                                 materials ("Suggest from Task
+                                 Analysis" picker — no duplicates,
+                                 nothing overwritten), recommended
+                                 resources, facilities table. Programme
+                                 settings (name, hours per credit 25,
+                                 group 15, default split 10/45/5/35/5).
+                                 Guidelines "?" (EN/FR/AR). Data keyed
+                                 by module/LO ids; orphans kept so
+                                 Module Mapping undo restores them.
+           exports_cur_docx.js   NEW. CUR Word export after the expert
+                                 template, A4, RTL in Arabic, "—" for
+                                 empty fields, optional blank template.
+                                 File CUR_<code>_<short>_L<n>_<lang>.docx.
+           dacum-curriculum.css  NEW, scoped styles (precached + warmed).
+         Changed
+           events.js           the "Standard" toolbar button opens a
+                               menu: Occupational Standard (Word) — the
+                               unchanged export — / Module Curriculum —
+                               CUR (Word)… / CBC (TESDA, coming soon).
+                               Keyboard, Esc, RTL and phone aware. CUR
+                               export is one module per click (no batch
+                               downloads for a browser to block).
+           index.html          tab markup; Module Mapping's step row now
+                               proceeds to the new tab.
+           state.js / dacum_projects.js / snapshots.js /
+           workshop_snapshots.js / projects.js / tabs.js
+                               new key moduleCurriculumData saved and
+                               restored by projects, snapshots and JSON
+                               export/import; old files default safely.
+                               Clear This Tab clears curriculum only.
+                               Sidebar entry added.
+           snapshots.js / dacum_projects.js
+                               JSON export/import now also carries the
+                               programme's levelCount (it was dropped).
+           sw.js               v132 → v133, precaches the three files.
 
          ── 3.32.4 — 2026-10-02 — index.html closed properly ─────
          PATCH. No behaviour change.
@@ -1079,6 +1140,10 @@
     <link rel="stylesheet" href="dacum-components.css">
     <!-- Full Draft generator: card + modal. -->
     <link rel="stylesheet" href="dacum-draft.css">
+    <!-- Module Curriculum tab + Standard export menu (3.33.0). Every rule
+         is scoped to #module-curriculum-tab / #curStdMenu / .cur-modal-*,
+         so its position cannot change any existing rule. -->
+    <link rel="stylesheet" href="dacum-curriculum.css">
     <!-- RTL mirroring + language switcher. MUST be last stylesheet. -->
     <link rel="stylesheet" href="dacum-rtl.css">
     <!-- Cairo is self-hosted. It was loaded from fonts.googleapis.com,
@@ -1139,6 +1204,7 @@
             <div class="tab" data-tab="clustering-tab" data-i18n="tabClustering">🎯 Competency Clusters</div>
             <div class="tab" data-tab="learning-outcomes-tab" data-i18n="tabLearningOutcomes">🎓 Learning Outcomes</div>
             <div class="tab" data-tab="module-mapping-tab" data-i18n="tabModuleMapping">📦 Module Mapping</div>
+            <div class="tab" data-tab="module-curriculum-tab" data-i18n="tabModuleCurriculum">Module Curriculum CUR/CBC</div>
             <div class="tab" data-tab="contact-tab" data-i18n="tabHelp">❓ Help</div>
         </div>
         
@@ -2493,12 +2559,46 @@
                 </p>
             </div>
 
-            <!-- Last step in the chain — back only, no "Proceed". -->
+            <!-- Module Mapping now leads on to Module Curriculum (3.33.0). -->
             <div class="step-nav-row">
                 <button type="button" class="btn-back-step" data-nav-back="learning-outcomes-tab"
                         title="Return to Learning Outcomes to review or edit"
                         data-i18n="ttBackLO" data-i18n-attr="title">
                     <span class="rtl-flip">←</span> <span data-i18n="btnBackLO">Back to Learning Outcomes</span>
+                </button>
+                <button type="button" class="btn-next-step" data-nav-next="module-curriculum-tab">
+                    <span data-i18n="btnProceedCurriculum">Proceed to Module Curriculum</span> <span class="rtl-flip">→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Module Curriculum CUR/CBC (3.33.0) ─────────────────────
+             Rendered by module_curriculum.js into #curRoot. One CUR per
+             module: header, one card per learning outcome, resources.
+             "Clear This Tab" clears curriculum data only — never the
+             modules or learning outcomes it is written from. -->
+        <div class="tab-content" id="module-curriculum-tab">
+            <div class="tab-header-row">
+                <div class="tab-title-with-help">
+                    <h2>📘 <span data-i18n="tabModuleCurriculum">Module Curriculum CUR/CBC</span></h2>
+                    <button type="button" id="curHelpBtn" class="tab-help-btn"
+                            title="Guidelines: writing a module curriculum (CUR)"
+                            aria-label="Guidelines: writing a module curriculum (CUR)"
+                            aria-haspopup="dialog">?</button>
+                </div>
+                <button data-action="clear-tab" data-tab-id="module-curriculum-tab" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                    🗑️ <span data-i18n="btnClearTab">Clear This Tab</span>
+                </button>
+            </div>
+
+            <div id="curRoot"></div>
+
+            <!-- Last step in the chain — back only, no "Proceed". -->
+            <div class="step-nav-row">
+                <button type="button" class="btn-back-step" data-nav-back="module-mapping-tab"
+                        title="Return to Module Mapping to review or edit"
+                        data-i18n="ttBackMM" data-i18n-attr="title">
+                    <span class="rtl-flip">←</span> <span data-i18n="btnBackMM">Back to Module Mapping</span>
                 </button>
             </div>
         </div>
