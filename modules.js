@@ -1724,6 +1724,7 @@ export function renderPCSourceList() {
   // The list scrolls on its own now (see _enhancePCSource); keep the
   // reader's place across the re-render that follows every action.
   const _keepScroll = container.scrollTop;
+  _ensureGuideButtons();
 
   // Pick up any Duties & Tasks change first (also when the user jumps
   // here without passing through Competency Clusters), then bring the
@@ -2714,12 +2715,309 @@ function _injectModuleCardStyles() {
   document.head.appendChild(st);
 }
 
+
+/* ── Design guidelines: grouping criteria into outcomes, and levels ──
+   Two "?" buttons, each at the far end of a section heading (the same
+   .tab-help-btn used by the tab titles):
+     • Learning Outcomes → "Performance Criteria (Source)": how to turn
+       performance criteria into learning outcomes;
+     • Module Mapping → "Modules": how to build modules and place them
+       on levels.
+   Content is local (en / fr / ar) and rebuilt on every open, so it
+   always follows the interface language. Guidance, not rules the tool
+   enforces — the designer decides. */
+const _GUIDE = {
+  en: {
+    loTip: 'Guidelines: grouping performance criteria into learning outcomes',
+    mmTip: 'Guidelines: building modules and assigning levels',
+    close: 'Got it',
+    lo: {
+      title: 'Grouping performance criteria into learning outcomes',
+      intro: 'A learning outcome states what the learner will be able to do. It links one or more performance criteria. Both one-to-one and grouping are valid — a simple test decides which.',
+      sections: [
+        { h: '✅ Keep a criterion as its own outcome when…', items: [
+          'it is a complete performance that can be taught and assessed on its own, with its own practical task — e.g. "Use hand tools according to manufacturer’s specifications".' ] },
+        { h: '🔗 Group 2–3 criteria into one outcome when any of these is true', items: [
+          '<strong>Consecutive steps of one performance</strong> — the second does not happen without the first (diagnose a fault, then rectify it).',
+          '<strong>Assessed in one practical task</strong> — the learner performs them together in one situation (calculating costs includes the measurements and calculations).',
+          '<strong>One is too small to stand alone</strong> — it does not fill enough learning time, so it joins the nearest related criterion.' ] },
+        { h: '📏 Limits', items: [
+          'Usually 2–3 criteria per outcome; 4–5 only when they are genuinely performed and assessed together. Above 5, an outcome is too broad to assess as one capability.',
+          'A module usually holds 2–4 outcomes (see the Module Mapping guidelines).',
+          'Do not group criteria that belong to different levels of the programme.' ] },
+        { h: '🧩 Grouping across competencies', items: [
+          'Allowed — not forbidden — when the criteria form one real, integrated performance assessed in a single task (e.g. installing wiring together with applying safe working practices). This is <em>integrated assessment</em>, used by several frameworks.',
+          'Be cautious where certification or recognition of prior learning (RPL) is granted per competency: grouping makes each competency harder to trace and assess separately.',
+          'It is a design decision that depends on the national accreditation system and the designer’s experience.' ] },
+        { h: '⚖️ Choosing the approach', items: [
+          '<strong>One-to-one</strong> suits standards whose criteria are already broad (each one close to a complete performance): clear traceability and consistency with the source curriculum. Its weakness: the outcome becomes a rewording of the criterion, and many small outcomes make thin modules.',
+          '<strong>Mixed (generally the best)</strong>: keep large stand-alone criteria as their own outcomes; group small or consecutive ones (2–3); the grouped criteria then serve as the assessment criteria under the outcome.' ] },
+        { h: '✍️ Writing the statement', items: [
+          'Start with one observable action verb: Install, Use, Diagnose, Calculate, Apply…',
+          'Avoid verbs that cannot be assessed: understand, know, be aware of.',
+          'Keep the standard or condition that makes it assessable ("according to manufacturer’s specifications").' ] },
+        { h: '🖱️ In this tab', items: [
+          'Tick one criterion and press Create LO for a one-to-one outcome; tick several to group them into one.',
+          '"Hide used criteria" shortens the list as you work; in the outcome cards, Enter moves to the next outcome.' ] }
+      ]
+    },
+    mm: {
+      title: 'Building modules and assigning levels',
+      intro: 'A module groups the learning outcomes that are taught and assessed together. It has a level and, where the programme specialises, a specialisation.',
+      sections: [
+        { h: '📦 Module size', items: [
+          'Usually 2–4 learning outcomes per module.',
+          'A single-outcome module is acceptable only when that outcome is a large, stand-alone capability.' ] },
+        { h: '🪜 Rules for placing a module on a level', items: [
+          '<strong>Prerequisite first</strong> — what other modules build on goes at a lower level (hand tools at Level 1 → power tools at Level 2).',
+          '<strong>Complexity, autonomy and responsibility</strong> — routine work under supervision belongs lower; diagnosis, planning, decision-making, financial responsibility and supervising others belong higher.',
+          '<strong>Perform → check → diagnose</strong> — carrying out a task comes before testing and documenting it, which comes before diagnosing and rectifying faults.',
+          '<strong>Specialisation at the top</strong> — lower levels are common to all learners; the programme splits into tracks only at the highest level(s).',
+          '<strong>Spiral is allowed</strong> — the same theme (hardware, safety, finance…) may recur at several levels with increasing difficulty.',
+          '<strong>Balance</strong> — every level should receive modules.' ] },
+        { h: '🤔 When two modules seem to fit the same level', items: [
+          'Ask: does it need another module before it? Is it done under supervision, or decided by the worker?',
+          'Evidence from Task Verification helps: easier, more frequent tasks lower; harder, rarer ones higher.',
+          'If it is still unclear, it is the expert’s judgement — confirmed by the review panel.' ] },
+        { h: '📚 Reference', items: [
+          'The level descriptors of the national qualifications framework (knowledge, skills, autonomy and responsibility) are the authority.',
+          'The number of levels comes from that framework, not from the content — set it in the module-generation card or above the coverage matrix.' ] },
+        { h: '🏷️ Specialisation field', items: [
+          'Use a short code: e.g. the programme code for modules common to all tracks (CMCN), and a track code at the top level (CM, CN).',
+          'Leave it empty for a programme with a single track.' ] },
+        { h: '📊 Check the result', items: [
+          'Open the coverage matrix at the end of the tab: "Not taught" criteria are gaps; a criterion "In N modules" is taught at several levels — informative, not an error.' ] }
+      ]
+    }
+  },
+  fr: {
+    loTip: 'Recommandations : regrouper les critères de performance en résultats d’apprentissage',
+    mmTip: 'Recommandations : construire les modules et attribuer les niveaux',
+    close: 'Compris',
+    lo: {
+      title: 'Regrouper les critères de performance en résultats d’apprentissage',
+      intro: 'Un résultat d’apprentissage énonce ce que l’apprenant sera capable de faire. Il est lié à un ou plusieurs critères de performance. La correspondance un-à-un et le regroupement sont tous deux valables — un test simple permet de choisir.',
+      sections: [
+        { h: '✅ Garder un critère comme résultat à part entière quand…', items: [
+          'il s’agit d’une performance complète, enseignable et évaluable seule, avec sa propre tâche pratique — p. ex. « Utiliser les outils à main selon les spécifications du fabricant ».' ] },
+        { h: '🔗 Regrouper 2 à 3 critères en un seul résultat si l’une de ces conditions est remplie', items: [
+          '<strong>Étapes successives d’une même performance</strong> — la seconde n’a pas lieu sans la première (diagnostiquer une panne, puis la réparer).',
+          '<strong>Évalués dans une seule tâche pratique</strong> — l’apprenant les réalise ensemble dans une même situation (le calcul des coûts inclut les mesures et calculs).',
+          '<strong>L’un est trop petit pour tenir seul</strong> — il ne remplit pas assez de temps d’apprentissage et rejoint le critère le plus proche.' ] },
+        { h: '📏 Limites', items: [
+          'En général 2 à 3 critères par résultat ; 4 à 5 seulement s’ils sont réellement réalisés et évalués ensemble. Au-delà de 5, le résultat est trop large pour être évalué comme une seule capacité.',
+          'Un module compte en général 2 à 4 résultats (voir les recommandations de Module Mapping).',
+          'Ne pas regrouper des critères relevant de niveaux différents du programme.' ] },
+        { h: '🧩 Regroupement entre compétences', items: [
+          'Permis — et non interdit — lorsque les critères forment une performance intégrée réelle, évaluée dans une seule tâche (p. ex. poser un câblage en appliquant les pratiques de travail sûres). C’est l’<em>évaluation intégrée</em>, utilisée par plusieurs cadres.',
+          'Prudence là où la certification ou la reconnaissance des acquis (RPL) se fait par compétence : le regroupement rend chaque compétence plus difficile à suivre et à évaluer séparément.',
+          'C’est un choix de conception qui dépend du système national d’accréditation et de l’expérience du concepteur.' ] },
+        { h: '⚖️ Choisir l’approche', items: [
+          '<strong>Un-à-un</strong> convient aux référentiels dont les critères sont déjà larges (chacun proche d’une performance complète) : traçabilité claire et cohérence avec le programme source. Sa faiblesse : le résultat reformule le critère, et de nombreux petits résultats donnent des modules minces.',
+          '<strong>Mixte (en général le meilleur)</strong> : garder seuls les grands critères autonomes ; regrouper les petits ou successifs (2 à 3) ; les critères regroupés deviennent alors les critères d’évaluation du résultat.' ] },
+        { h: '✍️ Rédiger l’énoncé', items: [
+          'Commencer par un verbe d’action observable : Installer, Utiliser, Diagnostiquer, Calculer, Appliquer…',
+          'Éviter les verbes non évaluables : comprendre, connaître, être conscient de.',
+          'Conserver la norme ou la condition qui le rend évaluable (« selon les spécifications du fabricant »).' ] },
+        { h: '🖱️ Dans cet onglet', items: [
+          'Cochez un critère puis « Create LO » pour un résultat un-à-un ; cochez-en plusieurs pour les regrouper.',
+          '« Masquer les critères utilisés » raccourcit la liste ; dans les cartes, Entrée passe au résultat suivant.' ] }
+      ]
+    },
+    mm: {
+      title: 'Construire les modules et attribuer les niveaux',
+      intro: 'Un module regroupe les résultats d’apprentissage enseignés et évalués ensemble. Il a un niveau et, si le programme se spécialise, une spécialisation.',
+      sections: [
+        { h: '📦 Taille du module', items: [
+          'En général 2 à 4 résultats par module.',
+          'Un module à un seul résultat n’est acceptable que si ce résultat est une capacité large et autonome.' ] },
+        { h: '🪜 Règles pour placer un module sur un niveau', items: [
+          '<strong>Le prérequis d’abord</strong> — ce sur quoi d’autres modules s’appuient va à un niveau inférieur (outils à main au niveau 1 → outils électriques au niveau 2).',
+          '<strong>Complexité, autonomie et responsabilité</strong> — le travail routinier sous supervision va plus bas ; diagnostic, planification, décision, responsabilité financière et encadrement vont plus haut.',
+          '<strong>Exécuter → vérifier → diagnostiquer</strong> — réaliser une tâche précède sa vérification et sa documentation, qui précèdent le diagnostic et la réparation des pannes.',
+          '<strong>La spécialisation en haut</strong> — les niveaux inférieurs sont communs ; le programme se divise en filières seulement au(x) niveau(x) le(s) plus élevé(s).',
+          '<strong>La spirale est permise</strong> — un même thème (matériel, sécurité, finances…) peut revenir à plusieurs niveaux avec une difficulté croissante.',
+          '<strong>Équilibre</strong> — chaque niveau doit recevoir des modules.' ] },
+        { h: '🤔 Quand deux modules semblent aller au même niveau', items: [
+          'Se demander : a-t-il besoin d’un autre module avant lui ? Est-il réalisé sous supervision, ou décidé par le travailleur ?',
+          'Les données de la vérification des tâches aident : tâches plus faciles et fréquentes plus bas ; plus difficiles et rares plus haut.',
+          'Si le doute subsiste, c’est le jugement de l’expert — confirmé par le comité de validation.' ] },
+        { h: '📚 Référence', items: [
+          'Les descripteurs de niveaux du cadre national des certifications (savoirs, aptitudes, autonomie et responsabilité) font autorité.',
+          'Le nombre de niveaux vient de ce cadre, pas du contenu — réglez-le dans la carte de génération des modules ou au-dessus de la matrice de couverture.' ] },
+        { h: '🏷️ Champ Spécialisation', items: [
+          'Utiliser un code court : p. ex. le code du programme pour les modules communs (CMCN), et un code de filière au niveau supérieur (CM, CN).',
+          'Le laisser vide pour un programme à filière unique.' ] },
+        { h: '📊 Vérifier le résultat', items: [
+          'Ouvrez la matrice de couverture en bas de l’onglet : les critères « Non enseigné » sont des lacunes ; un critère « dans N modules » est enseigné à plusieurs niveaux — information, pas une erreur.' ] }
+      ]
+    }
+  },
+  ar: {
+    loTip: 'إرشادات: تجميع معايير الأداء في محصلات تعلم',
+    mmTip: 'إرشادات: بناء الوحدات وتحديد المستويات',
+    close: 'فهمت',
+    lo: {
+      title: 'تجميع معايير الأداء في محصلات تعلم',
+      intro: 'محصلة التعلم تصف ما سيستطيع المتدرب فعله، وترتبط بمعيار أداء واحد أو أكثر. جعل كل معيار محصلة، ودمج المعايير، كلاهما صحيح، والقرار يرجع لاختبار بسيط.',
+      sections: [
+        { h: '✅ يبقى المعيار محصلة مستقلة إذا…', items: [
+          'كان أداءً كاملاً يمكن تدريسه وتقييمه وحده بمهمة عملية خاصة به، مثل: «استخدام العدد اليدوية حسب مواصفات المصنّع».' ] },
+        { h: '🔗 يُدمج معياران أو ثلاثة في محصلة واحدة إذا تحقق أحد هذه الشروط', items: [
+          '<strong>خطوتان من أداء واحد:</strong> الثانية لا تحدث دون الأولى، مثل تشخيص العطل ثم إصلاحه.',
+          '<strong>يُقيَّمان في مهمة عملية واحدة:</strong> يؤديهما المتدرب معاً في موقف واحد، مثل حساب التكاليف الذي يتضمن القياسات والحسابات.',
+          '<strong>أحدهما صغير لا يكفي وحده:</strong> لا يملأ وقت تعلّم كافياً، فيُضم إلى أقرب معيار له.' ] },
+        { h: '📏 الحدود', items: [
+          'المعتاد معياران أو ثلاثة في المحصلة، ويمكن الوصول إلى 4 أو 5 إذا كانت تُؤدّى وتُقيَّم معاً فعلاً. فوق 5 معايير تصبح المحصلة أوسع من أن تُقيَّم كقدرة واحدة.',
+          'تضم الوحدة عادةً من محصلتين إلى أربع (انظر إرشادات تبويب Module Mapping).',
+          'لا تُدمج معايير مكانها في مستويين مختلفين من البرنامج.' ] },
+        { h: '🧩 الدمج بين كفاءتين مختلفتين', items: [
+          'جائز وليس محظوراً، حين تشكّل المعايير أداءً واحداً متكاملاً حقيقياً يُقيَّم بمهمة واحدة، مثل «تركيب الأسلاك» مع «تطبيق ممارسات العمل الآمن». وهذا ما يُسمّى <em>التقييم المتكامل</em>، وتعتمده عدة أطر.',
+          'الحذر واجب حيث تُمنح الشهادة أو الاعتراف بالتعلم السابق (RPL) لكل كفاءة على حدة، لأن الدمج يصعّب تتبّع كل كفاءة وتقييمها منفصلة.',
+          'هو قرار تصميم يعتمد على نظام الاعتماد في البلد وعلى خبرة المصمم.' ] },
+        { h: '⚖️ اختيار الأسلوب', items: [
+          '<strong>محصلة لكل معيار:</strong> يناسب المعايير المهنية التي معاييرها واسعة أصلاً، أي كل معيار قريب من أداء كامل. ميزته وضوح التتبّع والاتساق مع المنهج المرجعي. وضعفه أن المحصلة تصير إعادة صياغة للمعيار، وأن كثرة المحصلات الصغيرة تُضعف بنية الوحدات.',
+          '<strong>المزج (الأفضل عموماً):</strong> يبقى المعيار الكبير المستقل محصلة وحده، وتُدمج المعايير الصغيرة أو المتتابعة (2–3)، وتصير المعايير المدموجة معايير تقييم تحت المحصلة.' ] },
+        { h: '✍️ كتابة نص المحصلة', items: [
+          'ابدأ بفعل أداء واحد قابل للملاحظة: ركّب، استخدم، شخّص، احسب، طبّق…',
+          'تجنّب أفعالاً لا تُقيَّم: يفهم، يعرف، يدرك.',
+          'أبقِ المعيار أو الشرط الذي يجعلها قابلة للتقييم، مثل «حسب مواصفات المصنّع».' ] },
+        { h: '🖱️ في هذا التبويب', items: [
+          'ضع علامة على معيار واحد ثم اضغط Create LO لمحصلة مستقلة، أو على عدة معايير لدمجها في محصلة واحدة.',
+          'خيار «إخفاء المعايير المستخدمة» يقصّر القائمة أثناء العمل، وفي بطاقات المحصلات ينقلك Enter إلى المحصلة التالية.' ] }
+      ]
+    },
+    mm: {
+      title: 'بناء الوحدات وتحديد المستويات',
+      intro: 'الوحدة تجمع محصلات التعلم التي تُدرَّس وتُقيَّم معاً، ولها مستوى، وتخصص إذا كان البرنامج يتفرّع.',
+      sections: [
+        { h: '📦 حجم الوحدة', items: [
+          'المعتاد من محصلتين إلى أربع في الوحدة.',
+          'الوحدة ذات المحصلة الواحدة مقبولة فقط إذا كانت المحصلة قدرة كبيرة مستقلة.' ] },
+        { h: '🪜 قواعد وضع الوحدة في مستوى', items: [
+          '<strong>المتطلب السابق أولاً:</strong> ما تُبنى عليه وحدات أخرى يوضع في مستوى أدنى، مثل العدد اليدوية في المستوى 1 ثم الكهربائية في المستوى 2.',
+          '<strong>التعقيد والاستقلالية والمسؤولية:</strong> العمل الروتيني تحت الإشراف في المستويات الأدنى، والتشخيص والتخطيط واتخاذ القرار والمسؤولية المالية والإشراف على الآخرين في المستويات الأعلى.',
+          '<strong>التنفيذ ثم التحقق ثم التشخيص:</strong> أداء المهمة يسبق فحصها وتوثيقها، وهذا يسبق تشخيص الأعطال وإصلاحها.',
+          '<strong>التخصص في المستوى الأعلى:</strong> المستويات الأدنى مشتركة لكل المتدربين، ويتفرّع البرنامج إلى مسارات في المستوى أو المستويات العليا فقط.',
+          '<strong>التكرار المتدرّج مسموح:</strong> يمكن أن يتكرر المحور نفسه (العتاد، السلامة، المالية…) في عدة مستويات بصعوبة متزايدة.',
+          '<strong>التوازن:</strong> ينبغي أن يحصل كل مستوى على وحدات.' ] },
+        { h: '🤔 حين تبدو وحدتان مناسبتين للمستوى نفسه', items: [
+          'اسأل: هل تحتاج وحدة أخرى قبلها؟ وهل يُنفَّذ العمل تحت إشراف، أم يقرّره العامل بنفسه؟',
+          'بيانات التحقق من المهام تساعد: المهام الأسهل والأكثر تكراراً في المستويات الأدنى، والأصعب والأقل تكراراً في الأعلى.',
+          'إن بقي التردد، فالحسم لاجتهاد الخبير، وتصادق عليه لجنة المراجعة.' ] },
+        { h: '📚 المرجع', items: [
+          'واصفات المستويات في الإطار الوطني للمؤهلات (المعرفة، المهارة، الاستقلالية والمسؤولية) هي المرجع.',
+          'عدد المستويات يحدده ذلك الإطار لا المحتوى، ويُضبط من بطاقة توليد الوحدات أو أعلى مصفوفة التغطية.' ] },
+        { h: '🏷️ خانة التخصص', items: [
+          'استخدم رمزاً قصيراً: رمز البرنامج للوحدات المشتركة بين المسارات (مثل CMCN)، ورمز المسار في المستوى الأعلى (مثل CM أو CN).',
+          'اتركها فارغة إذا كان البرنامج مساراً واحداً.' ] },
+        { h: '📊 تحقّق من النتيجة', items: [
+          'افتح مصفوفة التغطية في آخر التبويب: المعايير «غير المُدرَّسة» فجوات، والمعيار «في N وحدات» يُدرَّس في عدة مستويات، وهذه معلومة لا خطأ.' ] }
+      ]
+    }
+  }
+};
+
+function _guideText() {
+  const lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'en';
+  return _GUIDE[lang] || _GUIDE.en;
+}
+
+function _showGuideModal(kind) {
+  const id = 'lommGuideModal';
+  const existing = document.getElementById(id);
+  if (existing) { existing.remove(); return; }
+  const G = _guideText();
+  const g = G[kind];
+  if (!g) return;
+  const rtl = !!(window.i18n && ((window.i18n.isRTL && window.i18n.isRTL()) ||
+                 (window.i18n.getLang && window.i18n.getLang() === 'ar')));
+  const overlay = document.createElement('div');
+  overlay.id = id;
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', g.title);
+  overlay.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);';
+  // Content is our own constant HTML (strong/em only) — no user text.
+  const sections = g.sections.map(sec => `
+    <div style="margin:0 0 14px;">
+      <p style="margin:0 0 6px;font-size:.9em;font-weight:800;color:#1e293b;">${sec.h}</p>
+      <ul style="margin:0;padding-inline-start:20px;">
+        ${sec.items.map(it => `<li style="font-size:.86em;line-height:1.65;color:#334155;margin-bottom:4px;">${it}</li>`).join('')}
+      </ul>
+    </div>`).join('');
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:620px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);font-family:inherit;text-align:start;">
+      <div style="padding:18px 22px 14px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-bottom:1px solid #c7d2fe;flex-shrink:0;">
+        <span style="font-size:1.6em;line-height:1;">${kind === 'lo' ? '🎯' : '🪜'}</span>
+        <p style="margin:0;font-size:1em;font-weight:800;color:#3730a3;">${_esc(g.title)}</p>
+      </div>
+      <div style="padding:16px 22px 18px;overflow-y:auto;">
+        <p style="margin:0 0 14px;font-size:.88em;line-height:1.65;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">${_esc(g.intro)}</p>
+        ${sections}
+        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+          <button type="button" data-guide-close style="padding:9px 22px !important;background:#667eea;color:#fff;border:none;border-radius:8px;font-size:.9em;font-weight:700;cursor:pointer;">${_esc(G.close)}</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey, true); };
+  function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(); } }
+  document.addEventListener('keydown', onKey, true);
+  overlay.addEventListener('click', e => { if (e.target === overlay || e.target.closest('[data-guide-close]')) close(); });
+  const btn = overlay.querySelector('[data-guide-close]');
+  if (btn) btn.focus({ preventScroll: true });
+}
+
+/* Wrap a section heading in .section-header-row (title at one end, the
+   button at the other — the existing component class), once. */
+function _ensureGuideButton(h3, kind) {
+  if (!h3) return;
+  const G = _guideText();
+  let btn = h3.parentNode && h3.parentNode.querySelector(`:scope > .lomm-guide-btn[data-guide="${kind}"]`);
+  if (!btn) {
+    const row = document.createElement('div');
+    row.className = 'section-header-row lomm-guide-row';
+    h3.parentNode.insertBefore(row, h3);
+    row.appendChild(h3);
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tab-help-btn lomm-guide-btn';
+    btn.setAttribute('data-guide', kind);
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.textContent = '?';
+    row.appendChild(btn);
+  }
+  const tip = kind === 'lo' ? G.loTip : G.mmTip;
+  btn.title = tip;
+  btn.setAttribute('aria-label', tip);
+}
+
+function _ensureGuideButtons() {
+  const pcHead = document.querySelector('#learning-outcomes-tab h3 [data-i18n="lblPCSource"]')
+              || document.querySelector('h3 [data-i18n="lblPCSource"]');
+  _ensureGuideButton(pcHead && pcHead.closest('h3'), 'lo');
+  const modCont = document.getElementById('modulesContainer');
+  const modSec = modCont && modCont.closest('.clustering-section');
+  const modHead = modSec && modSec.querySelector(':scope > h3, :scope > .lomm-guide-row > h3');
+  _ensureGuideButton(modHead, 'mm');
+  if (!document.__lommGuideWired) {
+    document.__lommGuideWired = true;
+    document.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('.lomm-guide-btn');
+      if (b) _showGuideModal(b.getAttribute('data-guide'));
+    });
+  }
+}
+
 export function renderModules() {
   const container = document.getElementById('modulesContainer');
   _refreshModuleOutcomes();
   _ensureModuleGenOptions();
   _injectModuleCardStyles();
   _renderUndoBars();
+  _ensureGuideButtons();
   const mm = appState.moduleMappingData;
 
   if (mm.modules.length === 0) {
