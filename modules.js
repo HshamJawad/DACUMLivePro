@@ -558,7 +558,10 @@ const _LOCAL_STRINGS = {
     loNextEmpty:              'Next empty',
     loUsePC:                  'Use criterion text',
     loInlinePh:               'Type the learning outcome statement here — saved automatically',
-    loInlineHint:             'Type directly in each card. Changes save automatically; Enter moves to the next outcome.'
+    loInlineHint:             'Type directly in each card. Changes save automatically; Enter moves to the next outcome.',
+    loKeyNext:                'next outcome',
+    loKeyNewLine:             'new line',
+    loKeySaved:               'saved automatically'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -629,7 +632,10 @@ const _LOCAL_STRINGS = {
     loNextEmpty:              'Suivant vide',
     loUsePC:                  'Reprendre le texte du critère',
     loInlinePh:               'Saisissez l’énoncé du résultat d’apprentissage ici — enregistré automatiquement',
-    loInlineHint:             'Saisissez directement dans chaque carte. L’enregistrement est automatique ; Entrée passe au résultat suivant.'
+    loInlineHint:             'Saisissez directement dans chaque carte. L’enregistrement est automatique ; Entrée passe au résultat suivant.',
+    loKeyNext:                'résultat suivant',
+    loKeyNewLine:             'nouvelle ligne',
+    loKeySaved:               'enregistrement automatique'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -700,7 +706,10 @@ const _LOCAL_STRINGS = {
     loNextEmpty:              'التالية الفارغة',
     loUsePC:                  'استخدام نص المعيار',
     loInlinePh:               'اكتب نص محصلة التعلم هنا — يُحفظ تلقائياً',
-    loInlineHint:             'اكتب مباشرة في كل بطاقة. الحفظ تلقائي، وزر Enter ينقلك إلى المحصلة التالية.'
+    loInlineHint:             'اكتب مباشرة في كل بطاقة. الحفظ تلقائي، وزر Enter ينقلك إلى المحصلة التالية.',
+    loKeyNext:                'المحصلة التالية',
+    loKeyNewLine:             'سطر جديد',
+    loKeySaved:               'حفظ تلقائي'
   }
 };
 
@@ -1715,7 +1724,7 @@ function _injectPCSourceStyles() {
   st.id = 'pcSourceEnhanceStyles';
   st.textContent = `
     #pcSourceList.pc-scroll {
-      max-height: min(62vh, 640px); overflow-y: auto; overscroll-behavior: contain;
+      max-height: min(62vh, 640px); overflow-y: auto; overscroll-behavior: auto;
       padding-top: 0; scrollbar-width: thin; scrollbar-color: #a5b4fc transparent;
     }
     #pcSourceList.pc-scroll::-webkit-scrollbar { width: 8px; }
@@ -1894,7 +1903,6 @@ export function renderLearningOutcomes() {
         <div class="lo-block-header">
           <div class="lo-number">${outcome.number}<span class="lo-need-badge"${(outcome.statement || '').trim() ? ' hidden' : ''}>✎ ${_esc(_tx('loNeedStatement'))}</span></div>
           <div class="lo-actions">
-            <button class="btn-edit-lo" data-action="toggle-edit-lo" data-lo-id="${outcome.id}">✏️ ${_t('btnEdit')}</button>
             <button class="btn-delete-lo" data-action="delete-lo" data-lo-id="${outcome.id}">❌ ${_t('btnDelete')}</button>
           </div>
         </div>
@@ -1902,8 +1910,11 @@ export function renderLearningOutcomes() {
           <textarea id="textarea_${outcome.id}" class="lo-inline-input" rows="1"
             data-action-blur="save-lo-statement" data-lo-id="${outcome.id}"
             placeholder="${_esc(_tx('loInlinePh'))}" aria-label="${_esc(outcome.number)}">${_esc(outcome.statement || '')}</textarea>
-          ${(outcome.statement || '').trim() || !outcome.linkedCriteria.some(pc => !pc.stale) ? '' :
-            `<button type="button" class="lo-use-pc" data-lo-id="${outcome.id}">↳ ${_esc(_tx('loUsePC'))}</button>`}
+          <div class="lo-inline-foot">
+            ${(outcome.statement || '').trim() || !outcome.linkedCriteria.some(pc => !pc.stale) ? '' :
+              `<button type="button" class="lo-use-pc" data-lo-id="${outcome.id}">↳ ${_esc(_tx('loUsePC'))}</button>`}
+            <span class="lo-key-hint">${_loKeyHintHtml()}</span>
+          </div>
         </div>
         <div class="lo-linked-criteria">
           <h5>📎 ${_t('lblMappedPC')}</h5>
@@ -1948,8 +1959,24 @@ function _injectLOInlineStyles() {
     textarea.lo-inline-input:placeholder-shown { background: #fffbeb; border: 2px dashed #f59e0b; }
     textarea.lo-inline-input::placeholder { color: #b45309; opacity: .85; font-style: italic; }
     html[dir="rtl"] .lo-statement textarea.lo-inline-input { direction: rtl; unicode-bidi: plaintext; text-align: start; }
+    .lo-inline-foot {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 4px 12px; margin-top: 6px; min-height: 22px;
+    }
+    .lo-key-hint { margin-inline-start: auto; font-size: .78em; color: #92400e; opacity: .75; }
+    .lo-key-hint kbd {
+      display: inline-block; font: inherit; font-size: .95em; font-weight: 700; line-height: 1.3;
+      padding: 0 5px; border: 1px solid #f59e0b; border-bottom-width: 2px; border-radius: 4px;
+      background: #fffbeb; color: #92400e; direction: ltr; unicode-bidi: isolate;
+    }
+    .lo-block:focus-within .lo-key-hint { opacity: 1; }
+    .lo-hint-coarse { display: none; }
+    @media (hover: none) and (pointer: coarse) {
+      .lo-hint-fine { display: none; }
+      .lo-hint-coarse { display: inline; }
+    }
     .lo-use-pc {
-      margin-top: 6px; background: transparent !important; color: #92400e !important;
+      margin-top: 0; background: transparent !important; color: #92400e !important;
       border: none; padding: 4px 6px !important; font-size: .88em; font-weight: 600;
       cursor: pointer; min-height: 0 !important; box-shadow: none !important;
     }
@@ -1974,6 +2001,13 @@ function _injectLOInlineStyles() {
     }
   `;
   document.head.appendChild(st);
+}
+
+function _loKeyHintHtml() {
+  const k = t => `<kbd>${t}</kbd>`;
+  return `<span class="lo-hint-fine">${k('Enter')} ${_esc(_tx('loKeyNext'))} · ${k('Shift')}+${k('Enter')} ${_esc(_tx('loKeyNewLine'))} · </span>`
+       + `<span class="lo-hint-coarse">${k('↵')} ${_esc(_tx('loKeyNext'))} · </span>`
+       + `💾 ${_esc(_tx('loKeySaved'))}`;
 }
 
 function _autoGrow(ta) {
@@ -2092,8 +2126,7 @@ function _renderLOStatementSummary(container) {
   box.classList.toggle('lo-sum-done', missing === 0);
   box.innerHTML = missing
     ? `<span>✎ ${_esc(_txf('loSummaryMissing', { n: missing, t: outs.length }))}</span>
-       <button type="button" class="lo-sum-next">${_esc(_tx('loNextEmpty'))} ${(window.i18n && window.i18n.isRTL && window.i18n.isRTL()) ? '◂' : '▸'}</button>
-       <span class="lo-sum-hint">${_esc(_tx('loInlineHint'))}</span>`
+       <button type="button" class="lo-sum-next">${_esc(_tx('loNextEmpty'))} ${(window.i18n && window.i18n.isRTL && window.i18n.isRTL()) ? '◂' : '▸'}</button>`
     : `<span>✓ ${_esc(_txf('loSummaryDone', { t: outs.length }))}</span>`;
 }
 
