@@ -108,18 +108,39 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v119';
+      var EXPECTED_SW='v121';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.28.1';
+      var APP_VERSION = '3.29.0';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.29.0 — 2026-10-02 — AI learning outcomes ──────────
+         MINOR. learning_outcomes_ai.js + modules.js.
+         Fixed   The generator used its own "C5-PC2" criterion ids,
+                 which no longer matched the list ("5-2"): ticked
+                 criteria were reported as empty, used criteria were
+                 generated again, task-analysis criteria were ignored.
+                 It now reads the same list as the screen
+                 (getLearningOutcomeCriteria) and saves after a run.
+         Changed Pattern C rules: integrate consecutive steps of one
+                 performance, criteria assessed in one task, or a
+                 criterion too small to stand alone; prefer the same
+                 competency, cross-competency only for one integrated
+                 performance — always flagged for review. Ceiling of 5
+                 criteria per outcome enforced in code (2-3 typical).
+                 Outcomes start with an imperative action verb.
+                 Result notes translated (EN/FR/AR).
+
+         ── 3.28.2 — 2026-10-02 — hint wording ─────────────────
+         PATCH. modules.js: "saved automatically" removed from the
+         per-card keyboard hint.
 
          ── 3.28.1 — 2026-10-02 — LO tab polish ─────────────────
          PATCH. modules.js: the criteria list hands the wheel back to

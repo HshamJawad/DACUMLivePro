@@ -97,6 +97,38 @@ function _findEffectiveCriterionById(pcId) {
   return null;
 }
 
+/* Shared with learning_outcomes_ai.js so the AI generator works on
+   exactly the list the user sees: same ids ("5-2"), same task-analysis
+   criteria, same "already used" rule. Before this the generator built
+   its own "C5-PC2" ids, which matched nothing in the current list. */
+export function getLearningOutcomeCriteria() {
+  const cd = appState.clusteringData || {};
+  const all = [];
+  (cd.clusters || []).forEach((cluster, i) => {
+    _getClusterEffectiveCriteria(cluster, i + 1).forEach(c => {
+      if (!c.text || !String(c.text).trim()) return;
+      all.push({ ...c, text: String(c.text).trim(), clusterName: cluster.name || `#${i + 1}` });
+    });
+  });
+  const usedIds = new Set(), usedKeys = new Set();
+  ((appState.learningOutcomesData || {}).outcomes || []).forEach(o =>
+    (o.linkedCriteria || []).forEach(pc => {
+      if (pc.stale) return;
+      usedIds.add(pc.id);
+      if (pc.key) usedKeys.add(pc.key);
+    }));
+  return { all, usedIds, usedKeys };
+}
+
+/* Persist after an external module (the AI generator) changed outcomes. */
+export function persistLearningOutcomes() {
+  renumberLearningOutcomes();
+  _persistClusters();
+}
+
+/* Local-string access for sibling modules (falls back like _tx/_txf). */
+export function loText(key, vars) { return vars ? _txf(key, vars) : _tx(key); }
+
 // ── Clustering ────────────────────────────────────────────────
 
 // Records the "without verification" decision and syncs the three
@@ -561,7 +593,12 @@ const _LOCAL_STRINGS = {
     loInlineHint:             'Type directly in each card. Changes save automatically; Enter moves to the next outcome.',
     loKeyNext:                'next outcome',
     loKeyNewLine:             'new line',
-    loKeySaved:               'saved automatically'
+    loKeySaved:               'saved automatically',
+    loAiSkipped:              '{n} criteria left unlinked — still available in the list',
+    loAiNot1to1:              'the one-to-one mapping was not exact — review the linked criteria',
+    loAiNoIntegration:        'no criteria were integrated — this result is effectively Pattern A',
+    loAiAllIntegrated:        'every outcome integrates several criteria — closer to Pattern B',
+    loAiCrossComp:            '{n} outcome(s) combine criteria from different competencies — please review'
   },
   fr: {
     ttMoveTaskUp:             'Monter',
@@ -635,7 +672,12 @@ const _LOCAL_STRINGS = {
     loInlineHint:             'Saisissez directement dans chaque carte. L’enregistrement est automatique ; Entrée passe au résultat suivant.',
     loKeyNext:                'résultat suivant',
     loKeyNewLine:             'nouvelle ligne',
-    loKeySaved:               'enregistrement automatique'
+    loKeySaved:               'enregistrement automatique',
+    loAiSkipped:              '{n} critère(s) non lié(s) — toujours disponibles dans la liste',
+    loAiNot1to1:              'la correspondance un-à-un n’est pas exacte — vérifiez les critères liés',
+    loAiNoIntegration:        'aucun critère intégré — ce résultat équivaut au modèle A',
+    loAiAllIntegrated:        'chaque résultat intègre plusieurs critères — plus proche du modèle B',
+    loAiCrossComp:            '{n} résultat(s) combinent des critères de compétences différentes — à vérifier'
   },
   ar: {
     ttMoveTaskUp:             'نقل لأعلى',
@@ -709,7 +751,12 @@ const _LOCAL_STRINGS = {
     loInlineHint:             'اكتب مباشرة في كل بطاقة. الحفظ تلقائي، وزر Enter ينقلك إلى المحصلة التالية.',
     loKeyNext:                'المحصلة التالية',
     loKeyNewLine:             'سطر جديد',
-    loKeySaved:               'حفظ تلقائي'
+    loKeySaved:               'حفظ تلقائي',
+    loAiSkipped:              '{n} من المعايير بقيت دون ربط — ما زالت متاحة في القائمة',
+    loAiNot1to1:              'التطابق واحد لواحد لم يكن تاماً — راجع المعايير المرتبطة',
+    loAiNoIntegration:        'لم يُدمج أي معيار — النتيجة فعلياً هي النمط A',
+    loAiAllIntegrated:        'كل المحصلات دمجت عدة معايير — النتيجة أقرب إلى النمط B',
+    loAiCrossComp:            '{n} محصلة دمجت معايير من كفاءات مختلفة — يرجى مراجعتها'
   }
 };
 
@@ -2005,9 +2052,8 @@ function _injectLOInlineStyles() {
 
 function _loKeyHintHtml() {
   const k = t => `<kbd>${t}</kbd>`;
-  return `<span class="lo-hint-fine">${k('Enter')} ${_esc(_tx('loKeyNext'))} · ${k('Shift')}+${k('Enter')} ${_esc(_tx('loKeyNewLine'))} · </span>`
-       + `<span class="lo-hint-coarse">${k('↵')} ${_esc(_tx('loKeyNext'))} · </span>`
-       + `💾 ${_esc(_tx('loKeySaved'))}`;
+  return `<span class="lo-hint-fine">${k('Enter')} ${_esc(_tx('loKeyNext'))} · ${k('Shift')}+${k('Enter')} ${_esc(_tx('loKeyNewLine'))}</span>`
+       + `<span class="lo-hint-coarse">${k('↵')} ${_esc(_tx('loKeyNext'))}</span>`;
 }
 
 function _autoGrow(ta) {
