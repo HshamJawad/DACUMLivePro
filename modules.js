@@ -3027,18 +3027,31 @@ function _ensureModulesLevelBar() {
       st.id = 'modulesLevelBarStyles';
       st.textContent = `
         #modulesLevelBar { display: flex; justify-content: center; margin: 0 0 16px; }
+        /* Inside the "Modules" heading row: title | field | ?  on ONE line,
+           the field centred between them. */
+        .lomm-guide-row.mlb-row {
+          display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
+        }
+        .lomm-guide-row.mlb-row > h3 { justify-self: start; }
+        .lomm-guide-row.mlb-row > .lomm-guide-btn { justify-self: end; }
+        .lomm-guide-row.mlb-row > #modulesLevelBar { margin: 0; }
         #modulesLevelBar label {
           display: inline-flex; align-items: center; gap: 10px; flex-wrap: nowrap;
-          padding: 8px 16px; border-radius: 10px; background: #f5f3ff; border: 1px solid #ddd6fe;
-          font-size: .92em; font-weight: 600; color: #475569; cursor: default;
+          padding: 4px 6px 4px 14px; border-radius: 10px; background: #f5f3ff; border: 1px solid #ddd6fe;
+          font-size: .88em; font-weight: 600; color: #475569; cursor: default;
         }
+        html[dir="rtl"] #modulesLevelBar label { padding: 4px 14px 4px 6px; }
         #modulesLevelBar label > span { white-space: nowrap; }
         #modulesLevelBar input[type=number] {
           width: 64px !important; min-width: 0; margin: 0 !important; display: inline-block !important;
           padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;
           font: inherit; font-weight: 700; color: #4338ca; text-align: center;
         }
+        /* Phones: no room for three on a line — title and ? stay together,
+           the field takes the full width just under them. */
         @media (max-width: 600px) {
+          .lomm-guide-row.mlb-row { grid-template-columns: 1fr auto; row-gap: 10px; }
+          .lomm-guide-row.mlb-row > #modulesLevelBar { grid-column: 1 / -1; grid-row: 2; }
           #modulesLevelBar label { width: 100%; justify-content: space-between; }
           #modulesLevelBar label > span { white-space: normal; }
         }`;
@@ -3047,13 +3060,22 @@ function _ensureModulesLevelBar() {
     bar = document.createElement('div');
     bar.id = 'modulesLevelBar';
     bar.innerHTML = '<label><span class="mlb-text"></span><input type="number" id="modulesLevelCount" step="1" inputmode="numeric"></label>';
-    cont.parentNode.insertBefore(bar, cont);
     bar.addEventListener('change', e => {
       if (e.target.id === 'modulesLevelCount') {
         const v = setModuleLevelCount(e.target.value);
         e.target.value = v;   // clamped (never below the highest level in use)
       }
     });
+  }
+  // Place it in the heading row, between "Modules" and its "?" button;
+  // fall back to just above the list if that row is not there.
+  const guideBtn = document.querySelector('.lomm-guide-btn[data-guide="mm"]');
+  const row = guideBtn && guideBtn.parentNode;
+  if (row && row.classList.contains('lomm-guide-row')) {
+    row.classList.add('mlb-row');
+    if (bar.nextSibling !== guideBtn || bar.parentNode !== row) row.insertBefore(bar, guideBtn);
+  } else if (bar.parentNode !== cont.parentNode) {
+    cont.parentNode.insertBefore(bar, cont);
   }
   const mm = appState.moduleMappingData || {};
   const minLevels = Math.max(1, ...(mm.modules || []).map(m => _moduleLevel(m) || 0));
