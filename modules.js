@@ -3011,6 +3011,60 @@ function _ensureGuideButtons() {
   }
 }
 
+/* "Number of levels in the programme" at the top of the Modules section,
+   centred — the same setting as the field above the coverage matrix and
+   the one in the AI card (all three call setModuleLevelCount, which
+   re-renders the others). Here so a designer who builds modules by hand
+   never has to scroll to the matrix to set it. Updated in place so the
+   field keeps focus while stepping the number. */
+function _ensureModulesLevelBar() {
+  const cont = document.getElementById('modulesContainer');
+  if (!cont || !cont.parentNode) return;
+  let bar = document.getElementById('modulesLevelBar');
+  if (!bar) {
+    if (!document.getElementById('modulesLevelBarStyles')) {
+      const st = document.createElement('style');
+      st.id = 'modulesLevelBarStyles';
+      st.textContent = `
+        #modulesLevelBar { display: flex; justify-content: center; margin: 0 0 16px; }
+        #modulesLevelBar label {
+          display: inline-flex; align-items: center; gap: 10px; flex-wrap: nowrap;
+          padding: 8px 16px; border-radius: 10px; background: #f5f3ff; border: 1px solid #ddd6fe;
+          font-size: .92em; font-weight: 600; color: #475569; cursor: default;
+        }
+        #modulesLevelBar label > span { white-space: nowrap; }
+        #modulesLevelBar input[type=number] {
+          width: 64px !important; min-width: 0; margin: 0 !important; display: inline-block !important;
+          padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff;
+          font: inherit; font-weight: 700; color: #4338ca; text-align: center;
+        }
+        @media (max-width: 600px) {
+          #modulesLevelBar label { width: 100%; justify-content: space-between; }
+          #modulesLevelBar label > span { white-space: normal; }
+        }`;
+      document.head.appendChild(st);
+    }
+    bar = document.createElement('div');
+    bar.id = 'modulesLevelBar';
+    bar.innerHTML = '<label><span class="mlb-text"></span><input type="number" id="modulesLevelCount" step="1" inputmode="numeric"></label>';
+    cont.parentNode.insertBefore(bar, cont);
+    bar.addEventListener('change', e => {
+      if (e.target.id === 'modulesLevelCount') {
+        const v = setModuleLevelCount(e.target.value);
+        e.target.value = v;   // clamped (never below the highest level in use)
+      }
+    });
+  }
+  const mm = appState.moduleMappingData || {};
+  const minLevels = Math.max(1, ...(mm.modules || []).map(m => _moduleLevel(m) || 0));
+  const input = bar.querySelector('#modulesLevelCount');
+  input.min = minLevels;
+  input.max = MAX_LEVELS;
+  if (document.activeElement !== input) input.value = getModuleLevelCount();
+  bar.querySelector('.mlb-text').textContent = _tx('lblLevelCount');
+  input.setAttribute('aria-label', _tx('lblLevelCount'));
+}
+
 export function renderModules() {
   const container = document.getElementById('modulesContainer');
   _refreshModuleOutcomes();
@@ -3018,6 +3072,7 @@ export function renderModules() {
   _injectModuleCardStyles();
   _renderUndoBars();
   _ensureGuideButtons();
+  _ensureModulesLevelBar();
   const mm = appState.moduleMappingData;
 
   if (mm.modules.length === 0) {
