@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v152';
+      var EXPECTED_SW='v153';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.42.1';
+      var APP_VERSION = '3.43.0';
       var APP_RELEASED = '2026-10-03';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -2034,14 +2034,17 @@
                     </div>
 
                     <ol class="hc-steps">
-                        <li><span class="hc-step-num">1</span><div data-i18n="hcStep1">Enter the occupation title and job title in Chart Info tab.</div></li>
-                        <li><span class="hc-step-num">2</span><div data-i18n="hcStep2">Use AI Generation (in Duties &amp; Tasks tab) OR add duties and tasks manually.</div></li>
-                        <li><span class="hc-step-num">3</span><div data-i18n="hcStep3">Add knowledge, skills, and behaviors (optional).</div></li>
-                        <li><span class="hc-step-num">4</span><div data-i18n="hcStep4">Optionally verify tasks in Task Verification tab using workshop voting or individual ratings.</div></li>
-                        <li><span class="hc-step-num">5</span><div data-i18n="hcStep5" data-i18n-html><strong>Competency Clusters:</strong> Group related tasks into competency clusters, define performance criteria and range.</div></li>
-                        <li><span class="hc-step-num">6</span><div data-i18n="hcStep6" data-i18n-html><strong>Learning Outcomes:</strong> Map performance criteria to learning outcomes for training design.</div></li>
-                        <li><span class="hc-step-num">7</span><div data-i18n="hcStep7" data-i18n-html><strong>Module Mapping:</strong> Organize learning outcomes into training modules.</div></li>
-                        <li><span class="hc-step-num">8</span><div data-i18n="hcStep8">Export as PDF or Word document.</div></li>
+                        <li><span class="hc-step-num">1</span><div data-i18n="hcStep1" data-i18n-html>Enter the occupation title, job title and scope of work in the Chart Info tab.</div></li>
+                        <li><span class="hc-step-num">2</span><div data-i18n="hcStep2" data-i18n-html>Use AI Generation (in Duties &amp; Tasks tab) OR add duties and tasks manually.</div></li>
+                        <li><span class="hc-step-num">3</span><div data-i18n="hcStep3" data-i18n-html><strong>Additional Info:</strong> add knowledge, skills, behaviours, tools and the Skills Level Matrix.</div></li>
+                        <li><span class="hc-step-num">4</span><div data-i18n="hcStep4" data-i18n-html><strong>Task Verification:</strong> rate the tasks through workshop voting or individual ratings (optional).</div></li>
+                        <li><span class="hc-step-num">5</span><div data-i18n="hcStep5" data-i18n-html><strong>Task Analysis:</strong> break each task down into steps, knowledge, skills, tools, safety and criteria (optional).</div></li>
+                        <li><span class="hc-step-num">6</span><div data-i18n="hcStep6" data-i18n-html><strong>Competency Clusters:</strong> group related tasks into competencies and define their range and performance criteria.</div></li>
+                        <li><span class="hc-step-num">7</span><div data-i18n="hcStep7" data-i18n-html><strong>Occupational Standard:</strong> check what is still missing and export the standard (Word).</div></li>
+                        <li><span class="hc-step-num">8</span><div data-i18n="hcStep8" data-i18n-html><strong>Learning Outcomes:</strong> turn performance criteria into learning outcomes.</div></li>
+                        <li><span class="hc-step-num">9</span><div data-i18n="hcStep9" data-i18n-html><strong>Module Mapping:</strong> organise the outcomes into modules with levels and codes.</div></li>
+                        <li><span class="hc-step-num">10</span><div data-i18n="hcStep10" data-i18n-html><strong>Module Curriculum CUR/CBC:</strong> write each module’s curriculum and export it (Word).</div></li>
+                        <li><span class="hc-step-num">11</span><div data-i18n="hcStep11" data-i18n-html>Export the chart as PDF or Word, and save the project as a JSON file.</div></li>
                     </ol>
 
                     <div class="hc-tips-block">
@@ -2057,7 +2060,7 @@
                         <span class="hc-card-icon" style="background:#f0fdf4;color:#16a34a;">📘</span>
                         <h3 class="hc-card-title" data-i18n="hcUserGuide">User Guide</h3>
                     </div>
-                    <p class="hc-card-desc" data-i18n="hcUserGuideDesc">Access the full documentation for DACUM Live Pro — includes detailed instructions, screenshots, and best practices.</p>
+                    <p class="hc-card-desc" data-i18n="hcUserGuideDesc">Access the full documentation for DACUM Live Pro — detailed instructions for every tab, the complete workflow, and best practices.</p>
 
                     <div class="hc-btn-row">
                         <!-- Relative, not absolute. This used to hard-code

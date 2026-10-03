@@ -7,6 +7,40 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.43.0 — 2026-10-03 — User Guide updated (EN / FR / AR) ────────────
+MINOR. DACUM_Live_Pro_User_Guide.html, index.html, translations.js,
+sw.js (v153). No change to application behaviour.
+Changed User Guide brought up to 3.43 (last revised for 3.23, August):
+        • New sections: Quick Start (the eleven Help-tab steps, each
+          linked to its section), The complete path (stage → output →
+          what it feeds), Task Analysis, Occupational Standard, Module
+          Curriculum CUR/CBC.
+        • Rewritten: What's New (Sept–Oct releases), Learning Outcomes
+          (source list, inline statements, numbering, ⚠ links, undo,
+          guidelines), Module Mapping (levels, track / code / short
+          name, coverage, AI options, Module Builder), Skills Level
+          Matrix (editable levels, one table; moved after Additional
+          Info, where it lives).
+        • Updated: overview, projects (large storage + backup warning),
+          toolbar (Standard menu; Undo / Redo follow the tab), Duties &
+          Tasks (Refine Results; ids never reused), AI cards (Task
+          Analysis row; no daily limit), Additional Info, Task
+          Verification (results chart, report appendix, Supplementary
+          Verification), Competency Clusters, exports (OS, CUR;
+          Assessment Plan removed), offline (exports offline, loading
+          screen), tips. Stale statements removed (daily allowance,
+          evidence requirements / assessment plan).
+        • Arabic follows the interface terms: اسم المهنة / اسم العمل
+          (no longer المسمى المهني / المسمى الوظيفي); French follows the
+          interface (Intitulé du métier, Titre du poste, Groupes de
+          compétences).
+        • Same single file and DICT format (613 keys, every key in all
+          three languages), same ?lang= links and QR code. Tables wrap
+          inside their cells on phones (360 px: no horizontal scroll).
+Changed Help tab: Quick Start has 11 steps covering Task Analysis,
+        Occupational Standard and Module Curriculum (EN/FR/AR); the User
+        Guide card no longer promises screenshots.
+
 ── 3.42.1 — 2026-10-03 — Additional Information AI card ──────────────
 PATCH. additional_info_ai.js, translations.js, sw.js (v152).
 Fixed   Conflicting language rules: the prompt said "use the language of
