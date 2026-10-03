@@ -1725,8 +1725,9 @@ export async function exportToWord() {
                 );
 
                 if (hasSkillsLevelData) {
-                    // Add Skills Level Matrix heading
-                    children.push(new Paragraph({ spacing: { after: 200 } }));
+                    // The matrix starts on its own page (3.41.1) — it was
+                    // running on straight after the previous section.
+                    children.push(new Paragraph({ children: [new PageBreak()], bidirectional: _rtl() }));
                     children.push(new Paragraph({
                         children: [
                             new TextRun({

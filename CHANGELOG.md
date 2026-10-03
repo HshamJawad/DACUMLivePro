@@ -7,6 +7,16 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.41.1 — 2026-10-03 — Matrix on a new page in Word ────
+PATCH. exports_docx.js, exports_os_docx.js, sw.js (v150).
+Changed "Employability Competencies by Occupational Level" starts on a
+        new page in both Word exports: the chart document (the empty
+        spacer paragraph before it became a page break) and the
+        Occupational Standard (a page break before the heading, like the
+        other sections of Part 2). Verified: that is the only change in
+        either file (EN and AR); rendered, the heading is the first line
+        of its page. The PDF export already started it on a new page.
+
 ── 3.41.0 — 2026-10-03 — Skills Level Matrix as one table ────
 MINOR. renderer.js, skill_levels.js, export_settings.js,
 exports_os_docx.js, translations.js, sw.js (v149).

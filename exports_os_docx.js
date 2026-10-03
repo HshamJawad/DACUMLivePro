@@ -313,6 +313,8 @@ export async function exportOccupationalStandardWord() {
         // prints at all) is decided by the model; see os_model.js.
         const emp = M.part2.employability;
         if (emp) {
+            // Own page (3.41.1), like every other section of Part 2.
+            children.push(_break());
             children.push(_h2(_t('expEmployability')));
 
             // Level columns 1200 twips each up to four (the historic layout:
