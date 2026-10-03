@@ -1,0 +1,799 @@
+# DACUM Live Pro — Changelog
+
+Newest first. Moved out of `index.html` in 3.35.0, where it had grown to
+about 44 KB inside an inline script that every visit downloaded. The
+version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
+`index.html`; bump them together with `CACHE_VERSION` in `sw.js`.
+This file is documentation only — it is not loaded or cached by the app.
+
+```text
+── 3.35.0 — 2026-10-03 — LO hours: automatic distribution ─
+MINOR. module_curriculum.js + dacum-curriculum.css.
+Added   "⚖️ Distribute hours automatically" in Module Curriculum
+        (section 2): shares the module's institutional time over its
+        learning outcomes in proportion to their linked performance
+        criteria (minimum 1), whole hours by largest remainder, ties
+        to the earlier outcome (90 h over 1/1/2 → 23/22/45). Asks
+        before replacing hours already typed. A "?" beside it explains
+        how to adjust: size, complexity, practical intensity,
+        learners' starting point, resources. EN/FR/AR.
+Changed index.html: this changelog moved to CHANGELOG.md (−44 KB).
+
+── 3.34.2 — 2026-10-03 — exported file name ───────────
+PATCH. module_curriculum.js / exports_cur_docx.js / state.js /
+dacum-curriculum.css: in Module Curriculum, under the code and
+short name, "Prefix for exported file" (typed by the user, e.g.
+CUR or CBC; default CUR), "Level in file name" (L1 / Level 1)
+and a live preview. File name keeps spaces:
+"CUR_CMCN 1-1 Hardware L1 En.docx"; the footer reads
+"CUR: CMCN 1-1 Hardware L1". Code and short name still come from
+the module card. The prefix moved here from Programme settings.
+
+── 3.34.1 — 2026-10-03 — module card fields on one line ─
+PATCH. modules.js: Level, Track / code prefix, Code and Short
+name sit on one line on the module card (narrower fields).
+
+── 3.34.0 — 2026-10-03 — module codes and short names ──
+MINOR. modules.js + module_curriculum.js.
+Added   Each module card in Module Mapping has a Code (auto:
+        track/prefix + level + position within the level, e.g.
+        "CMT 1-1"; with no track, the Job Title initials; once
+        typed it is kept, ↺ returns to auto; duplicates are
+        flagged) and a Short name (for file names). The track
+        field is now "Track / code prefix".
+        "Show modules as": Code / Number (M1) / Both — one
+        setting, followed by the cards, lists, coverage matrix,
+        Module Curriculum tab and the Word/PDF exports.
+        Code and short name are sent to Module Builder
+        (moduleCode, shortName) and saved in JSON.
+        Module Curriculum: "File name prefix" in Programme
+        settings (default CUR) — file and footer use it.
+Changed Code / short name typed in the Module Curriculum tab
+        (3.33.x) move onto the module itself on first open;
+        both tabs now edit the same fields.
+
+── 3.33.2 — 2026-10-02 — CUR: one outcome per page ─────
+PATCH. exports_cur_docx.js: in the exported CUR, every
+learning-outcome table (Learning outcome 1, 2 …) starts on a
+new page. The module header stays on page 1; resources follow
+the last outcome.
+
+── 3.33.1 — 2026-10-02 — curriculum guidelines wording ──
+PATCH. module_curriculum.js: the "?" guidelines on the Module
+Curriculum tab use a general example module (EN/FR/AR) and no
+longer refer to any earlier project file or its author; each
+field explains what to write, with one example.
+
+── 3.33.0 — 2026-10-02 — Module Curriculum CUR/CBC ──────
+MINOR. Additive only; projects without the new data load and
+export exactly as before.
+
+Added
+  module_curriculum.js  NEW tab "📘 Module Curriculum CUR/CBC"
+                        after Module Mapping (one i18n key,
+                        tabModuleCurriculum). Per module: code
+                        (suggested from track + level +
+                        position, or the job-title initials),
+                        purpose, credits, pre-requisites
+                        (checkboxes), a COMPUTED time table
+                        (credits × hours per credit, split by
+                        %, largest-remainder rounding so the
+                        parts always add up — the expert
+                        file's 77-for-67 cannot recur), link to
+                        the Occupational Standard, LO list.
+                        Per LO: context, methodology,
+                        discussion, demonstration, practice,
+                        self-directed learning, numbered
+                        formative statements ("Suggest from
+                        criteria"), methods, optional hours
+                        (warns when they do not match the
+                        institutional time), "x/8 filled".
+                        Resources: tools, equipment, PPE,
+                        materials ("Suggest from Task
+                        Analysis" picker — no duplicates,
+                        nothing overwritten), recommended
+                        resources, facilities table. Programme
+                        settings (name, hours per credit 25,
+                        group 15, default split 10/45/5/35/5).
+                        Guidelines "?" (EN/FR/AR). Data keyed
+                        by module/LO ids; orphans kept so
+                        Module Mapping undo restores them.
+  exports_cur_docx.js   NEW. CUR Word export after the expert
+                        template, A4, RTL in Arabic, "—" for
+                        empty fields, optional blank template.
+                        File CUR_<code>_<short>_L<n>_<lang>.docx.
+  dacum-curriculum.css  NEW, scoped styles (precached + warmed).
+Changed
+  events.js           the "Standard" toolbar button opens a
+                      menu: Occupational Standard (Word) — the
+                      unchanged export — / Module Curriculum —
+                      CUR (Word)… / CBC (TESDA, coming soon).
+                      Keyboard, Esc, RTL and phone aware. CUR
+                      export is one module per click (no batch
+                      downloads for a browser to block).
+  index.html          tab markup; Module Mapping's step row now
+                      proceeds to the new tab.
+  state.js / dacum_projects.js / snapshots.js /
+  workshop_snapshots.js / projects.js / tabs.js
+                      new key moduleCurriculumData saved and
+                      restored by projects, snapshots and JSON
+                      export/import; old files default safely.
+                      Clear This Tab clears curriculum only.
+                      Sidebar entry added.
+  snapshots.js / dacum_projects.js
+                      JSON export/import now also carries the
+                      programme's levelCount (it was dropped).
+  sw.js               v132 → v133, precaches the three files.
+
+── 3.32.4 — 2026-10-02 — index.html closed properly ─────
+PATCH. No behaviour change.
+
+Fixed
+  index.html          the file ended mid-comment ("<!-") after
+                      the Snapshot modal, with no </body> or
+                      </html>. Browsers closed the document
+                      themselves, so nothing visible broke, but
+                      any later edit appended after that point
+                      would have been swallowed by the open
+                      comment. The stray fragment is removed and
+                      the document is closed explicitly. Checked:
+                      every script the page needs is loaded
+                      above that point or imported by app.js /
+                      snapshots.js (error-handler.js).
+  sw.js               v131 → v132, bumped with EXPECTED_SW.
+
+── 3.32.3 — 2026-10-02 — plain-text key hint ───────────
+PATCH. modules.js: the LO card shortcut hint is plain text
+("Press Enter: next outcome · Press Shift+Enter: new line");
+the key-cap boxes looked like buttons.
+
+── 3.32.2 — 2026-10-02 — levels field in the heading ───
+PATCH. modules.js: the levels field sits on the "Modules"
+heading line, centred between the title and its "?" (on phones
+it drops just under them).
+
+── 3.32.1 — 2026-10-02 — levels field above Modules ────
+PATCH. modules.js: "Number of levels in the programme" now also
+sits centred at the top of the Modules section — the same
+setting as the AI card and the coverage matrix, all in sync.
+
+── 3.32.0 — 2026-10-02 — design guidelines ─────────────
+MINOR. modules.js: a "?" at the far end of "Performance
+Criteria (Source)" (Learning Outcomes) and of "Modules" (Module
+Mapping) opens guidelines — grouping criteria into outcomes
+(one-to-one vs grouping, limits, cross-competency, writing the
+statement) and building modules / assigning levels
+(prerequisites, complexity & autonomy, perform→check→diagnose,
+specialisation, spiral, reference framework). EN/FR/AR.
+
+── 3.31.2 — 2026-10-02 — Module Mapping polish ─────────
+PATCH. modules.js: "Specialisation" sits on the same line as its
+field; the two options in the AI card are white.
+
+── 3.31.1 — 2026-10-02 — one Undo/Redo in the toolbar ───
+PATCH. history.js + events.js + modules.js. The toolbar Undo /
+Redo now follow the visible tab: on Learning Outcomes and
+Module Mapping they undo/redo those tabs' steps (scope lent by
+modules.js via registerHistoryScope; tooltip names the step);
+everywhere else they work on the Duties & Tasks history as
+before. Ctrl+Z / Ctrl+Y work on those two tabs too (outside
+text fields). The extra Undo bar inside the tabs is removed;
+the 7-second Undo toast stays.
+
+── 3.31.0 — 2026-10-02 — undo/redo for LOs & modules ───
+MINOR. modules.js.
+Added   Undo / Redo for the Learning Outcomes and Module Mapping
+        tabs (separate from the Duties & Tasks history): delete
+        module, delete outcome, remove outcome from module,
+        unlink criterion. A toast offers Undo for 7 s; a bar at
+        the top of each tab and Ctrl+Z / Ctrl+Y (outside text
+        fields) do the same. History is dropped on project
+        change or when the data is replaced elsewhere; undo
+        asks first if other changes were made since.
+Changed Module cards restyled (light violet), scoped to the
+        modules list.
+
+── 3.30.2 — 2026-10-02 — coverage matrix ──────────────
+PATCH. modules.js: the coverage matrix is removed when there
+are no modules (so "Clear This Tab" and deleting the last
+module empty it), and is now a collapsible bar — closed by
+default, showing Taught / Not taught; the open/closed choice
+is remembered on this device.
+
+── 3.30.1 — 2026-10-02 — levels count in the AI card ──
+PATCH. modules.js: the number of levels can be set right in
+the module-generation card (same value as the field above the
+coverage matrix, kept in sync; never below the highest level
+in use). With a single-level programme the level suggestion
+switches off automatically.
+
+── 3.30.0 — 2026-10-02 — AI module generation ──────────
+MINOR. module_mapping_ai.js + modules.js.
+Fixed   Titles no longer carry a baked "Module N:" (shown twice
+        as "M3 — Module 3: …" and wrong after any reorder);
+        old titles are cleaned on open. Saves after a run.
+        Result notes translated (EN/FR/AR).
+Added   Two options in the card: "Keep existing modules" (only
+        outcomes not yet in a module are grouped; new modules
+        are added — default on once modules exist) and
+        "Suggest a level for each module" (level 1..N and a
+        track code, using prerequisite / complexity / spiral /
+        specialisation rules; clamped in code). The model's
+        rationale is shown under each module title.
+Changed Guidance 2-4 outcomes per module (1 allowed for a large
+        stand-alone outcome); ceiling of 6 still enforced.
+
+── 3.29.0 — 2026-10-02 — AI learning outcomes ──────────
+MINOR. learning_outcomes_ai.js + modules.js.
+Fixed   The generator used its own "C5-PC2" criterion ids,
+        which no longer matched the list ("5-2"): ticked
+        criteria were reported as empty, used criteria were
+        generated again, task-analysis criteria were ignored.
+        It now reads the same list as the screen
+        (getLearningOutcomeCriteria) and saves after a run.
+Changed Pattern C rules: integrate consecutive steps of one
+        performance, criteria assessed in one task, or a
+        criterion too small to stand alone; prefer the same
+        competency, cross-competency only for one integrated
+        performance — always flagged for review. Ceiling of 5
+        criteria per outcome enforced in code (2-3 typical).
+        Outcomes start with an imperative action verb.
+        Result notes translated (EN/FR/AR).
+
+── 3.28.2 — 2026-10-02 — hint wording ─────────────────
+PATCH. modules.js: "saved automatically" removed from the
+per-card keyboard hint.
+
+── 3.28.1 — 2026-10-02 — LO tab polish ─────────────────
+PATCH. modules.js: the criteria list hands the wheel back to
+the page at its ends (no more stuck scrolling); the Edit
+button is removed from LO cards (text is edited inline); each
+card shows its keyboard hints (Enter / Shift+Enter, autosave).
+
+── 3.28.0 — 2026-10-02 — inline learning outcome text ──
+MINOR. modules.js: each Learning Outcome statement is an
+always-editable field, saved automatically (no Edit → Save).
+Empty statements are flagged on the card and counted above
+the list with a "Next empty" jump; Enter moves to the next
+outcome; "Use criterion text" pre-fills an empty one. The
+Edit button stays and now focuses the field.
+
+── 3.27.0 — 2026-10-02 — criteria source list ──────────
+MINOR. modules.js, Learning Outcomes tab: the Performance
+Criteria (Source) list scrolls on its own with sticky
+competency headings; "Hide used criteria" + unused count; a
+selection bar sticks to the screen bottom while criteria are
+ticked (Clear / Create LO). The bar clicks the original
+#btnCreateLO, which is unchanged.
+
+── 3.26.1 — 2026-10-01 — learning outcome numbering ────
+PATCH. modules.js: LO numbers follow position (LO1, LO2 …) and
+renumber after a delete; ids are unchanged. Saved projects that
+started at e.g. LO8 are shown from LO1 on open.
+
+── 3.26.0 — 2026-10-01 — clusters, levels & coverage ───
+MINOR. Additive only; projects without the new data export
+and render exactly as before.
+
+Added
+  modules.js          Competence Cluster task controls (move
+                      up/down, delete, + Add Task with its own
+                      ID and "competency-clustering" source),
+                      automatic sync with Duties & Tasks, and
+                      Learning Outcome renumbering after
+                      cluster changes. Module level + track,
+                      levels count, and a performance-criteria
+                      coverage matrix.
+  exports_docx.js     "Programme Structure by Level" table and
+  exports_pdf.js      the coverage matrix after Module Mapping;
+                      module titles carry their level/track.
+Fixed
+  app.js              Active project is reopened on start-up
+                      instead of being overwritten by the blank
+                      boot screen.
+
+── 3.24.0 — 2026-08-31 — assessment traceability ────────
+MINOR. Two additions, both of which appear only when the data
+they describe exists. Default output is unchanged.
+
+Added
+  exports_docx.js     "Assessment Plan" appendix. Per module,
+  exports_pdf.js      per learning outcome, a table of its
+                      linked performance criteria — reproduced
+                      VERBATIM, never reworded. An assessment
+                      sheet written from the content instead of
+                      the standard is how a qualification
+                      silently detaches from the occupational
+                      standard it claims to measure; deriving
+                      it from pc.text makes that drift
+                      impossible rather than discouraged.
+                      Emitted only when a module has an outcome
+                      carrying linked criteria, so a chart-only
+                      project exports byte-identically to
+                      3.23.3.
+
+  exports_os_docx.js  NEW. Second DOCX layout over existing
+                      data: Occupational Profile + Occupational
+                      Standard. Reads no field the app did not
+                      already collect. Reference code and the
+                      endorsement chain print as blank labelled
+                      lines — they belong to a qualifications
+                      framework, not to a DACUM workshop.
+                      Performance criteria are numbered n.1,
+                      n.2 here and nowhere else, so a module
+                      descriptor citing "5.6" points at
+                      something a reader can find. Kept
+                      separate from exports_docx.js: that
+                      exporter is the artefact every existing
+                      project was validated against.
+
+  index.html          Inline hint under Job Title, and an "OS"
+                      toolbar button beside Word.
+
+Changed
+  exports_docx.js     Seven private helpers (_rtl, _start,
+                      _font, _tblFill, _withArabicLang,
+                      _withArabicLangParagraph,
+                      _applyDocDefaultsLang, _safeFilename)
+                      are now exported. Bodies untouched —
+                      visibility only, so both DOCX documents
+                      share one Arabic path and one Export
+                      Settings path.
+
+  sw.js               v87 → v88, precaching exports_os_docx.js.
+
+Fixed
+  index.html          EXPECTED_SW had drifted to v83 while
+                      sw.js reached v87, so every load saw a
+                      mismatch and offered an update that was
+                      already installed. Both now read v88.
+
+── 3.23.3 — 2026-08-17 — quota display removed ──────────
+PATCH. The daily allowance is enforced exactly as before;
+only its unsolicited display is gone.
+
+Removed
+  draft_ui.js         the cost card at the foot of the Full
+                      Draft dialog ("this run will use 7 of
+                      your 30 daily generations", plus a
+                      second line repeating the remaining
+                      count). It appeared on every open to
+                      report a limit that, in the case where
+                      it actually binds, already announces
+                      itself: _quotaBlock() still renders the
+                      dgQuotaTitle/dgQuotaBody warning and the
+                      start button is still disabled by the
+                      same quotaCheck(). A number the reader
+                      can act on stays; one they cannot does
+                      not, and it was competing with the two
+                      notes above it that DO need a decision.
+  draft_regen.js      the same sentence at the end of the
+                      "Regenerate from here" confirmation, for
+                      the same reason — rgQuotaShort already
+                      refuses the run when the allowance is
+                      short. {n} and {max} no longer passed.
+  draft_ui.js         estimatedCalls import, unused once the
+                      cost card went.
+  translations.js     dgCostLabel and dgQuotaRemaining, all
+                      three languages. Removed in THIS commit
+                      and not earlier: t() falls back to the
+                      English section and then to the key
+                      name, so deleting a key still rendered
+                      somewhere prints "dgCostLabel" on screen.
+
+Kept
+  dgQuotaTitle / dgQuotaBody   the blocking warning, which
+                      names the shortfall and suggests
+                      reducing how far the chain goes.
+  rgQuotaShort        its equivalent for regeneration.
+
+── 3.23.2 — 2026-08-14 — user guide, three languages ────
+PATCH. No change to application behaviour.
+
+Fixed
+  Help tab            the two guide buttons pointed at an
+                      absolute URL containing the repository
+                      name (…/DACUM-Live-Pro-V3.1/…). Renaming
+                      the repository broke both silently, with
+                      nothing on screen to explain why. Now
+                      relative, so the link resolves against
+                      whatever URL the app is served from.
+  Help tab            the second button was a duplicate of the
+                      first — same href, same target. Replaced
+                      with three direct language links.
+  Help tab            the QR image was absolute for the same
+                      reason and is now relative too.
+
+Added
+  DACUM_Live_Pro_User_Guide.html
+                      rewritten as ONE file carrying English,
+                      French and Arabic, with a switcher in the
+                      page header. English text sits in the
+                      markup and the dictionary holds all three,
+                      so the page still reads correctly if the
+                      script fails. Arabic flips dir=rtl and
+                      uses fonts/Cairo.woff2 — the same file the
+                      interface already precaches, which is why
+                      the guide belongs at the repository root
+                      and not in a subfolder.
+  Help tab            the primary button passes the active
+                      interface language through as ?lang=, so a
+                      user working in Arabic gets the Arabic
+                      guide without a second click.
+  sw.js               the guide and its QR image precached (SW
+                      bumped to v82). networkFirst() strips the
+                      query before the cache lookup, so one
+                      entry covers all three languages.
+
+── 3.23.1 — 2026-08-14 — native dialogs, part 2 ─────────
+PATCH. Completes 3.23.0 across the remaining modules.
+
+Fixed (23 more strings)
+  additional_info_ai.js  the reported message — "enter an
+                         Occupation Title in Chart Info to
+                         generate the supporting information"
+                         — plus the replace-sections confirm
+  tasks.js               orphaned-ratings confirm
+  clustering_ai.js       replace Range/Criteria confirm
+  module_mapping_ai.js   replace-modules confirm
+  workshop.js            QR-not-found alert
+  storage.js             invalid image type, unreadable image,
+                         upload success, remove-logo confirm,
+                         logo removed, "No image" placeholder,
+                         daily-limit button tooltip
+  projects.js            eight "<tab> cleared" messages and
+                         "tab already empty"
+  renderer.js            nothing-to-format, formatted-with-
+                         numbering/bullets, section removed
+  exports_pdf.js         "add at least one duty with tasks"
+
+Plural forms
+  Counted dialogs were assembled as 'rating' + (n===1?'':'s')
+  and `${n} cluster${n>1?'s':''}`. That is English grammar
+  written into the code: it cannot express Arabic's dual and
+  cannot reorder a French sentence. Each is now two keys
+  (...One / ...Many) with the count passed through {n}.
+
+Reuse over duplication
+  The eight "<tab> cleared" messages became one msgTabCleared
+  with {v} filled from the tab-name keys that already existed,
+  rather than eight near-identical sentences per language.
+
+Added
+  23 i18n keys x 3 languages. storage.js gained the _t/_tf
+  helpers it had never had.
+
+Verified
+  All 300 keys referenced by _t()/_tf() across the twelve
+  reviewed modules resolve in English, French and Arabic. The
+  only remaining literals beside a dialog call are emoji
+  prefixes on already-translated keys.
+
+── 3.23.0 — 2026-08-14 — native dialogs follow the UI ────
+MINOR. Reported from the PWA: an Arabic interface showing an
+English alert.
+
+Why this class of string was missed
+  applyTranslations() walks [data-i18n] in the DOM. alert(),
+  confirm() and showStatus() are called from JS at the moment
+  of the action and never enter the DOM, so they are invisible
+  to it. Each one has to resolve its own key at CALL TIME. A
+  hard-coded English literal there survives every language
+  switch — which is exactly what happened.
+
+Fixed in this pass (18 strings)
+  renderer.js     min-category, min-competency, remove-category,
+                  remove-section
+  projects.js     verification-gate alert, clear-tab confirm,
+                  clear-tab-with-downstream confirm, AI
+                  overwrite confirm, AI cancelled / success /
+                  failed, daily limit (x2), all-data-cleared,
+                  occupation-required alert
+  exports_docx.js / exports_pdf.js
+                  no-task-rated, occupation-required-for-export
+                  and its status line
+
+Added
+  16 i18n keys x 3 languages. Multi-line dialogs keep their
+  line breaks; the downstream-clear confirm takes the affected
+  stage list through a {list} placeholder rather than being
+  assembled from English fragments.
+
+Still outstanding
+  The message in the report — "Please enter an Occupation
+  Title in Chart Info to generate the supporting information"
+  — lives in additional_info_ai.js, which has not been
+  reviewed. The same audit is owed to the other AI modules,
+  duties.js, tasks.js, modules.js, storage.js, snapshots.js
+  and workshop.js.
+
+── 3.22.1 — 2026-08-14 — section buttons on phones ──────
+PATCH. Follow-up to 3.21.0, reported from the installed PWA.
+
+The cause was not the new button styles — those fit on one
+line at 380px. It was three rules in dacum-responsive.css,
+all correct for the FOUR TEXT BUTTONS they were written for
+and all wrong for three icons plus one short label:
+  • 900px  — flex-wrap: wrap on the header and the group.
+  • 768px  — width:100% on the group and flex:1 on each
+             button, stretching four buttons across the row.
+             Those were the wide gaps in the screenshot.
+  • 480px  — display:grid, 1fr 1fr. That was the 2x2 block.
+
+Now
+  • Above 480px: one row, buttons at their natural size, the
+    heading takes the slack.
+  • At/below 480px: the heading gets its own full-width line
+    and all four buttons sit on ONE row beneath it. Sharing a
+    line does not survive a 380px screen — the buttons need
+    ~180px of it, which squeezed the heading hard enough to
+    break "comportements" mid-word.
+  • Clear is tightened (8px 12px, 0.78em) but keeps its label.
+
+Verified by rendering the real markup at 360 and 380px in
+Arabic, English and French: one button row in every case.
+
+── 3.22.0 — 2026-08-14 — occupation-title sanity gate ────
+MINOR.
+
+The problem
+  Every AI path in this app is rooted in one free-text field,
+  and the only guard on it was that .trim() was non-empty. One
+  character passed. "asdf" passed. A typo passed.
+  A model completes; it does not verify. The generation prompt
+  labels the title "BASE CONTEXT" — an assumed fact — and then
+  demands "valid JSON format only", so even a doubtful model
+  had no channel to object: the sole permitted output is a
+  duties array. Post-response validation checked shape only
+  (Array.isArray, length > 0), then reported a green tick and
+  a duty count. The tool could not distinguish generation from
+  invention.
+  The dangerous case is not gibberish but the typo that lands
+  on a NEIGHBOURING REAL occupation: a chart that is internally
+  perfect, about the wrong job, with nothing in it to betray
+  the drift.
+
+Added
+  • occupation_check.js — one short classification call before
+    any generation. Verdicts: known / likely_typo / unknown.
+    Caches per title+language; a likely_typo with no suggestion
+    is demoted to unknown rather than shown unactionable.
+  • Gate in generateAIDacum() (duties tab) and, for Full Draft,
+    at Start in draft_ui.js — before quotaCheck() spends the
+    day's allowance on a seven-stage chain rooted in the typo.
+  • Warning card offering: use the suggestion / edit the title /
+    generate anyway. Styled to match the Scope card.
+  • 11 i18n keys x 3 languages.
+
+Design decisions
+  • NEVER auto-corrects. A curriculum expert may enter a local
+    Iraqi or Gulf trade name the model has not met; silently
+    replacing it would destroy their intent with confidence —
+    worse than the typo. The field is written only by an
+    explicit click on "Use ...".
+  • FAILS OPEN. Backend down, bad JSON, unrecognised verdict →
+    "unchecked" and generation proceeds. A sanity check that
+    can block the app when it breaks is the larger liability.
+  • The prompt treats dialect and emerging occupations as
+    valid, and is strict only about typos and noise. A gate
+    that fires on legitimate input teaches users to click
+    through it, which is how a gate stops working.
+  • "Generate anyway" is remembered per string, unlike the
+    Scope card which re-asks every time. Scope asks you to ADD
+    something; this asks you to confirm a judgement already
+    made, and re-asking would train the click-through.
+
+Not verified here
+  The backend host is outside this environment's egress
+  allowlist, so the live endpoint could not be exercised. The
+  call reuses /api/generate-dacum with a different prompt and
+  the same request shape as the existing generation call; if
+  that endpoint constrains prompts server-side, this is the one
+  thing to check first.
+
+── 3.21.0 — 2026-08-14 — Additional Info action buttons ──
+MINOR. Visual + accessibility work on the section header rows.
+
+Changed
+  • The four action buttons above every section were four
+    saturated gradients — amber, two purples and a red — on a
+    row of SECONDARY controls, out-shouting the section
+    heading itself. Rename / Number / Bullet now use the same
+    neutral slate token set as .btn-back-step: same padding,
+    radius, border width, weight and transition.
+  • Clear stays the only coloured one, because it is the only
+    destructive one. Toned to a red tint at rest, solid red on
+    hover. It also KEEPS its text label while the other three
+    went icon-only: the control that wipes a section should be
+    the clearest thing in the row, not the most cryptic.
+  • Number / Bullet / Rename are now inline SVG instead of
+    🔢 • ✏️. Emoji render as different artwork per platform,
+    cannot take the button's colour, and sit on the text
+    baseline rather than centring. These use currentColor and
+    follow hover, focus and pressed states for free.
+  • Rename uses an I-beam text cursor, not a pencil: a pencil
+    reads as "edit the content", but this button edits the
+    HEADING.
+  • .btn-remove-section lost its inline gradient (custom
+    sections only) and now shares the Clear styling.
+
+Accessibility
+  • Icon-only buttons carry title AND aria-label — without the
+    latter they are silent to a screen reader, having no text.
+  • Rename is a toggle, so it now sets aria-pressed and styles
+    the pressed state. Previously nothing indicated that the
+    heading had entered edit mode.
+  • :focus-visible rings added; icon-only buttons were
+    invisible to keyboard navigation.
+
+Fixed
+  • data-i18n-attr now accepts a comma-separated list, so one
+    key can feed both title and aria-label. Passing
+    "title,aria-label" previously reached setAttribute() as a
+    single attribute name and threw InvalidCharacterError.
+  • toggleEditHeading()'s hard-coded 'Heading updated! ✓' now
+    uses msgHeadingUpdated.
+
+Not done, on purpose
+  • The list icons are NOT mirrored under RTL. scaleX(-1)
+    moves the markers correctly but also mirrors the 1-2-3
+    glyphs, and cancelling that per-glyph collapsed them to
+    slivers in Chromium. A second set of RTL artwork is not
+    worth it: an unmirrored list icon is unambiguous either
+    way. See dacum-rtl.css.
+
+Added
+  2 i18n keys x 3 languages: ttRenameHeading, msgHeadingUpdated.
+
+── 3.20.1 — 2026-08-14 — dead info-box code removed ──────
+PATCH.
+
+Removed
+  • toggleInfoBox() (renderer.js) and its btnToggleInfoBox
+    wiring and import (events.js). The info box it drove no
+    longer exists: #infoBoxContent, .btn-toggle-info and
+    #btnToggleInfoBox are all absent from index.html. _on()
+    skips missing elements, so the handler was never attached
+    and the function was never reached — had it been, it would
+    have thrown on `infoBoxContent.style` (null).
+    It carried hard-coded 'Hide' / 'Show' strings. Adding two
+    i18n keys would have translated unreachable code; deleting
+    it is the fix.
+
+Fixed
+  • exports_docx.js: the "Category N" fallback now uses
+    expCategoryN, matching the PDF exporter. Applied to the
+    current version of that file, which is 151 lines ahead of
+    the copy in the project knowledge (it carries the w:lang
+    proofing-language work) — the earlier 3.20.0 attempt had
+    patched the stale copy and is superseded.
+
+── 3.20.0 — 2026-08-14 — Skills Level Matrix in ar / fr ──
+MINOR. The matrix showed a translated title and info box over
+an entirely English body. Two different causes, fixed
+differently, because they are two different KINDS of string.
+
+Interface chrome — retranslates on language switch
+  renderSkillsLevel() built its markup from English literals:
+  "Category N", "Remove Category", "Competencies",
+  "+ Add Competency", both placeholders, and the four level
+  labels. All now resolve through i18n. The checkbox labels
+  reuse lvlCraftsman/lvlSkilled/lvlSemiSkilled/lvlFoundation —
+  the same keys as the legend above the matrix — so the two
+  cannot drift apart in translation.
+
+Seed data — resolved ONCE, then left alone
+  The 33 default category and competency strings are DATA:
+  they live in appState.skillsLevelData and the user can edit
+  every one of them. They are now generated from i18n keys in
+  the current interface language when a matrix is first
+  created (fresh project, or an explicit Reset), and are NOT
+  re-translated on later language switches. Rewriting wording
+  a facilitator had adapted for their own sector is a worse
+  failure than an English row in an Arabic chart.
+  Consequence, by design: a project started in English keeps
+  its English rows after switching to Arabic. Reset regenerates
+  them in the current language.
+
+Fixed along the way
+  • The seed existed TWICE — once in state.js, once again as
+    literals inside resetSkillsLevel() in renderer.js, already
+    drifting in whitespace. Both now come from one spec.
+  • defaultSkillsLevelData() deep-cloned the LIVE array rather
+    than the defaults, so it returned edited data whenever it
+    was called after an edit. It had no callers, which is the
+    only reason this never surfaced. It has callers now.
+  • The Word exporter's untranslated "Category N" fallback now
+    uses expCategoryN, matching the PDF exporter.
+
+Added
+  40 i18n keys x 3 languages: slCat1-8, slComp1_1-8_2, plus
+  matrix chrome and the reset confirm/status messages.
+
+── 3.19.1 — 2026-08-13 — Arabic PDF: font never embedded ──
+PATCH. Fixes a regression shipped in 3.19.0 that made Arabic
+PDFs render as Latin letters and symbols.
+
+Root cause
+  jsPDF's VFS and font table are PER-INSTANCE, not global.
+  3.19.0 warmed the font cache on a THROWAWAY probe document
+  (ensureArabicFont) and never called addFileToVFS/addFont on
+  the document it actually drew into. isArabicFontLoaded()
+  answered true — the bytes WERE cached — so nothing looked
+  wrong. setFont('Cairo') then failed its lookup, jsPDF logged
+  a console warning and silently fell back to the standard-14
+  Times-Roman, whose WinAnsi single-byte encoding maps every
+  Arabic presentation form onto an arbitrary Latin character.
+  Verified in the output PDF: no /FontFile2, no /Type0, only
+  /WinAnsiEncoding.
+
+Fixed
+  • installArabicRTL() now registers the font on the document
+    it is installing onto, and THROWS if the family is absent
+    from pdf.getFontList() afterwards. The 3.19.0 failure was
+    silent; that is what let it reach a user at all.
+
+Not the cause (checked, ruled out)
+  • The TTF is valid TrueType (sfnt 0x00010000), not WOFF2 and
+    not an HTML 404 body.
+  • base64 conversion is chunked and intact.
+  • No double processing: exports_pdf.js contains ZERO calls to
+    shapeArabic/bidiVisual/arabicVisual. The single pipeline
+    lives in pdf_arabic.js's pdf.text() wrapper (Model B).
+  • Not a Service Worker cache artefact.
+  • Cairo itself is fine — Latin, base code points, shaping and
+    bidi all verified stage by stage in arabic-pdf-diagnostic.pdf.
+
+── 3.19.0 — 2026-08-13 — Arabic PDF export ──────────────
+MINOR, not PATCH: PDF export in Arabic goes from refused to
+supported. Nothing changes for English or French.
+
+Added
+  • pdf_arabic.js — the Arabic layer for jsPDF. Suspends the
+    library's own shaper, neutralises its BiDi engine through
+    the engine's documented options, and mirrors one document
+    instance (text/rect/line/addImage/splitTextToSize/
+    getTextWidth/setFont).
+  • arabic-font.js — TTF loader, cmap coverage reader,
+    contextual shaper, BiDi reorderer. Shared with DACUM Lite.
+  • 14 i18n keys x 3 languages for the PDF's own labels.
+
+Changed
+  • exports_pdf.js no longer refuses in Arabic. _blockArabicPDF()
+    is gone; the file now warms the font cache, installs the
+    mirror, and restores the suspended parser in a finally.
+  • PDF labels now use the SAME i18n keys as the Word exporter,
+    so the two exports of one chart stop disagreeing on wording.
+  • PDF filenames use the Unicode-safe sanitiser from
+    exports_docx.js. The old /[^a-z0-9]/gi turned every Arabic
+    occupation title into a row of underscores.
+
+Fixed
+  • Skills-level matrix ticks were the character U+2713, which
+    is in NEITHER Helvetica NOR Cairo. jsPDF drops unmapped
+    characters silently, so those cells have been printing
+    blank in English too. Now drawn as two strokes.
+  • EXPECTED_SW had drifted to v71 while sw.js reached v72, so
+    every VERSION_REPLY compared unequal and the app re-checked
+    for updates on every message. Both are v73.
+
+Removed
+  • msgPdfArabicUnsupported (en/fr/ar). Its only caller is gone,
+    and a string asserting that Arabic PDF is impossible would
+    mislead the next reader of this codebase.
+
+Why the mirror instead of RTL coordinates
+  exports_pdf.js positions ~145 pdf.text() calls absolutely from
+  the LEFT edge. Rewriting each from the right margin would have
+  meant maintaining two parallel coordinate systems forever. The
+  mirror is exact, so borders and the text inside them move
+  together — and the four task columns reverse (A1 on the right)
+  as a consequence of the geometry rather than as a special case.
+
+Deployment note
+  fonts/Cairo-Regular.ttf MUST be present. The woff2 already in
+  the repo is for the screen; jsPDF can only embed a TTF. Both
+  the loader and the font file are precached in sw.js — caching
+  one without the other only moves the offline failure one step
+  later.
+```

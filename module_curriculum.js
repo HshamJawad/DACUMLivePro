@@ -71,6 +71,12 @@ const _S = {
     curCodeAuto: 'suggested',
     curCodeSuggest: 'Suggest',
     curCodeHint: 'Same code as on the module card in Module Mapping: track + level + position within the level. Edit freely.',
+    curDistBtn: 'Distribute hours automatically',
+    curDistTip: 'Share the institutional time over the outcomes in proportion to their performance criteria',
+    curDistHelpTip: 'How to decide the hours of each learning outcome',
+    curDistNeedCredits: 'Enter the module credits first — the institutional time is computed from them.',
+    curDistConfirm: 'Some outcomes already have hours. Replace them with the automatic distribution?',
+    curDistDone: '{t} h distributed: {list}',
     curFilePrefix: 'Prefix for exported file',
     curFileLevel: 'Level in file name',
     curFilePreview: 'File name:',
@@ -179,6 +185,12 @@ const _S = {
     curCodeAuto: 'proposé',
     curCodeSuggest: 'Proposer',
     curCodeHint: 'Le même code que sur la carte du module (Cartographie des modules) : filière + niveau + position dans le niveau. Modifiable.',
+    curDistBtn: 'Répartir les heures automatiquement',
+    curDistTip: 'Répartir le temps en établissement au prorata des critères de performance de chaque résultat',
+    curDistHelpTip: 'Comment fixer les heures de chaque résultat d’apprentissage',
+    curDistNeedCredits: 'Saisissez d’abord les crédits du module — le temps en établissement en découle.',
+    curDistConfirm: 'Certains résultats ont déjà des heures. Les remplacer par la répartition automatique ?',
+    curDistDone: '{t} h réparties : {list}',
     curFilePrefix: 'Préfixe du fichier exporté',
     curFileLevel: 'Niveau dans le nom du fichier',
     curFilePreview: 'Nom du fichier :',
@@ -286,6 +298,12 @@ const _S = {
     curCodeAuto: 'مقترح',
     curCodeSuggest: 'اقتراح',
     curCodeHint: 'هو الرمز نفسه في بطاقة الوحدة في مواءمة الوحدات: المسار + المستوى + ترتيب الوحدة داخل المستوى. يمكنك تعديله.',
+    curDistBtn: 'توزيع الساعات تلقائياً',
+    curDistTip: 'توزيع الوقت المؤسسي على المحصلات بنسبة معايير الأداء المرتبطة بكل منها',
+    curDistHelpTip: 'كيف تُحدَّد ساعات كل محصلة تعلم',
+    curDistNeedCredits: 'أدخل الرصيد / الساعات المعتمدة للوحدة أولاً — الوقت المؤسسي يُحسب منه.',
+    curDistConfirm: 'بعض المحصلات لها ساعات مسبقاً. هل تستبدلها بالتوزيع التلقائي؟',
+    curDistDone: 'وُزِّعت {t} ساعة: {list}',
     curFilePrefix: 'بادئة الملف المُصدَّر',
     curFileLevel: 'المستوى في اسم الملف',
     curFilePreview: 'اسم الملف:',
@@ -894,7 +912,13 @@ function _renderLOs(module) {
   const los = _liveLOs(module);
   return `
     <section class="cur-card">
-      <h3 class="cur-sec-title">${_esc(_tx('sec2'))}</h3>
+      <div class="cur-sec-head"><h3 class="cur-sec-title">${_esc(_tx('sec2'))}</h3>
+        ${los.length ? `<div class="cur-sec-tools">
+          <button type="button" class="cur-mini-btn" data-cur-action="distribute-hours"
+            title="${_esc(_tx('curDistTip'))}">⚖️ ${_esc(_tx('curDistBtn'))}</button>
+          <button type="button" class="tab-help-btn" data-cur-action="dist-help" aria-haspopup="dialog"
+            title="${_esc(_tx('curDistHelpTip'))}" aria-label="${_esc(_tx('curDistHelpTip'))}">?</button>
+        </div>` : ''}</div>
       <div id="curLOHoursWarn">${_loHoursWarn(module)}</div>
       ${los.length ? los.map((o, i) => _renderLOCard(module, o, i + 1)).join('') : `<div class="cur-hint">${_esc(_tx('curNoLOs'))}</div>`}
     </section>`;
@@ -1295,6 +1319,111 @@ const _GUIDE = {
   }
 };
 
+// ── Distribute institutional hours over the learning outcomes (3.35.0)
+// Weight = number of live performance criteria linked to each outcome
+// (at least 1). Whole hours, largest remainder; a tie goes to the
+// earlier outcome, so 90 h over 1 / 1 / 2 criteria → 23 / 22 / 45. A
+// starting point only: the expert adjusts any value afterwards.
+export function distributeHours(total, weights) {
+  const T = Math.round(Number(total) || 0);
+  const w = weights.map(x => Math.max(1, Number(x) || 0));
+  const sum = w.reduce((a, b) => a + b, 0);
+  if (!(T > 0) || !sum) return w.map(() => 0);
+  const raw = w.map(x => T * x / sum);
+  const out = raw.map(r => Math.floor(r + 1e-9));
+  let rem = T - out.reduce((a, b) => a + b, 0);
+  const order = w.map((_, i) => i).sort((a, b) =>
+    (Math.round((raw[b] - out[b]) * 1e6) - Math.round((raw[a] - out[a]) * 1e6)) || (a - b));
+  for (let i = 0; rem > 0; i++, rem--) out[order[i % order.length]]++;
+  return out;
+}
+function _loWeight(o) {
+  return Math.max(1, _arr(o && o.linkedCriteria).filter(pc => pc && !pc.stale).length);
+}
+function _distributeLOHours() {
+  const module = _selectedModule();
+  if (!module) return;
+  const los = _liveLOs(module);
+  if (!los.length) { showStatus(_tx('curNoLOs'), 'error'); return; }
+  const hrs = _moduleHours(module);
+  if (!hrs) { showStatus(_tx('curDistNeedCredits'), 'error'); return; }
+  const hasAny = los.some(o => { const r = _loRec(module.id, o.id); return r && r.hours !== '' && r.hours != null; });
+  if (hasAny && !confirm(_tx('curDistConfirm'))) return;
+  const parts = distributeHours(hrs.institutional, los.map(_loWeight));
+  los.forEach((o, i) => { _loRec(module.id, o.id, true).hours = parts[i]; });
+  renderModuleCurriculum();
+  _schedulePersist();
+  showStatus('✓ ' + _txf('curDistDone', { t: hrs.institutional, list: parts.join(' + ') }), 'success');
+}
+
+const _DIST_GUIDE = {
+  en: {
+    title: 'Learning outcome hours — how to decide',
+    intro: 'The hours of the learning outcomes share out the module’s institutional time (theory + practical + formative assessment). Industry practice and summative assessment belong to the whole module and are not split over the outcomes. The field is optional; when it is filled, the outcome hours should add up exactly to the institutional time.',
+    sections: [
+      { h: '⚖️ “Distribute automatically”', items: [
+        'Shares the institutional time in proportion to the number of performance criteria linked to each outcome (an outcome with none counts as 1).',
+        'Whole hours only, and they always add up exactly to the total. Example: 90 h over outcomes with 1, 1 and 2 criteria → 23 + 22 + 45.',
+        'It is a documented starting point, not a decision: adjust any value afterwards.' ] },
+      { h: '🧭 What to consider when you adjust', items: [
+        '<strong>Size of the outcome</strong> — more performance criteria and assessment statements usually need more time.',
+        '<strong>Complexity</strong> — an outcome that involves diagnosis, decisions or several steps needs more time than a routine procedure.',
+        '<strong>Practical intensity</strong> — outcomes that need repeated hands-on practice on tools or equipment need more time than mostly theoretical ones.',
+        '<strong>Learners’ starting point</strong> — new content takes longer than content that builds on an earlier module.',
+        '<strong>Resources</strong> — when learners must take turns on limited equipment, allow extra time.' ] },
+      { h: '✅ Check', items: [
+        'The warning above the outcome cards disappears when the outcome hours add up to the institutional time.',
+        'Have the review panel confirm the final distribution.' ] }
+    ]
+  },
+  fr: {
+    title: 'Heures des résultats d’apprentissage — comment décider',
+    intro: 'Les heures des résultats répartissent le temps en établissement du module (théorie + pratique + évaluation formative). La pratique en entreprise et l’évaluation sommative concernent tout le module et ne sont pas réparties. Le champ est facultatif ; s’il est rempli, la somme doit égaler exactement le temps en établissement.',
+    sections: [
+      { h: '⚖️ « Répartir automatiquement »', items: [
+        'Répartit le temps en établissement au prorata du nombre de critères de performance liés à chaque résultat (un résultat sans critère compte pour 1).',
+        'Heures entières uniquement, dont la somme égale toujours le total. Exemple : 90 h pour des résultats à 1, 1 et 2 critères → 23 + 22 + 45.',
+        'C’est un point de départ documenté, pas une décision : ajustez ensuite.' ] },
+      { h: '🧭 À prendre en compte pour ajuster', items: [
+        '<strong>Taille du résultat</strong> — plus de critères et d’énoncés d’évaluation demandent généralement plus de temps.',
+        '<strong>Complexité</strong> — diagnostic, prise de décision ou étapes multiples demandent plus de temps qu’une procédure routinière.',
+        '<strong>Intensité pratique</strong> — la pratique répétée sur outils ou équipements demande plus de temps que la théorie.',
+        '<strong>Acquis des apprenants</strong> — un contenu nouveau prend plus de temps qu’un contenu qui prolonge un module précédent.',
+        '<strong>Ressources</strong> — si les apprenants se relaient sur un équipement limité, prévoyez du temps en plus.' ] },
+      { h: '✅ Vérifier', items: [
+        'L’avertissement au-dessus des cartes disparaît quand la somme égale le temps en établissement.',
+        'Faites valider la répartition finale par le comité de validation.' ] }
+    ]
+  },
+  ar: {
+    title: 'ساعات محصلات التعلم — كيف تُحدَّد',
+    intro: 'ساعات المحصلات توزّع الوقت المؤسسي للوحدة (نظري + عملي + تقييم تكويني). أما التطبيق في موقع العمل والتقييم الختامي فيخصّان الوحدة كلها ولا يُوزَّعان على المحصلات. الحقل اختياري، وعند تعبئته يجب أن يساوي مجموع ساعات المحصلات الوقت المؤسسي بالضبط.',
+    sections: [
+      { h: '⚖️ «توزيع تلقائي»', items: [
+        'يقسم الوقت المؤسسي بنسبة عدد معايير الأداء المرتبطة بكل محصلة (المحصلة التي لا معايير لها تُحسب 1).',
+        'بساعات صحيحة فقط، ومجموعها يساوي الإجمالي دائماً. مثال: 90 ساعة على محصلات فيها 1 و1 و2 من المعايير ← 23 + 22 + 45.',
+        'هو نقطة بداية موثقة وليس قراراً نهائياً؛ عدّل أي قيمة بعده.' ] },
+      { h: '🧭 ما تراعيه عند التعديل', items: [
+        '<strong>حجم المحصلة</strong> — كثرة معايير الأداء وعبارات التقييم تحتاج عادةً وقتاً أطول.',
+        '<strong>التعقيد</strong> — المحصلة التي فيها تشخيص أو اتخاذ قرار أو خطوات متعددة تحتاج وقتاً أكثر من إجراء روتيني.',
+        '<strong>الكثافة العملية</strong> — المحصلة التي تتطلب تمريناً متكرراً على العدد والأجهزة تحتاج وقتاً أكثر من المحصلة النظرية غالباً.',
+        '<strong>خلفية المتدربين</strong> — المحتوى الجديد يأخذ وقتاً أطول من محتوى يبني على وحدة سابقة.',
+        '<strong>الموارد</strong> — إذا تناوب المتدربون على أجهزة محدودة فأضف وقتاً لذلك.' ] },
+      { h: '✅ التحقق', items: [
+        'يختفي التنبيه أعلى بطاقات المحصلات عندما يساوي مجموع ساعاتها الوقت المؤسسي.',
+        'اعرض التوزيع النهائي على لجنة المراجعة للمصادقة.' ] }
+    ]
+  }
+};
+function _showDistGuide() {
+  const G = _DIST_GUIDE[_lang()] || _DIST_GUIDE.en;
+  const body = `
+    <p class="cur-modal-intro">${_esc(G.intro)}</p>
+    ${G.sections.map(s => `<div class="cur-guide-sec"><p class="cur-guide-h">${s.h}</p>
+      <ul>${s.items.map(it => `<li>${it}</li>`).join('')}</ul></div>`).join('')}`;
+  _modal('curDistGuideModal', G.title, '⏱️', body, [{ label: _tx('curClose'), cls: 'cur-btn-primary', close: true }], { wide: true });
+}
+
 function _showGuide() {
   const G = _GUIDE[_lang()] || _GUIDE.en;
   const body = `
@@ -1652,6 +1781,10 @@ function _wire() {
       const r = _loRec(module.id, lo, true);
       const n = _addToList(r, 'assessMethods', [b.getAttribute('data-val')]);
       if (n) { renderModuleCurriculum(); _schedulePersist(); } else showStatus(_tx('curNothingNew'), 'info');
+    } else if (a === 'distribute-hours') {
+      _distributeLOHours();
+    } else if (a === 'dist-help') {
+      _showDistGuide();
     } else if (a === 'suggest-ta') {
       _openTAPicker();
     } else if (a === 'li-add' || a === 'li-del') {
