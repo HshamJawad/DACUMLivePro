@@ -292,7 +292,7 @@ export async function exportCurriculumDocx(m) {
             bidirectional: rtl,
             tabStops: [{ type: TabStopType.RIGHT, position: TABLE_W }],
             children: [
-                run(`${m.filePrefix || 'CUR'}: ${m.code} ${m.shortName}${m.level ? ` L${m.level}` : ''}`, { bold: true, size: 18 }),
+                run(`${m.filePrefix || 'CUR'}: ${m.docLabel || m.code}`, { bold: true, size: 18 }),
                 new TextRun({ children: ['\t', PageNumber.CURRENT], size: 18, bold: true }),
             ],
         })] });

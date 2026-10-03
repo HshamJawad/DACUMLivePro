@@ -117,6 +117,7 @@ export function defaultModuleCurriculumData() {
     settings: {
       programmeName: '',
       filePrefix: '',
+      levelStyle: 'short',
       hoursPerCredit: 25,
       groupSize: 15,
       split: { ...CUR_DEFAULT_SPLIT }
@@ -145,6 +146,7 @@ export function normalizeModuleCurriculumData(d) {
       ...s,
       programmeName: typeof s.programmeName === 'string' ? s.programmeName : '',
       filePrefix: typeof s.filePrefix === 'string' ? s.filePrefix : '',
+      levelStyle: s.levelStyle === 'long' ? 'long' : 'short',
       hoursPerCredit: num(s.hoursPerCredit, def.settings.hoursPerCredit),
       groupSize: num(s.groupSize, def.settings.groupSize),
       split

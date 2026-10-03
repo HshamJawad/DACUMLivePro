@@ -413,3 +413,21 @@ html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
   .cur-exp-row { flex-wrap: wrap; }
   .cur-exp-dl { width: 100%; }
 }
+
+/* ── Exported file name (3.34.2) ─────────────────────────── */
+#module-curriculum-tab .cur-filename {
+  margin: 0 0 14px; padding: 12px 14px 10px; border-radius: 10px;
+  background: #f0fdfa; border: 1px solid #99f6e4;
+}
+#module-curriculum-tab .cur-filename .cur-field { margin-bottom: 10px; }
+#module-curriculum-tab .cur-filename select {
+  width: 100%; max-width: 100%; box-sizing: border-box; margin: 0; padding: 8px 10px;
+  border: 1.5px solid #cbd5e1; border-radius: 8px; font: inherit; font-size: .95em; background: #fff;
+}
+#module-curriculum-tab .cur-file-preview { font-size: .88em; color: #0f766e; font-weight: 600; overflow-wrap: anywhere; }
+#module-curriculum-tab .cur-file-preview bdi {
+  display: inline-block; max-width: 100%; box-sizing: border-box; white-space: normal;
+  overflow-wrap: anywhere; word-break: break-word; text-align: left;
+  margin-top: 2px; padding: 2px 8px; border-radius: 6px;
+  background: #fff; border: 1px solid #99f6e4; color: #134e4a; font-family: Consolas, Menlo, monospace; font-weight: 600;
+}

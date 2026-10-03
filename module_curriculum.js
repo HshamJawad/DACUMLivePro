@@ -71,7 +71,10 @@ const _S = {
     curCodeAuto: 'suggested',
     curCodeSuggest: 'Suggest',
     curCodeHint: 'Same code as on the module card in Module Mapping: track + level + position within the level. Edit freely.',
-    curFilePrefix: 'File name prefix',
+    curFilePrefix: 'Prefix for exported file',
+    curFileLevel: 'Level in file name',
+    curFilePreview: 'File name:',
+    curFileHint: 'Same prefix for every module (e.g. CUR or CBC). These characters are left out of file names: \\ / : * ? " < > |',
     curShortName: 'Short name (file name)',
     curPurposeL: 'Purpose statement',
     curPurposePh: 'Why this module exists — what the learner will be able to do at the end, in one or two sentences.',
@@ -176,7 +179,10 @@ const _S = {
     curCodeAuto: 'proposé',
     curCodeSuggest: 'Proposer',
     curCodeHint: 'Le même code que sur la carte du module (Cartographie des modules) : filière + niveau + position dans le niveau. Modifiable.',
-    curFilePrefix: 'Préfixe du nom de fichier',
+    curFilePrefix: 'Préfixe du fichier exporté',
+    curFileLevel: 'Niveau dans le nom du fichier',
+    curFilePreview: 'Nom du fichier :',
+    curFileHint: 'Même préfixe pour tous les modules (p. ex. CUR ou CBC). Ces caractères sont retirés des noms de fichiers : \\ / : * ? " < > |',
     curShortName: 'Nom court (nom du fichier)',
     curPurposeL: 'Énoncé de l’objectif',
     curPurposePh: 'Pourquoi ce module existe — ce que l’apprenant saura faire à la fin, en une ou deux phrases.',
@@ -280,7 +286,10 @@ const _S = {
     curCodeAuto: 'مقترح',
     curCodeSuggest: 'اقتراح',
     curCodeHint: 'هو الرمز نفسه في بطاقة الوحدة في مواءمة الوحدات: المسار + المستوى + ترتيب الوحدة داخل المستوى. يمكنك تعديله.',
-    curFilePrefix: 'بادئة اسم الملف',
+    curFilePrefix: 'بادئة الملف المُصدَّر',
+    curFileLevel: 'المستوى في اسم الملف',
+    curFilePreview: 'اسم الملف:',
+    curFileHint: 'البادئة نفسها لكل الوحدات (مثل CUR أو CBC). هذه الرموز تُحذف من أسماء الملفات: \\ / : * ? " < > |',
     curShortName: 'اسم مختصر (لاسم الملف)',
     curPurposeL: 'بيان الغرض',
     curPurposePh: 'لماذا وُجدت هذه الوحدة — ما الذي سيستطيع المتدرب فعله في نهايتها، في جملة أو جملتين.',
@@ -750,8 +759,7 @@ function _renderSettings() {
             <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="hoursPerCredit" value="${_esc(s.hoursPerCredit)}"></label>
           <label class="cur-field"><span>${_esc(_tx('curGroup'))}</span>
             <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="groupSize" value="${_esc(s.groupSize)}"></label>
-          <label class="cur-field"><span>${_esc(_tx('curFilePrefix'))}</span>
-            <input type="text" dir="ltr" class="cur-num" data-cs="set" data-ck="filePrefix" value="${_esc(s.filePrefix || '')}" placeholder="CUR" maxlength="12"></label>
+
         </div>
         <div class="cur-subhead">${_esc(_tx('curSplitDefault'))}</div>
         ${_splitInputs('set', s.split)}
@@ -811,6 +819,19 @@ function _renderHeader(module, idx) {
           <small class="cur-hint">${_esc(_tx('curCodeHint'))}</small></label>
         <label class="cur-field"><span>${_esc(_tx('curShortName'))}</span>
           <input type="text" data-cs="mod" data-ck="shortName" value="${_esc(module.shortName || '')}" placeholder="${_esc(suggestModuleShortName(module))}" maxlength="30"></label>
+      </div>
+      <div class="cur-filename">
+        <div class="cur-grid-2">
+          <label class="cur-field"><span>${_esc(_tx('curFilePrefix'))}</span>
+            <input type="text" dir="ltr" data-cs="set" data-ck="filePrefix" value="${_esc(_settings().filePrefix || '')}" placeholder="CUR" maxlength="16"></label>
+          <label class="cur-field"><span>${_esc(_tx('curFileLevel'))}</span>
+            <select data-cs="set" data-ck="levelStyle">
+              <option value="short" ${_settings().levelStyle !== 'long' ? 'selected' : ''}>L1</option>
+              <option value="long" ${_settings().levelStyle === 'long' ? 'selected' : ''}>${_esc(curLabel('curLevelN', { n: 1 }))}</option>
+            </select></label>
+        </div>
+        <div class="cur-file-preview"><span>${_esc(_tx('curFilePreview'))}</span> <bdi id="curFilePreview" dir="ltr">${_esc(curFileName(module))}</bdi></div>
+        <small class="cur-hint">${_esc(_tx('curFileHint'))}</small>
       </div>
       <label class="cur-field"><span>${_esc(_tx('curPurposeL'))}</span>
         <textarea class="cur-auto" rows="2" data-cs="mod" data-ck="purpose" placeholder="${_esc(_tx('curPurposePh'))}">${_esc(rec.purpose || '')}</textarea></label>
@@ -989,6 +1010,8 @@ function _refreshDerived() {
     const split = sc === 'set' ? _settings().split : (_modRec(module.id) || {}).splitOverride;
     if (split) el.innerHTML = _splitSumNote(split);
   });
+  const fp = root.querySelector('#curFilePreview');
+  if (fp) fp.textContent = curFileName(module);
   const fh = root.querySelector('[data-cur-fachead]');
   if (fh) fh.textContent = curLabel('curFacilities', { n: _settings().groupSize });
 }
@@ -1295,7 +1318,7 @@ export function isModuleCurriculumEmpty() {
   if (!d) return true;
   const s = d.settings || {};
   const def = defaultModuleCurriculumData().settings;
-  const settingsDefault = !(s.programmeName || '').trim() && !(s.filePrefix || '').trim() && Number(s.hoursPerCredit) === def.hoursPerCredit &&
+  const settingsDefault = !(s.programmeName || '').trim() && !(s.filePrefix || '').trim() && s.levelStyle !== 'long' && Number(s.hoursPerCredit) === def.hoursPerCredit &&
     Number(s.groupSize) === def.groupSize && SPLIT_KEYS.every(k => Number((s.split || {})[k]) === def.split[k]);
   return settingsDefault && !Object.keys(d.byModule || {}).length;
 }
@@ -1305,6 +1328,24 @@ export function clearModuleCurriculum() {
   _openLOs.clear(); _loSeeded = null;
   renderModuleCurriculum();
   _persistNow();
+}
+
+// ── Exported file name ───────────────────────────────────────
+// "<prefix>_<code> <short name> <L1 | Level 1> <En|Fr|Ar>.docx", e.g.
+// "CUR_CMCN 1-1 Hardware L1 En.docx". The prefix is one project-level
+// setting typed by the user; code and short name come from the module
+// card (Module Mapping). Only characters a file system rejects are
+// removed; spaces are kept.
+const _fsSafe = v => String(v || '').replace(/[\\/:*?"<>|\u0000-\u001F]/g, '').replace(/\s+/g, ' ').trim();
+function _filePrefix() { return _fsSafe(_settings().filePrefix) || 'CUR'; }
+function _fileStem(module) {
+  const lvl = _moduleLevel(module);
+  const lvlPart = !lvl ? '' : (_settings().levelStyle === 'long' ? curLabel('curLevelN', { n: lvl }) : `L${lvl}`);
+  return [_fsSafe(_moduleCode(module)), _fsSafe(_moduleShortName(module)), _fsSafe(lvlPart)].filter(Boolean).join(' ');
+}
+export function curFileName(module) {
+  const lang = { en: 'En', fr: 'Fr', ar: 'Ar' }[_lang()] || 'En';
+  return `${_filePrefix()}_${_fileStem(module)} ${lang}.docx`;
 }
 
 // ── Export: model for the Word builder ───────────────────────
@@ -1335,9 +1376,8 @@ export function getCurriculumModel(moduleId, opts = {}) {
   });
   const code = _moduleCode(module);
   const lang = { en: 'En', fr: 'Fr', ar: 'Ar' }[_lang()] || 'En';
-  const safe = v => String(v || '').replace(/[\\/:*?"<>|\u0000-\u001F]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-  const prefix = safe((s.filePrefix || '').trim()) || 'CUR';
-  const fileName = `${prefix}_${safe(code)}_${safe(_moduleShortName(module))}${lvl ? `_L${lvl}` : ''}_${lang}.docx`;
+  const prefix = _filePrefix();
+  const fileName = curFileName(module);
   return {
     blank, rtl: _isRTL(), lang,
     code, title: _str(module.title).trim(), shortName: _moduleShortName(module),
@@ -1358,7 +1398,7 @@ export function getCurriculumModel(moduleId, opts = {}) {
     facilities: blank ? [] : _arr(rec.facilities)
       .map(f => ({ item: _str(f && f.item).trim(), qty: _str(f && f.qty).trim() })).filter(f => f.item || f.qty),
     groupSize: s.groupSize,
-    fileName, filePrefix: prefix,
+    fileName, filePrefix: prefix, docLabel: _fileStem(module),
     L: curLabel,
   };
 }

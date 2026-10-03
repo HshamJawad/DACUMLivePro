@@ -108,18 +108,28 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v137';
+      var EXPECTED_SW='v138';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.34.1';
+      var APP_VERSION = '3.34.2';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.34.2 — 2026-10-03 — exported file name ───────────
+         PATCH. module_curriculum.js / exports_cur_docx.js / state.js /
+         dacum-curriculum.css: in Module Curriculum, under the code and
+         short name, "Prefix for exported file" (typed by the user, e.g.
+         CUR or CBC; default CUR), "Level in file name" (L1 / Level 1)
+         and a live preview. File name keeps spaces:
+         "CUR_CMCN 1-1 Hardware L1 En.docx"; the footer reads
+         "CUR: CMCN 1-1 Hardware L1". Code and short name still come from
+         the module card. The prefix moved here from Programme settings.
 
          ── 3.34.1 — 2026-10-03 — module card fields on one line ─
          PATCH. modules.js: Level, Track / code prefix, Code and Short
