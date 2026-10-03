@@ -9,7 +9,7 @@ This file is documentation only — it is not loaded or cached by the app.
 ```text
 ── 3.43.0 — 2026-10-03 — User Guide updated (EN / FR / AR) ────────────
 MINOR. DACUM_Live_Pro_User_Guide.html, index.html, translations.js,
-sw.js (v153). No change to application behaviour.
+dacum-rtl.css, sw.js (v153). No change to application behaviour.
 Changed User Guide brought up to 3.43 (last revised for 3.23, August):
         • New sections: Quick Start (the eleven Help-tab steps, each
           linked to its section), The complete path (stage → output →
@@ -37,6 +37,16 @@ Changed User Guide brought up to 3.43 (last revised for 3.23, August):
         • Same single file and DICT format (613 keys, every key in all
           three languages), same ?lang= links and QR code. Tables wrap
           inside their cells on phones (360 px: no horizontal scroll).
+Fixed   Help tab in Arabic: the header and the card titles (Quick Start,
+        User Guide, About the Creator) sat at the far left, away from
+        their icon — dacum-rtl.css used space-between for .hc-header /
+        .hc-card-head. Now icon then title from the right edge, as in
+        LTR from the left (phones unchanged: header stacks).
+Fixed   Help tab e-mail showed "[email protected]" and linked to
+        /cdn-cgi/l/email-protection, a Cloudflare path left over from a
+        page saved from a Cloudflare host; it does not exist on GitHub
+        Pages (dead link + a 404 script on every load). Now a plain
+        mailto: link showing the address; the decoder script is removed.
 Changed Help tab: Quick Start has 11 steps covering Task Analysis,
         Occupational Standard and Module Curriculum (EN/FR/AR); the User
         Guide card no longer promises screenshots.

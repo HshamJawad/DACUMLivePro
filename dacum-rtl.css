@@ -876,10 +876,17 @@ html[dir="rtl"] .cluster-header,
 html[dir="rtl"] .lo-block-header,
 html[dir="rtl"] .module-header,
 html[dir="rtl"] .duty-accordion-header,
-html[dir="rtl"] .tab-header-row,
+html[dir="rtl"] .tab-header-row {
+  justify-content: space-between;
+  text-align: right;
+}
+
+/* Help tab: icon + title read as one group from the right edge (the icon
+   first, the title beside it), as in LTR from the left. space-between
+   pushed the title to the far left in Arabic. */
 html[dir="rtl"] .hc-header,
 html[dir="rtl"] .hc-card-head {
-  justify-content: space-between;
+  justify-content: flex-start;
   text-align: right;
 }
 
