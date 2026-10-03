@@ -2744,13 +2744,18 @@ function _injectModuleCardStyles() {
     #modulesContainer .mod-meta-field { flex-wrap: nowrap; }
     #modulesContainer .mod-meta-field > span { white-space: nowrap; flex-shrink: 0; }
     #modulesContainer .mod-meta-field .mod-track-input {
-      width: 150px !important; max-width: 100%; min-width: 0; flex: 0 1 150px;
+      width: 110px !important; max-width: 100%; min-width: 0; flex: 0 1 110px;
       display: inline-block !important; margin: 0 !important;
     }
     #modulesContainer .mod-meta-field .mod-code-input, #modulesContainer .mod-meta-field .mod-short-input {
-      width: 150px !important; max-width: 100%; min-width: 0; flex: 0 1 150px;
+      width: 110px !important; max-width: 100%; min-width: 0; flex: 0 1 110px;
       display: inline-block !important; margin: 0 !important; border-color: #ddd6fe;
     }
+    /* 3.34.1: level, track, code and short name on ONE line on desktop. */
+    #modulesContainer .mod-meta-row { gap: 8px 14px; }
+    #modulesContainer .mod-meta-field { gap: 6px; }
+    #modulesContainer .mod-meta-field input, #modulesContainer .mod-meta-field select { padding: 6px 8px; }
+    #modulesContainer .mod-level-select { width: auto !important; max-width: 120px; }
     #modulesContainer .mod-code-input { font-weight: 700; color: #4338ca; }
     #modulesContainer .mod-auto-chip { font-style: normal; font-size: .78em; font-weight: 700; padding: 1px 7px;
       border-radius: 999px; background: #e0e7ff; color: #3730a3; margin-inline-start: 4px; }
