@@ -7,6 +7,34 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.42.1 — 2026-10-03 — Additional Information AI card ──────────────
+PATCH. additional_info_ai.js, translations.js, sw.js (v152).
+Fixed   Conflicting language rules: the prompt said "use the language of
+        the Occupation Title" while an Arabic/French interface appended
+        "write in Arabic/French" — an English title under an AR/FR
+        interface could return mixed-language lists (also the Full Draft
+        language lock). The title rule now applies only when the
+        interface adds no language directive (English), as in the other
+        AI cards.
+Fixed   The overwrite question listed the sections in English in every
+        language; it now uses the headings as shown in the tab
+        (translated default, or the name the user gave it).
+Fixed   The success message mixed in English ("derived from your duties
+        & tasks", the trimmed-lists note); now translated EN/FR/AR.
+Changed Generated items are written as "• " bullet lines, the format of
+        the tab's Bullets button (bullets/numbers the model adds are
+        still stripped first, so never doubled). Readers (exports,
+        Occupational Standard, Supplementary Verification, Task
+        Analysis picker) already strip bullets.
+Changed Skills Requirements no longer repeat the Skills Level Matrix:
+        when the matrix lists employability competencies (the project's
+        rows, or the default rows of a fresh project), they are sent as
+        "already covered" and the Skills section asks for
+        occupation-specific technical skills only; an item identical to
+        a matrix competency is dropped in code. With no matrix
+        competencies the previous "technical + employability" wording is
+        kept.
+
 ── 3.42.0 — 2026-10-03 — Assessment Plan removed from the exports ────
 MINOR. exports_docx.js, exports_pdf.js, sw.js (v151).
 Removed The "Assessment Plan" appendix (added in 3.24.0) is no longer

@@ -20,13 +20,19 @@
 // output. The chart is truncated (see _summariseChart) to keep the
 // request within a sane size on large charts.
 //
+// Since 3.42.1 the Skills section is kept to occupation-specific
+// technical skills whenever the Skills Level Matrix lists employability
+// competencies: the matrix is exported next to these sections, so the
+// same "Work within a team" line would otherwise appear twice.
+//
 // Output is written straight into the seven fixed textareas of the
-// Additional Information tab. Custom sections added by the user are
+// Additional Information tab, as "• " bullet lines — the format the
+// tab's own Bullets button produces and every reader already accepts. Custom sections added by the user are
 // deliberately NOT touched — their headings are user-defined and the
 // model has no reliable way to know what belongs in them.
 // ============================================================
 
-import { appState }   from './state.js';
+import { appState, skillsLevelIsEmpty, defaultSkillsLevelData } from './state.js';
 import { showStatus } from './renderer.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
@@ -48,6 +54,9 @@ const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 
 // Maps the JSON keys the model returns → the textarea that receives
 // them. Order here is also the order used in the overwrite warning.
+// `headingId` / `labelKey` give the section's name as the user sees it
+// (renamed heading, else the translated default). `label` is the
+// English name used inside the prompt only.
 //
 // `max` is a HARD cap enforced in code, not just in the prompt.
 // Language models routinely overshoot soft counts, and this output is
@@ -57,14 +66,27 @@ const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 // guarantees the ceiling. `min` is prompt-side only (you cannot
 // invent missing items in code).
 const _FIELD_MAP = [
-  { key: 'knowledge',  inputId: 'knowledgeInput',  label: 'Knowledge Requirements',                 min: 10, max: 15 },
-  { key: 'skills',     inputId: 'skillsInput',     label: 'Skills Requirements',                    min: 10, max: 15 },
-  { key: 'behaviors',  inputId: 'behaviorsInput',  label: 'Worker Behaviors/Traits',                min:  8, max: 12 },
-  { key: 'tools',      inputId: 'toolsInput',      label: 'Tools, Equipment, Supplies and Materials', min: 12, max: 18 },
-  { key: 'trends',     inputId: 'trendsInput',     label: 'Future Trends and Concerns',             min:  6, max: 10 },
-  { key: 'acronyms',   inputId: 'acronymsInput',   label: 'Acronyms',                               min:  6, max: 12 },
-  { key: 'careerPath', inputId: 'careerPathInput', label: 'Career Path',                            min:  4, max:  6 },
+  { key: 'knowledge',  inputId: 'knowledgeInput', headingId: 'knowledgeHeading', labelKey: 'sectionKnowledge',  label: 'Knowledge Requirements',                 min: 10, max: 15 },
+  { key: 'skills',     inputId: 'skillsInput', headingId: 'skillsHeading', labelKey: 'sectionSkills',     label: 'Skills Requirements',                    min: 10, max: 15 },
+  { key: 'behaviors',  inputId: 'behaviorsInput', headingId: 'behaviorsHeading', labelKey: 'sectionBehaviors',  label: 'Worker Behaviors/Traits',                min:  8, max: 12 },
+  { key: 'tools',      inputId: 'toolsInput', headingId: 'toolsHeading', labelKey: 'sectionTools',      label: 'Tools, Equipment, Supplies and Materials', min: 12, max: 18 },
+  { key: 'trends',     inputId: 'trendsInput', headingId: 'trendsHeading', labelKey: 'sectionTrends',     label: 'Future Trends and Concerns',             min:  6, max: 10 },
+  { key: 'acronyms',   inputId: 'acronymsInput', headingId: 'acronymsHeading', labelKey: 'sectionAcronyms',   label: 'Acronyms',                               min:  6, max: 12 },
+  { key: 'careerPath', inputId: 'careerPathInput', headingId: 'careerPathHeading', labelKey: 'sectionCareerPath', label: 'Career Path',                            min:  4, max:  6 },
 ];
+
+/* The section name shown to the user: the heading as it stands in the
+   tab (it may have been renamed), else the translated default. */
+function _sectionLabel(f) {
+  const h = document.getElementById(f.headingId);
+  const txt = h ? String(h.textContent || '').trim() : '';
+  if (txt) return txt;
+  const tr = _t(f.labelKey);
+  return tr && tr !== f.labelKey ? tr : f.label;
+}
+
+/* The bullet the tab's "Bullets" button uses (renderer.js formatList). */
+const _BULLET = '\u2022 ';
 
 /** Look up the configured range for a field key. */
 function _range(key) {
@@ -113,6 +135,25 @@ function _summariseChart() {
   return lines.join('\n');
 }
 
+/**
+ * Employability competencies listed in the Skills Level Matrix — the
+ * matrix as it stands, or the default rows a fresh project will show.
+ * Capped so a very large matrix cannot swell the request.
+ */
+function _matrixCompetencies() {
+  let data;
+  try {
+    data = skillsLevelIsEmpty() ? defaultSkillsLevelData() : appState.skillsLevelData;
+  } catch (e) { data = []; }
+  const out = [];
+  const seen = new Set();
+  (data || []).forEach(cat => (cat.competencies || []).forEach(c => {
+    const t = String(c && c.text || '').trim();
+    if (t && !seen.has(t.toLowerCase())) { seen.add(t.toLowerCase()); out.push(t); }
+  }));
+  return out.slice(0, 60);
+}
+
 /** True when at least one of the seven fields already has text. */
 function _collectFilledFields() {
   return _FIELD_MAP.filter(f => {
@@ -123,8 +164,9 @@ function _collectFilledFields() {
 
 // ── Prompt builder ────────────────────────────────────────────
 
-function _buildPrompt(inputs, chartSummary) {
+function _buildPrompt(inputs, chartSummary, matrixComps, hasLangDirective) {
   const { occupationTitle, jobTitle, scopeOfWork, sector, context } = inputs;
+  const matrix = (matrixComps || []).length > 0;
 
   return `You are an occupational analysis engine specialized in DACUM methodology.
 Your task is to generate the SUPPORTING INFORMATION sections of a DACUM chart.
@@ -139,6 +181,9 @@ Country / Context: ${context}` : ''}
 ${chartSummary ? `
 EXISTING DACUM CHART (PRIMARY EVIDENCE BASE):
 ${chartSummary}
+` : ''}${matrix ? `
+EMPLOYABILITY COMPETENCIES ALREADY COVERED (Skills Level Matrix — do NOT repeat):
+${matrixComps.map(c => `- ${c}`).join('\n')}
 ` : ''}
 SCOPE INTERPRETATION RULE (VERY IMPORTANT):
 - If Scope of Work is provided → it DEFINES and LIMITS the analysis.
@@ -159,7 +204,11 @@ Generate the following seven sections.
    - COUNT: minimum ${_range('knowledge').min}, maximum ${_range('knowledge').max} items
 
 2. skills — Skills Requirements
-   - TRANSFERABLE ABILITIES the work demands (technical + employability)
+${matrix ? `   - OCCUPATION-SPECIFIC TECHNICAL SKILLS the work demands
+   - Employability skills (communication, teamwork, problem solving,
+     safety awareness, learning, initiative, technology use…) are covered
+     by the Skills Level Matrix listed above — do NOT include them here,
+     neither verbatim nor reworded.` : `   - TRANSFERABLE ABILITIES the work demands (technical + employability)`}
    - Short ability statements, e.g. "Interpret technical drawings"
    - Distinct from tasks: a skill is an underlying capability, a task is a
      discrete unit of work. Do NOT simply restate the chart's tasks here.
@@ -213,8 +262,7 @@ GENERAL RULES:
 - No duplicates within a section.
 - Stay INSIDE the defined scope; prefer specificity over completeness.
 - Be data-informed and realistic for the given sector and country context.
-- Use the same language as the Occupation Title input.
-
+${hasLangDirective ? '' : '- Use the same language as the Occupation Title input.\n'}
 OUTPUT FORMAT (STRICT – NO EXTRA TEXT):
 Return ONLY valid JSON using the following structure:
 
@@ -261,7 +309,7 @@ export async function generateAdditionalInfoAI() {
      dialogs during a run the user has already authorised — and each
      one silently stalls the pipeline until someone notices. */
   if (!isBatchRun() && filled.length) {
-    const names = filled.map(f => `  • ${f.label}`).join('\n');
+    const names = filled.map(f => `  • ${_sectionLabel(f)}`).join('\n');
     if (!confirm('\u26A0\uFE0F ' + _tf('confirmReplaceSections', { list: names }))) {
       showStatus(_t('msgCancelAddInfo'), 'error');
       return false;
@@ -273,13 +321,19 @@ export async function generateAdditionalInfoAI() {
   showLoadingModal();
   await new Promise(resolve => setTimeout(resolve, 100));
 
-  const prompt = _buildPrompt(inputs, chartSummary);
+  /* One output-language rule per request: when the interface asks for a
+     language (AR/FR), the "same language as the Occupation Title" rule
+     is left out so the two can never contradict each other. */
+  const langDir      = _aiDir();
+  const matrixComps  = _matrixCompetencies();
+  const prompt = _buildPrompt(inputs, chartSummary, matrixComps, !!langDir);
+  const matrixKeys = new Set(matrixComps.map(c => c.toLowerCase()));
 
   try {
     const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt + _aiDir() })
+      body: JSON.stringify({ prompt: prompt + langDir })
     });
 
     await throwIfAIError(response);
@@ -323,6 +377,12 @@ export async function generateAdditionalInfoAI() {
         return true;
       });
 
+      // Backstop for the matrix rule: a skill identical to a matrix
+      // competency is dropped (reworded overlap is left to the prompt).
+      if (key === 'skills' && matrixKeys.size) {
+        lines = lines.filter(v => !matrixKeys.has(v.toLowerCase()));
+      }
+
       // HARD CAP — the prompt states the maximum, this enforces it.
       // Items are kept in the model's own order, which puts the most
       // characteristic entries first.
@@ -336,7 +396,7 @@ export async function generateAdditionalInfoAI() {
       const el = document.getElementById(inputId);
       if (!el) return;
 
-      el.value = lines.join('\n');
+      el.value = lines.map(v => _BULLET + v).join('\n');
       filledCount++;
       itemCount += lines.length;
     });
@@ -348,12 +408,8 @@ export async function generateAdditionalInfoAI() {
     hideLoadingModal();
     incrementUsage();
 
-    const basis = chartSummary
-      ? 'derived from your duties & tasks'
-      : 'based on the occupation details';
-    const trimNote = trimmedAny
-      ? ' Long lists were trimmed to the top items — expand them with your panel.'
-      : '';
+    const basis = _t(chartSummary ? 'aiInfoBasisChart' : 'aiInfoBasisOccupation');
+    const trimNote = trimmedAny ? ' ' + _t('aiInfoTrimNote') : '';
     showStatus(
       '✓ ' + _tf('msgAddInfoGenerated',
         { basis: basis, sections: filledCount, items: itemCount }) + trimNote,
