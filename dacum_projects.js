@@ -153,7 +153,8 @@ export function importProjectFromData(data, fileName) {
                               ? { modules: s.moduleMapping.modules || [],
                                   moduleCounter: s.moduleMapping.moduleCounter || 0,
                                   // Absent in files exported before 3.33.0.
-                                  ...(s.moduleMapping.levelCount ? { levelCount: s.moduleMapping.levelCount } : {}) }
+                                  ...(s.moduleMapping.levelCount ? { levelCount: s.moduleMapping.levelCount } : {}),
+                                  ...(s.moduleMapping.labelMode ? { labelMode: s.moduleMapping.labelMode } : {}) }
                               : { modules: [], moduleCounter: 0 },
     // Module Curriculum (3.33.0). Absent in older files — normalised to
     // the default when the project is opened (_applyState).

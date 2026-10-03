@@ -108,18 +108,37 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v135';
+      var EXPECTED_SW='v136';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. PATCH, not MINOR: this
       // build removes a display, not a capability — the daily quota is
       // enforced exactly as before.
-      var APP_VERSION = '3.33.2';
+      var APP_VERSION = '3.34.0';
       var APP_RELEASED = '2026-10-02';
 
       /* ── CHANGELOG ────────────────────────────────────────────
          Newest first. There is no version.js in this tool, so the
          release record lives here, next to the constants it explains.
+
+         ── 3.34.0 — 2026-10-03 — module codes and short names ──
+         MINOR. modules.js + module_curriculum.js.
+         Added   Each module card in Module Mapping has a Code (auto:
+                 track/prefix + level + position within the level, e.g.
+                 "CMT 1-1"; with no track, the Job Title initials; once
+                 typed it is kept, ↺ returns to auto; duplicates are
+                 flagged) and a Short name (for file names). The track
+                 field is now "Track / code prefix".
+                 "Show modules as": Code / Number (M1) / Both — one
+                 setting, followed by the cards, lists, coverage matrix,
+                 Module Curriculum tab and the Word/PDF exports.
+                 Code and short name are sent to Module Builder
+                 (moduleCode, shortName) and saved in JSON.
+                 Module Curriculum: "File name prefix" in Programme
+                 settings (default CUR) — file and footer use it.
+         Changed Code / short name typed in the Module Curriculum tab
+                 (3.33.x) move onto the module itself on first open;
+                 both tabs now edit the same fields.
 
          ── 3.33.2 — 2026-10-02 — CUR: one outcome per page ─────
          PATCH. exports_cur_docx.js: in the exported CUR, every

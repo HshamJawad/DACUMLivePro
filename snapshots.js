@@ -136,6 +136,10 @@ export function saveToJSON() {
     if (appState.moduleMappingData.levelCount) {
       data.moduleMapping.levelCount = appState.moduleMappingData.levelCount;
     }
+    // How modules are labelled (code / number / both) — 3.34.0.
+    if (appState.moduleMappingData.labelMode) {
+      data.moduleMapping.labelMode = appState.moduleMappingData.labelMode;
+    }
 
     // Module Curriculum (3.33.0) — its own top-level key. Read back by
     // importProjectFromData(); older files simply lack it.
@@ -478,6 +482,7 @@ export function loadFromJSONLegacy(event) {
           appState.moduleMappingData.modules = data.moduleMapping.modules || [];
           appState.moduleMappingData.moduleCounter = data.moduleMapping.moduleCounter || 0;
           if (data.moduleMapping.levelCount) appState.moduleMappingData.levelCount = data.moduleMapping.levelCount;
+          if (data.moduleMapping.labelMode) appState.moduleMappingData.labelMode = data.moduleMapping.labelMode;
         } else {
           appState.moduleMappingData.modules = [];
           appState.moduleMappingData.moduleCounter = 0;

@@ -547,8 +547,17 @@ const _LOCAL_STRINGS = {
     loSyncStale:              'Criteria reworded or deleted in Competency Clusters / Task Analysis: {n} — marked ⚠ for your review',
     lblStaleCriterion:        'Reworded or deleted at the source — review, then keep or remove (✕)',
     lblModuleLevel:           'Level',
-    lblModuleTrack:           'Specialisation',
+    lblModuleTrack:           'Track / code prefix',
     phModuleTrack:            'Common to all',
+    lblModuleCode:            'Code',
+    lblModuleShort:           'Short name',
+    lblCodeAuto:              'auto',
+    ttCodeReset:              'Back to the automatic code',
+    msgCodeDuplicate:         'Another module has the same code',
+    lblLabelMode:             'Show modules as',
+    optLabelCode:             'Code (CMT 1-1)',
+    optLabelNumber:           'Number (M1)',
+    optLabelBoth:             'Both (M1 · CMT 1-1)',
     optNoLevel:               '— not set —',
     lblLevelN:                'Level {n}',
     lblLevelShort:            'L{n}',
@@ -650,8 +659,17 @@ const _LOCAL_STRINGS = {
     loSyncStale:              'Critères reformulés ou supprimés dans les groupes / l’analyse des tâches : {n} — signalés ⚠ pour vérification',
     lblStaleCriterion:        'Reformulé ou supprimé à la source — vérifiez, puis conservez ou retirez (✕)',
     lblModuleLevel:           'Niveau',
-    lblModuleTrack:           'Spécialisation',
+    lblModuleTrack:           'Filière / préfixe du code',
     phModuleTrack:            'Commun à tous',
+    lblModuleCode:            'Code',
+    lblModuleShort:           'Nom court',
+    lblCodeAuto:              'auto',
+    ttCodeReset:              'Revenir au code automatique',
+    msgCodeDuplicate:         'Un autre module a le même code',
+    lblLabelMode:             'Afficher les modules par',
+    optLabelCode:             'Code (CMT 1-1)',
+    optLabelNumber:           'Numéro (M1)',
+    optLabelBoth:             'Les deux (M1 · CMT 1-1)',
     optNoLevel:               '— non défini —',
     lblLevelN:                'Niveau {n}',
     lblLevelShort:            'N{n}',
@@ -753,8 +771,17 @@ const _LOCAL_STRINGS = {
     loSyncStale:              'معايير عُدّلت صياغتها أو حُذفت في تجمعات الكفاءات / تحليل المهمة: {n} — موسومة بـ ⚠ لمراجعتها',
     lblStaleCriterion:        'عُدّلت أو حُذفت في المصدر — راجعها ثم أبقِها أو أزلها (✕)',
     lblModuleLevel:           'المستوى',
-    lblModuleTrack:           'التخصص',
+    lblModuleTrack:           'المسار / بادئة الرمز',
     phModuleTrack:            'مشتركة للجميع',
+    lblModuleCode:            'الرمز',
+    lblModuleShort:           'اسم مختصر',
+    lblCodeAuto:              'تلقائي',
+    ttCodeReset:              'العودة إلى الرمز التلقائي',
+    msgCodeDuplicate:         'يوجد وحدة أخرى بالرمز نفسه',
+    lblLabelMode:             'عرض الوحدات بـ',
+    optLabelCode:             'الرمز (CMT 1-1)',
+    optLabelNumber:           'الرقم (M1)',
+    optLabelBoth:             'كلاهما (M1 · CMT 1-1)',
     optNoLevel:               '— غير محدد —',
     lblLevelN:                'المستوى {n}',
     lblLevelShort:            'م{n}',
@@ -1597,6 +1624,8 @@ function _wireClusterTaskControls() {
   });
 
   document.addEventListener('click', (e) => {
+    const cr = e.target && e.target.closest && e.target.closest('#modulesContainer [data-mod-code-reset]');
+    if (cr) { setModuleCode(cr.getAttribute('data-mod-code-reset'), ''); return; }
     if (e.target && e.target.closest && e.target.closest('#clusterSyncNotice [data-action="dismiss-cluster-sync"]')) {
       dismissClusterSyncNotice();
       return;
@@ -1643,11 +1672,14 @@ function _wireClusterTaskControls() {
     if (!t || !t.matches) return;
     if (t.matches('#modulesContainer .mod-level-select'))     setModuleLevel(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesContainer .mod-track-input')) setModuleTrack(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesContainer .mod-code-input'))  setModuleCode(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesContainer .mod-short-input')) setModuleShortName(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesLabelMode'))                  setModuleLabelMode(t.value);
     else if (t.matches('#coverageMatrixSection .cov-level-count')) setModuleLevelCount(t.value);
     else if (t.matches('#coverageMatrixSection .cov-gaps-only')) { _covGapsOnly = t.checked; renderCoverageMatrix(); }
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('#modulesContainer .mod-track-input')) {
+    if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('#modulesContainer .mod-track-input, #modulesContainer .mod-code-input, #modulesContainer .mod-short-input')) {
       e.preventDefault(); e.target.blur();
     }
   });
@@ -2368,7 +2400,7 @@ export function renderModuleLoList() {
   availableLos.forEach(outcome => {
     const criteriaText = outcome.linkedCriteria.map(pc => pc.id).join(', ');
     let moduleOptions = `<option value="">${_t('optSelectModule')}</option>`;
-    mm.modules.forEach((m, mi) => { const l = _moduleLevel(m); moduleOptions += `<option value="${m.id}">M${mi + 1}${l ? ` (${_txf('lblLevelShort', { n: l })}${m.track ? ' ' + m.track : ''})` : ''} — ${m.title}</option>`; });
+    mm.modules.forEach((m, mi) => { const l = _moduleLevel(m); const tr = m.track && !_refShowsTrack(m) ? ' ' + m.track : ''; moduleOptions += `<option value="${m.id}">${moduleRef(m) || `M${mi + 1}`}${l && getModuleLabelMode() === 'number' ? ` (${_txf('lblLevelShort', { n: l })}${tr})` : ''} — ${m.title}</option>`; });
 
     html += `
       <div class="module-lo-item">
@@ -2712,11 +2744,28 @@ function _injectModuleCardStyles() {
     #modulesContainer .mod-meta-field { flex-wrap: nowrap; }
     #modulesContainer .mod-meta-field > span { white-space: nowrap; flex-shrink: 0; }
     #modulesContainer .mod-meta-field .mod-track-input {
-      width: 200px !important; max-width: 100%; min-width: 0; flex: 0 1 200px;
+      width: 150px !important; max-width: 100%; min-width: 0; flex: 0 1 150px;
       display: inline-block !important; margin: 0 !important;
     }
+    #modulesContainer .mod-meta-field .mod-code-input, #modulesContainer .mod-meta-field .mod-short-input {
+      width: 150px !important; max-width: 100%; min-width: 0; flex: 0 1 150px;
+      display: inline-block !important; margin: 0 !important; border-color: #ddd6fe;
+    }
+    #modulesContainer .mod-code-input { font-weight: 700; color: #4338ca; }
+    #modulesContainer .mod-auto-chip { font-style: normal; font-size: .78em; font-weight: 700; padding: 1px 7px;
+      border-radius: 999px; background: #e0e7ff; color: #3730a3; margin-inline-start: 4px; }
+    #modulesContainer .mod-code-reset {
+      box-sizing: border-box; flex: 0 0 auto; width: 30px; height: 30px; min-width: 30px; max-width: 30px;
+      min-height: 30px; max-height: 30px; padding: 0 !important; margin: 0; border-radius: 8px;
+      border: 1px solid #ddd6fe; background: #fff; color: #6d28d9; cursor: pointer; font-size: 15px; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    #modulesContainer .mod-ref { color: #4338ca; }
+    #modulesContainer .mod-code-dup { margin: -6px 0 10px; font-size: .85em; font-weight: 600; color: #b45309; }
     @media (max-width: 600px) {
-      #modulesContainer .mod-meta-field .mod-track-input { width: auto !important; flex: 1 1 auto; }
+      #modulesContainer .mod-meta-field .mod-track-input,
+      #modulesContainer .mod-meta-field .mod-code-input,
+      #modulesContainer .mod-meta-field .mod-short-input { width: auto !important; flex: 1 1 auto; }
     }
   `;
   document.head.appendChild(st);
@@ -3033,7 +3082,11 @@ function _ensureModulesLevelBar() {
       const st = document.createElement('style');
       st.id = 'modulesLevelBarStyles';
       st.textContent = `
-        #modulesLevelBar { display: flex; justify-content: center; margin: 0 0 16px; }
+        #modulesLevelBar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 16px; }
+        #modulesLevelBar select {
+          margin: 0 !important; width: auto !important; max-width: 100%; min-width: 0; padding: 6px 8px;
+          border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; font: inherit; font-weight: 700; color: #4338ca;
+        }
         /* Inside the "Modules" heading row: title | field | ?  on ONE line,
            the field centred between them. */
         .lomm-guide-row.mlb-row {
@@ -3066,7 +3119,8 @@ function _ensureModulesLevelBar() {
     }
     bar = document.createElement('div');
     bar.id = 'modulesLevelBar';
-    bar.innerHTML = '<label><span class="mlb-text"></span><input type="number" id="modulesLevelCount" step="1" inputmode="numeric"></label>';
+    bar.innerHTML = '<label><span class="mlb-text"></span><input type="number" id="modulesLevelCount" step="1" inputmode="numeric"></label>'
+      + '<label><span class="mlb-mode-text"></span><select id="modulesLabelMode"></select></label>';
     bar.addEventListener('change', e => {
       if (e.target.id === 'modulesLevelCount') {
         const v = setModuleLevelCount(e.target.value);
@@ -3092,6 +3146,14 @@ function _ensureModulesLevelBar() {
   if (document.activeElement !== input) input.value = getModuleLevelCount();
   bar.querySelector('.mlb-text').textContent = _tx('lblLevelCount');
   input.setAttribute('aria-label', _tx('lblLevelCount'));
+  const modeSel = bar.querySelector('#modulesLabelMode');
+  if (modeSel) {
+    const mode = getModuleLabelMode();
+    modeSel.innerHTML = [['code', 'optLabelCode'], ['number', 'optLabelNumber'], ['both', 'optLabelBoth']]
+      .map(([v, k]) => `<option value="${v}" ${v === mode ? 'selected' : ''}>${_esc(_tx(k))}</option>`).join('');
+    bar.querySelector('.mlb-mode-text').textContent = _tx('lblLabelMode');
+    modeSel.setAttribute('aria-label', _tx('lblLabelMode'));
+  }
 }
 
 export function renderModules() {
@@ -3121,9 +3183,9 @@ export function renderModules() {
     return `
       <div class="module-item">
         <div class="module-header">
-          <div class="module-title">M${moduleIndex + 1} — ${module.title}
+          <div class="module-title"><bdi class="mod-ref">${_esc(moduleRef(module) || `M${moduleIndex + 1}`)}</bdi> — ${module.title}
             ${lvl ? `<span class="mod-level-chip">${_esc(_txf('lblLevelShort', { n: lvl }))}</span>` : ''}
-            ${module.track ? `<span class="mod-track-chip">${_esc(module.track)}</span>` : ''}
+            ${module.track && !_refShowsTrack(module) ? `<span class="mod-track-chip">${_esc(module.track)}</span>` : ''}
           </div>
           <div class="module-actions">
             <button class="btn-rename-module" data-action="build-module-in-builder" data-module-id="${module.id}"
@@ -3139,9 +3201,20 @@ export function renderModules() {
           </label>
           <label class="mod-meta-field"><span>${_esc(_tx('lblModuleTrack'))}</span>
             <input type="text" class="mod-track-input" data-module-id="${_esc(module.id)}"
-              value="${_esc(module.track || '')}" maxlength="40" placeholder="${_esc(_tx('phModuleTrack'))}">
+              value="${_esc(module.track || '')}" maxlength="40" placeholder="${_esc(getModuleCodePrefix({}))}">
+          </label>
+          <label class="mod-meta-field mod-code-field"><span>${_esc(_tx('lblModuleCode'))}${isModuleCodeManual(module) ? '' : ` <em class="mod-auto-chip">${_esc(_tx('lblCodeAuto'))}</em>`}</span>
+            <input type="text" dir="ltr" class="mod-code-input" data-module-id="${_esc(module.id)}"
+              value="${_esc(getModuleCode(module))}" maxlength="40">
+            ${isModuleCodeManual(module) ? `<button type="button" class="mod-code-reset" data-mod-code-reset="${_esc(module.id)}"
+              title="${_esc(_tx('ttCodeReset'))}" aria-label="${_esc(_tx('ttCodeReset'))}">↺</button>` : ''}
+          </label>
+          <label class="mod-meta-field"><span>${_esc(_tx('lblModuleShort'))}</span>
+            <input type="text" class="mod-short-input" data-module-id="${_esc(module.id)}"
+              value="${_esc(module.shortName || '')}" maxlength="30" placeholder="${_esc(suggestModuleShortName(module))}">
           </label>
         </div>
+        ${isModuleCodeDuplicate(module) ? `<div class="mod-code-dup">⚠ ${_esc(_tx('msgCodeDuplicate'))}</div>` : ''}
         ${sourceTaskIds.length ? `
         <div style="font-size:0.85em;color:#64748b;margin:-4px 0 10px;">
           ${_t('lblRelatedTasks')}: ${sourceTaskIds.map(id => _taskLabel(id)).join(', ')}
@@ -3216,6 +3289,133 @@ export function renderModules() {
 
 const MAX_LEVELS = 8;
 
+// ══════════════════════════════════════════════════════════════
+// MODULE IDENTITY — code, short name, display label (3.34.0)
+// ──────────────────────────────────────────────────────────────
+//   module.code       optional manual code ("CMCN 1-1"); absent = auto
+//   module.shortName  optional short name for file names ("Hardware")
+//   moduleMappingData.labelMode  'code' | 'number' | 'both'
+//
+// Auto code = prefix + level + position of the module within its level
+// ("CMCN 1-1"). The prefix is the module's track (now labelled "Track /
+// code prefix"); with no track, the initials of the Job Title (falling
+// back to the Occupation Title). A code the user typed is kept as is.
+// The label mode decides how a module is referred to everywhere — cards,
+// lists, coverage matrix, the curriculum tab and the Word/PDF exports.
+// Codes and short names entered in the Module Curriculum tab in 3.33.x
+// were stored there; they are adopted onto the module on first read.
+// ══════════════════════════════════════════════════════════════
+const _ID_STOP = new Set(['and', 'of', 'the', 'for', 'in', 'on', 'to', 'a', 'an', '&', 'et', 'de', 'des', 'du',
+  'la', 'le', 'les', 'en', 'pour', 'و', 'في', 'من', 'على', 'إلى', 'الى']);
+function _idInitials(text) {
+  const words = String(text || '').replace(/[^\p{L}\p{N}\s&-]/gu, ' ').split(/[\s-]+/).filter(Boolean);
+  const keep = words.filter(w => !_ID_STOP.has(w.toLowerCase()));
+  return (keep.length ? keep : words).map(w => w.charAt(0).toUpperCase()).join('').slice(0, 6);
+}
+function _idDom(id) { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+function _idModules() { return ((appState.moduleMappingData || {}).modules) || []; }
+
+function _adoptLegacyIdentity() {
+  const bm = appState.moduleCurriculumData && appState.moduleCurriculumData.byModule;
+  if (!bm) return;
+  _idModules().forEach(m => {
+    const r = m && bm[m.id];
+    if (!r) return;
+    ['code', 'shortName'].forEach(k => {
+      if (typeof r[k] !== 'string') return;
+      const v = r[k].trim();
+      if (v && (m[k] === undefined || m[k] === '')) m[k] = v;
+      delete r[k];
+    });
+  });
+}
+
+/** Prefix of the auto code: the track, else Job Title initials. */
+export function getModuleCodePrefix(module) {
+  const t = String((module && module.track) || '').trim();
+  if (t) return t;
+  return _idInitials(_idDom('jobTitle')) || _idInitials(_idDom('occupationTitle')) || 'MOD';
+}
+export function suggestModuleCode(module) {
+  const mods = _idModules();
+  const lvl = _moduleLevel(module);
+  const prefix = getModuleCodePrefix(module);
+  if (lvl) return `${prefix} ${lvl}-${mods.filter(m => _moduleLevel(m) === lvl).indexOf(module) + 1}`;
+  return `${prefix} ${mods.indexOf(module) + 1}`;
+}
+export function isModuleCodeManual(module) {
+  _adoptLegacyIdentity();
+  return !!(module && typeof module.code === 'string' && module.code.trim());
+}
+export function getModuleCode(module) {
+  if (!module) return '';
+  return isModuleCodeManual(module) ? module.code.trim() : suggestModuleCode(module);
+}
+export function suggestModuleShortName(module) {
+  const words = String((module && module.title) || '').split(/\s+/).filter(Boolean);
+  const pick = words.find((w, i) => !_ID_STOP.has(w.toLowerCase()) && !(i === 0 && /ing$/i.test(w) && words.length > 1));
+  const w = (pick || words[0] || 'Module').replace(/[^\p{L}\p{N}-]/gu, '').slice(0, 24) || 'Module';
+  return w.charAt(0).toUpperCase() + w.slice(1);
+}
+export function getModuleShortName(module) {
+  _adoptLegacyIdentity();
+  const s = module && typeof module.shortName === 'string' ? module.shortName.trim() : '';
+  return s || suggestModuleShortName(module);
+}
+/** Writes the code / short name WITHOUT re-rendering (for other tabs).
+ *  An empty value, or one equal to the suggestion, means "automatic". */
+export function assignModuleCode(module, value) {
+  if (!module) return;
+  const v = String(value || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+  if (!v || v === suggestModuleCode(module)) delete module.code; else module.code = v;
+}
+export function assignModuleShortName(module, value) {
+  if (!module) return;
+  const v = String(value || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+  if (!v) delete module.shortName; else module.shortName = v;
+}
+export function setModuleCode(moduleId, value) {
+  const m = _idModules().find(x => x.id === moduleId);
+  if (!m) return;
+  assignModuleCode(m, value);
+  renderModules(); renderModuleLoList(); _persistClusters();
+}
+export function setModuleShortName(moduleId, value) {
+  const m = _idModules().find(x => x.id === moduleId);
+  if (!m) return;
+  assignModuleShortName(m, value);
+  _persistClusters();
+}
+export function isModuleCodeDuplicate(module) {
+  const c = getModuleCode(module).toLowerCase();
+  return !!c && _idModules().some(m => m !== module && getModuleCode(m).toLowerCase() === c);
+}
+export function getModuleLabelMode() {
+  const v = (appState.moduleMappingData || {}).labelMode;
+  return v === 'number' || v === 'both' ? v : 'code';
+}
+export function setModuleLabelMode(v) {
+  appState.moduleMappingData.labelMode = (v === 'number' || v === 'both') ? v : 'code';
+  renderModules(); renderModuleLoList(); _persistClusters();
+  try { document.dispatchEvent(new CustomEvent('dacum:module-labels-changed')); } catch (_) {}
+}
+/** Short reference to a module, following the label mode:
+ *  "CMCN 1-1" | "M1" | "M1 · CMCN 1-1". */
+export function moduleRef(module) {
+  const i = _idModules().indexOf(module);
+  const num = i >= 0 ? `M${i + 1}` : '';
+  const mode = getModuleLabelMode();
+  if (mode === 'number' || !module) return num;
+  const code = getModuleCode(module);
+  return mode === 'both' && num ? `${num} · ${code}` : code;
+}
+/** True when the reference already carries the track (so a separate
+ *  track chip/tag would only repeat it). */
+function _refShowsTrack(module) {
+  return getModuleLabelMode() !== 'number' && !!(module && module.track) &&
+         getModuleCode(module).indexOf(module.track) !== -1;
+}
+
 function _moduleLevel(m) {
   const n = parseInt(m && m.level, 10);
   return Number.isInteger(n) && n >= 1 && n <= MAX_LEVELS ? n : null;
@@ -3282,7 +3482,7 @@ export function computeCoverage() {
       (o.linkedCriteria || []).forEach(pc => {
         const row = !pc.stale && pc.key && byKey.get(pc.key);
         if (row && !row.modules.some(x => x.id === m.id)) {
-          row.modules.push({ id: m.id, number: `M${mi + 1}`, title: m.title,
+          row.modules.push({ id: m.id, number: moduleRef(m), showTrack: !_refShowsTrack(m), title: m.title,
                              level: _moduleLevel(m), track: m.track || '' });
         }
       });
@@ -3313,9 +3513,9 @@ export function computeCoverage() {
 export function moduleTitleWithLevel(module) {
   const mm = appState.moduleMappingData || { modules: [] };
   const i = (mm.modules || []).indexOf(module);
-  const n = i >= 0 ? `M${i + 1} — ` : '';
+  const n = i >= 0 ? `${moduleRef(module)} — ` : '';
   const l = _moduleLevel(module);
-  const tags = [l ? _txf('lblLevelN', { n: l }) : '', module && module.track ? module.track : '']
+  const tags = [l ? _txf('lblLevelN', { n: l }) : '', module && module.track && !_refShowsTrack(module) ? module.track : '']
     .filter(Boolean).join(' · ');
   return `${n}${module ? module.title : ''}${tags ? ` (${tags})` : ''}`;
 }
@@ -3349,13 +3549,13 @@ function _levelsExportData() {
         if (!pc.stale && !crit.includes(pc.id)) crit.push(pc.id);
       }));
       return { level: l ? _txf('lblLevelN', { n: l }) : _tx('lblNoLevelGroup'),
-               module: `M${i + 1} — ${m.title}`, track: m.track || _tx('covCommon'),
+               module: `${moduleRef(m)} — ${m.title}`, track: m.track || _tx('covCommon'),
                los: String((m.learningOutcomes || []).length), criteria: crit.join(', ') };
     });
 
   const cellText = (r, level) => r.modules
     .filter(m => (m.level || null) === level)
-    .map(m => m.number + (m.track ? ` ${m.track}` : '')).join(', ');
+    .map(m => m.number + (m.track && m.showTrack !== false ? ` ${m.track}` : '')).join(', ');
 
   const s = cov.summary;
   const pct = s.total ? Math.round(s.covered / s.total * 100) : 0;
@@ -3576,7 +3776,7 @@ export function renderCoverageMatrix() {
 
   const cell = (r, level) => r.modules
     .filter(m => (m.level || null) === level)
-    .map(m => `<span class="cov-chip" title="${_esc(m.title)}">${_esc(m.number)}${m.track ? ` <small>${_esc(m.track)}</small>` : ''}</span>`)
+    .map(m => `<span class="cov-chip" title="${_esc(m.title)}"><bdi>${_esc(m.number)}</bdi>${m.track && m.showTrack !== false ? ` <small>${_esc(m.track)}</small>` : ''}</span>`)
     .join('');
 
   const statusCell = r => {
@@ -3701,7 +3901,7 @@ export function deleteModule(moduleId) {
   if (idx === -1) return;
   if (!confirm(_t('confirmDeleteModule'))) return;
   const before = _undoSnap();
-  const label = _txf('undoDeleteModule', { m: `M${idx + 1}`, name: mm.modules[idx].title || '' });
+  const label = _txf('undoDeleteModule', { m: moduleRef(mm.modules[idx]), name: mm.modules[idx].title || '' });
   mm.modules.splice(idx, 1);
   _undoRecord(label, before);
   _persistClusters();
@@ -3716,7 +3916,7 @@ export function removeLoFromModule(moduleId, loId) {
   if (idx !== -1) {
     const before = _undoSnap();
     const mi = appState.moduleMappingData.modules.indexOf(module);
-    const label = _txf('undoRemoveLO', { lo: module.learningOutcomes[idx].number, m: `M${mi + 1}` });
+    const label = _txf('undoRemoveLO', { lo: module.learningOutcomes[idx].number, m: moduleRef(module) || `M${mi + 1}` });
     module.learningOutcomes.splice(idx, 1);
     _undoRecord(label, before);
     _persistClusters();
@@ -3765,6 +3965,9 @@ function _buildModuleExport(module, moduleNumber) {
   return {
     moduleId: module.id,
     moduleNumber: `M${moduleNumber}`,
+    // 3.34.0: module identity, also carried to Module Builder.
+    moduleCode: getModuleCode(module),
+    shortName: getModuleShortName(module),
     moduleTitle: module.title,
     // Programme level (1..N) and specialisation; null / '' when unset.
     level: _moduleLevel(module),

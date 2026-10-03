@@ -32,6 +32,9 @@ import { getTaskCodeShort, isClusterAddedTaskId, getAddedTaskLabel } from './cod
 import { getTaskAnalysisRecord } from './task_analysis.js';
 import { exportOccupationalStandardWord } from './exports_os_docx.js';
 import { exportCurriculumDocx } from './exports_cur_docx.js';
+import { getModuleCode, suggestModuleCode, isModuleCodeManual, getModuleShortName,
+         suggestModuleShortName, assignModuleCode, assignModuleShortName,
+         moduleRef } from './modules.js';
 
 // ── Strings ──────────────────────────────────────────────────
 // translations.js wins when it has the key (same rule as modules.js);
@@ -67,7 +70,8 @@ const _S = {
     curCode: 'Module code',
     curCodeAuto: 'suggested',
     curCodeSuggest: 'Suggest',
-    curCodeHint: 'Suggested from track + level + position within the level (e.g. CMCN 1-1). Edit freely.',
+    curCodeHint: 'Same code as on the module card in Module Mapping: track + level + position within the level. Edit freely.',
+    curFilePrefix: 'File name prefix',
     curShortName: 'Short name (file name)',
     curPurposeL: 'Purpose statement',
     curPurposePh: 'Why this module exists — what the learner will be able to do at the end, in one or two sentences.',
@@ -171,7 +175,8 @@ const _S = {
     curCode: 'Code du module',
     curCodeAuto: 'proposé',
     curCodeSuggest: 'Proposer',
-    curCodeHint: 'Proposé à partir de la filière + niveau + position dans le niveau (p. ex. CMCN 1-1). Modifiable.',
+    curCodeHint: 'Le même code que sur la carte du module (Cartographie des modules) : filière + niveau + position dans le niveau. Modifiable.',
+    curFilePrefix: 'Préfixe du nom de fichier',
     curShortName: 'Nom court (nom du fichier)',
     curPurposeL: 'Énoncé de l’objectif',
     curPurposePh: 'Pourquoi ce module existe — ce que l’apprenant saura faire à la fin, en une ou deux phrases.',
@@ -274,7 +279,8 @@ const _S = {
     curCode: 'رمز الوحدة',
     curCodeAuto: 'مقترح',
     curCodeSuggest: 'اقتراح',
-    curCodeHint: 'يُقترح من المسار + المستوى + ترتيب الوحدة داخل المستوى (مثل CMCN 1-1). يمكنك تعديله.',
+    curCodeHint: 'هو الرمز نفسه في بطاقة الوحدة في مواءمة الوحدات: المسار + المستوى + ترتيب الوحدة داخل المستوى. يمكنك تعديله.',
+    curFilePrefix: 'بادئة اسم الملف',
     curShortName: 'اسم مختصر (لاسم الملف)',
     curPurposeL: 'بيان الغرض',
     curPurposePh: 'لماذا وُجدت هذه الوحدة — ما الذي سيستطيع المتدرب فعله في نهايتها، في جملة أو جملتين.',
@@ -508,8 +514,10 @@ function _liveLOs(module) {
 }
 function _moduleLabel(m, i) {
   const l = _moduleLevel(m);
-  const tags = [l ? _txf('lvlShort', { n: l }) : '', m.track || ''].filter(Boolean).join(' · ');
-  return `M${i + 1} — ${m.title || ''}${tags ? ` (${tags})` : ''}`;
+  const ref = moduleRef(m) || `M${i + 1}`;
+  const showTrack = m.track && ref.indexOf(m.track) === -1;
+  const tags = [l ? _txf('lvlShort', { n: l }) : '', showTrack ? m.track : ''].filter(Boolean).join(' · ');
+  return `${ref} — ${m.title || ''}${tags ? ` (${tags})` : ''}`;
 }
 function _effSplit(rec) {
   const o = rec && rec.splitOverride;
@@ -550,48 +558,11 @@ function _moduleHours(module) {
 }
 
 // ── Code / names ─────────────────────────────────────────────
-const _STOP = new Set(['and', 'of', 'the', 'for', 'in', 'on', 'to', 'a', 'an', '&', 'et', 'de', 'des', 'du',
-  'la', 'le', 'les', 'en', 'pour', 'و', 'في', 'من', 'على', 'إلى', 'الى']);
-function _initials(text) {
-  const words = String(text || '').replace(/[^\p{L}\p{N}\s&-]/gu, ' ').split(/[\s-]+/).filter(Boolean);
-  const keep = words.filter(w => !_STOP.has(w.toLowerCase()));
-  const src = keep.length ? keep : words;
-  return src.map(w => w.charAt(0).toUpperCase()).join('').slice(0, 6);
-}
+// Since 3.34.0 the code and short name belong to the module itself
+// (Module Mapping card); see the identity block in modules.js.
+const _moduleCode = m => getModuleCode(m);
+const _moduleShortName = m => getModuleShortName(m);
 function _domVal(id) { const el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
-function _codePrefix(module) {
-  const t = String((module && module.track) || '').trim();
-  if (t) return t;
-  // Answer from the curriculum expert: initials of the JOB title, not the
-  // occupation; the occupation is only the fallback.
-  return _initials(_domVal('jobTitle')) || _initials(_domVal('occupationTitle')) || 'MOD';
-}
-export function suggestModuleCode(module) {
-  const mods = _modules();
-  const lvl = _moduleLevel(module);
-  const prefix = _codePrefix(module);
-  if (lvl) {
-    const same = mods.filter(m => _moduleLevel(m) === lvl);
-    return `${prefix} ${lvl}-${same.indexOf(module) + 1}`;
-  }
-  return `${prefix} ${mods.indexOf(module) + 1}`;
-}
-function _moduleCode(module) {
-  const rec = _modRec(module.id);
-  const c = rec && typeof rec.code === 'string' ? rec.code.trim() : '';
-  return c || suggestModuleCode(module);
-}
-function _suggestShortName(module) {
-  const words = String(module.title || '').split(/\s+/).filter(Boolean);
-  const pick = words.find((w, i) => !_STOP.has(w.toLowerCase()) && !(i === 0 && /ing$/i.test(w) && words.length > 1));
-  const w = (pick || words[0] || 'Module').replace(/[^\p{L}\p{N}-]/gu, '').slice(0, 24) || 'Module';
-  return w.charAt(0).toUpperCase() + w.slice(1);
-}
-function _moduleShortName(module) {
-  const rec = _modRec(module.id);
-  const s = rec && typeof rec.shortName === 'string' ? rec.shortName.trim() : '';
-  return s || _suggestShortName(module);
-}
 function _programmeName() {
   const s = (_settings().programmeName || '').trim();
   return s || _domVal('occupationTitle') || _domVal('jobTitle');
@@ -779,6 +750,8 @@ function _renderSettings() {
             <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="hoursPerCredit" value="${_esc(s.hoursPerCredit)}"></label>
           <label class="cur-field"><span>${_esc(_tx('curGroup'))}</span>
             <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="groupSize" value="${_esc(s.groupSize)}"></label>
+          <label class="cur-field"><span>${_esc(_tx('curFilePrefix'))}</span>
+            <input type="text" dir="ltr" class="cur-num" data-cs="set" data-ck="filePrefix" value="${_esc(s.filePrefix || '')}" placeholder="CUR" maxlength="12"></label>
         </div>
         <div class="cur-subhead">${_esc(_tx('curSplitDefault'))}</div>
         ${_splitInputs('set', s.split)}
@@ -810,7 +783,7 @@ function _hoursBox(module) {
 function _renderHeader(module, idx) {
   const rec = _modRec(module.id) || {};
   const lvl = _moduleLevel(module);
-  const storedCode = typeof rec.code === 'string' && rec.code.trim();
+  const storedCode = isModuleCodeManual(module);
   const mods = _modules();
   const prereq = _arr(rec.prerequisites);
   const others = mods.map((m, i) => ({ m, i })).filter(x => x.m.id !== module.id);
@@ -824,7 +797,7 @@ function _renderHeader(module, idx) {
         <div class="cur-fromMM-head"><span>🔒 ${_esc(_tx('curFromMM'))}</span>
           <button type="button" class="cur-link-btn" data-cur-action="goto-mm">✏️ ${_esc(_tx('curEditInMM'))}</button></div>
         <dl class="cur-ro">
-          <div><dt>${_esc(_tx('curTitle'))}</dt><dd>M${idx + 1} — ${_esc(module.title || '')}</dd></div>
+          <div><dt>${_esc(_tx('curTitle'))}</dt><dd>${_esc(moduleRef(module) || `M${idx + 1}`)} — ${_esc(module.title || '')}</dd></div>
           <div><dt>${_esc(_tx('curLevel'))}</dt><dd>${lvl ? _esc(curLabel('curLevelN', { n: lvl })) : `<em>${_esc(_tx('curNotSet'))}</em>`}</dd></div>
           <div><dt>${_esc(_tx('curTrack'))}</dt><dd>${module.track ? `<bdi>${_esc(module.track)}</bdi>` : `<em>${_esc(_tx('curNotSet'))}</em>`}</dd></div>
         </dl>
@@ -832,12 +805,12 @@ function _renderHeader(module, idx) {
       <div class="cur-grid-2">
         <label class="cur-field"><span>${_esc(_tx('curCode'))} <em class="cur-chip" ${storedCode ? 'hidden' : ''}>${_esc(_tx('curCodeAuto'))}</em></span>
           <div class="cur-inline">
-            <input type="text" dir="ltr" data-cs="mod" data-ck="code" value="${_esc(storedCode || suggestModuleCode(module))}" maxlength="40">
+            <input type="text" dir="ltr" data-cs="mod" data-ck="code" value="${_esc(getModuleCode(module))}" maxlength="40">
             <button type="button" class="cur-mini-btn" data-cur-action="suggest-code">↺ ${_esc(_tx('curCodeSuggest'))}</button>
           </div>
           <small class="cur-hint">${_esc(_tx('curCodeHint'))}</small></label>
         <label class="cur-field"><span>${_esc(_tx('curShortName'))}</span>
-          <input type="text" data-cs="mod" data-ck="shortName" value="${_esc(rec.shortName || '')}" placeholder="${_esc(_suggestShortName(module))}" maxlength="30"></label>
+          <input type="text" data-cs="mod" data-ck="shortName" value="${_esc(module.shortName || '')}" placeholder="${_esc(suggestModuleShortName(module))}" maxlength="30"></label>
       </div>
       <label class="cur-field"><span>${_esc(_tx('curPurposeL'))}</span>
         <textarea class="cur-auto" rows="2" data-cs="mod" data-ck="purpose" placeholder="${_esc(_tx('curPurposePh'))}">${_esc(rec.purpose || '')}</textarea></label>
@@ -847,7 +820,7 @@ function _renderHeader(module, idx) {
         <div class="cur-field"><span>${_esc(_tx('curPrereqL'))}</span>
           ${others.length ? `<div class="cur-checklist" role="group" aria-label="${_esc(_tx('curPrereqL'))}">${others.map(({ m, i }) => `
             <label class="cur-check"><input type="checkbox" data-cur-prereq="${_esc(m.id)}" ${prereq.includes(m.id) ? 'checked' : ''}>
-              <span><bdi>${_esc(_moduleCode(m))}</bdi> — ${_esc(m.title || '')} <small>(M${i + 1})</small></span></label>`).join('')}</div>`
+              <span><bdi>${_esc(_moduleCode(m))}</bdi> — ${_esc(m.title || '')}</span></label>`).join('')}</div>`
             : `<div class="cur-hint">${_esc(_tx('curPrereqNone'))}</div>`}
         </div>
       </div>
@@ -1038,6 +1011,10 @@ function _setField(scope, key, raw, loId) {
   }
   if (!module) return;
   if (scope === 'mod') {
+    // Identity lives on the module (3.34.0): code is applied on change,
+    // the short name as it is typed.
+    if (key === 'code') return;
+    if (key === 'shortName') { assignModuleShortName(module, raw); return; }
     const rec = _modRec(module.id, true);
     if (key.startsWith('split.')) {
       if (!rec.splitOverride) rec.splitOverride = { ..._settings().split };
@@ -1318,7 +1295,7 @@ export function isModuleCurriculumEmpty() {
   if (!d) return true;
   const s = d.settings || {};
   const def = defaultModuleCurriculumData().settings;
-  const settingsDefault = !(s.programmeName || '').trim() && Number(s.hoursPerCredit) === def.hoursPerCredit &&
+  const settingsDefault = !(s.programmeName || '').trim() && !(s.filePrefix || '').trim() && Number(s.hoursPerCredit) === def.hoursPerCredit &&
     Number(s.groupSize) === def.groupSize && SPLIT_KEYS.every(k => Number((s.split || {})[k]) === def.split[k]);
   return settingsDefault && !Object.keys(d.byModule || {}).length;
 }
@@ -1359,7 +1336,8 @@ export function getCurriculumModel(moduleId, opts = {}) {
   const code = _moduleCode(module);
   const lang = { en: 'En', fr: 'Fr', ar: 'Ar' }[_lang()] || 'En';
   const safe = v => String(v || '').replace(/[\\/:*?"<>|\u0000-\u001F]/g, '').replace(/\s+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
-  const fileName = `CUR_${safe(code)}_${safe(_moduleShortName(module))}${lvl ? `_L${lvl}` : ''}_${lang}.docx`;
+  const prefix = safe((s.filePrefix || '').trim()) || 'CUR';
+  const fileName = `${prefix}_${safe(code)}_${safe(_moduleShortName(module))}${lvl ? `_L${lvl}` : ''}_${lang}.docx`;
   return {
     blank, rtl: _isRTL(), lang,
     code, title: _str(module.title).trim(), shortName: _moduleShortName(module),
@@ -1380,7 +1358,7 @@ export function getCurriculumModel(moduleId, opts = {}) {
     facilities: blank ? [] : _arr(rec.facilities)
       .map(f => ({ item: _str(f && f.item).trim(), qty: _str(f && f.qty).trim() })).filter(f => f.item || f.qty),
     groupSize: s.groupSize,
-    fileName,
+    fileName, filePrefix: prefix,
     L: curLabel,
   };
 }
@@ -1572,12 +1550,11 @@ function _wire() {
     }
     if (t.hasAttribute('data-cs') && t.getAttribute('data-ck') === 'code') {
       const module = _selectedModule();
-      const rec = _modRec(module.id, true);
-      rec.code = t.value.replace(/\s+/g, ' ').trim();
-      if (!rec.code) { delete rec.code; t.value = suggestModuleCode(module); }
-      else t.value = rec.code;
+      assignModuleCode(module, t.value);
+      t.value = getModuleCode(module);
       const chip = t.closest('.cur-field') && t.closest('.cur-field').querySelector('.cur-chip');
-      if (chip) chip.hidden = !!rec.code;
+      if (chip) chip.hidden = isModuleCodeManual(module);
+      _refreshDerived();
       _schedulePersist();
     }
   });
@@ -1626,8 +1603,7 @@ function _wire() {
     } else if (a === 'export-this') {
       exportModuleCurriculumWord(module.id, { blank: false });
     } else if (a === 'suggest-code') {
-      const rec = _modRec(module.id, true);
-      rec.code = suggestModuleCode(module);
+      assignModuleCode(module, '');
       renderModuleCurriculum(); _schedulePersist();
     } else if (a === 'suggest-criteria') {
       _suggestFromCriteria(b.getAttribute('data-lo'));
@@ -1680,6 +1656,7 @@ window.addEventListener('dacum:langchange', () => {
     sb.setAttribute('data-tooltip', label);
   }
 });
+document.addEventListener('dacum:module-labels-changed', () => { if (_root()) renderModuleCurriculum(); });
 document.addEventListener('dacum:project-loaded', () => {
   _selId = null; _openLOs.clear(); _loSeeded = null;
   if (_root()) renderModuleCurriculum();
