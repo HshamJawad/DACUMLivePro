@@ -7,6 +7,32 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.37.1 — 2026-10-03 — Full Draft follows the LO / module changes ────
+PATCH. draft_agent.js, draft_ui.js, learning_outcomes_ai.js,
+module_mapping_ai.js, modules.js, translations.js.
+Fixed   Learning Outcomes stage did nothing on a project that already
+        had outcomes: since 3.29 the generator covers only criteria not
+        yet used (or the ticked ones) and ADDS outcomes, so every
+        criterion counted as used and the old outcomes were reported as
+        the new draft. In a Full Draft run it now uses every criterion,
+        ignores ticks in the LO tab, and REPLACES the outcomes once the
+        new set exists (a failed call leaves the old ones).
+Fixed   A failed Learning Outcomes / Training Modules stage could pass
+        as done because the check was only "count > 0". Both stages now
+        also require their content to have changed.
+Fixed   Rebuilt modules reused ids (module_1…) that still owned Module
+        Curriculum records (3.33+), so a new module inherited the old
+        one's purpose, credits, resources and hours. Ids with curriculum
+        records are now skipped (also for the standalone generators).
+Fixed   Undo / Redo on the LO and Module Mapping tabs (3.31) could rewind
+        a whole draft; their history is now dropped when a Full Draft
+        stage rebuilds those tabs.
+Added   Full Draft dialog: Module Curriculum is named in the overwrite
+        warning when the current modules carry curriculum work, with a
+        note that it is kept but not shown on the new modules; a warning
+        when outcomes are rebuilt without Training Modules while modules
+        exist. EN/FR/AR.
+
 ── 3.37.0 — 2026-10-03 — Large storage (IndexedDB) for projects ────
 MINOR. New project_store.js; dacum_projects.js, app.js, autosave.js,
 snapshots.js, tasks.js, translations.js, sw.js (v143), index.html.

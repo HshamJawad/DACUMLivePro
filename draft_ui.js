@@ -11,6 +11,7 @@
 import { STAGES, runDraft, cancelDraft, resumeDraft,
          onDraftProgress, isDraftRunning,
          missingPrerequisites, stagesWithExistingContent,
+         moduleCurriculumAtStake, modulesLeftBehind,
          quotaCheck,
          scopeIsMissing }                    from './draft_agent.js';
 import { switchTab }                         from './projects.js';
@@ -203,9 +204,14 @@ function _setupBody() {
 
   const ids       = selectedIds();
   const clashes   = stagesWithExistingContent(ids);
-  const clashTabs = [...new Set(
-    STAGES.filter(s => clashes.includes(s.id)).map(s => _t(s.labelKey))
-  )].join('\u060C ');
+  const clashNames = STAGES.filter(s => clashes.includes(s.id)).map(s => _t(s.labelKey));
+  // Not a stage, but its work is tied to the modules being rebuilt.
+  if (moduleCurriculumAtStake(ids)) {
+    clashes.push('moduleCurriculum');
+    clashNames.push(_t('tabModuleCurriculum'));
+  }
+  const clashTabs = [...new Set(clashNames)].join('\u060C ');
+  const leftBehind = modulesLeftBehind(ids);
 
   const _anyEmpty = JOB_FIELDS.slice(0, 3)
     .some(f => !(document.getElementById(f.id)?.value || '').trim());
@@ -278,10 +284,17 @@ function _setupBody() {
       <p>${_esc(_t('dgVerifExcludedBody'))}</p>
     </div>
 
+    ${leftBehind ? `
+      <div class="dg-note dg-note-warn" id="dgModulesLeftBehind">
+        <strong>\u26A0\uFE0F ${_esc(_t('dgModulesBehindTitle'))}</strong>
+        <p>${_esc(_t('dgModulesBehindBody'))}</p>
+      </div>` : ''}
+
     ${clashes.length ? `
       <div class="dg-note dg-note-warn">
         <strong>\u26A0\uFE0F ${_esc(_t('dgOverwriteTitle'))}</strong>
         <p>${_esc(_tf('dgOverwriteBody', { tabs: clashTabs }))}</p>
+        ${clashes.includes('moduleCurriculum') ? `<p>${_esc(_t('dgCurriculumKeptNote'))}</p>` : ''}
       </div>` : ''}
 
     ${_quotaBlock(ids)}`;

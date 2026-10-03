@@ -35,6 +35,7 @@ import { setBatchRun }                  from './draft_mode.js';
 import { checkUsageLimit, DAILY_LIMIT } from './storage.js';
 import { markUnverified, isUnverified } from './draft_unverified.js';
 import { generateDraftRatings }         from './draft_ratings.js';
+import { dropLearningHistory }          from './modules.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -56,6 +57,13 @@ const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 //             trustworthy signal that a stage succeeded.
 //   optional  off the critical chain: skipping it does not break
 //             anything downstream
+//   snapshot  (optional) taken just before run(); passed to verify().
+//             For stages whose tab may already hold work, a count is
+//             not proof: a failed run leaves the OLD content in place
+//             and "> 0" would report it as the new draft. Those stages
+//             also require the content to have changed.
+//   replaces  (optional) the stage rebuilds Learning Outcomes / Module
+//             Mapping, so their tab-level Undo history is dropped after.
 export const STAGES = [
   {
     id:       'duties',
@@ -95,7 +103,10 @@ export const STAGES = [
     labelKey: 'dgStageOutcomes',
     tab:      'learning-outcomes-tab',
     run:      () => generateLearningOutcomesAI('C'),
-    verify:   () => (appState.learningOutcomesData?.outcomes?.length || 0) > 0,
+    snapshot: () => _sig(appState.learningOutcomesData?.outcomes),
+    verify:   (before) => (appState.learningOutcomesData?.outcomes?.length || 0) > 0
+                          && (before === undefined || _sig(appState.learningOutcomesData?.outcomes) !== before),
+    replaces: true,
   },
   /* OFF the chain and off by default. Nothing downstream consumes
      verification, so skipping it costs nothing — and the output is
@@ -113,7 +124,10 @@ export const STAGES = [
     labelKey: 'dgStageModules',
     tab:      'module-mapping-tab',
     run:      () => generateModulesAI(),
-    verify:   () => (appState.moduleMappingData?.modules?.length || 0) > 0,
+    snapshot: () => _sig(appState.moduleMappingData?.modules),
+    verify:   (before) => (appState.moduleMappingData?.modules?.length || 0) > 0
+                          && (before === undefined || _sig(appState.moduleMappingData?.modules) !== before),
+    replaces: true,
   },
 ];
 
@@ -139,6 +153,11 @@ function _emit(event) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────
+
+/** Cheap content signature for "did this stage change anything?". */
+function _sig(v) {
+  try { return JSON.stringify(v || []); } catch (_) { return String(Math.random()); }
+}
 
 function _countDuties() {
   return document.querySelectorAll('#dutiesContainer [data-duty-id]').length
@@ -184,6 +203,33 @@ export function missingPrerequisites() {
  */
 export function scopeIsMissing() {
   return !(document.getElementById('scopeOfWork')?.value || '').trim();
+}
+
+/**
+ * True when the run rebuilds the modules and the CURRENT modules carry
+ * Module Curriculum work (purpose, credits, resources, LO hours…). That
+ * tab is not a stage, but its content is tied to module ids: after the
+ * rebuild it is kept (by id) yet no longer shown, so it belongs in the
+ * up-front overwrite warning.
+ */
+export function moduleCurriculumAtStake(selectedIds) {
+  if (!selectedIds.includes('modules')) return false;
+  const bm   = appState.moduleCurriculumData?.byModule || {};
+  const mods = appState.moduleMappingData?.modules || [];
+  return mods.some(m => {
+    const rec = m && bm[m.id];
+    return rec && typeof rec === 'object' && Object.keys(rec).length > 0;
+  });
+}
+
+/**
+ * True when the run rebuilds the outcomes but NOT the modules while
+ * modules exist: they would keep pointing at outcomes that are gone.
+ */
+export function modulesLeftBehind(selectedIds) {
+  return selectedIds.includes('outcomes') && !selectedIds.includes('modules')
+      && (appState.moduleMappingData?.modules?.length || 0) > 0
+      && (appState.learningOutcomesData?.outcomes?.length || 0) > 0;
 }
 
 /** Stages that would overwrite existing content, for the up-front warning. */
@@ -255,6 +301,9 @@ async function _runStages(stages) {
 
     _emit({ type: 'stage-start', id: stage.id, index: i, total: stages.length });
 
+    let before;
+    try { before = stage.snapshot ? stage.snapshot() : undefined; } catch (_) { before = undefined; }
+
     try {
       await stage.run();
     } catch (err) {
@@ -267,7 +316,7 @@ async function _runStages(stages) {
     // Return values across the AI modules are inconsistent, so the
     // authoritative check is whether state actually changed.
     let produced = false;
-    try { produced = !!stage.verify(); } catch (_) { produced = false; }
+    try { produced = !!stage.verify(before); } catch (_) { produced = false; }
 
     if (!produced) {
       // An optional stage that produced nothing is not a failure —
@@ -280,6 +329,8 @@ async function _runStages(stages) {
       _emit({ type: 'stage-error', id: stage.id, index: i, error: null });
       return { ok: false, reason: 'empty', at: stage.id };
     }
+
+    if (stage.replaces) { try { dropLearningHistory(); } catch (_) {} }
 
     appState.draftProgress.done.push(stage.id);
     _emit({ type: 'stage-done', id: stage.id, index: i, total: stages.length });

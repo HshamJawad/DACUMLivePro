@@ -110,6 +110,11 @@ function _newModuleId(keepExisting = true) {
   const mm = appState.moduleMappingData;
   // In replace mode the old modules are about to go, so their ids are free.
   const taken = new Set(keepExisting ? _modules().map(m => m.id) : []);
+  /* Module Curriculum keeps its records by module id, even for modules
+     that were replaced (so Undo can bring them back). Replace mode resets
+     the counter, so without this a new "module_1" would inherit the
+     purpose, credits, resources and hours written for the old one. */
+  Object.keys(appState.moduleCurriculumData?.byModule || {}).forEach(id => taken.add(id));
   let id;
   do { mm.moduleCounter = (mm.moduleCounter || 0) + 1; id = `module_${mm.moduleCounter}`; }
   while (taken.has(id));

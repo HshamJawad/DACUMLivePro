@@ -2587,6 +2587,19 @@ function _undoValid() {
   }
   return true;
 }
+/* Called by the Full Draft run after it rebuilds outcomes or modules.
+   The data is replaced in place (same objects), so the reference check
+   in _undoValid() would not notice — and undoing a pre-draft step would
+   silently rewind the whole draft. Same rule as a project load. */
+export function dropLearningHistory() {
+  _hist.undo = []; _hist.redo = [];
+  _hist.project = _activeProjectId();
+  _hist.loRef = appState.learningOutcomesData;
+  _hist.mmRef = appState.moduleMappingData;
+  try { _hideUndoToast(); } catch (_) {}
+  try { _renderUndoBars(); } catch (_) {}
+}
+
 function _undoRecord(label, before) {
   _undoValid();
   _hist.undo.push({ label, before, after: _undoSnap() });

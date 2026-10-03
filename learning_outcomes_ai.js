@@ -84,6 +84,14 @@ const MAX_PC_PER_LO     = 5;
 function _collectCriteria() {
   const { all, usedIds, usedKeys } = getLearningOutcomeCriteria();
 
+  /* Full Draft run: the stage REBUILDS the outcomes from every criterion.
+     Since 3.29 a standalone run only covers criteria not yet used (or
+     the ticked ones) and ADDS outcomes — right by hand, wrong in a
+     pipeline: with outcomes already present every criterion counts as
+     used, the stage did nothing, and the old outcomes were reported as
+     the new draft. Ticks left in the LO tab must not narrow it either. */
+  if (isBatchRun()) return { selection: all, usedSelection: false };
+
   const checked = new Set(
     Array.from(document.querySelectorAll('#pcSourceList input[type="checkbox"]:checked:not([disabled])'))
          .map(cb => cb.getAttribute('data-pc-id'))
@@ -338,6 +346,11 @@ export async function generateLearningOutcomesAI(pattern = 'C') {
     if (!built.length) throw new Error('No valid learning outcomes could be built from the response');
 
     const lo = appState.learningOutcomesData;
+    /* Full Draft: replace, now that the new set exists (a failed call
+       above leaves the old outcomes untouched). outcomeCounter keeps
+       rising, so a new id never takes over the Module Curriculum
+       record of an outcome it replaced. */
+    if (isBatchRun()) lo.outcomes = [];
     built.forEach(o => {
       lo.outcomeCounter++;
       lo.outcomes.push({

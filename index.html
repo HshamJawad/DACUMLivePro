@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v143';
+      var EXPECTED_SW='v144';
 
       // ── Human-readable build identity (shown in the toolbar) ──
-      // Bumped together with EXPECTED_SW above. MINOR: adds a capability
-      // (IndexedDB fallback for project storage); localStorage stays the
-      // default and existing data loads exactly as before.
-      var APP_VERSION = '3.37.0';
+      // Bumped together with EXPECTED_SW above. PATCH: the Full Draft
+      // run catches up with the 3.29–3.36 changes to Learning Outcomes
+      // and Module Mapping; no new capability.
+      var APP_VERSION = '3.37.1';
       var APP_RELEASED = '2026-10-03';
 
       /* CHANGELOG — moved to CHANGELOG.md (3.35.0). Keep APP_VERSION,
