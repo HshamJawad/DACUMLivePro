@@ -15,6 +15,7 @@ import { loadDutiesForVerification, syncVerificationTab } from './tasks.js';
 import { syncTaskAnalysisTab, clearAllTaskAnalysis, hasAnyTaskAnalysis,
          countTaskAnalysisRecords } from './task_analysis.js';
 import { isBatchRun } from './draft_mode.js';
+import { renderOccupationalStandard } from './occupational_standard.js';
 import { throwIfAIError, showAIServiceError } from './ai_client.js';
 import { renderModuleCurriculum, clearModuleCurriculum,
          isModuleCurriculumEmpty } from './module_curriculum.js';
@@ -97,6 +98,9 @@ export function switchTab(tabId) {
     }
     if (tabId === 'module-curriculum-tab') {
       renderModuleCurriculum();
+    }
+    if (tabId === 'occupational-standard-tab') {
+      renderOccupationalStandard();
     }
   }
 }

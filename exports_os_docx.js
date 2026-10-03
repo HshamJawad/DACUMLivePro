@@ -47,10 +47,8 @@
    no cell in this module builds a Paragraph any other way.
    ============================================================ */
 
-import { appState } from './state.js';
 import { showStatus } from './renderer.js';
-import { getTaskCode, getDutyLetter } from './codes.js';
-import { formatDacumDateRange, formatDateLong, formatVenueWithMode } from './exports_shared.js';
+import { getOccupationalStandardModel, _lines } from './os_model.js';
 import {
     _rtl,
     _font,
@@ -75,16 +73,9 @@ const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
    fill. */
 const LABEL_FILL  = 'F2F2F2';
 
-const _val = (id) => {
-    const el = document.getElementById(id);
-    return el ? String(el.value || '').trim() : '';
-};
-
-const _lines = (text) =>
-    String(text || '')
-        .split('\n')
-        .map(l => l.trim())
-        .filter(Boolean);
+/* WHAT is printed comes from os_model.js (3.39.0) — the same model the
+   Occupational Standard tab shows, so the view and the file cannot
+   drift apart. This file only decides HOW it is laid out in Word. */
 
 export async function exportOccupationalStandardWord() {
     try {
@@ -196,8 +187,9 @@ export async function exportOccupationalStandardWord() {
            PART 1 — OCCUPATIONAL PROFILE
            ============================================================ */
 
-        const occupation = _val('occupationTitle');
-        const job        = _val('jobTitle');
+        const M = getOccupationalStandardModel();
+        const occupation = M.occupation;
+        const job        = M.job;
 
         /* Subtitle under each part heading is the JOB being profiled;
            falls back to the occupation when no job title is entered. */
@@ -208,7 +200,7 @@ export async function exportOccupationalStandardWord() {
             bidirectional: _rtl(),
         });
 
-        children.push(_h1(_t('osPart1Title')));
+        children.push(_h1(M.part1.title));
         children.push(new Paragraph({
             children: [new TextRun({ text: job || occupation, bold: true, size: 28 })],
             alignment: AlignmentType.CENTER,
@@ -218,42 +210,13 @@ export async function exportOccupationalStandardWord() {
 
         // Panel block. The workshop provenance is what makes a profile
         // defensible, so it leads the document rather than trailing it.
-        const panelRows = [
-            _kvRow(_t('osFieldOccupation'), occupation),
-        ];
-        if (job) panelRows.push(_kvRow(_t('osFieldJob'), job));
-        panelRows.push(
-            _kvRow(_t('osFieldSector'),      _val('sector')),
-            _kvRow(_t('osFieldContext'),     _val('context')),
-            _kvRow(_t('osFieldProducedFor'), _val('producedFor')),
-            _kvRow(_t('osFieldProducedBy'),  _val('producedBy')),
-            _kvRow(_t('osFieldFacilitators'), _lines(_val('facilitators'))),
-            _kvRow(_t('osFieldPanel'),        _lines(_val('panelMembers'))),
-            _kvRow(_t('osFieldObservers'),    _lines(_val('observers'))),
-            /* Date first, then venue. The old lookup read two ids that do
-               not exist ('workshopDate', 'date'), so the date never printed. */
-            _kvRow(_t('osFieldVenueDate'),
-                [formatDacumDateRange(formatDateLong), formatVenueWithMode()].filter(Boolean).join(' — ')),
-        );
+        const panelRows = M.part1.panel.map(row => _kvRow(row.label, row.value));
         children.push(_table(panelRows, KV_COLS));
 
         // ---- Duties and Tasks -------------------------------------
-        // Read from the live DOM, exactly as exportToWord does, so the
-        // two documents can never disagree about what the chart says.
-        const duties = [];
-        document.querySelectorAll('input[data-duty-id], textarea[data-duty-id]').forEach(dutyInput => {
-            const dutyText = String(dutyInput.value || '').trim();
-            if (!dutyText) return;
-            const dutyId = dutyInput.getAttribute('data-duty-id');
-            const tasks = [];
-            document.querySelectorAll(
-                `input[data-task-id^="${dutyId}_"], textarea[data-task-id^="${dutyId}_"]`
-            ).forEach(taskInput => {
-                const t = String(taskInput.value || '').trim();
-                if (t) tasks.push(t);
-            });
-            duties.push({ duty: dutyText, tasks });
-        });
+        // Read from the live DOM by the model, exactly as exportToWord
+        // does, so the two documents can never disagree.
+        const duties = M.part1.duties;
 
         if (duties.length) {
             children.push(_break());
@@ -271,8 +234,8 @@ export async function exportOccupationalStandardWord() {
                 TABLE_W - 3 * Math.floor(TABLE_W / TASKS_PER_ROW),
             ];
 
-            duties.forEach((d, di) => {
-                const letter = getDutyLetter(di);
+            duties.forEach((d) => {
+                const letter = d.letter;
                 const rows = [new TableRow({
                     children: [new TableCell({
                         children: [new Paragraph({
@@ -295,7 +258,7 @@ export async function exportOccupationalStandardWord() {
                     const cells = [];
                     for (let c = 0; c < TASKS_PER_ROW; c++) {
                         const idx = r * TASKS_PER_ROW + c;
-                        const label = _tf('lblTask', { code: `${letter}${idx + 1}` });
+                        const label = _tf('lblTask', { code: d.taskCodes[idx] || `${letter}${idx + 1}` });
                         cells.push(new TableCell({
                             children: [new Paragraph({
                                 children: idx < d.tasks.length
@@ -317,35 +280,8 @@ export async function exportOccupationalStandardWord() {
 
         // ---- Profile narrative sections ----------------------------
         // Concerns has no dedicated field; a facilitator who wants it
-        // separate from Trends adds a custom section, which is picked up
-        // by the custom-section loop below at no code cost.
-        const profileSections = [
-            ['behaviorsHeading',  'behaviorsInput'],
-            ['knowledgeHeading',  'knowledgeInput'],
-            ['skillsHeading',     'skillsInput'],
-            ['trendsHeading',     'trendsInput'],
-            ['careerPathHeading', 'careerPathInput'],
-            ['acronymsHeading',   'acronymsInput'],
-        ];
-
-        const narrative = [];
-        profileSections.forEach(([headId, inputId]) => {
-            const head = document.getElementById(headId);
-            const body = _val(inputId);
-            if (!body) return;
-            narrative.push({ head: head ? head.textContent.trim() : inputId, body });
-        });
-
-        const customContainer = document.getElementById('customSectionsContainer');
-        if (customContainer) {
-            customContainer.querySelectorAll('.section-container').forEach(div => {
-                const h = div.querySelector('input[type="text"], .section-heading');
-                const t = div.querySelector('textarea');
-                const head = h ? String(h.value || h.textContent || '').trim() : '';
-                const body = t ? String(t.value || '').trim() : '';
-                if (head && body) narrative.push({ head, body });
-            });
-        }
+        // separate from Trends adds a custom section (see os_model.js).
+        const narrative = M.part1.narrative;
 
         if (narrative.length) {
             children.push(_break());
@@ -364,115 +300,71 @@ export async function exportOccupationalStandardWord() {
            ============================================================ */
 
         children.push(_break());
-        children.push(_h1(_t('osPart2Title')));
+        children.push(_h1(M.part2.title));
         if (job || occupation) children.push(_jobSubtitle());
 
         // Header block. The four blank rows are the endorsement chain —
         // see the note at the top of this file for why they are printed
         // empty rather than collected in the UI.
-        children.push(_table([
-            _kvRow(_t('osFieldStandardTitle'), occupation),
-            _kvRow(_t('osFieldSector'),        _val('sector')),
-            _kvRow(_t('osFieldRefCode'),       ''),
-            _kvRow(_t('osFieldScope'),         _lines(_val('scopeOfWork'))),
-            _kvRow(_t('osFieldDevelopedBy'),   _val('producedBy')),
-            _kvRow(_t('osFieldEndorsedBy'),    ''),
-            _kvRow(_t('osFieldApprovedBy'),    ''),
-            _kvRow(_t('osFieldApprovalDate'),  ''),
-            _kvRow(_t('osFieldReviewDate'),    ''),
-        ], KV_COLS));
+        children.push(_table(M.part2.header.map(row => _kvRow(row.label, row.value)), KV_COLS));
 
         // ---- Employability competencies by occupational level -------
-        // skillsLevelData is an ARRAY of categories, each holding
-        // competencies whose `levels` object carries the four booleans —
-        // not a flat list. Getting this shape wrong produces a silently
-        // empty matrix rather than an error.
-        const sl = appState.skillsLevelData;
-        if (Array.isArray(sl) && sl.length) {
+        // Which categories / competencies print (and whether the section
+        // prints at all) is decided by the model; see os_model.js.
+        const emp = M.part2.employability;
+        if (emp) {
             children.push(_h2(_t('expEmployability')));
-
-            const levelKeys = ['craftsman', 'skilled', 'semiSkilled', 'foundation'];
-            const levelLabels = [
-                _t('expCraftsman'), _t('expSkilled'),
-                _t('expSemiSkilled'), _t('expFoundation'),
-            ];
 
             const EMP_COLS = [4271, 1200, 1200, 1200, 1200];
             const rows = [new TableRow({
                 tableHeader: true,
                 children: [
                     _cell(_t('osColCompetency'), { bold: true, shaded: true, fill: _tblFill(), width: EMP_COLS[0] }),
-                    ...levelLabels.map((l, i) => _cell(l, {
+                    ...emp.levelLabels.map((l, i) => _cell(l, {
                         bold: true, shaded: true, fill: _tblFill(), center: true, width: EMP_COLS[i + 1],
                     })),
                 ],
             })];
 
-            let printed = 0;
-            sl.forEach(cat => {
-                const catName = cat.category || '';
-                const comps = Array.isArray(cat.competencies) ? cat.competencies : [];
-                // Seed row 9 is a blank spare for the facilitator; skip it
-                // rather than printing an empty banner.
-                if (!catName && !comps.some(c => c.text)) return;
-
+            emp.categories.forEach(cat => {
                 rows.push(new TableRow({
-                    children: [_cell(catName, { bold: true, fill: LABEL_FILL, span: 5, width: TABLE_W })],
+                    children: [_cell(cat.name, { bold: true, fill: LABEL_FILL, span: 5, width: TABLE_W })],
                 }));
-
-                comps.forEach(comp => {
-                    if (!comp.text) return;
-                    const lv = comp.levels || {};
+                cat.competencies.forEach(comp => {
                     rows.push(new TableRow({
                         children: [
                             _cell(comp.text, { width: EMP_COLS[0] }),
-                            ...levelKeys.map((k, i) => _cell(lv[k] ? 'X' : '', { center: true, width: EMP_COLS[i + 1] })),
+                            ...comp.levels.map((on, i) => _cell(on ? 'X' : '', { center: true, width: EMP_COLS[i + 1] })),
                         ],
                     }));
-                    printed++;
                 });
             });
 
-            if (printed) {
-                children.push(_table(rows, EMP_COLS));
-                children.push(_spacer());
-            } else {
-                children.pop(); // drop the heading we just pushed
-            }
+            children.push(_table(rows, EMP_COLS));
+            children.push(_spacer());
         }
 
         // ---- Competencies ------------------------------------------
-        const clusters = (appState.clusteringData && appState.clusteringData.clusters) || [];
-        clusters.forEach((cluster, i) => {
-            const n = i + 1;
+        M.part2.competencies.forEach(comp => {
             children.push(_break());
-            children.push(_h2(_tf('expCompetencyN', { n, name: cluster.name })));
+            children.push(_h2(comp.title));
 
             const rows = [];
 
-            if (cluster.range && cluster.range.trim()) {
+            if (comp.range.length) {
                 rows.push(new TableRow({
                     children: [
                         _cell(_t('expRangeLabel'), { bold: true, width: KV_COLS[0], fill: LABEL_FILL }),
-                        _cell(_lines(cluster.range), { width: KV_COLS[1] }),
+                        _cell(comp.range, { width: KV_COLS[1] }),
                     ],
                 }));
             }
 
-            if (Array.isArray(cluster.tasks) && cluster.tasks.length) {
+            if (comp.tasks.length) {
                 rows.push(new TableRow({
                     children: [
                         _cell(_t('osRelatedTasksFromProfile'), { bold: true, width: KV_COLS[0], fill: LABEL_FILL }),
-                        _cell(cluster.tasks.map(task => `${getTaskCode(task.id)}: ${task.text}`), { width: KV_COLS[1] }),
-                    ],
-                }));
-            }
-
-            if (Array.isArray(cluster.performanceCriteria) && cluster.performanceCriteria.length) {
-                rows.push(new TableRow({
-                    children: [
-                        _cell(_t('expPCLabel'), { bold: true, width: KV_COLS[0], fill: LABEL_FILL }),
-                        _cell(cluster.performanceCriteria.map((c, ci) => `${n}.${ci + 1}  ${c}`), { width: KV_COLS[1] }),
+                        _cell(comp.tasks, { width: KV_COLS[1] }),
                     ],
                 }));
             }
@@ -481,25 +373,28 @@ export async function exportOccupationalStandardWord() {
                nowhere else in the suite. The UNESCO-style module
                descriptor cites them as "5.6; 5.1" — a reference that
                cannot be checked unless the standard actually prints
-               those numbers. Without them the citation is unverifiable,
-               which is how a curriculum quietly detaches from its
-               standard. */
+               those numbers. The numbering is built in os_model.js. */
+            if (comp.criteria.length) {
+                rows.push(new TableRow({
+                    children: [
+                        _cell(_t('expPCLabel'), { bold: true, width: KV_COLS[0], fill: LABEL_FILL }),
+                        _cell(comp.criteria, { width: KV_COLS[1] }),
+                    ],
+                }));
+            }
 
             if (rows.length) children.push(_table(rows, KV_COLS));
         });
 
         // ---- Tools, equipment and materials -------------------------
-        const tools = _val('toolsInput');
+        const tools = M.part2.tools;
         if (tools) {
             children.push(_break());
             children.push(_table([
                 new TableRow({
-                    children: [_cell(
-                        (document.getElementById('toolsHeading')?.textContent || '').trim() || _t('osToolsEquipment'),
-                        { bold: true, shaded: true, fill: _tblFill(), width: TABLE_W }
-                    )],
+                    children: [_cell(tools.head, { bold: true, shaded: true, fill: _tblFill(), width: TABLE_W })],
                 }),
-                new TableRow({ children: [_cell(_lines(tools), { width: TABLE_W })] }),
+                new TableRow({ children: [_cell(tools.lines, { width: TABLE_W })] }),
             ], [TABLE_W]));
         }
 

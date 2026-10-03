@@ -108,12 +108,12 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v146';
+      var EXPECTED_SW='v147';
 
       // ── Human-readable build identity (shown in the toolbar) ──
-      // Bumped together with EXPECTED_SW above. MINOR: loading screen,
-      // and the three third-party libraries are now self-hosted.
-      var APP_VERSION = '3.38.0';
+      // Bumped together with EXPECTED_SW above. MINOR: new Occupational
+      // Standard tab (view + export).
+      var APP_VERSION = '3.39.0';
       var APP_RELEASED = '2026-10-03';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -588,6 +588,7 @@
             <div class="tab" data-tab="verification-tab" data-i18n="tabVerification">🎯 Task Verification</div>
             <div class="tab" data-tab="task-analysis-tab" data-i18n="tabTaskAnalysis">🔬 Task Analysis</div>
             <div class="tab" data-tab="clustering-tab" data-i18n="tabClustering">🎯 Competency Clusters</div>
+            <div class="tab" data-tab="occupational-standard-tab" data-i18n="tabOccStandard">Occupational Standard</div>
             <div class="tab" data-tab="learning-outcomes-tab" data-i18n="tabLearningOutcomes">🎓 Learning Outcomes</div>
             <div class="tab" data-tab="module-mapping-tab" data-i18n="tabModuleMapping">📦 Module Mapping</div>
             <div class="tab" data-tab="module-curriculum-tab" data-i18n="tabModuleCurriculum">Module Curriculum CUR/CBC</div>
@@ -1791,7 +1792,29 @@
                 </button>
             </div>
         </div>
-        
+
+        <!-- ── Occupational Standard (3.39.0) ─────────────────────────
+             A view of the Occupational Profile & Standard document,
+             rendered by occupational_standard.js into #osRoot from the
+             same model the Word exporter prints (os_model.js). View only:
+             no stored data, so no "Clear This Tab". -->
+        <div class="tab-content" id="occupational-standard-tab">
+            <div class="tab-header-row">
+                <h2>📜 <span data-i18n="osTabHeading">Occupational Profile &amp; Standard</span></h2>
+            </div>
+
+            <div id="osRoot"></div>
+
+            <div class="step-nav-row">
+                <button type="button" class="btn-back-step" data-nav-back="clustering-tab">
+                    <span class="rtl-flip">←</span> <span data-i18n="btnBackClustering">Back to Competency Clusters</span>
+                </button>
+                <button type="button" class="btn-next-step" data-nav-next="learning-outcomes-tab">
+                    <span data-i18n="btnProceedLO">Proceed to Learning Outcomes</span> <span class="rtl-flip">→</span>
+                </button>
+            </div>
+        </div>
+
         <div class="tab-content" id="learning-outcomes-tab">
             <!-- The design-patterns guidance that used to sit here as a
                  permanent card now lives behind the "?" button, matching

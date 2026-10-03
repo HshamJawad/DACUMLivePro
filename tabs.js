@@ -4,6 +4,7 @@
 // ones gated by clusteringAllowed which go via switchTab).
 // ============================================================
 
+import { renderOccupationalStandard } from './occupational_standard.js';
 import { appState } from './state.js';
 import { addDuty } from './duties.js';
 import { initializeClusteringFromTasks } from './modules.js';
@@ -72,6 +73,10 @@ export function setupTabs() {
 
       if (tabId === 'module-curriculum-tab') {
         renderModuleCurriculum();
+      }
+
+      if (tabId === 'occupational-standard-tab') {
+        renderOccupationalStandard();
       }
     });
   });

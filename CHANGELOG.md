@@ -7,6 +7,28 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.39.0 — 2026-10-03 — Occupational Standard tab ────
+MINOR. New os_model.js and occupational_standard.js; exports_os_docx.js,
+index.html, dacum_projects.js, projects.js, tabs.js, translations.js,
+sw.js (v147).
+Added   "Occupational Standard" tab in the sidebar, after Competency
+        Clusters: a view of the Occupational Profile & Standard document
+        (Part 1: panel, duties & tasks, additional information; Part 2:
+        identification, employability matrix, competencies with range,
+        related tasks and numbered criteria, tools). The institutional
+        rows (reference code, endorsement, approval, review) show as
+        "filled in institutionally after export". View only: each section
+        has an "Edit in <tab>" link. Top bar with a completeness pill —
+        opens the list of what is still missing, each with its link —
+        and "Export Occupational Standard (Word)". EN/FR/AR, RTL, 360 px.
+        Nothing new is stored: everything shown is already in the project
+        and its JSON file.
+Changed exports_os_docx.js now reads its content from os_model.js — the
+        same model the tab shows — so view and file cannot drift apart.
+        Output verified byte-identical (word/document.xml, EN and AR)
+        before and after the change.
+Unchanged The toolbar "Standard" menu (OS / CUR / CBC) stays as it was.
+
 ── 3.38.0 — 2026-10-03 — Loading screen; libraries self-hosted ────
 MINOR. index.html, app.js, sw.js (v146); new vendor/ folder.
 Added   Loading screen painted before anything else: DACUM Live Pro,

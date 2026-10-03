@@ -589,6 +589,10 @@ export function initProjectsSidebar() {
         <span class="dps-nav-icon">🧩</span>
         <span class="dps-nav-text">${_t('tabClustering')}</span>
       </button>
+      <button class="dps-nav-item" data-target-tab="occupational-standard-tab" data-tooltip="${_t('tabOccStandard')}">
+        <span class="dps-nav-icon">📜</span>
+        <span class="dps-nav-text">${_t('tabOccStandard')}</span>
+      </button>
       <button class="dps-nav-item" data-target-tab="learning-outcomes-tab" data-tooltip="${_t('tabLearningOutcomes')}">
         <span class="dps-nav-icon">🎓</span>
         <span class="dps-nav-text">${_t('tabLearningOutcomes')}</span>
@@ -2253,6 +2257,7 @@ window.addEventListener('dacum:langchange', () => {
     'verification-tab':      'tabVerification',
     'task-analysis-tab':     'tabTaskAnalysis',
     'clustering-tab':        'tabClustering',
+    'occupational-standard-tab': 'tabOccStandard',
     'learning-outcomes-tab': 'tabLearningOutcomes',
     'module-mapping-tab':    'tabModuleMapping',
     'module-curriculum-tab': 'tabModuleCurriculum',
