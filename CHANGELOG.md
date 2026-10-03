@@ -7,6 +7,27 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.41.0 — 2026-10-03 — Skills Level Matrix as one table ────
+MINOR. renderer.js, skill_levels.js, export_settings.js,
+exports_os_docx.js, translations.js, sw.js (v149).
+Changed Additional Info → Skills Level Matrix is now ONE card holding a
+        table laid out like the exported one: header row = Competency +
+        one column per level (name edited in place, wraps; × removes;
+        "＋ Level" adds, disabled at 6), a shaded row per category (name
+        edited in place, "＋ Competency", ✕ remove), a row per competency
+        (number, text edited in the cell, a checkbox in each level cell,
+        ✕ remove). "Restore default levels" and "Reset All Selections"
+        sit in the card's top bar; "Add Category" stays below it. The
+        competency column stays in view while level columns scroll on
+        narrow screens (360 px: the table scrolls inside the card).
+        Replaces the per-category cards and the separate 3.40 levels row.
+Changed The header takes the table header colour (and its contrast text
+        colour) from Export Settings and repaints when it is changed.
+Changed Occupational Standard (Word): ticks in the matrix are "✓" instead
+        of "X", like the chart Word / PDF exports and the screen.
+Unchanged Data, project / JSON storage, the chart Word and PDF exports
+        (verified byte-identical) and the OS document apart from ✓.
+
 ── 3.40.0 — 2026-10-03 — Editable Skills Level Matrix levels ────
 MINOR. New skill_levels.js; renderer.js, state.js, dacum_projects.js,
 autosave.js, snapshots.js, workshop_snapshots.js, projects.js,

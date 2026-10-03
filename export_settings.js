@@ -133,11 +133,14 @@ export function saveSettings(patch) {
   } catch (e) {
     console.warn('[export-settings] could not persist:', e);
   }
+  // Screens that preview these colours (the Skills Level Matrix) repaint.
+  try { window.dispatchEvent(new CustomEvent('dacum:export-settings-changed')); } catch (_) {}
   return next;
 }
 
 export function resetSettings() {
   try { localStorage.removeItem(LS_KEY); } catch (e) { /* nothing to undo */ }
+  try { window.dispatchEvent(new CustomEvent('dacum:export-settings-changed')); } catch (_) {}
   return getSettings();
 }
 

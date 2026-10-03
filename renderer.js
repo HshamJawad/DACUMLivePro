@@ -5,6 +5,7 @@
 // ============================================================
 
 import { appState, defaultSkillsLevelData, skillsLevelIsEmpty } from './state.js';
+import { tableHeaderHex, contrastOn } from './export_settings.js';
 import { getSkillLevelColumns, emptyLevels, usesDefaultSkillLevels, DEFAULT_LEVELS,
          MAX_LEVELS, MIN_LEVELS, renameSkillLevel, addSkillLevel, removeSkillLevel,
          countSkillLevelTicks, ticksLostOnRestore, restoreDefaultSkillLevels } from './skill_levels.js';
@@ -170,80 +171,96 @@ function _saveProject() {
     .catch(() => {});
 }
 
-function _injectLevelsStyles() {
-  if (document.getElementById('slEditorStyles')) return;
+function _injectMatrixStyles() {
+  if (document.getElementById('mxMatrixStyles')) return;
   const st = document.createElement('style');
-  st.id = 'slEditorStyles';
+  st.id = 'mxMatrixStyles';
   st.textContent = `
-    #skillLevelsEditor { margin: 0 0 18px; padding: 12px 14px; border: 1px solid #ddd6fe; border-radius: 12px; background: #faf5ff; }
-    #skillLevelsEditor .sl-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 10px; }
-    #skillLevelsEditor .sl-head strong { color: #5b21b6; }
-    #skillLevelsEditor .sl-hint { font-size: .82em; color: #6b7280; }
-    #skillLevelsEditor .sl-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    #skillLevelsEditor .sl-chip { display: inline-flex; align-items: center; gap: 2px; max-width: 100%;
-      background: #fff; border: 1px solid #c4b5fd; border-radius: 8px; padding: 2px 2px 2px 0; }
-    #skillLevelsEditor .sl-name { border: none !important; background: transparent; font: inherit; font-size: .9em; font-weight: 600;
-      color: #312e81; padding: 6px 8px !important; margin: 0 !important; width: auto; min-width: 0; max-width: 100%; box-shadow: none !important; }
-    #skillLevelsEditor .sl-name:focus { outline: 2px solid #8b5cf6; border-radius: 6px; }
-    #skillLevelsEditor .sl-del { border: none; background: transparent; color: #9ca3af; font-size: 1.15em; line-height: 1;
-      padding: 4px 8px !important; margin: 0; cursor: pointer; border-radius: 6px; min-width: 0; }
-    #skillLevelsEditor .sl-del:hover:not(:disabled) { color: #dc2626; background: #fef2f2; }
-    #skillLevelsEditor .sl-del:disabled { opacity: .35; cursor: not-allowed; }
-    #skillLevelsEditor .sl-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    #skillLevelsEditor .sl-btn { margin: 0; padding: 6px 12px !important; border-radius: 8px; border: 1px solid #c4b5fd;
-      background: #fff; color: #5b21b6; font: inherit; font-size: .85em; font-weight: 600; cursor: pointer; }
-    #skillLevelsEditor .sl-btn:disabled { opacity: .45; cursor: not-allowed; }
-    @media (max-width: 480px) { #skillLevelsEditor .sl-chip { max-width: 100%; } }`;
+    #skillsLevelContainer { --mx-head: #DCDCDC; --mx-head-ink: #000; --mx-line: #d6d9de; }
+    #skillsLevelContainer .mx-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04); margin: 0 0 14px; }
+    #skillsLevelContainer .mx-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px 12px; padding: 10px 14px; border-bottom: 1px solid #eef0f4; }
+    #skillsLevelContainer .mx-hint { font-size: .8em; color: #6b7280; min-width: 0; }
+    #skillsLevelContainer .mx-top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    #skillsLevelContainer .mx-btn { margin: 0; padding: 6px 12px !important; border-radius: 8px; border: 1px solid #d1d5db;
+      background: #fff; color: #374151; font: inherit; font-size: .82em; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    #skillsLevelContainer .mx-btn-red { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+    #skillsLevelContainer .mx-wrap { overflow-x: auto; }
+    #skillsLevelContainer table.mx-table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .9em; margin: 0; }
+    #skillsLevelContainer .mx-table th, #skillsLevelContainer .mx-table td { border: 1px solid var(--mx-line); padding: 0; vertical-align: middle; }
+    #skillsLevelContainer .mx-table thead th { background: var(--mx-head); color: var(--mx-head-ink); font-weight: 700;
+      text-align: center; padding: 6px; }
+    #skillsLevelContainer .mx-table thead th.mx-c-comp { text-align: start; padding-inline-start: 12px; }
+    #skillsLevelContainer .mx-table th.mx-c-lv { width: 120px; min-width: 96px; }
+    #skillsLevelContainer .mx-lv-name { display: block; width: 100%; box-sizing: border-box; margin: 0 !important;
+      padding: 3px 4px !important; border: 1px dashed transparent !important; border-bottom-color: currentColor !important;
+      background: transparent !important; color: inherit !important; font: inherit; font-weight: 700; text-align: center;
+      box-shadow: none !important; border-radius: 4px; resize: none; overflow: hidden; line-height: 1.25;
+      white-space: normal; overflow-wrap: break-word; min-height: 24px; }
+    #skillsLevelContainer .mx-lv-name:focus { outline: none; border-style: solid !important; border-color: currentColor !important;
+      background: rgba(255,255,255,.18) !important; }
+    #skillsLevelContainer .mx-lv-x { margin: 3px auto 0; display: block; width: 22px; height: 22px; min-width: 0; padding: 0 !important;
+      border: none; border-radius: 50%; background: rgba(127,127,127,.22); color: inherit; font-size: 14px; line-height: 22px; cursor: pointer; }
+    #skillsLevelContainer .mx-lv-x:hover:not(:disabled) { background: #dc2626; color: #fff; }
+    #skillsLevelContainer .mx-lv-x:disabled { opacity: .3; cursor: not-allowed; }
+    #skillsLevelContainer .mx-table th.mx-c-act, #skillsLevelContainer .mx-table td.mx-c-act { width: 64px; min-width: 52px; text-align: center; }
+    #skillsLevelContainer .mx-lv-add { margin: 0; padding: 4px 6px !important; border: 1px dashed currentColor; border-radius: 6px;
+      background: transparent; color: inherit; font: inherit; font-size: .78em; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    #skillsLevelContainer .mx-lv-add:disabled { opacity: .4; cursor: not-allowed; }
+    #skillsLevelContainer tr.mx-cat td { background: #f2f2f2; }
+    #skillsLevelContainer .mx-cat-cell { display: flex; align-items: center; gap: 8px; padding: 5px 8px; }
+    #skillsLevelContainer .mx-cat-name { flex: 1 1 auto; min-width: 0; margin: 0 !important; padding: 5px 6px !important;
+      border: 1px solid transparent !important; background: transparent !important; border-radius: 6px; box-shadow: none !important;
+      font: inherit; font-weight: 700; color: #111827; }
+    #skillsLevelContainer .mx-cat-name:hover, #skillsLevelContainer .mx-cat-name:focus { border-color: #d1d5db !important;
+      background: #fff !important; outline: none; }
+    #skillsLevelContainer .mx-mini { margin: 0; padding: 4px 10px !important; border-radius: 6px; border: 1px solid #a7f3d0;
+      background: #ecfdf5; color: #047857; font: inherit; font-size: .78em; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    #skillsLevelContainer .mx-mini.mx-del { border-color: #fecaca; background: #fff; color: #b91c1c; padding: 4px 9px !important; }
+    #skillsLevelContainer .mx-comp-cell { display: flex; align-items: flex-start; }
+    #skillsLevelContainer .mx-num { color: #6366f1; font-weight: 700; font-size: .85em; padding: 9px 4px 0 10px; min-width: 30px; flex-shrink: 0; }
+    #skillsLevelContainer .mx-comp-text { flex: 1 1 auto; min-width: 0; margin: 0 !important; padding: 6px 6px !important;
+      border: 1px solid transparent !important; border-radius: 6px; background: transparent !important; box-shadow: none !important;
+      font: inherit; line-height: 1.35; resize: none; overflow: hidden; min-height: 30px; color: #111827; }
+    #skillsLevelContainer .mx-comp-text:hover, #skillsLevelContainer .mx-comp-text:focus { border-color: #c7d2fe !important;
+      background: #f8faff !important; outline: none; }
+    #skillsLevelContainer td.mx-c-lv { text-align: center; }
+    #skillsLevelContainer td.mx-c-lv input { width: 19px; height: 19px; margin: 6px; cursor: pointer; accent-color: #2563eb; }
+    #skillsLevelContainer .mx-row-x { margin: 0; padding: 4px 8px !important; border: none; background: transparent; color: #ef4444;
+      font-size: 15px; cursor: pointer; border-radius: 6px; min-width: 0; }
+    #skillsLevelContainer .mx-row-x:hover { background: #fef2f2; }
+    /* The competency column stays in view while the level columns scroll. */
+    #skillsLevelContainer .mx-table td.mx-c-comp { position: sticky; inset-inline-start: 0; background: #fff; z-index: 1; }
+    #skillsLevelContainer .mx-table thead th.mx-c-comp { position: sticky; inset-inline-start: 0; z-index: 2; }
+    @media (max-width: 600px) {
+      #skillsLevelContainer table.mx-table { min-width: 0; width: max-content; font-size: .85em; }
+      #skillsLevelContainer .mx-table td.mx-c-comp, #skillsLevelContainer .mx-table thead th.mx-c-comp { width: 150px; min-width: 150px; max-width: 150px; }
+      #skillsLevelContainer .mx-table th.mx-c-lv { width: 78px; min-width: 78px; }
+      #skillsLevelContainer .mx-cat-cell { position: sticky; inset-inline-start: 0; width: calc(100vw - 110px); box-sizing: border-box; }
+      #skillsLevelContainer .mx-top { padding: 10px 12px; }
+    }`;
   document.head.appendChild(st);
 }
 
-function _renderLevelsEditor(container, cols) {
-  _injectLevelsStyles();
-  let box = document.getElementById('skillLevelsEditor');
-  if (!box) {
-    box = document.createElement('div');
-    box.id = 'skillLevelsEditor';
-    // Above the "Edit Employability Competencies" row.
-    const anchor = container.previousElementSibling || container;
-    anchor.parentNode.insertBefore(box, anchor);
-    _wireLevelsEditor(box);
-  }
-  const atMin = cols.length <= MIN_LEVELS, atMax = cols.length >= MAX_LEVELS;
-  box.innerHTML = `
-    <div class="sl-head">
-      <strong>${escapeHtml(_t('slLevelsTitle'))}</strong>
-      <span class="sl-hint">${escapeHtml(_tf('slLevelsHint', { max: MAX_LEVELS }))}</span>
-    </div>
-    <div class="sl-chips">
-      ${cols.map(c => `
-        <span class="sl-chip">
-          <input type="text" class="sl-name" maxlength="60" data-sl-id="${escapeHtml(c.id)}"
-                 size="${Math.min(28, Math.max(8, c.uiLabel.length + 1))}"
-                 value="${escapeHtml(c.uiLabel)}" aria-label="${escapeHtml(_t('slLevelName'))}">
-          <button type="button" class="sl-del" data-sl-del="${escapeHtml(c.id)}" ${atMin ? 'disabled' : ''}
-                  title="${escapeHtml(_t('slRemoveLevel'))}" aria-label="${escapeHtml(_t('slRemoveLevel'))}: ${escapeHtml(c.uiLabel)}">×</button>
-        </span>`).join('')}
-    </div>
-    <div class="sl-actions">
-      <button type="button" class="sl-btn" data-sl-add ${atMax ? 'disabled' : ''}
-              title="${escapeHtml(atMax ? _tf('slMaxLevels', { max: MAX_LEVELS }) : '')}">＋ ${escapeHtml(_t('slAddLevel'))}</button>
-      ${usesDefaultSkillLevels() ? '' :
-        `<button type="button" class="sl-btn" data-sl-restore>↺ ${escapeHtml(_t('slRestoreDefaults'))}</button>`}
-    </div>`;
-}
-
-function _wireLevelsEditor(box) {
-  box.addEventListener('change', e => {
+let _mxWired = false;
+function _wireMatrix(container) {
+  if (_mxWired) return;
+  _mxWired = true;
+  container.addEventListener('input', e => {
+    if (e.target.classList && (e.target.classList.contains('mx-comp-text') || e.target.classList.contains('mx-lv-name'))) _mxAutoGrow(e.target);
+  });
+  container.addEventListener('change', e => {
     const input = e.target.closest('.sl-name');
     if (!input) return;
     renameSkillLevel(input.getAttribute('data-sl-id'), input.value);
     renderSkillsLevel();
     _saveProject();
   });
-  box.addEventListener('keydown', e => {
+  container.addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.target.closest('.sl-name')) { e.preventDefault(); e.target.blur(); }
   });
-  box.addEventListener('click', e => {
+  container.addEventListener('click', e => {
     const del = e.target.closest('[data-sl-del]');
     if (del) {
       const id = del.getAttribute('data-sl-del');
@@ -260,7 +277,7 @@ function _wireLevelsEditor(box) {
       if (!id) { alert(_tf('slMaxLevels', { max: MAX_LEVELS })); return; }
       renderSkillsLevel();
       _saveProject();
-      const input = box.querySelector(`.sl-name[data-sl-id="${id}"]`);
+      const input = container.querySelector(`.sl-name[data-sl-id="${id}"]`);
       if (input) { input.focus(); input.select(); }
       return;
     }
@@ -268,6 +285,11 @@ function _wireLevelsEditor(box) {
       if (!confirm(_tf('slConfirmRestore', { n: ticksLostOnRestore() }))) return;
       restoreDefaultSkillLevels();
       renderSkillsLevel();
+      _saveProject();
+      return;
+    }
+    if (e.target.closest('[data-mx-reset]')) {
+      resetSkillsLevel();
       _saveProject();
     }
   });
@@ -288,8 +310,12 @@ function _syncLevelLegend(cols) {
   items[0].parentElement.style.display = shown ? '' : 'none';
 }
 
-// Labels of the default levels follow the interface language.
+// Labels of the default levels follow the interface language; the
+// header colour follows Export Settings.
 window.addEventListener('dacum:langchange', () => {
+  if (document.getElementById('skillsLevelContainer')) renderSkillsLevel();
+});
+window.addEventListener('dacum:export-settings-changed', () => {
   if (document.getElementById('skillsLevelContainer')) renderSkillsLevel();
 });
 
@@ -331,63 +357,119 @@ export function renderSkillsLevel() {
     defaultSkillsLevelData().forEach(cat => appState.skillsLevelData.push(cat));
   }
 
-  const levelCols = getSkillLevelColumns();
-  _renderLevelsEditor(container, levelCols);
-  _syncLevelLegend(levelCols);
+  /* 3.41.0 — ONE table card, laid out like the exported table: a header
+     row of levels (rename in place, × to remove, ＋ to add — up to six),
+     a shaded row per category, a row per competency with a checkbox in
+     each level cell. Same data and the same data-action hooks as before
+     (events.js), so saving, JSON and exports are untouched. */
+  const cols = getSkillLevelColumns();
+  _injectMatrixStyles();
+  _wireMatrix(container);
+  _syncLevelLegend(cols);
 
-  let html = '';
+  // The separate "Edit competencies / Reset" row and the 3.40 levels
+  // editor are folded into the card.
+  const oldRow = container.previousElementSibling;
+  if (oldRow && oldRow.querySelector && oldRow.querySelector('#btnResetSkillsLevel')) oldRow.style.display = 'none';
+  document.getElementById('skillLevelsEditor')?.remove();
 
+  // Header colour = Export Settings' table header colour (and its text
+  // colour), so the editor looks like the document it produces.
+  const fill = tableHeaderHex();
+  container.style.setProperty('--mx-head', '#' + fill);
+  container.style.setProperty('--mx-head-ink', '#' + contrastOn(fill));
+
+  const atMin = cols.length <= MIN_LEVELS, atMax = cols.length >= MAX_LEVELS;
+  const span = cols.length + 2;
+  const e = escapeHtml;
+
+  const head = `
+    <tr>
+      <th class="mx-c-comp" scope="col">${e(_t('expCompetency'))}</th>
+      ${cols.map(c => `
+        <th class="mx-c-lv" scope="col">
+          <textarea rows="1" class="sl-name mx-lv-name" maxlength="60" data-sl-id="${e(c.id)}"
+                    title="${e(_t('slRenameHint'))}" aria-label="${e(_t('slLevelName'))}">${e(c.uiLabel).replace(/\//g, '/\u200B')}</textarea>
+          <button type="button" class="mx-lv-x" data-sl-del="${e(c.id)}" ${atMin ? 'disabled' : ''}
+                  title="${e(_t('slRemoveLevel'))}" aria-label="${e(_t('slRemoveLevel'))}: ${e(c.uiLabel)}">×</button>
+        </th>`).join('')}
+      <th class="mx-c-act" scope="col">
+        <button type="button" class="mx-lv-add" data-sl-add ${atMax ? 'disabled' : ''}
+                title="${e(atMax ? _tf('slMaxLevels', { max: MAX_LEVELS }) : _t('slAddLevel'))}">＋ ${e(_t('slAddLevelShort'))}</button>
+      </th>
+    </tr>`;
+
+  let body = '';
   appState.skillsLevelData.forEach((category, categoryIndex) => {
-    html += `
-      <div class="skills-level-category">
-        <div class="skills-level-category-header">
-          <h4>${escapeHtml(_tf('expCategoryN', { n: category.id }))}</h4>
-          <button class="btn-remove-category"
-            data-action="remove-skills-category" data-cat-index="${categoryIndex}">${escapeHtml(_t('btnRemoveCategory'))}</button>
-        </div>
-        <input type="text" class="skills-level-category-name"
-          placeholder="${escapeHtml(_t('phCategoryName'))}"
-          value="${escapeHtml(category.category)}"
-          data-action="update-skills-category-name" data-cat-index="${categoryIndex}">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-          <h5 style="margin:0;">${escapeHtml(_t('lblCompetencies'))}</h5>
-          <button class="btn-add-competency"
-            data-action="add-skills-competency" data-cat-index="${categoryIndex}">+ ${escapeHtml(_t('btnAddCompetency'))}</button>
-        </div>
-        <div>`;
-
+    body += `
+      <tr class="mx-cat">
+        <td colspan="${span}">
+          <div class="mx-cat-cell">
+            <input type="text" class="mx-cat-name" value="${e(category.category)}"
+                   placeholder="${e(_tf('expCategoryN', { n: category.id }))}"
+                   aria-label="${e(_t('phCategoryName'))}"
+                   data-action="update-skills-category-name" data-cat-index="${categoryIndex}">
+            <button type="button" class="mx-mini mx-add-comp" data-action="add-skills-competency"
+                    data-cat-index="${categoryIndex}">＋ ${e(_t('mxAddCompetency'))}</button>
+            <button type="button" class="mx-mini mx-del" data-action="remove-skills-category"
+                    data-cat-index="${categoryIndex}" title="${e(_t('btnRemoveCategory'))}"
+                    aria-label="${e(_t('btnRemoveCategory'))}">✕</button>
+          </div>
+        </td>
+      </tr>`;
     category.competencies.forEach((competency, competencyIndex) => {
-      html += `
-        <div class="skills-competency-row">
-          <div class="skills-competency-input-row">
-            <div class="skills-competency-id">${competency.id}:</div>
-            <input type="text" class="skills-competency-text"
-              placeholder="${escapeHtml(_t('phCompetencyText'))}"
-              value="${escapeHtml(competency.text)}"
-              data-action="update-skills-competency-text"
-              data-cat-index="${categoryIndex}" data-comp-index="${competencyIndex}">
-            <button class="btn-remove-competency"
-              title="${escapeHtml(_t('ttRemoveCompetency'))}"
-              data-action="remove-skills-competency"
-              data-cat-index="${categoryIndex}" data-comp-index="${competencyIndex}">×</button>
+      body += `
+      <tr class="mx-row">
+        <td class="mx-c-comp">
+          <div class="mx-comp-cell">
+            <span class="mx-num">${e(competency.id)}</span>
+            <textarea rows="1" class="mx-comp-text" placeholder="${e(_t('phCompetencyText'))}"
+                      aria-label="${e(_t('phCompetencyText'))}"
+                      data-action="update-skills-competency-text"
+                      data-cat-index="${categoryIndex}" data-comp-index="${competencyIndex}">${e(competency.text)}</textarea>
           </div>
-          <div class="skills-level-checkboxes">
-            ${levelCols.map(col => `
-              <label class="skills-level-checkbox-label">
-                <input type="checkbox" ${(competency.levels || {})[col.id] ? 'checked' : ''}
-                  data-action="handle-skills-level-change"
+        </td>
+        ${cols.map(c => `
+        <td class="mx-c-lv">
+          <input type="checkbox" ${(competency.levels || {})[c.id] ? 'checked' : ''}
+                 aria-label="${e(c.uiLabel)}"
+                 data-action="handle-skills-level-change"
+                 data-cat-index="${categoryIndex}" data-comp-index="${competencyIndex}"
+                 data-level="${e(c.id)}">
+        </td>`).join('')}
+        <td class="mx-c-act">
+          <button type="button" class="mx-row-x" data-action="remove-skills-competency"
                   data-cat-index="${categoryIndex}" data-comp-index="${competencyIndex}"
-                  data-level="${escapeHtml(col.id)}">
-                <span>${escapeHtml(col.uiLabel)}</span>
-              </label>`).join('')}
-          </div>
-        </div>`;
+                  title="${e(_t('ttRemoveCompetency'))}" aria-label="${e(_t('ttRemoveCompetency'))}">✕</button>
+        </td>
+      </tr>`;
     });
-
-    html += `</div></div>`;
   });
 
-  container.innerHTML = html;
+  container.innerHTML = `
+    <div class="mx-card">
+      <div class="mx-top">
+        <span class="mx-hint">${e(_tf('slTableHint', { max: MAX_LEVELS }))}</span>
+        <div class="mx-top-actions">
+          ${usesDefaultSkillLevels() ? '' : `<button type="button" class="mx-btn" data-sl-restore>↺ ${e(_t('slRestoreDefaults'))}</button>`}
+          <button type="button" class="mx-btn mx-btn-red" data-mx-reset>🗑️ ${e(_t('btnResetSelections'))}</button>
+        </div>
+      </div>
+      <div class="mx-wrap">
+        <table class="mx-table">
+          <thead>${head}</thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  container.querySelectorAll('textarea.mx-comp-text, textarea.mx-lv-name').forEach(_mxAutoGrow);
+}
+
+function _mxAutoGrow(ta) {
+  ta.style.height = 'auto';
+  const min = ta.classList.contains('mx-lv-name') ? 24 : 30;
+  ta.style.height = Math.max(ta.scrollHeight, min) + 'px';
 }
 
 // ── Additional Info Helpers ────────────────────────────────────

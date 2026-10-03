@@ -116,7 +116,8 @@ export function renameSkillLevel(id, name) {
   const cols = _own();
   const col = cols.find(c => c.id === id);
   if (!col) return false;
-  const clean = String(name || '').trim().slice(0, 60);
+  // \u200B: the line-break hint the matrix header adds after "/" (display only).
+  const clean = String(name || '').replace(/\u200B/g, '').trim().slice(0, 60);
   if (!clean) {
     if (!_defaultOf(id)) { _normalise(); return false; }
     col.label = null;

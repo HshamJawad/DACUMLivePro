@@ -338,7 +338,8 @@ export async function exportOccupationalStandardWord() {
                     rows.push(new TableRow({
                         children: [
                             _cell(comp.text, { width: EMP_COLS[0] }),
-                            ...comp.levels.map((on, i) => _cell(on ? 'X' : '', { center: true, width: EMP_COLS[i + 1] })),
+                            // ✓ like the chart Word / PDF exports and the matrix itself (was "X").
+                            ...comp.levels.map((on, i) => _cell(on ? '✓' : '', { center: true, width: EMP_COLS[i + 1] })),
                         ],
                     }));
                 });
