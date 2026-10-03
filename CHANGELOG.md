@@ -7,6 +7,30 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.44.0 — 2026-10-04 — Module Builder handoff: tasks and more fields ─
+MINOR. modules.js, sw.js (v154). Pairs with Module Builder 3.9.0, which
+reads the new fields; an older Module Builder ignores them safely.
+Fixed   Module Builder received NO source tasks and no Task Analysis for
+        a module whose outcomes use competency criteria — almost every
+        module: those criteria carry no taskId (only Task Analysis
+        criteria do), and the tasks were collected from taskId alone.
+        Verified on a 16-module project: 0 → 16 modules with source
+        tasks; a task's analysis now reaches its module. A criterion now
+        traces to the tasks of its competency (a Task Analysis criterion
+        still to its own task).
+Added   In the payload (additive; same localStorage key):
+        • per criterion: sourceTaskIds (the tasks it traces to);
+        • per outcome: loId (DACUM's id, so an outcome sent again is
+          updated, not duplicated);
+        • per module: sourceTasks [{id, code, text, dutyTitle}] — every
+          source task, analysed or not — and curriculum (from Module
+          Curriculum: credits, total and split hours, purpose,
+          prerequisites, outcome hours; null when nothing was entered);
+        • top level: occupationTitle, jobTitle, sector, labelMode.
+        The Module Mapping JSON download carries the same module shape.
+Unchanged Module code and short name (sent since 3.34), level, track,
+        outcomes, criteria, occupational reference data.
+
 ── 3.43.0 — 2026-10-03 — User Guide updated (EN / FR / AR) ────────────
 MINOR. DACUM_Live_Pro_User_Guide.html, index.html, translations.js,
 dacum-rtl.css, sw.js (v153). No change to application behaviour.

@@ -11,6 +11,9 @@ import { getTaskCode, getDutyLabel,
          getAddedTaskLabel } from './codes.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
 import { getSupplementaryVerificationData } from './supplementary_verification.js';
+// Circular with module_curriculum.js (which imports from here); used only
+// inside functions, after both modules have finished loading.
+import { getCurriculumModel } from './module_curriculum.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -3967,21 +3970,78 @@ export function addLoToModuleFromDropdown(loId, moduleId) {
 // those), so an old project with no Task Analysis data at all still
 // produces a valid, empty-but-harmless taskAnalysis: {}.
 function _collectModuleTaskAnalysis(module) {
+  /* 3.44.0: a criterion written in Competency Clusters carries no taskId
+     (only Task Analysis criteria do), so this used to find no source task
+     at all for most modules — Module Builder received empty
+     sourceTaskIds / taskAnalysis and its Training Structure Mapping had
+     nothing to offer. A cluster criterion now traces to the tasks of its
+     competency; a Task Analysis criterion still traces to its own task. */
   const taskIds = new Set();
   module.learningOutcomes.forEach(o =>
-    o.linkedCriteria.forEach(pc => { if (pc.taskId) taskIds.add(pc.taskId); })
+    o.linkedCriteria.forEach(pc => _criterionTaskIds(pc).forEach(id => taskIds.add(id)))
   );
   const taskAnalysis = {};
   taskIds.forEach(taskId => {
     const record = getTaskAnalysisRecord(taskId);
     if (record) taskAnalysis[taskId] = { taskCode: _taskLabel(taskId), ...record };
   });
-  return { sourceTaskIds: [...taskIds], taskAnalysis };
+  /* Code and statement of every source task, analysed or not — so Module
+     Builder can label a task that has no Task Analysis yet instead of
+     showing its raw id. */
+  const sourceTasks = [...taskIds].map(id => {
+    const t = _clusterTask(id);
+    return { id, code: _taskLabel(id), text: (t && t.text) || '', dutyTitle: (t && t.dutyTitle) || '' };
+  });
+  return { sourceTaskIds: [...taskIds], taskAnalysis, sourceTasks };
+}
+
+/* The tasks a linked criterion traces back to: its own task for a Task
+   Analysis criterion, the tasks of its competency for a cluster one. */
+function _criterionTaskIds(pc) {
+  if (pc.taskId) return [pc.taskId];
+  const cluster = (appState.clusteringData.clusters || []).find(c => c.id === pc.clusterId);
+  return cluster ? (cluster.tasks || []).map(t => t.id).filter(Boolean) : [];
+}
+
+function _clusterTask(taskId) {
+  for (const c of (appState.clusteringData.clusters || [])) {
+    const t = (c.tasks || []).find(x => x.id === taskId);
+    if (t) return t;
+  }
+  return null;
+}
+
+/* Module Curriculum summary for the handoff (3.44.0) — only what Module
+   Builder can use: credits, hours, purpose, prerequisites and outcome
+   hours. null when nothing was entered for the module. */
+function _curriculumSummary(module) {
+  let model = null;
+  try { model = getCurriculumModel(module.id); } catch (_) { model = null; }
+  if (!model) return null;
+  const h = model.hours;
+  const loHours = {};
+  (model.los || []).forEach((lo, i) => {
+    const o = module.learningOutcomes[i];
+    if (o && lo.hours !== '' && lo.hours != null) loHours[o.number] = Number(lo.hours);
+  });
+  const out = {
+    credits: model.credits === '' ? null : Number(model.credits),
+    totalHours: h ? h.total : null,
+    hours: h ? { theory: h.parts.theory, practical: h.parts.practical, formative: h.parts.formative,
+                 industryPractice: h.parts.practice, summative: h.parts.summative,
+                 institutional: h.institutional, industry: h.industry } : null,
+    purpose: model.purpose || '',
+    prerequisites: model.prerequisites || [],
+    loHours,
+    programme: model.programme || '',
+  };
+  const empty = out.credits == null && !out.purpose && !out.prerequisites.length && !Object.keys(loHours).length;
+  return empty ? null : out;
 }
 
 function _buildModuleExport(module, moduleNumber) {
   _refreshModuleOutcomes();
-  const { sourceTaskIds, taskAnalysis } = _collectModuleTaskAnalysis(module);
+  const { sourceTaskIds, taskAnalysis, sourceTasks } = _collectModuleTaskAnalysis(module);
   return {
     moduleId: module.id,
     moduleNumber: `M${moduleNumber}`,
@@ -3993,9 +4053,16 @@ function _buildModuleExport(module, moduleNumber) {
     level: _moduleLevel(module),
     track: module.track || '',
     learningOutcomes: module.learningOutcomes.map(o => ({
+      // 3.44.0: DACUM's own outcome id, so Module Builder can update an
+      // outcome it already holds instead of matching by position.
+      loId: o.id,
       number: o.number,
       statement: o.statement,
-      performanceCriteria: o.linkedCriteria.map(pc => ({ id: pc.id, text: pc.text, taskId: pc.taskId || null }))
+      performanceCriteria: o.linkedCriteria.map(pc => ({
+        id: pc.id, text: pc.text, taskId: pc.taskId || null,
+        // 3.44.0: the tasks the criterion traces to (see _criterionTaskIds).
+        sourceTaskIds: _criterionTaskIds(pc)
+      }))
     })),
     // Raw task IDs (for Module Builder's own lookups) — the matching
     // display-ready "TASK B4" label is already on each entry in
@@ -4004,7 +4071,11 @@ function _buildModuleExport(module, moduleNumber) {
     // Present even when empty, so Module Builder can tell "no Task
     // Analysis available for this module" apart from "field missing" —
     // relevant for projects created before Task Analysis existed.
-    taskAnalysis
+    taskAnalysis,
+    // 3.44.0: code + statement of each source task (analysed or not).
+    sourceTasks,
+    // 3.44.0: Module Curriculum summary, or null.
+    curriculum: _curriculumSummary(module)
   };
 }
 
@@ -4035,6 +4106,12 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     source: 'DACUM Live Pro v1.0',
     exportDate: new Date().toISOString(),
     occupation,
+    // 3.44.0: the remaining Chart Info fields Module Builder's cover has
+    // a row for, and how modules are labelled here (code / number / both).
+    occupationTitle,
+    jobTitle,
+    sector: document.getElementById('sector')?.value || '',
+    labelMode: getModuleLabelMode(),
     modules: modulesToSend.map(m => _buildModuleExport(m, mm.modules.indexOf(m) + 1)),
     // Occupation-level Verified Occupational Reference Data. Always
     // present; { available:false } when the optional feature is off or
@@ -4056,6 +4133,7 @@ export function openModuleBuilderFromMapping(moduleId = null) {
       if (existing && Array.isArray(existing.modules)) {
         const others = existing.modules.filter(m => m.moduleId !== moduleId);
         payload = { ...existing, exportDate: exportObject.exportDate, occupation,
+                    occupationTitle, jobTitle, sector: exportObject.sector, labelMode: exportObject.labelMode,
                     occupationalReference: exportObject.occupationalReference,
                     modules: [...others, ...exportObject.modules] };
       }
