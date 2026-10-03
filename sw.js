@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v145';
+const CACHE_VERSION = 'v146';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -128,6 +128,12 @@ const PRECACHE_URLS = [
   BASE + 'draft_ratings.js',
   BASE + 'learning_outcomes_ai.js',
   BASE + 'image_store.js',
+  // Third-party libraries, self-hosted since 3.38.0 (were CDN, so Word
+  // and PDF export failed offline). Versioned folders: a new version is
+  // a new path, never an in-place change.
+  BASE + 'vendor/jspdf-2.5.1/jspdf.umd.min.js',
+  BASE + 'vendor/docx-7.8.2/index.js',
+  BASE + 'vendor/sortablejs-1.15.3/Sortable.min.js',
   // Owner of the project list (localStorage by default, IndexedDB as
   // fallback). Imported by app.js, dacum_projects.js, autosave.js,
   // snapshots.js and tasks.js — the app cannot boot offline without it.

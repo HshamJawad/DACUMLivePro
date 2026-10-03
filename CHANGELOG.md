@@ -7,6 +7,22 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.38.0 — 2026-10-03 — Loading screen; libraries self-hosted ────
+MINOR. index.html, app.js, sw.js (v146); new vendor/ folder.
+Added   Loading screen painted before anything else: DACUM Live Pro,
+        version and date (read from APP_VERSION / APP_RELEASED via
+        window.DACUM_BUILD), one-line description, progress bar,
+        "Developed by Husham Jawad — TVET Expert". EN/FR/AR from the
+        saved language, RTL, reduced-motion aware, inline styles only.
+        Removed when app.js fires 'dacum:app-ready' (end of boot), after
+        at least 600 ms. "Slow connection" note at 6 s; Reload / Continue
+        at 20 s, or at once on a script error during boot.
+Changed jsPDF 2.5.1, docx 7.8.2 and SortableJS 1.15.3 are served from
+        vendor/ (same versions, unmodified, MIT; sources and checksums in
+        vendor/README.md) instead of cdnjs / jsDelivr, loaded with
+        `defer` so they no longer block the first paint, and precached:
+        Word and PDF export now work offline.
+
 ── 3.37.2 — 2026-10-03 — AI cards: Duties, Clusters, Task Analysis ────
 PATCH. projects.js, dacum_projects.js, clustering_ai.js,
 task_analysis_ai.js, modules.js, translations.js.

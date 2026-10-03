@@ -108,14 +108,15 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v145';
+      var EXPECTED_SW='v146';
 
       // ── Human-readable build identity (shown in the toolbar) ──
-      // Bumped together with EXPECTED_SW above. PATCH: the Duties &
-      // Tasks, Competency Clusters and Task Analysis AI cards catch up
-      // with the Learning Outcomes / Module chain; no new capability.
-      var APP_VERSION = '3.37.2';
+      // Bumped together with EXPECTED_SW above. MINOR: loading screen,
+      // and the three third-party libraries are now self-hosted.
+      var APP_VERSION = '3.38.0';
       var APP_RELEASED = '2026-10-03';
+      // Read by the loading screen at the top of <body>.
+      window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
 
       /* CHANGELOG — moved to CHANGELOG.md (3.35.0). Keep APP_VERSION,
          APP_RELEASED and EXPECTED_SW above in step with CACHE_VERSION in
@@ -393,9 +394,15 @@
     })();
     </script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+    <!-- Third-party libraries, self-hosted in vendor/ (3.38.0; see
+         vendor/README.md for sources and checksums). Same versions as the
+         CDN copies they replace. `defer`: they no longer block the first
+         paint (a slow connection used to show a blank page until all three
+         had downloaded) and still run, in this order, before app.js and
+         every module — the only code that uses them (exports, drag & drop). -->
+    <script defer src="vendor/jspdf-2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="vendor/docx-7.8.2/index.js"></script>
+    <script defer src="vendor/sortablejs-1.15.3/Sortable.min.js"></script>
     <link rel="stylesheet" href="dacum-styles.css">
     <link rel="stylesheet" href="dacum-responsive.css">
     <link rel="stylesheet" href="dacum-typography.css">
@@ -455,6 +462,118 @@
         // Hard reload bypasses SW cache for HTML
         window.location.reload(true);
       }
+    })();
+    </script>
+
+    <!-- ══ LOADING SCREEN (3.38.0) ══════════════════════════════
+         Painted before anything else loads, so a slow connection shows
+         the tool's identity instead of a blank page. Removed when app.js
+         signals 'dacum:app-ready' (end of boot), after at least 600 ms so
+         it never flickers on a fast load. Inline styles only and no <h1>
+         (the stale-HTML guard above treats an <h1> as old markup).
+         "Slow connection" note at 6 s. At 20 s, or at once if a script
+         error happens during boot: Reload and Continue buttons (Continue
+         simply removes the screen).
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="dacumSplash" role="status" aria-live="polite"
+         style="position:fixed;inset:0;z-index:2147483646;display:flex;align-items:center;justify-content:center;
+                padding:16px;box-sizing:border-box;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                font-family:inherit;transition:opacity .35s ease;">
+      <div style="background:#fff;border-radius:18px;width:100%;max-width:420px;box-sizing:border-box;
+                  padding:28px 22px 20px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.28);">
+        <img src="icon-192.png" alt="" width="64" height="64"
+             style="width:64px;height:64px;border-radius:14px;display:block;margin:0 auto 12px;">
+        <div dir="ltr" style="font-size:1.55em;font-weight:800;color:#312e81;letter-spacing:.01em;line-height:1.2;">DACUM Live Pro</div>
+        <div id="dacumSplashBuild" dir="ltr" style="margin-top:4px;font-size:.8em;color:#6b7280;"></div>
+        <p id="dacumSplashTag" style="text-align:center;margin:14px 0 18px;font-size:.92em;color:#374151;line-height:1.6;">
+          From occupational analysis to curriculum: DACUM, competencies, learning outcomes, modules.</p>
+        <div style="height:6px;border-radius:999px;background:#e5e7eb;overflow:hidden;position:relative;" aria-hidden="true">
+          <div id="dacumSplashBar" style="position:absolute;top:0;bottom:0;width:35%;border-radius:999px;
+               background:linear-gradient(90deg,#667eea,#764ba2);left:0;"></div>
+        </div>
+        <p id="dacumSplashStatus" style="text-align:center;margin:10px 0 0;font-size:.82em;color:#4b5563;min-height:1.3em;">Loading…</p>
+        <button id="dacumSplashReload" type="button"
+                style="display:none;margin-top:10px;padding:8px 18px;border:none;border-radius:8px;background:#667eea;color:#fff;
+                       font:inherit;font-size:.85em;font-weight:700;cursor:pointer;">Reload</button>
+        <button id="dacumSplashGo" type="button"
+                style="display:none;margin-top:10px;margin-inline-start:6px;padding:8px 18px;border:1px solid #cbd5e1;border-radius:8px;
+                       background:#fff;color:#334155;font:inherit;font-size:.85em;font-weight:600;cursor:pointer;">Continue</button>
+        <div style="margin-top:18px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:.78em;color:#6b7280;">
+          <span id="dacumSplashBy">Developed by</span> <bdi dir="ltr" style="font-weight:700;color:#374151;">Husham Jawad — TVET Expert</bdi>
+        </div>
+      </div>
+    </div>
+    <script>
+    (function () {
+      var el = document.getElementById('dacumSplash');
+      if (!el) return;
+      var t0 = Date.now(), done = false;
+      var T = {
+        en: { tag: 'From occupational analysis to curriculum: DACUM, competencies, learning outcomes, modules.',
+              load: 'Loading…', slow: 'Slow connection — still loading…',
+              stuck: 'This is taking longer than expected.', reload: 'Reload', go: 'Continue', by: 'Developed by' },
+        fr: { tag: 'De l’analyse du métier au curriculum : DACUM, compétences, résultats d’apprentissage, modules.',
+              load: 'Chargement…', slow: 'Connexion lente — chargement en cours…',
+              stuck: 'Le chargement prend plus de temps que prévu.', reload: 'Recharger', go: 'Continuer', by: 'Développé par' },
+        ar: { tag: 'من تحليل المهنة إلى المنهج: DACUM، الكفاءات، محصلات التعلم، الوحدات.',
+              load: 'جارٍ التحميل…', slow: 'الاتصال بطيء — ما زال التحميل جارياً…',
+              stuck: 'يستغرق التحميل وقتاً أطول من المعتاد.', reload: 'إعادة التحميل', go: 'متابعة', by: 'تطوير:' }
+      };
+      var lang = 'en';
+      try { lang = localStorage.getItem('dacum_lang') || 'en'; } catch (e) {}
+      var L = T[lang] || T.en;
+      var $ = function (id) { return document.getElementById(id); };
+      el.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+      el.setAttribute('lang', T[lang] ? lang : 'en');
+      $('dacumSplashTag').textContent = L.tag;
+      $('dacumSplashStatus').textContent = L.load;
+      $('dacumSplashReload').textContent = L.reload;
+      $('dacumSplashGo').textContent = L.go;
+      $('dacumSplashBy').textContent = L.by;
+      var b = window.DACUM_BUILD;
+      if (b && b.version) $('dacumSplashBuild').textContent = 'v' + b.version + (b.released ? ' · ' + b.released : '');
+
+      // Indeterminate bar; a still bar when the user asked for less motion.
+      var bar = $('dacumSplashBar'), anim = null;
+      var still = false;
+      try { still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+      if (still) { bar.style.width = '100%'; bar.style.opacity = '.6'; }
+      else if (bar.animate) {
+        anim = bar.animate([{ transform: 'translateX(-110%)' }, { transform: 'translateX(300%)' }],
+                           { duration: 1300, iterations: Infinity, easing: 'ease-in-out' });
+      }
+
+      var slowT = setTimeout(function () { if (!done) $('dacumSplashStatus').textContent = L.slow; }, 6000);
+      function stuck() {
+        if (done) return;
+        $('dacumSplashStatus').textContent = L.stuck;
+        // Inline display, not the hidden attribute: the app's button
+        // styles set display and would override [hidden].
+        $('dacumSplashReload').style.display = 'inline-block';
+        $('dacumSplashGo').style.display = 'inline-block';
+      }
+      var stuckT = setTimeout(stuck, 20000);
+      $('dacumSplashReload').addEventListener('click', function () { location.reload(); });
+      // A script error before the app is ready may mean boot stopped.
+      window.addEventListener('error', function (e) {
+        if (e && e.target && e.target !== window) return;   // failed <img>/<link>, not a script error
+        stuck();
+      });
+      window.addEventListener('unhandledrejection', stuck);
+
+      function hide() {
+        if (done) return;
+        done = true;
+        clearTimeout(slowT); clearTimeout(stuckT);
+        setTimeout(function () {
+          el.style.opacity = '0';
+          el.style.pointerEvents = 'none';
+          setTimeout(function () { if (anim) anim.cancel(); el.remove(); }, 380);
+        }, Math.max(0, 600 - (Date.now() - t0)));
+      }
+      $('dacumSplashGo').addEventListener('click', function () { t0 = 0; hide(); });
+      window.dacumHideSplash = hide;
+      document.addEventListener('dacum:app-ready', hide);
     })();
     </script>
 

@@ -198,4 +198,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   } else {
     setTimeout(lwCheckAndShowSection, 100);
   }
+
+  // Boot finished: the loading screen in index.html can go.
+  document.dispatchEvent(new CustomEvent('dacum:app-ready'));
 });
