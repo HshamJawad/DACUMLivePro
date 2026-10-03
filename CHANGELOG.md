@@ -7,6 +7,22 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.35.1 — 2026-10-03 — LO hours filled by default ────
+PATCH. module_curriculum.js + dacum-curriculum.css.
+Fixed   Outcome hours showed nothing until the button was pressed
+        (and nothing at all when the credits were still empty).
+        Now every outcome shows an AUTOMATIC value as soon as the
+        credits are known: the institutional time left after any
+        typed values, shared by performance criteria (whole hours,
+        exact total). Typing makes a value manual; clearing it
+        returns to auto. Values update live when credits, hours per
+        credit or percentages change. The export uses the same values.
+Changed "⚖️ Distribute automatically" and its "?" moved next to the
+        Duration field of each outcome; the button returns all the
+        module's outcomes to automatic values. A hint under the field
+        says whether the value is automatic or typed, or that the
+        credits are needed first.
+
 ── 3.35.0 — 2026-10-03 — LO hours: automatic distribution ─
 MINOR. module_curriculum.js + dacum-curriculum.css.
 Added   "⚖️ Distribute hours automatically" in Module Curriculum

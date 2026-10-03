@@ -432,9 +432,9 @@ html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
   background: #fff; border: 1px solid #99f6e4; color: #134e4a; font-family: Consolas, Menlo, monospace; font-weight: 600;
 }
 
-/* ── LO hours: distribute + help (3.35.0) ────────────────── */
-#module-curriculum-tab .cur-sec-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-@media (max-width: 480px) {
-  #module-curriculum-tab .cur-sec-tools { width: 100%; }
-  #module-curriculum-tab .cur-sec-tools .cur-mini-btn { flex: 1 1 auto; justify-content: center; }
-}
+/* ── LO hours: field + distribute + help (3.35.1) ────────── */
+#module-curriculum-tab .cur-hours-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#module-curriculum-tab .cur-hours-row input { width: 120px !important; flex: 0 0 auto; }
+#module-curriculum-tab .cur-hours-row input.is-auto { color: #4338ca; font-weight: 700; background: #f5f3ff; }
+#module-curriculum-tab .cur-hours-field .cur-hint { display: block; margin-top: 4px; }
+#module-curriculum-tab .cur-hours-tools { display: inline-flex; align-items: center; gap: 8px; flex-wrap: nowrap; }

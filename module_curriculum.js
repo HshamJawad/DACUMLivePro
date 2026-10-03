@@ -71,12 +71,15 @@ const _S = {
     curCodeAuto: 'suggested',
     curCodeSuggest: 'Suggest',
     curCodeHint: 'Same code as on the module card in Module Mapping: track + level + position within the level. Edit freely.',
-    curDistBtn: 'Distribute hours automatically',
+    curDistBtn: 'Distribute automatically',
     curDistTip: 'Share the institutional time over the outcomes in proportion to their performance criteria',
     curDistHelpTip: 'How to decide the hours of each learning outcome',
     curDistNeedCredits: 'Enter the module credits first — the institutional time is computed from them.',
     curDistConfirm: 'Some outcomes already have hours. Replace them with the automatic distribution?',
     curDistDone: '{t} h distributed: {list}',
+    curHoursAuto: 'auto',
+    curHoursAutoHint: 'Calculated automatically from the institutional time — type a value to change it.',
+    curHoursManualHint: 'Set by you. Clear the field, or press the button, to return to the automatic value.',
     curFilePrefix: 'Prefix for exported file',
     curFileLevel: 'Level in file name',
     curFilePreview: 'File name:',
@@ -185,12 +188,15 @@ const _S = {
     curCodeAuto: 'proposé',
     curCodeSuggest: 'Proposer',
     curCodeHint: 'Le même code que sur la carte du module (Cartographie des modules) : filière + niveau + position dans le niveau. Modifiable.',
-    curDistBtn: 'Répartir les heures automatiquement',
+    curDistBtn: 'Répartir automatiquement',
     curDistTip: 'Répartir le temps en établissement au prorata des critères de performance de chaque résultat',
     curDistHelpTip: 'Comment fixer les heures de chaque résultat d’apprentissage',
     curDistNeedCredits: 'Saisissez d’abord les crédits du module — le temps en établissement en découle.',
     curDistConfirm: 'Certains résultats ont déjà des heures. Les remplacer par la répartition automatique ?',
     curDistDone: '{t} h réparties : {list}',
+    curHoursAuto: 'auto',
+    curHoursAutoHint: 'Calculé automatiquement à partir du temps en établissement — saisissez une valeur pour le modifier.',
+    curHoursManualHint: 'Valeur saisie. Videz le champ, ou cliquez sur le bouton, pour revenir à la valeur automatique.',
     curFilePrefix: 'Préfixe du fichier exporté',
     curFileLevel: 'Niveau dans le nom du fichier',
     curFilePreview: 'Nom du fichier :',
@@ -298,12 +304,15 @@ const _S = {
     curCodeAuto: 'مقترح',
     curCodeSuggest: 'اقتراح',
     curCodeHint: 'هو الرمز نفسه في بطاقة الوحدة في مواءمة الوحدات: المسار + المستوى + ترتيب الوحدة داخل المستوى. يمكنك تعديله.',
-    curDistBtn: 'توزيع الساعات تلقائياً',
+    curDistBtn: 'توزيع تلقائي',
     curDistTip: 'توزيع الوقت المؤسسي على المحصلات بنسبة معايير الأداء المرتبطة بكل منها',
     curDistHelpTip: 'كيف تُحدَّد ساعات كل محصلة تعلم',
     curDistNeedCredits: 'أدخل الرصيد / الساعات المعتمدة للوحدة أولاً — الوقت المؤسسي يُحسب منه.',
     curDistConfirm: 'بعض المحصلات لها ساعات مسبقاً. هل تستبدلها بالتوزيع التلقائي؟',
     curDistDone: 'وُزِّعت {t} ساعة: {list}',
+    curHoursAuto: 'تلقائي',
+    curHoursAutoHint: 'محسوبة تلقائياً من الوقت المؤسسي — اكتب قيمة لتغييرها.',
+    curHoursManualHint: 'قيمة أدخلتها أنت. امسح الحقل أو اضغط الزر للعودة إلى القيمة التلقائية.',
     curFilePrefix: 'بادئة الملف المُصدَّر',
     curFileLevel: 'المستوى في اسم الملف',
     curFilePreview: 'اسم الملف:',
@@ -895,16 +904,42 @@ function _listEditor(scope, key, items, opts = {}) {
     </div>`;
 }
 
-function _loHoursWarn(module) {
+/* LO hours (3.35.1): an outcome either has hours the user typed
+   (manual), or shows an AUTOMATIC value — the institutional time left
+   after the manual ones, shared over the automatic outcomes in
+   proportion to their performance criteria. So the field is filled by
+   default as soon as the credits are known, and a typed value simply
+   takes over for that outcome. Clearing a field returns it to auto. */
+function _isManualHours(r) {
+  return !!r && r.hours !== '' && r.hours != null && Number.isFinite(Number(r.hours));
+}
+function _effectiveLOHours(module) {
   const hrs = _moduleHours(module);
   const los = _liveLOs(module);
-  let any = false, sum = 0;
+  const out = new Map();
+  let manualSum = 0;
+  const autos = [];
   los.forEach(o => {
     const r = _loRec(module.id, o.id);
-    const h = r ? Number(r.hours) : NaN;
-    if (Number.isFinite(h) && r.hours !== '' && r.hours != null) { any = true; sum += h; }
+    if (_isManualHours(r)) { out.set(o.id, { h: Number(r.hours), auto: false }); manualSum += Number(r.hours); }
+    else autos.push(o);
   });
-  if (!any || !hrs || Math.abs(sum - hrs.institutional) < 1e-9) return '';
+  if (autos.length) {
+    if (!hrs) autos.forEach(o => out.set(o.id, { h: null, auto: true }));
+    else {
+      const parts = distributeHours(Math.max(0, hrs.institutional - manualSum), autos.map(_loWeight));
+      autos.forEach((o, i) => out.set(o.id, { h: parts[i], auto: true }));
+    }
+  }
+  return out;
+}
+
+function _loHoursWarn(module) {
+  const hrs = _moduleHours(module);
+  if (!hrs) return '';
+  let sum = 0;
+  _effectiveLOHours(module).forEach(v => { sum += v.h || 0; });
+  if (Math.abs(sum - hrs.institutional) < 1e-9) return '';
   return `<div class="cur-warn cur-block">⚠ ${_esc(_txf('curLOHoursWarn', { a: Math.round(sum * 100) / 100, b: hrs.institutional }))}</div>`;
 }
 
@@ -912,16 +947,31 @@ function _renderLOs(module) {
   const los = _liveLOs(module);
   return `
     <section class="cur-card">
-      <div class="cur-sec-head"><h3 class="cur-sec-title">${_esc(_tx('sec2'))}</h3>
-        ${los.length ? `<div class="cur-sec-tools">
-          <button type="button" class="cur-mini-btn" data-cur-action="distribute-hours"
-            title="${_esc(_tx('curDistTip'))}">⚖️ ${_esc(_tx('curDistBtn'))}</button>
-          <button type="button" class="tab-help-btn" data-cur-action="dist-help" aria-haspopup="dialog"
-            title="${_esc(_tx('curDistHelpTip'))}" aria-label="${_esc(_tx('curDistHelpTip'))}">?</button>
-        </div>` : ''}</div>
+      <h3 class="cur-sec-title">${_esc(_tx('sec2'))}</h3>
       <div id="curLOHoursWarn">${_loHoursWarn(module)}</div>
       ${los.length ? los.map((o, i) => _renderLOCard(module, o, i + 1)).join('') : `<div class="cur-hint">${_esc(_tx('curNoLOs'))}</div>`}
     </section>`;
+}
+
+function _hoursField(module, lo) {
+  const eff = _effectiveLOHours(module).get(lo) || { h: null, auto: true };
+  const auto = eff.auto;
+  return `
+        <div class="cur-field cur-hours-field">
+          <span class="cur-field-label">${_esc(_tx('curLOHours'))}
+            <em class="cur-chip" data-cur-hchip="${_esc(lo)}" ${auto && eff.h != null ? '' : 'hidden'}>${_esc(_tx('curHoursAuto'))}</em></span>
+          <div class="cur-hours-row">
+            <input type="number" min="0" step="0.5" inputmode="decimal" class="cur-num ${auto ? 'is-auto' : ''}" data-cs="lo" data-lo="${_esc(lo)}" data-ck="hours"
+              value="${_esc(eff.h == null ? '' : eff.h)}" aria-label="${_esc(_tx('curLOHours'))}">
+            <span class="cur-hours-tools">
+              <button type="button" class="cur-mini-btn" data-cur-action="distribute-hours"
+                title="${_esc(_tx('curDistTip'))}">⚖️ ${_esc(_tx('curDistBtn'))}</button>
+              <button type="button" class="tab-help-btn" data-cur-action="dist-help" aria-haspopup="dialog"
+                title="${_esc(_tx('curDistHelpTip'))}" aria-label="${_esc(_tx('curDistHelpTip'))}">?</button>
+            </span>
+          </div>
+          <small class="cur-hint" data-cur-hnote="${_esc(lo)}">${_esc(eff.h == null ? _tx('curDistNeedCredits') : (auto ? _tx('curHoursAutoHint') : _tx('curHoursManualHint')))}</small>
+        </div>`;
 }
 
 function _renderLOCard(module, o, n) {
@@ -955,8 +1005,7 @@ function _renderLOCard(module, o, n) {
               `<button type="button" class="cur-chip-btn" data-cur-action="add-method" data-lo="${_esc(lo)}" data-val="${_esc(_tx(k))}">＋ ${_esc(_tx(k))}</button>`).join('')}</div>
           ${_listEditor('lo', 'assessMethods', r.assessMethods, { lo, label: curLabel('curAssessMethods') })}
         </div>
-        <label class="cur-field cur-hours-field"><span>${_esc(_tx('curLOHours'))}</span>
-          <input type="number" min="0" step="0.5" inputmode="decimal" class="cur-num" data-cs="lo" data-lo="${_esc(lo)}" data-ck="hours" value="${_esc(_num(r.hours))}"></label>
+        ${_hoursField(module, lo)}
       </div>
     </details>`;
 }
@@ -1034,6 +1083,18 @@ function _refreshDerived() {
     const split = sc === 'set' ? _settings().split : (_modRec(module.id) || {}).splitOverride;
     if (split) el.innerHTML = _splitSumNote(split);
   });
+  // LO hours: refresh automatic values (never the field being typed in).
+  const eff = _effectiveLOHours(module);
+  eff.forEach((v, loId) => {
+    const sel = CSS.escape(loId);
+    const inp = root.querySelector(`input[data-ck="hours"][data-lo="${sel}"]`);
+    if (inp && document.activeElement !== inp) inp.value = v.h == null ? '' : v.h;
+    if (inp) inp.classList.toggle('is-auto', v.auto);
+    const chip = root.querySelector(`[data-cur-hchip="${sel}"]`);
+    if (chip) chip.hidden = !(v.auto && v.h != null);
+    const note = root.querySelector(`[data-cur-hnote="${sel}"]`);
+    if (note) note.textContent = v.h == null ? _tx('curDistNeedCredits') : (v.auto ? _tx('curHoursAutoHint') : _tx('curHoursManualHint'));
+  });
   const fp = root.querySelector('#curFilePreview');
   if (fp) fp.textContent = curFileName(module);
   const fh = root.querySelector('[data-cur-fachead]');
@@ -1075,7 +1136,7 @@ function _setField(scope, key, raw, loId) {
   }
   if (scope === 'lo' && loId) {
     const r = _loRec(module.id, loId, true);
-    if (key === 'hours') r.hours = raw === '' ? '' : Math.max(0, Number(raw) || 0);
+    if (key === 'hours') { if (raw === '') delete r.hours; else r.hours = Math.max(0, Number(raw) || 0); }
     else r[key] = raw;
   }
 }
@@ -1347,10 +1408,10 @@ function _distributeLOHours() {
   if (!los.length) { showStatus(_tx('curNoLOs'), 'error'); return; }
   const hrs = _moduleHours(module);
   if (!hrs) { showStatus(_tx('curDistNeedCredits'), 'error'); return; }
-  const hasAny = los.some(o => { const r = _loRec(module.id, o.id); return r && r.hours !== '' && r.hours != null; });
+  const hasAny = los.some(o => _isManualHours(_loRec(module.id, o.id)));
   if (hasAny && !confirm(_tx('curDistConfirm'))) return;
+  los.forEach(o => { const r = _loRec(module.id, o.id); if (r) delete r.hours; });
   const parts = distributeHours(hrs.institutional, los.map(_loWeight));
-  los.forEach((o, i) => { _loRec(module.id, o.id, true).hours = parts[i]; });
   renderModuleCurriculum();
   _schedulePersist();
   showStatus('✓ ' + _txf('curDistDone', { t: hrs.institutional, list: parts.join(' + ') }), 'success');
@@ -1361,7 +1422,9 @@ const _DIST_GUIDE = {
     title: 'Learning outcome hours — how to decide',
     intro: 'The hours of the learning outcomes share out the module’s institutional time (theory + practical + formative assessment). Industry practice and summative assessment belong to the whole module and are not split over the outcomes. The field is optional; when it is filled, the outcome hours should add up exactly to the institutional time.',
     sections: [
-      { h: '⚖️ “Distribute automatically”', items: [
+      { h: '⚖️ Automatic hours and “Distribute automatically”', items: [
+        'As soon as the module credits are entered, every outcome shows an automatic value (marked “auto”). Typing a number makes it yours; the other automatic outcomes then share what is left. Clearing the field returns it to auto.',
+        '“Distribute automatically” returns every outcome of the module to the automatic value.',
         'Shares the institutional time in proportion to the number of performance criteria linked to each outcome (an outcome with none counts as 1).',
         'Whole hours only, and they always add up exactly to the total. Example: 90 h over outcomes with 1, 1 and 2 criteria → 23 + 22 + 45.',
         'It is a documented starting point, not a decision: adjust any value afterwards.' ] },
@@ -1380,7 +1443,9 @@ const _DIST_GUIDE = {
     title: 'Heures des résultats d’apprentissage — comment décider',
     intro: 'Les heures des résultats répartissent le temps en établissement du module (théorie + pratique + évaluation formative). La pratique en entreprise et l’évaluation sommative concernent tout le module et ne sont pas réparties. Le champ est facultatif ; s’il est rempli, la somme doit égaler exactement le temps en établissement.',
     sections: [
-      { h: '⚖️ « Répartir automatiquement »', items: [
+      { h: '⚖️ Heures automatiques et « Répartir automatiquement »', items: [
+        'Dès que les crédits du module sont saisis, chaque résultat affiche une valeur automatique (marquée « auto »). Saisir un nombre le fixe ; les autres résultats automatiques se partagent le reste. Vider le champ le remet en automatique.',
+        '« Répartir automatiquement » remet tous les résultats du module en valeur automatique.',
         'Répartit le temps en établissement au prorata du nombre de critères de performance liés à chaque résultat (un résultat sans critère compte pour 1).',
         'Heures entières uniquement, dont la somme égale toujours le total. Exemple : 90 h pour des résultats à 1, 1 et 2 critères → 23 + 22 + 45.',
         'C’est un point de départ documenté, pas une décision : ajustez ensuite.' ] },
@@ -1399,7 +1464,9 @@ const _DIST_GUIDE = {
     title: 'ساعات محصلات التعلم — كيف تُحدَّد',
     intro: 'ساعات المحصلات توزّع الوقت المؤسسي للوحدة (نظري + عملي + تقييم تكويني). أما التطبيق في موقع العمل والتقييم الختامي فيخصّان الوحدة كلها ولا يُوزَّعان على المحصلات. الحقل اختياري، وعند تعبئته يجب أن يساوي مجموع ساعات المحصلات الوقت المؤسسي بالضبط.',
     sections: [
-      { h: '⚖️ «توزيع تلقائي»', items: [
+      { h: '⚖️ الساعات التلقائية وزر «توزيع تلقائي»', items: [
+        'بمجرد إدخال رصيد الوحدة تظهر لكل محصلة قيمة تلقائية (عليها شارة «تلقائي»). إذا كتبت رقماً يصبح قيمتك أنت، وتتقاسم المحصلات التلقائية الأخرى ما تبقّى. مسح الحقل يعيده إلى التلقائي.',
+        'زر «توزيع تلقائي» يعيد كل محصلات الوحدة إلى القيم التلقائية.',
         'يقسم الوقت المؤسسي بنسبة عدد معايير الأداء المرتبطة بكل محصلة (المحصلة التي لا معايير لها تُحسب 1).',
         'بساعات صحيحة فقط، ومجموعها يساوي الإجمالي دائماً. مثال: 90 ساعة على محصلات فيها 1 و1 و2 من المعايير ← 23 + 22 + 45.',
         'هو نقطة بداية موثقة وليس قراراً نهائياً؛ عدّل أي قيمة بعده.' ] },
@@ -1489,6 +1556,7 @@ export function getCurriculumModel(moduleId, opts = {}) {
   const hrs = _moduleHours(module);
   const split = _effSplit(rec);
   const prog = _programmeName();
+  const effH = _effectiveLOHours(module);
   const los = _liveLOs(module).map((o, i) => {
     const r = _loRec(module.id, o.id) || {};
     const n = i + 1;
@@ -1500,7 +1568,7 @@ export function getCurriculumModel(moduleId, opts = {}) {
       practice: txt('practice'), selfDirected: txt('selfDirected'),
       assessStatements: blank ? [] : _clean(r.assessStatements).map((t, k) => `${n}-${k + 1} ${t}`),
       assessMethods: blank ? [] : _clean(r.assessMethods),
-      hours: blank ? '' : (r.hours === '' || r.hours == null ? '' : r.hours),
+      hours: blank ? '' : ((effH.get(o.id) || {}).h ?? ''),
     };
   });
   const code = _moduleCode(module);
