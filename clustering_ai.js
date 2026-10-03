@@ -35,7 +35,9 @@
 
 import { appState }   from './state.js';
 import { showStatus } from './renderer.js';
-import { renderAvailableTasks, renderClusters } from './modules.js';
+import { renderAvailableTasks, renderClusters, persistClustering,
+         loText } from './modules.js';
+import { getTaskPerformanceCriteria } from './task_analysis.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
@@ -99,6 +101,47 @@ function _guardQuota() {
     return false;
   }
   return true;
+}
+
+/* ── What depends on the criteria about to be replaced ────────
+   Since 3.26 Learning Outcomes link to these criteria, and Modules (and
+   Module Curriculum) are built on the outcomes. Regenerating marks the
+   links ⚠ stale; the user only found out on opening the LO tab later.
+   Cluster-written criteria are the ones replaced (key "pc|cluster|…");
+   Task Analysis criteria ("ta|task|…") are re-matched by task and
+   survive a regrouping. */
+function _downstreamOf(clusterIds /* Set | null = every cluster */) {
+  const outcomes = appState.learningOutcomesData?.outcomes || [];
+  const los = outcomes.filter(o => (o.linkedCriteria || []).some(pc =>
+    pc && !pc.stale && !pc.taskId &&
+    (!clusterIds || clusterIds.has(pc.clusterId))));
+  const loIds = new Set(los.map(o => o.id));
+  const mods = (appState.moduleMappingData?.modules || []).filter(m =>
+    (m.learningOutcomes || []).some(o => o && loIds.has(o.id)));
+  return { lo: los.length, mm: mods.length };
+}
+
+function _downstreamLine(clusterIds) {
+  const d = _downstreamOf(clusterIds);
+  return d.lo ? '\n\n' + loText('clConfirmDownstream', { lo: d.lo, mm: d.mm }) : '';
+}
+
+/** Normalised form for duplicate checks (case, spaces, end punctuation). */
+const _norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').replace(/[.;:,]+$/, '').trim();
+
+/** Task Analysis criteria of every task in a cluster (deduplicated). */
+function _taCriteriaOf(cluster) {
+  const seen = new Set(), out = [];
+  (cluster.tasks || []).forEach(t => {
+    if (!t || !t.id) return;
+    let list = [];
+    try { list = getTaskPerformanceCriteria(t.id) || []; } catch (_) {}
+    list.forEach(txt => {
+      const k = _norm(txt);
+      if (k && !seen.has(k)) { seen.add(k); out.push(txt); }
+    });
+  });
+  return out;
 }
 
 // ── 1 · Suggest clusters ──────────────────────────────────────
@@ -179,13 +222,10 @@ function _dutyMirrorWarning(clusters) {
   }).length;
 
   if (clusters.length && singleDuty === clusters.length) {
-    return 'no cluster crosses duty boundaries — worth checking whether the ' +
-           'duty structure was simply copied, though duty-aligned clusters ' +
-           'are valid where the panel agrees they form one competency';
+    return loText('clNoteMirrorAll');
   }
   if (singleDuty > clusters.length / 2) {
-    return `${singleDuty} of ${clusters.length} clusters draw on a single duty — ` +
-           'confirm each one is a competency in its own right';
+    return loText('clNoteMirrorSome', { n: singleDuty, total: clusters.length });
   }
   return '';
 }
@@ -210,7 +250,7 @@ export async function suggestClustersAI() {
      dialogs during a run the user has already authorised — and each
      one silently stalls the pipeline until someone notices. */
   if (!isBatchRun() && existing.length && !confirm(
-    _tf('confirmReplaceClusters', { n: existing.length })
+    _tf('confirmReplaceClusters', { n: existing.length }) + _downstreamLine(null)
   )) {
     showStatus(_t('msgCancelClusters'), 'error');
     return false;
@@ -271,12 +311,15 @@ export async function suggestClustersAI() {
 
     renderAvailableTasks();
     renderClusters();
+    // Save now, as the LO and module generators do since 3.29/3.30 —
+    // otherwise the result lived only until the next autosave.
+    persistClustering();
     hideLoadingModal();
     incrementUsage();
 
     const notes = [];
-    if (leftovers.length) notes.push(`${leftovers.length} task${leftovers.length > 1 ? 's' : ''} left unassigned`);
-    if (trimmed)          notes.push(`${trimmed} oversized cluster${trimmed > 1 ? 's' : ''} trimmed`);
+    if (leftovers.length) notes.push(loText('clNoteLeftover', { n: leftovers.length }));
+    if (trimmed)          notes.push(loText('clNoteTrimmed', { n: trimmed }));
     const mirror = _dutyMirrorWarning(clusters);
     if (mirror) notes.push(mirror);
 
@@ -304,7 +347,11 @@ function _buildCriteriaPrompt(clusters) {
     const tasks = (c.tasks || [])
       .map(t => `      · ${t.text}${t.dutyTitle ? ` [${t.dutyTitle}]` : ''}`)
       .join('\n');
-    return `  - id: ${c.id}\n    competency: ${c.name}\n    tasks:\n${tasks}`;
+    const ta = _taCriteriaOf(c);
+    const taBlock = ta.length
+      ? `\n    already written in Task Analysis (task level):\n${ta.map(x => `      · ${x}`).join('\n')}`
+      : '';
+    return `  - id: ${c.id}\n    competency: ${c.name}\n    tasks:\n${tasks}${taBlock}`;
   }).join('\n');
 
   return `You are a competency-based training (CBT) engine working from a DACUM analysis.
@@ -351,6 +398,10 @@ CRITERIA RULES:
 - One criterion = one line of plain text, no numbering or bullets
   (the app adds numbering itself).
 - Base every criterion on the tasks actually listed for that cluster.
+- Where a cluster lists criteria "already written in Task Analysis",
+  those are kept and shown beside yours. Do NOT repeat or paraphrase
+  them: write competency-level criteria that COMPLEMENT them (integration
+  across tasks, quality, safety, compliance), and you may write fewer.
 
 OUTPUT FORMAT (STRICT — NO EXTRA TEXT, NO MARKDOWN):
 {
@@ -409,7 +460,7 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
   if (!isBatchRun() && filled.length && !confirm('\u26A0\uFE0F ' + _tf(
     filled.length === 1 ? 'confirmReplaceCriteriaOne' : 'confirmReplaceCriteriaMany',
     { n: filled.length }
-  ))) {
+  ) + _downstreamLine(new Set(targets.map(c => c.id))))) {
     showStatus(_t('msgCancelCriteria'), 'error');
     return false;
   }
@@ -433,7 +484,12 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
       if (!cluster) return;   // unknown id → ignore, never create a cluster here
 
       const range    = String(item.range || '').trim();
-      const criteria = _sanitiseCriteria(item.performanceCriteria);
+      // Task Analysis criteria of this cluster's tasks already appear in
+      // the Learning Outcomes source list next to these — drop exact
+      // repeats so the list does not carry the same criterion twice.
+      const taKeys   = new Set(_taCriteriaOf(cluster).map(_norm));
+      const criteria = _sanitiseCriteria(item.performanceCriteria)
+        .filter(c => !taKeys.has(_norm(c)));
 
       if (!range && !criteria.length) return;
       if (range)          cluster.range = range;
@@ -446,6 +502,7 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
     if (!updated) throw new Error('AI response did not match any existing cluster');
 
     renderClusters();
+    persistClustering();
     hideLoadingModal();
     incrementUsage();
 

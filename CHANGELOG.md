@@ -7,6 +7,41 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.37.2 — 2026-10-03 — AI cards: Duties, Clusters, Task Analysis ────
+PATCH. projects.js, dacum_projects.js, clustering_ai.js,
+task_analysis_ai.js, modules.js, translations.js.
+Duties & Tasks AI card
+Fixed   The request had no output-language directive (the only AI card
+        without one): an Arabic/French interface could get duties and
+        tasks in English, and the Full Draft language lock missed its
+        first stage.
+Fixed   Regenerating restarted task ids at duty_1_1, so each new task
+        inherited the Task Analysis, verification ratings, workshop
+        votes and cluster place of the old task with the same id. Ids
+        now continue after every duty number still used by task-keyed
+        data; old records stay saved but attach to nothing, and
+        clusters flag their old tasks ⚠ as removed. A chart without
+        such data still starts at duty_1. Codes (A1, B3…) unchanged.
+Changed The overwrite question lists the work tied to the current
+        tasks (votes, ratings, Task Analysis, clusters, outcomes,
+        modules) when there is any.
+Fixed   JSON import recounted dutyCount / taskCounts from the NUMBER of
+        duties and tasks: after a deletion the next "Add" could create a
+        duplicate id. Now taken from the highest id number.
+Competency Clusters AI card
+Fixed   "Suggest clusters" and "Range & criteria" now save the project
+        after a run (as the LO / module generators do since 3.29/3.30).
+Changed Both confirmations name the learning outcomes (and modules)
+        that use the criteria about to be replaced.
+Changed The criteria prompt lists the Task Analysis criteria of each
+        cluster's tasks and asks for complementary competency-level
+        criteria; exact repeats are dropped in code (both sources share
+        the Learning Outcomes source list).
+Fixed   Result notes were English only; now EN/FR/AR.
+Task Analysis AI card
+Added   Warning in the dialog when a filled "Performance Criteria"
+        section is ticked and learning outcomes use those criteria.
+
 ── 3.37.1 — 2026-10-03 — Full Draft follows the LO / module changes ────
 PATCH. draft_agent.js, draft_ui.js, learning_outcomes_ai.js,
 module_mapping_ai.js, modules.js, translations.js.

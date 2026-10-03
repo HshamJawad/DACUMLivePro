@@ -198,11 +198,19 @@ export function importProjectFromData(data, fileName) {
     },
   };
 
-  // Recalculate dutyCount and taskCounts from dutiesData
+  // Recalculate dutyCount and taskCounts from dutiesData.
+  // From the highest number in the ids, never just the count: after a
+  // deletion (duty_1, duty_3) the count is 2, and the next "Add duty"
+  // would create a second duty_3 — two tasks sharing one id and all its
+  // keyed data. The count is kept as a floor for legacy files.
   if (state.dutiesData && state.dutiesData.length > 0) {
-    state.dutyCount = state.dutiesData.length;
+    const _num = (re, id) => { const m = re.exec(String(id || '')); return m ? parseInt(m[1], 10) : 0; };
+    state.dutyCount = Math.max(state.dutiesData.length,
+      ...state.dutiesData.map(d => _num(/^duty_(\d+)$/, d.id)));
     state.dutiesData.forEach(duty => {
-      state.taskCounts[duty.id] = duty.tasks ? duty.tasks.length : 0;
+      const tasks = duty.tasks || [];
+      state.taskCounts[duty.id] = Math.max(tasks.length,
+        ...tasks.map(t => _num(/_(\d+)$/, t && t.inputId)), 0);
     });
   } else {
     state.dutyCount = 0;

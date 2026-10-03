@@ -24,6 +24,11 @@ import { verifyOccupation, needsConfirmation, VERDICT,
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
+/* Output-language directive, appended to the request like every other
+   AI card. This card was the only one without it, so an Arabic or
+   French interface could get duties and tasks back in English — and
+   the Full Draft's language lock did not reach its first stage. */
+const _aiDir = () => (window.i18n && window.i18n.aiDirective ? window.i18n.aiDirective() : '');
 
 
 
@@ -619,7 +624,7 @@ async function _runAIGeneration(inputs) {
     const hasWork = (appState.dutiesData || []).some(d =>
       (d.title || '').trim() || (d.tasks || []).length
     );
-    if (hasWork && !confirm('\u26A0\uFE0F ' + _t('confirmAIOverwrite'))) {
+    if (hasWork && !confirm('\u26A0\uFE0F ' + _aiOverwriteMessage())) {
       showStatus(_t('msgAIGenCancelled'), 'error');
       return;
     }
@@ -703,7 +708,7 @@ Generate the DACUM draft now in valid JSON format only.`;
     const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      body: JSON.stringify({ prompt: prompt + _aiDir() })
     });
 
     await throwIfAIError(response);
@@ -727,8 +732,18 @@ Generate the DACUM draft now in valid JSON format only.`;
 
     // ── State-first population (fixes card-view re-render wipe) ──
     // Build appState.dutiesData directly then render once at the end.
+    //
+    // Ids continue AFTER every duty number still in use by data keyed
+    // to tasks (Task Analysis, verification ratings, workshop votes,
+    // task metadata, clusters, LO criteria links). Restarting at duty_1
+    // made each new task inherit the analysis, votes and cluster place
+    // of whichever old task had the same id. Old records stay saved but
+    // attach to nothing; clusters flag their old tasks ⚠ as removed.
+    // A chart with no such data starts at duty_1, exactly as before.
+    // Codes shown to the user (A1, B3 …) come from position, not ids.
+    const idBase = _maxDutyNumberInUse();
     appState.dutiesData = [];
-    appState.dutyCount  = 0;
+    appState.dutyCount  = idBase;
     appState.taskCounts = {};
 
     dacumData.duties.forEach(dutyData => {
@@ -776,6 +791,54 @@ Generate the DACUM draft now in valid JSON format only.`;
 }
 
 // ── Private helpers ───────────────────────────────────────────
+
+/** Highest N in any "duty_N" / "duty_N_M" key held by task-keyed data. */
+function _maxDutyNumberInUse() {
+  let max = 0;
+  const see = (id) => {
+    const m = /^duty_(\d+)(?:_\d+)?$/.exec(String(id || ''));
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  };
+  ['taskAnalysisData', 'verificationRatings', 'workshopResults',
+   'workshopCounts', 'taskMetadata'].forEach(k => {
+    const obj = appState[k];
+    if (obj && typeof obj === 'object') Object.keys(obj).forEach(see);
+  });
+  const cd = appState.clusteringData || {};
+  (cd.availableTasks || []).forEach(t => t && see(t.id));
+  (cd.clusters || []).forEach(c => (c.tasks || []).forEach(t => t && see(t.id)));
+  ((appState.learningOutcomesData || {}).outcomes || []).forEach(o =>
+    (o.linkedCriteria || []).forEach(pc => pc && see(pc.taskId)));
+  return max;
+}
+
+/** Overwrite question naming the work tied to the current tasks. */
+function _aiOverwriteMessage() {
+  const tasks = new Set();
+  (appState.dutiesData || []).forEach(d => (d.tasks || []).forEach(t => t && tasks.add(t.inputId)));
+  const countKeys = (obj, pred) => Object.keys(obj || {})
+    .filter(k => tasks.has(k) && (!pred || pred(obj[k]))).length;
+  const nonEmpty = (v) => v && typeof v === 'object' &&
+    Object.keys(v).some(k => k !== '_aiDraft' && v[k] != null && String(v[k]).trim() !== '' &&
+                             !(Array.isArray(v[k]) && !v[k].some(x => String(x || '').trim())));
+
+  const lines = [];
+  const votes = countKeys(appState.workshopResults);
+  const rated = countKeys(appState.verificationRatings);
+  const ta    = countKeys(appState.taskAnalysisData, nonEmpty);
+  const cl    = (appState.clusteringData?.clusters || []).length;
+  const lo    = (appState.learningOutcomesData?.outcomes || []).length;
+  const mm    = (appState.moduleMappingData?.modules || []).length;
+  if (votes) lines.push(_tf('aiOwVotes',    { n: votes }));
+  if (rated) lines.push(_tf('aiOwRatings',  { n: rated }));
+  if (ta)    lines.push(_tf('aiOwTA',       { n: ta }));
+  if (cl)    lines.push(_tf('aiOwClusters', { n: cl }));
+  if (lo)    lines.push(_tf('aiOwLOs',      { n: lo }));
+  if (mm)    lines.push(_tf('aiOwModules',  { n: mm }));
+
+  if (!lines.length) return _t('confirmAIOverwrite');
+  return _tf('confirmAIOverwriteLinked', { list: lines.map(l => '  • ' + l).join('\n') });
+}
 
 function _resetImagePreview(imageType) {
   const previewDiv = document.getElementById(`${imageType}ImagePreview`);

@@ -155,6 +155,19 @@ async function _generate(taskKey, wanted) {
 
 // ── Dialog ───────────────────────────────────────────────────
 
+/* Learning Outcomes (and the modules built on them) linked to THIS
+   task's Task Analysis criteria. Replacing those criteria flags the
+   links ⚠ stale in the LO tab, so the dialog says so before the run. */
+function _linkedDownstream(taskKey) {
+  const outcomes = appState.learningOutcomesData?.outcomes || [];
+  const los = outcomes.filter(o => (o.linkedCriteria || [])
+    .some(pc => pc && !pc.stale && pc.taskId === taskKey));
+  const ids = new Set(los.map(o => o.id));
+  const mm = (appState.moduleMappingData?.modules || []).filter(m =>
+    (m.learningOutcomes || []).some(o => o && ids.has(o.id))).length;
+  return { lo: los.length, mm };
+}
+
 export function openTaskAnalysisAI(taskKey) {
   const ctx = getTaskAnalysisContext(taskKey);
   if (!ctx) return;
@@ -196,6 +209,9 @@ export function openTaskAnalysisAI(taskKey) {
       <div style="padding:14px 20px;overflow-y:auto;flex:1;">
         <p style="margin:0 0 8px;font-size:.85em;color:#475569;line-height:1.6;">${escapeHtml(_t('taAiIntro'))}</p>
         <div>${rows}</div>
+        <p data-ta-ai-lolink style="display:none;margin:12px 0 0;font-size:.8em;color:#9a3412;background:#fff7ed;
+                  border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;line-height:1.55;">🔗 ${
+          escapeHtml(_tf('taAiLinkedWarn', _linkedDownstream(taskKey)))}</p>
         <p style="margin:12px 0 0;font-size:.8em;color:#92400e;background:#fffbeb;border:1px solid #fde68a;
                   border-radius:8px;padding:8px 10px;line-height:1.55;">⚠️ ${escapeHtml(_t('taAiNote'))}</p>
       </div>
@@ -214,9 +230,21 @@ export function openTaskAnalysisAI(taskKey) {
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   overlay.querySelector('[data-ta-ai-cancel]').addEventListener('click', close);
 
+  // Ticking a filled "Performance Criteria" that Learning Outcomes use
+  // shows the downstream warning.
+  const link = _linkedDownstream(taskKey);
+  const linkNote = overlay.querySelector('[data-ta-ai-lolink]');
+  const syncLinkNote = () => {
+    const cb = overlay.querySelector('input[data-ta-ai-field="performanceCriteria"]');
+    const on = !!(cb && cb.checked && ctx.filled.performanceCriteria && link.lo > 0);
+    if (linkNote) linkNote.style.display = on ? '' : 'none';
+  };
+  syncLinkNote();
+
   // A ticked FILLED section will be replaced — say so on its tag.
   overlay.querySelectorAll('input[data-ta-ai-field]').forEach(cb => {
     cb.addEventListener('change', () => {
+      syncLinkNote();
       const tag = overlay.querySelector(`[data-ta-ai-tag="${cb.getAttribute('data-ta-ai-field')}"]`);
       if (!tag) return;
       tag.textContent = _t(cb.checked ? 'taAiWillReplace' : 'taAiFilled');

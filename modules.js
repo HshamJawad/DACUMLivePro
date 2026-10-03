@@ -2471,6 +2471,8 @@ export function getModuleGenOptions() {
 }
 
 export function persistModuleMapping() { _persistClusters(); }
+/* Persist after the clustering AI changed clusters / criteria. */
+export function persistClustering() { _persistClusters(); }
 
 function _ensureModuleGenOptions() {
   const aiBtn = document.getElementById('mmGenAIBtn');
