@@ -14,6 +14,7 @@ import { updateCollectionMode, updateWorkflowMode, updateDutyLevelSummary } from
 import { lwCheckAndShowSection } from './workshop.js';
 import { setBaseline }       from './history.js';
 import { renderSnapshotPanel } from './workshop_snapshots.js';
+import { initProjectStore, isProjectStoreLocked } from './project_store.js';
 import { initProjectsSidebar, saveCurrentProject,
          createProject, getActiveProjectId,
          getProjects, loadProject } from './dacum_projects.js';
@@ -79,6 +80,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   // memory-only and logos simply stay inline in the project state.
   try { await initImageStore(); } catch (e) { console.warn('[app] image store init:', e); }
 
+  // Same rule for the project list: project_store.js decides whether it
+  // lives in localStorage (default) or IndexedDB, and must have it in
+  // memory before the sidebar renders or a project is restored. Resolves
+  // in every case; a locked store (flag = IndexedDB, browser refuses it)
+  // loads nothing destructive and refuses writes.
+  try { await initProjectStore(); } catch (e) { console.warn('[app] project store init:', e); }
+
   // Initialize Skills Level Matrix
   renderSkillsLevel();
 
@@ -117,7 +125,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   _restoreActiveProjectOnBoot();
 
   // If no active project yet, create one automatically from the initial state
-  if (!getActiveProjectId()) {
+  // Never while the store is locked: the real projects are still in
+  // IndexedDB, and creating one here would be refused anyway.
+  if (!getActiveProjectId() && !isProjectStoreLocked()) {
     const occ = document.getElementById('occupationTitle')?.value?.trim();
     createProject(occ || 'My First DACUM Project');
   }

@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v142';
+const CACHE_VERSION = 'v143';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -128,6 +128,10 @@ const PRECACHE_URLS = [
   BASE + 'draft_ratings.js',
   BASE + 'learning_outcomes_ai.js',
   BASE + 'image_store.js',
+  // Owner of the project list (localStorage by default, IndexedDB as
+  // fallback). Imported by app.js, dacum_projects.js, autosave.js,
+  // snapshots.js and tasks.js — the app cannot boot offline without it.
+  BASE + 'project_store.js',
   BASE + 'autosave.js',
   BASE + 'verification_charts.js',
   BASE + 'supplementary_verification.js',
@@ -194,6 +198,8 @@ self.addEventListener('activate', function (event) {
         var criticalUrls = [
           BASE + 'index.html',
           BASE + 'dacum_projects.js',
+          // Imported by dacum_projects.js; must update in step with it.
+          BASE + 'project_store.js',
           BASE + 'dacum-mobile.js',
           BASE + 'dacum-styles.css',
           BASE + 'dacum-responsive.css',

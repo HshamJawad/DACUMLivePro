@@ -6,7 +6,8 @@
 // generateAIDacum — this module uses the name dacum_projects.js
 // to avoid any collision.
 //
-// localStorage key : 'dacum_projects'
+// Storage          : project_store.js owns 'dacum_projects'
+//                    (localStorage by default, IndexedDB as fallback)
 // Active project   : 'dacum_active_project'
 // Max projects     : 50
 // ============================================================
@@ -18,6 +19,10 @@ import { syncAllFromDOM }     from './duties.js';
 import { clearAllSilent }     from './projects.js';
 import { setImage, getImageSync, imageKey,
          removeProjectImages }  from './image_store.js';
+import { readProjects, writeProjectsPayload, getStorageBackend,
+         isProjectStoreLocked, canUseLargeStorage, getProjectsBytes,
+         getStorageInfo, migrateToIdb, migrateToLocal,
+         onProjectStoreError, isMigrating } from './project_store.js';
 import { renderAvailableTasks, renderClusters,
          renderPCSourceList, renderLearningOutcomes,
          renderModuleLoList, renderModules } from './modules.js';
@@ -33,7 +38,6 @@ const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v)  : k);
 const _tp = (k, n) => (window.i18n ? window.i18n.tp(k, n)  : k);
 
 
-const LS_PROJECTS = 'dacum_projects';
 const LS_ACTIVE   = 'dacum_active_project';
 const MAX_PROJECTS = 50;
 
@@ -632,6 +636,10 @@ export function initProjectsSidebar() {
         </div>
       </div>
       <div class="dps-list" id="dpsProjectList"></div>
+      <button type="button" class="dps-storage-row" id="dpsStorageRow">
+        <span class="dps-storage-icon" aria-hidden="true">💾</span>
+        <span class="dps-storage-label" id="dpsStorageLabel"></span>
+      </button>
     </div>
 
     <!-- Legacy toggle kept in DOM (hidden) for dacum-mobile.js compatibility -->
@@ -655,6 +663,9 @@ export function initProjectsSidebar() {
       _tf('defaultProjectName', { n: _loadProjects().length + 1 }));
     if (name !== null) createProject(name);
   });
+
+  // ── Wire: Storage row ──
+  document.getElementById('dpsStorageRow').addEventListener('click', _openStorageDialog);
 
   // ── Wire: Search ──
   const _dpsSearchEl = document.getElementById('dpsSearch');
@@ -743,8 +754,16 @@ export function initProjectsSidebar() {
   renderProjectsSidebar();
   _watchDutiesForStats();
 
-  // Show welcome overlay on first open if no projects exist yet
-  if (_loadProjects().length === 0) {
+  // Store locked (projects are in IndexedDB but it will not open):
+  // say so at once, and do not greet the user as if they had no projects.
+  if (isProjectStoreLocked()) {
+    _warnStoreLocked();
+    // A status line is easily replaced by later boot messages, and the
+    // user is looking at an empty project list — explain it in the
+    // Storage dialog once, after the rest of the boot has settled.
+    setTimeout(() => { try { _openStorageDialog(); } catch (_) {} }, 600);
+  } else if (_loadProjects().length === 0) {
+    // Show welcome overlay on first open if no projects exist yet
     showWelcomeOverlay();
   }
 }
@@ -753,6 +772,8 @@ export function initProjectsSidebar() {
 export function renderProjectsSidebar() {
   const list = document.getElementById('dpsProjectList');
   if (!list) return;
+
+  _refreshStorageRow();
 
   const activeId = _getActive();
   let projects   = _loadProjects().slice().reverse(); // newest first
@@ -1058,7 +1079,7 @@ function _applyLiveWorkshopDOM(s) {
     const lwProjectStats = document.getElementById('lwProjectStats');
     const activeId = localStorage.getItem('dacum_active_project') || '';
     let allProjects = [];
-    try { allProjects = JSON.parse(localStorage.getItem('dacum_projects') || '[]'); } catch(e){}
+    try { allProjects = readProjects(); } catch(e){}
     const proj = allProjects.find(p => p.id === activeId);
     if (proj && lwProjectInfo && lwProjectName && lwProjectStats) {
       const dCount = (proj.state?.dutiesData || []).length;
@@ -1135,7 +1156,9 @@ function _persistLogo(slot, value) {
 // ── localStorage ──────────────────────────────────────────────
 
 function _loadProjects() {
-  try { return JSON.parse(localStorage.getItem(LS_PROJECTS) || '[]'); }
+  // Routed through project_store.js: localStorage by default, the
+  // in-memory copy of the IndexedDB store once projects have moved.
+  try { return readProjects(); }
   catch { return []; }
 }
 
@@ -1183,20 +1206,48 @@ const QUOTA_WARN_BYTES = 3.5 * 1024 * 1024;
 let _quotaWarned = false;
 
 function _saveProjects(list) {
-  try {
-    const payload = JSON.stringify(list);
-    localStorage.setItem(LS_PROJECTS, payload);
+  // Store locked: the flag says IndexedDB but the browser refuses to open
+  // it. Writing now could replace the real list with whatever is on
+  // screen, so refuse and keep saying why.
+  if (isProjectStoreLocked()) {
+    _warnStoreLocked();
+    return false;
+  }
 
-    if (!_quotaWarned && payload.length > QUOTA_WARN_BYTES) {
-      _quotaWarned = true;
-      showStatus(
-        '⚠️ ' + _tf('msgStorageFilling',
-          { mb: Math.round(payload.length / (1024 * 1024) * 10) / 10 }),
-        'error'
-      );
+  let payload;
+  try { payload = JSON.stringify(list); }
+  catch (err) {
+    console.warn('[projects] could not serialise projects:', err);
+    showStatus('⚠️ ' + _t('msgCouldNotSave'), 'error');
+    return false;
+  }
+
+  try {
+    writeProjectsPayload(payload);
+
+    // Getting full: move to large storage while there is still room,
+    // rather than waiting for a save to fail mid-workshop. Only warn
+    // when that is not possible (IndexedDB unavailable or it failed).
+    if (payload.length > QUOTA_WARN_BYTES && getStorageBackend() === 'local' && !isMigrating()) {
+      if (canUseLargeStorage() && !_autoMoveTried) {
+        _autoMoveTried = true;
+        _autoMoveToLargeStorage(payload, 'threshold');
+      } else if (!_quotaWarned) {
+        _quotaWarned = true;
+        showStatus(
+          '⚠️ ' + _tf('msgStorageFilling',
+            { mb: Math.round(payload.length / (1024 * 1024) * 10) / 10 }),
+          'error'
+        );
+      }
     }
+    _refreshStorageRow();
     return true;
   } catch (err) {
+    if (err && err.name === 'StoreLockedError') {
+      _warnStoreLocked();
+      return false;
+    }
     if (!_isQuotaError(err)) {
       console.warn('[projects] save failed:', err);
       showStatus('⚠️ ' + _t('msgCouldNotSave'), 'error');
@@ -1208,14 +1259,191 @@ function _saveProjects(list) {
     // so dropping it costs the user nothing.
     try {
       localStorage.removeItem('dacum_session_backup');
-      localStorage.setItem(LS_PROJECTS, JSON.stringify(list));
+      writeProjectsPayload(payload);
       console.warn('[projects] quota hit — recovered by dropping session backup');
+      _refreshStorageRow();
       return true;
     } catch (_) { /* still full — fall through */ }
+
+    // Still full: move the projects to IndexedDB. The payload is held in
+    // memory by the store while it is copied and verified; localStorage
+    // keeps its last good copy until then. Only if that fails does the
+    // blocking dialog appear — exactly as before.
+    if (canUseLargeStorage()) {
+      _autoMoveToLargeStorage(payload, 'quota');
+      return true;
+    }
 
     _showStorageFullDialog(list);
     return false;
   }
+}
+
+// ── Large-storage (IndexedDB) fallback ────────────────────────
+
+let _autoMoveTried     = false;
+let _autoMoveAnnounced = false;
+let _lockWarned        = false;
+
+function _warnStoreLocked() {
+  if (_lockWarned) return;
+  _lockWarned = true;
+  showStatus('⚠️ ' + _t('msgStoreLocked'), 'error');
+}
+
+async function _autoMoveToLargeStorage(payload, reason) {
+  const res = await migrateToIdb(payload);
+  if (res.ok) {
+    if (!_autoMoveAnnounced && res.reason !== 'already') {
+      _autoMoveAnnounced = true;
+      showStatus('✅ ' + _t('msgMovedToIdb'), 'success');
+    }
+    console.info('[projects] projects moved to IndexedDB (' + reason + ')');
+    _refreshStorageRow();
+    return;
+  }
+  if (res.reason === 'busy') return;   // a move is already under way
+  console.warn('[projects] automatic move to IndexedDB failed:', res.reason);
+  if (reason === 'quota') {
+    _showStorageFullDialog(_loadProjects());
+  } else if (!_quotaWarned) {
+    _quotaWarned = true;
+    showStatus('⚠️ ' + _tf('msgStorageFilling',
+      { mb: Math.round(payload.length / (1024 * 1024) * 10) / 10 }), 'error');
+  }
+  _refreshStorageRow();
+}
+
+onProjectStoreError((kind) => {
+  if (kind === 'idb-write') showStatus('⚠️ ' + _t('msgIdbWriteFailed'), 'error');
+});
+
+// Another tab changed the list or switched storage: show the new list.
+window.addEventListener('dacum:projects-external-change', () => {
+  try { renderProjectsSidebar(); } catch (_) {}
+});
+
+/** Update the small "💾 Storage" line under the project list. */
+function _refreshStorageRow() {
+  const label = document.getElementById('dpsStorageLabel');
+  const row   = document.getElementById('dpsStorageRow');
+  if (!label || !row) return;
+  const locked  = isProjectStoreLocked();
+  const backend = getStorageBackend();
+  const name = locked ? _t('stLabelLocked')
+             : backend === 'idb' ? _t('stLabelIdb') : _t('stLabelLocal');
+  label.textContent = locked ? name : `${name} · ${_fmtSize(getProjectsBytes())}`;
+  row.classList.toggle('dps-storage-idb', backend === 'idb' && !locked);
+  row.classList.toggle('dps-storage-locked', locked);
+  row.title = _t('ttStorage');
+  row.setAttribute('aria-label', `${_t('stTitle')}: ${label.textContent}`);
+}
+
+let _storageDialogOpen = false;
+
+/** Storage dialog: where projects live, how big they are, and the switch. */
+async function _openStorageDialog() {
+  if (_storageDialogOpen) return;
+  _storageDialogOpen = true;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'dpsStorageOverlay';
+  overlay.className = 'dps-st-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'dpsStTitle');
+  document.body.appendChild(overlay);
+
+  const close = () => {
+    overlay.remove();
+    _storageDialogOpen = false;
+    document.removeEventListener('keydown', onKey);
+    const r = document.getElementById('dpsStorageRow');
+    if (r) r.focus();
+  };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  const render = async (note, noteKind) => {
+    const info    = await getStorageInfo();
+    const isIdb   = info.backend === 'idb';
+    const tooBig  = info.bytes > QUOTA_WARN_BYTES;
+    const where   = info.locked ? _t('stLabelLocked') : isIdb ? _t('stLabelIdb') : _t('stLabelLocal');
+    // Sizes are isolated as LTR units so "6 KB" never reorders inside
+    // Arabic text. The template is escaped first, then the units added.
+    const _size = (b) => `<bdi dir="ltr">${_fmtSize(b)}</bdi>`;
+    const quotaHtml = info.quotaEstimate
+      ? _esc(_t('stQuotaVal'))
+          .replace('{used}',  _size(info.quotaEstimate.usage))
+          .replace('{total}', _size(info.quotaEstimate.quota))
+      : _esc(_t('stUnknown'));
+
+    let explain, action = '', hint = '';
+    if (info.locked) {
+      explain = _t('msgStoreLocked');
+    } else if (isIdb) {
+      explain = _t('stExplainIdb');
+      action  = `<button type="button" class="dps-st-btn" id="dpsStMove" ${tooBig ? 'disabled' : ''}>${_t('stBtnToLocal')}</button>`;
+      if (tooBig) hint = _tf('stTooBigForLocal', { mb: Math.round(info.bytes / (1024 * 1024) * 10) / 10 });
+    } else {
+      explain = _t('stExplainLocal');
+      action  = `<button type="button" class="dps-st-btn dps-st-btn-primary" id="dpsStMove" ${info.idbSupported ? '' : 'disabled'}>${_t('stBtnToIdb')}</button>`;
+      if (!info.idbSupported) hint = _t('stNoIdb');
+    }
+
+    overlay.innerHTML = `
+      <div class="dps-st-card">
+        <div class="dps-st-head">
+          <span class="dps-st-icon" aria-hidden="true">💾</span>
+          <p class="dps-st-title" id="dpsStTitle">${_t('stTitle')}</p>
+        </div>
+        <div class="dps-st-body">
+          <dl class="dps-st-facts">
+            <div><dt>${_t('stCurrent')}</dt><dd>${_esc(where)}</dd></div>
+            <div><dt>${_t('stSize')}</dt><dd>${_size(info.bytes)}</dd></div>
+            <div><dt>${_t('stQuota')}</dt><dd>${quotaHtml}</dd></div>
+          </dl>
+          <p class="dps-st-explain">${_esc(explain)}</p>
+          ${hint ? `<p class="dps-st-hint">${_esc(hint)}</p>` : ''}
+          ${note ? `<p class="dps-st-note dps-st-note-${noteKind}" role="status">${_esc(note)}</p>` : ''}
+          <div class="dps-st-actions">
+            ${action}
+            <button type="button" class="dps-st-btn" id="dpsStClose">${_t('stClose')}</button>
+          </div>
+        </div>
+      </div>`;
+
+    overlay.querySelector('#dpsStClose').addEventListener('click', close);
+    const move = overlay.querySelector('#dpsStMove');
+    if (move && !move.disabled) {
+      move.addEventListener('click', async () => {
+        move.disabled = true;
+        move.textContent = _t('stBusy');
+        // Persist the open project first so what moves is current.
+        try { saveCurrentProject(); } catch (_) {}
+        const res = isIdb ? await migrateToLocal(QUOTA_WARN_BYTES) : await migrateToIdb();
+        let msg, kind;
+        if (res.ok) {
+          msg  = isIdb ? _t('msgMovedToLocal') : _t('msgMovedToIdbManual');
+          kind = 'ok';
+          showStatus('✅ ' + msg, 'success');
+        } else if (res.reason === 'too-big') {
+          msg  = _tf('stTooBigForLocal', { mb: Math.round((res.bytes || info.bytes) / (1024 * 1024) * 10) / 10 });
+          kind = 'err';
+        } else {
+          msg  = _t('msgMoveFailed');
+          kind = 'err';
+        }
+        _refreshStorageRow();
+        if (_storageDialogOpen) render(msg, kind);
+      });
+    }
+    const first = overlay.querySelector('#dpsStMove:not([disabled])') || overlay.querySelector('#dpsStClose');
+    if (first) first.focus();
+  };
+
+  await render();
 }
 
 /**
@@ -1813,6 +2041,81 @@ function _injectCSS() {
   min-height: 60px;
 }
 .dps-sidebar.dps-collapsed .dps-list { display: none; }
+
+/* ── Storage row (project_store.js backend + size) ── */
+.dps-storage-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 10px 10px;
+  padding: 5px 8px;
+  min-height: 30px;
+  background: transparent;
+  border: 1px dashed #45475a;
+  border-radius: 6px;
+  color: #7f849c;
+  font: inherit;
+  font-size: 0.72em;
+  text-align: start;
+  cursor: pointer;
+  max-width: calc(100% - 20px);
+  transition: color 0.15s, border-color 0.15s;
+}
+.dps-storage-row:hover,
+.dps-storage-row:focus-visible { color: #cdd6f4; border-color: #89b4fa; outline: none; }
+.dps-storage-row.dps-storage-idb    { border-style: solid; border-color: #a6e3a1; color: #a6e3a1; }
+.dps-storage-row.dps-storage-locked { border-style: solid; border-color: #f38ba8; color: #f38ba8; }
+.dps-storage-icon  { flex-shrink: 0; }
+.dps-storage-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.dps-sidebar.dps-collapsed .dps-storage-row { display: none; }
+
+/* ── Storage dialog ── */
+.dps-st-overlay {
+  position: fixed; inset: 0; z-index: 2147483000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(0,0,0,0.6);
+  box-sizing: border-box;
+}
+.dps-st-card {
+  background: #fff; border-radius: 14px; width: 100%; max-width: 440px;
+  max-height: calc(100vh - 32px); overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.35); font-family: inherit;
+  box-sizing: border-box; text-align: start;
+}
+.dps-st-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 18px 12px;
+  background: linear-gradient(135deg,#eef2ff,#e0e7ff);
+  border-bottom: 1px solid #c7d2fe;
+}
+.dps-st-icon  { font-size: 1.5em; line-height: 1; }
+.dps-st-title { margin: 0; font-size: 1em; font-weight: 800; color: #312e81; }
+.dps-st-body  { padding: 14px 18px 16px; }
+.dps-st-facts { margin: 0 0 12px; padding: 0; }
+.dps-st-facts > div {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85em;
+}
+.dps-st-facts dt { color: #64748b; margin: 0; }
+.dps-st-facts dd { color: #1e293b; font-weight: 700; margin: 0; }
+.dps-st-explain { margin: 0 0 10px; font-size: 0.85em; color: #374151; line-height: 1.6; overflow-wrap: anywhere; }
+.dps-st-hint    { margin: 0 0 10px; font-size: 0.8em; color: #b45309; background: #fffbeb;
+                  border: 1px solid #fde68a; border-radius: 8px; padding: 8px 10px; line-height: 1.5; }
+.dps-st-note    { margin: 0 0 10px; font-size: 0.82em; border-radius: 8px; padding: 8px 10px; line-height: 1.5; }
+.dps-st-note-ok  { color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+.dps-st-note-err { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
+.dps-st-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+.dps-st-btn {
+  padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1;
+  background: #fff; color: #334155; font: inherit; font-size: 0.85em; font-weight: 700;
+  cursor: pointer; max-width: 100%; white-space: normal; text-align: center;
+}
+.dps-st-btn-primary { background: #667eea; border-color: #667eea; color: #fff; }
+.dps-st-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.dps-st-btn:focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+@media (max-width: 420px) {
+  .dps-st-actions .dps-st-btn { flex: 1 1 100%; }
+}
 .dps-empty {
   color: #6c7086;
   font-size: 0.82em;
@@ -1933,6 +2236,7 @@ window.addEventListener('dacum:langchange', () => {
   };
 
   setText('.dps-nav-label', 'sbNavLabel');
+  _refreshStorageRow();
 
   const NAV_KEYS = {
     'info-tab':              'tabChartInfo',

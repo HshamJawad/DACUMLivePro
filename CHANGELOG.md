@@ -7,6 +7,36 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.37.0 — 2026-10-03 — Large storage (IndexedDB) for projects ────
+MINOR. New project_store.js; dacum_projects.js, app.js, autosave.js,
+snapshots.js, tasks.js, translations.js, sw.js (v143), index.html.
+Added  project_store.js is now the single owner of the project list
+       (`dacum_projects`). localStorage stays the default; IndexedDB
+       (`dacum_projects_db`) is a safety net, using the image_store.js
+       pattern: in-memory copy for synchronous reads, coalesced
+       background writes. Backend flag: `dacum_store_backend`.
+Added  Automatic move to IndexedDB when a save hits the quota (after
+       the session-backup reclaim fails) or the list passes 3.5 MB.
+       Copy → read back and verify → flip flag → only then remove the
+       localStorage copy. One status message (EN/FR/AR). If the move
+       fails, the existing quota dialog / warning appears as before.
+Added  "💾 Storage" line under the project list (hidden on the
+       collapsed rail): shows where projects live and their size;
+       dialog to move them to large storage and back. Moving back is
+       refused (with the reason) when the data is over 3.5 MB or does
+       not fit.
+Added  Locked state: flag says IndexedDB but the browser refuses it →
+       warning, nothing loaded destructively, every write refused (no
+       empty list can overwrite the real one); no auto-created project.
+Added  Cross-tab sync in IndexedDB mode (BroadcastChannel), flush of
+       queued writes on pagehide / hidden, navigator.storage.persist()
+       when switching, boot recovery if the flag write was lost.
+Changed The six direct `localStorage.getItem('dacum_projects')` reads
+       (autosave.js, snapshots.js, tasks.js ×3, dacum_projects.js Live
+       Workshop panel) now go through readProjects().
+Unchanged dacum_active_project, dacum_session_backup and UI keys stay
+       in localStorage; image_store.js untouched.
+
 ── 3.36.1 — 2026-10-03 — Credits field in the Time table ────
 PATCH. module_curriculum.js + dacum-curriculum.css.
 Changed The Credits field moved into the Time table's first line:

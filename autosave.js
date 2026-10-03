@@ -25,6 +25,7 @@ import { renderAll }           from './workshop_snapshots.js';
 import { appState, defaultSupplementaryVerification } from './state.js';
 import { syncAllFromDOM }      from './duties.js';
 import { getImageSync }        from './image_store.js';
+import { readProjects }        from './project_store.js';
 
 const LS_BACKUP     = 'dacum_session_backup';
 // Marks whether the previous session ended in an orderly way. Written
@@ -484,7 +485,7 @@ function _applyBackupState(s) {
 function _getProjectInfo(projectId) {
   if (!projectId) return { name: '', exists: false };
   try {
-    const projects = JSON.parse(localStorage.getItem('dacum_projects') || '[]');
+    const projects = readProjects();
     const p = projects.find(x => x.id === projectId);
     return p ? { name: p.name || 'Untitled Project', exists: true }
              : { name: '', exists: false };

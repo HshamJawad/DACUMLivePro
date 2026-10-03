@@ -12,6 +12,7 @@ import { renderModules, renderModuleLoList } from './modules.js';
 import { loadDutiesForVerification } from './tasks.js';
 import { importProjectFromData, loadProject, renderProjectsSidebar } from './dacum_projects.js';
 import { reportError } from './error-handler.js';
+import { readProjects } from './project_store.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -177,7 +178,7 @@ export function saveToJSON() {
     let projectName = '';
     try {
       const activeId = localStorage.getItem('dacum_active_project') || '';
-      const projects = JSON.parse(localStorage.getItem('dacum_projects') || '[]');
+      const projects = readProjects();
       const activeProj = projects.find(p => p.id === activeId);
       if (activeProj && activeProj.name && activeProj.name !== 'Untitled DACUM Project') {
         projectName = activeProj.name.trim();

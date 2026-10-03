@@ -4,6 +4,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { readProjects } from './project_store.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { getDutyLetter, getDutyCode, getTaskCodeShort, getDutyLabel } from './codes.js';
 
@@ -668,7 +669,7 @@ export function renderDashboardProjectSelector() {
   if (!sel) return;
 
   let projects = [];
-  try { projects = JSON.parse(localStorage.getItem('dacum_projects') || '[]'); } catch(e) {}
+  try { projects = readProjects(); } catch(e) {}
   const activeId = localStorage.getItem('dacum_active_project') || '';
 
   // Show ALL projects (user may want to switch even without prior results)
@@ -719,7 +720,7 @@ export function refreshDashboard() {
   // If selector points to a different project than the active one, read from storage
   if (selectedId && selectedId !== activeId) {
     try {
-      const projects = JSON.parse(localStorage.getItem('dacum_projects') || '[]');
+      const projects = readProjects();
       const proj = projects.find(p => p.id === selectedId);
       if (proj?.state?.workshopResults) {
         resultsSource = proj.state.workshopResults;
@@ -838,7 +839,7 @@ function updateDutyLevelSummaryFromSource(resultsSource) {
       const sel = document.getElementById('dashboardProjectSelector');
       const selectedId = sel?.value;
       if (selectedId) {
-        const projects = JSON.parse(localStorage.getItem('dacum_projects') || '[]');
+        const projects = readProjects();
         const proj = projects.find(p => p.id === selectedId);
         if (proj?.state?.dutiesData) dutiesContext = proj.state.dutiesData;
       }
