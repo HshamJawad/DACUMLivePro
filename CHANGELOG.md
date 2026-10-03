@@ -7,6 +7,21 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.42.0 — 2026-10-03 — Assessment Plan removed from the exports ────
+MINOR. exports_docx.js, exports_pdf.js, sw.js (v151).
+Removed The "Assessment Plan" appendix (added in 3.24.0) is no longer
+        printed by the Word or the PDF export. Assessment forms per
+        learning outcome are produced in Module Builder, and the linked
+        performance criteria are still printed in the Learning Outcomes
+        and Module Mapping sections of the same document.
+        Verified: with modules, the only change is that final section
+        gone (Word: its blocks deleted from the end; PDF: one page
+        fewer, every remaining page identical), EN and AR. Without
+        modules both files are byte-identical to 3.41.1.
+Unchanged Learning Outcomes, Module Mapping, Levels & Coverage, the
+        Module Curriculum (CUR) export with its own assessment
+        statements, and the hand-off to Module Builder.
+
 ── 3.41.1 — 2026-10-03 — Matrix on a new page in Word ────
 PATCH. exports_docx.js, exports_os_docx.js, sw.js (v150).
 Changed "Employability Competencies by Occupational Level" starts on a
