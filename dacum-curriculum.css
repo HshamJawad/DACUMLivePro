@@ -438,3 +438,31 @@ html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
 #module-curriculum-tab .cur-hours-row input.is-auto { color: #4338ca; font-weight: 700; background: #f5f3ff; }
 #module-curriculum-tab .cur-hours-field .cur-hint { display: block; margin-top: 4px; }
 #module-curriculum-tab .cur-hours-tools { display: inline-flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+
+/* ── Time table: the single place for hours & percentages (3.36.0) ── */
+#module-curriculum-tab .cur-fx {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  font-size: .92em; color: var(--cur-ink); margin: 0 0 2px;
+}
+#module-curriculum-tab .cur-fx input.cur-fx-hpc {
+  width: 72px !important; flex: 0 0 auto; margin: 0; padding: 5px 6px; text-align: center;
+  border: 1.5px solid #c4b5fd; border-radius: 8px; font: inherit; font-weight: 700; background: #faf5ff; color: var(--cur-ink);
+}
+#module-curriculum-tab .cur-fx strong { color: #6d28d9; }
+#module-curriculum-tab .cur-fx-note { display: block; margin: 0 0 8px; }
+#module-curriculum-tab .cur-timecard > .cur-hours-empty { margin: 0 0 8px; }
+#module-curriculum-tab .cur-pct-scope {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0 0 8px; font-size: .9em;
+}
+#module-curriculum-tab .cur-pct-scope-l { font-weight: 700; color: #475569; }
+#module-curriculum-tab .cur-pct-scope .cur-check { margin: 0; }
+#module-curriculum-tab .cur-pct-in { display: inline-flex; align-items: center; gap: 2px; margin: 3px 0; font-size: .8em; color: var(--cur-muted); }
+#module-curriculum-tab .cur-h-cell input.cur-pct {
+  width: 48px !important; min-width: 0; margin: 0; padding: 3px 2px; text-align: center;
+  border: 1.5px solid #cbd5e1; border-radius: 6px; font: inherit; font-size: 1.05em; font-weight: 700; color: var(--cur-ink); background: #fff;
+  -moz-appearance: textfield;
+}
+#module-curriculum-tab .cur-h-cell input.cur-pct::-webkit-inner-spin-button,
+#module-curriculum-tab .cur-h-cell input.cur-pct::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+#module-curriculum-tab .cur-h-cell strong { display: block; }
+#module-curriculum-tab .cur-timecard > .cur-hint { display: block; margin-top: 4px; }

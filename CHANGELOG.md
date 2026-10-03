@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.36.0 — 2026-10-03 — One place for hours & percentages ────
+MINOR. module_curriculum.js + dacum-curriculum.css.
+Changed The module's Time table is now the only place where hours and
+        percentages are seen and edited:
+        • "3 credits × [25] h per credit = 75 h" — hours per credit
+          is edited inline (still one value for all modules).
+        • Each row (Theory, Practical, Formative, Industry practice,
+          Summative) has its % field next to its hours.
+        • "Percentages: ◉ Same for all modules ○ This module only"
+          replaces both "Default time split" and "Use different
+          percentages for this module" (same data, same behaviour).
+        • Sum ≠ 100 % warning shown inside the card.
+        Programme settings now holds only the programme name and the
+        learners per group.
+Kept    Saved data, calculation, LO auto-hours and CUR export are
+        unchanged; old projects open as before.
+
 ── 3.35.1 — 2026-10-03 — LO hours filled by default ────
 PATCH. module_curriculum.js + dacum-curriculum.css.
 Fixed   Outcome hours showed nothing until the button was pressed

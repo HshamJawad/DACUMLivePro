@@ -51,7 +51,7 @@ const _S = {
     curComplete: '{p}% complete',
     curExportThis: 'Export this module (Word)',
     curSettings: 'Programme settings',
-    curSettingsHint: 'Saved once for the whole project and used by every module.',
+    curSettingsHint: 'Saved once for the whole project and used by every module. Hours and percentages are set in each module’s Time table.',
     curProgName: 'Programme name',
     curHpc: 'Hours per credit',
     curGroup: 'Learners per group',
@@ -90,7 +90,15 @@ const _S = {
     curCreditsL: 'Credits',
     curPrereqL: 'Pre-requisite modules',
     curPrereqNone: 'No other modules in the project.',
-    curTimeL: 'Time table (computed)',
+    curTimeL: 'Time table',
+    curFxCredits: '{c} credits ×',
+    curFxHpc: 'h per credit =',
+    curHpcAll: 'Hours per credit apply to all modules.',
+    curPctScope: 'Percentages:',
+    curPctAll: 'Same for all modules',
+    curPctMod: 'This module only',
+    curPctAllHint: 'Changing a percentage here changes it for every module that uses the shared percentages.',
+    curPctModHint: 'These percentages apply to this module only.',
     curTimeNeedCredits: 'Enter the credits to compute the hours.',
     curTimeFormula: '{c} credits × {h} h = {t} h',
     curInst: 'Institutional',
@@ -168,7 +176,7 @@ const _S = {
     curComplete: '{p} % complété',
     curExportThis: 'Exporter ce module (Word)',
     curSettings: 'Paramètres du programme',
-    curSettingsHint: 'Enregistrés une fois pour tout le projet et utilisés par chaque module.',
+    curSettingsHint: 'Enregistrés une fois pour tout le projet et utilisés par chaque module. Les heures et les pourcentages se règlent dans le Tableau horaire de chaque module.',
     curProgName: 'Nom du programme',
     curHpc: 'Heures par crédit',
     curGroup: 'Apprenants par groupe',
@@ -207,7 +215,15 @@ const _S = {
     curCreditsL: 'Crédits',
     curPrereqL: 'Modules préalables',
     curPrereqNone: 'Aucun autre module dans le projet.',
-    curTimeL: 'Tableau horaire (calculé)',
+    curTimeL: 'Tableau horaire',
+    curFxCredits: '{c} crédits ×',
+    curFxHpc: 'h par crédit =',
+    curHpcAll: 'Les heures par crédit s’appliquent à tous les modules.',
+    curPctScope: 'Pourcentages :',
+    curPctAll: 'Identiques pour tous les modules',
+    curPctMod: 'Ce module uniquement',
+    curPctAllHint: 'Modifier un pourcentage ici le modifie pour tous les modules qui utilisent les pourcentages communs.',
+    curPctModHint: 'Ces pourcentages ne s’appliquent qu’à ce module.',
     curTimeNeedCredits: 'Saisissez les crédits pour calculer les heures.',
     curTimeFormula: '{c} crédits × {h} h = {t} h',
     curInst: 'Établissement',
@@ -284,7 +300,7 @@ const _S = {
     curComplete: 'مكتمل {p}%',
     curExportThis: 'تصدير هذه الوحدة (Word)',
     curSettings: 'إعدادات البرنامج',
-    curSettingsHint: 'تُحفظ مرة واحدة للمشروع كله وتستخدمها كل الوحدات.',
+    curSettingsHint: 'تُحفظ مرة واحدة للمشروع كله وتستخدمها كل الوحدات. الساعات والنسب تُضبط في جدول الوقت لكل وحدة.',
     curProgName: 'اسم البرنامج',
     curHpc: 'ساعات لكل ساعة معتمدة',
     curGroup: 'عدد المتدربين في المجموعة',
@@ -323,7 +339,15 @@ const _S = {
     curCreditsL: 'الرصيد / الساعات المعتمدة',
     curPrereqL: 'الوحدات المتطلبة سابقاً',
     curPrereqNone: 'لا توجد وحدات أخرى في المشروع.',
-    curTimeL: 'جدول الوقت (محسوب)',
+    curTimeL: 'جدول الوقت',
+    curFxCredits: 'الرصيد {c} ×',
+    curFxHpc: 'ساعة لكل ساعة معتمدة =',
+    curHpcAll: 'عدد الساعات لكل ساعة معتمدة يُطبَّق على جميع الوحدات.',
+    curPctScope: 'النسب:',
+    curPctAll: 'موحّدة لكل الوحدات',
+    curPctMod: 'خاصة بهذه الوحدة',
+    curPctAllHint: 'تغيير أي نسبة هنا يغيّرها لكل الوحدات التي تستخدم النسب الموحّدة.',
+    curPctModHint: 'هذه النسب تخص هذه الوحدة فقط.',
     curTimeNeedCredits: 'أدخل الرصيد لحساب الساعات.',
     curTimeFormula: '{c} ساعة معتمدة × {h} = {t} ساعة',
     curInst: 'المؤسسة',
@@ -756,13 +780,6 @@ function _renderTopBar(mods, module, idx) {
 
 function _num(v) { const n = Number(v); return Number.isFinite(n) ? n : ''; }
 
-function _splitInputs(scope, split) {
-  return `<div class="cur-split-grid">${SPLIT_KEYS.map(k => `
-      <label class="cur-split-cell"><span>${_esc(curLabel(SPLIT_LABEL[k]))}</span>
-        <input type="number" min="0" max="100" step="1" inputmode="numeric" class="cur-num"
-          data-cs="${scope}" data-ck="split.${k}" value="${_esc(_num(split[k]))}"></label>`).join('')}
-    </div>`;
-}
 function _splitSumNote(split) {
   const sum = SPLIT_KEYS.reduce((a, k) => a + (Number(split[k]) || 0), 0);
   return sum === 100
@@ -775,44 +792,81 @@ function _renderSettings() {
   return `
     <details class="cur-card cur-settings" data-cur-details="settings" ${_openSettings ? 'open' : ''}>
       <summary class="cur-card-sum">⚙️ ${_esc(_tx('curSettings'))}
-        <span class="cur-sum-meta">${_esc(_programmeName() || '')} · ${_esc(_tx('curHpc'))}: ${_esc(s.hoursPerCredit)}</span></summary>
+        <span class="cur-sum-meta">${_esc(_programmeName() || '')}${_programmeName() ? ' · ' : ''}${_esc(_tx('curGroup'))}: ${_esc(s.groupSize)}</span></summary>
       <div class="cur-card-body">
         <p class="cur-hint">${_esc(_tx('curSettingsHint'))}</p>
         <div class="cur-grid-3">
           <label class="cur-field cur-span-3"><span>${_esc(_tx('curProgName'))}</span>
             <input type="text" data-cs="set" data-ck="programmeName" value="${_esc(s.programmeName || '')}"
               placeholder="${_esc(_domVal('occupationTitle') || _domVal('jobTitle'))}"></label>
-          <label class="cur-field"><span>${_esc(_tx('curHpc'))}</span>
-            <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="hoursPerCredit" value="${_esc(s.hoursPerCredit)}"></label>
           <label class="cur-field"><span>${_esc(_tx('curGroup'))}</span>
             <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="groupSize" value="${_esc(s.groupSize)}"></label>
-
         </div>
-        <div class="cur-subhead">${_esc(_tx('curSplitDefault'))}</div>
-        ${_splitInputs('set', s.split)}
-        <div class="cur-split-note" data-cur-sumnote="set">${_splitSumNote(s.split)}</div>
       </div>
     </details>`;
 }
 
-function _hoursBox(module) {
+/* Time table (3.36.0): the ONE place for hours and percentages.
+   Built once per render — inputs stay put while typing — and the
+   computed numbers are refreshed in place by _updateTimeCard(). */
+function _timeCard(module) {
   const rec = _modRec(module.id) || {};
+  const own = !!(rec.splitOverride && typeof rec.splitOverride === 'object');
+  const split = _effSplit(rec);
+  const scope = own ? 'mod' : 'set';
   const hrs = _moduleHours(module);
-  if (!hrs) return `<div class="cur-hours-empty">${_esc(_tx('curTimeNeedCredits'))}</div>`;
-  const cell = k => `<div class="cur-h-cell"><span class="cur-h-lbl">${_esc(curLabel(SPLIT_LABEL[k]))} ${_esc(hrs.pct[k])}%</span><strong>${hrs.parts[k]}</strong></div>`;
+  const v = k => (hrs ? hrs.parts[k] : '—');
+  const credits = Number(rec.credits) > 0 ? rec.credits : '—';
+  const cell = k => `<div class="cur-h-cell"><span class="cur-h-lbl">${_esc(curLabel(SPLIT_LABEL[k]))}</span>
+      <span class="cur-pct-in"><input type="number" min="0" max="100" step="1" inputmode="numeric" class="cur-num cur-pct"
+        data-cs="${scope}" data-ck="split.${k}" value="${_esc(_num(split[k]))}" aria-label="${_esc(curLabel(SPLIT_LABEL[k]))} %"><span>%</span></span>
+      <strong data-cur-h="${k}">${v(k)}</strong></div>`;
   return `
-    <div class="cur-hours-formula">${_esc(_txf('curTimeFormula', { c: rec.credits, h: _settings().hoursPerCredit, t: hrs.total }))}</div>
+    <div class="cur-hours-formula cur-fx">
+      <bdi data-cur-fxc>${_esc(_txf('curFxCredits', { c: credits }))}</bdi>
+      <input type="number" min="1" step="1" inputmode="numeric" class="cur-num cur-fx-hpc" data-cs="set" data-ck="hoursPerCredit"
+        value="${_esc(_settings().hoursPerCredit)}" aria-label="${_esc(_tx('curHpc'))}" title="${_esc(_tx('curHpcAll'))}">
+      <span>${_esc(_tx('curFxHpc'))}</span> <strong><bdi data-cur-fxt>${hrs ? hrs.total : '—'} ${_esc(_tx('hUnit'))}</bdi></strong>
+    </div>
+    <small class="cur-hint cur-fx-note">${_esc(_tx('curHpcAll'))}</small>
+    <div class="cur-hours-empty" data-cur-needcredits ${hrs ? 'hidden' : ''}>${_esc(_tx('curTimeNeedCredits'))}</div>
+    <div class="cur-pct-scope" role="radiogroup" aria-label="${_esc(_tx('curPctScope'))}">
+      <span class="cur-pct-scope-l">${_esc(_tx('curPctScope'))}</span>
+      <label class="cur-check"><input type="radio" name="curPctScope" value="all" data-cur-action="pct-scope" ${own ? '' : 'checked'}><span>${_esc(_tx('curPctAll'))}</span></label>
+      <label class="cur-check"><input type="radio" name="curPctScope" value="mod" data-cur-action="pct-scope" ${own ? 'checked' : ''}><span>${_esc(_tx('curPctMod'))}</span></label>
+    </div>
     <div class="cur-hours">
       <div class="cur-h-group cur-h-inst">
-        <div class="cur-h-head">${_esc(_tx('curInst'))} <strong><bdi>${hrs.institutional} ${_esc(_tx('hUnit'))}</bdi></strong></div>
+        <div class="cur-h-head">${_esc(_tx('curInst'))} <strong><bdi data-cur-hg="institutional">${hrs ? hrs.institutional : '—'} ${_esc(_tx('hUnit'))}</bdi></strong></div>
         <div class="cur-h-row">${cell('theory')}${cell('practical')}${cell('formative')}</div>
       </div>
       <div class="cur-h-group cur-h-ind">
-        <div class="cur-h-head">${_esc(_tx('curInd'))} <strong><bdi>${hrs.industry} ${_esc(_tx('hUnit'))}</bdi></strong></div>
+        <div class="cur-h-head">${_esc(_tx('curInd'))} <strong><bdi data-cur-hg="industry">${hrs ? hrs.industry : '—'} ${_esc(_tx('hUnit'))}</bdi></strong></div>
         <div class="cur-h-row">${cell('practice')}${cell('summative')}</div>
       </div>
-      <div class="cur-h-total"><span>${_esc(_tx('curTotalL'))}</span><strong><bdi>${hrs.total} ${_esc(_tx('hUnit'))}</bdi></strong></div>
-    </div>`;
+      <div class="cur-h-total"><span>${_esc(_tx('curTotalL'))}</span><strong><bdi data-cur-hg="total">${hrs ? hrs.total : '—'} ${_esc(_tx('hUnit'))}</bdi></strong></div>
+    </div>
+    <div class="cur-split-note" data-cur-sumnote="time">${_splitSumNote(split)}</div>
+    <small class="cur-hint">${_esc(_tx(own ? 'curPctModHint' : 'curPctAllHint'))}</small>`;
+}
+
+function _updateTimeCard(module) {
+  const root = _root();
+  const box = root && root.querySelector('#curHoursBox');
+  if (!box) return;
+  const rec = _modRec(module.id) || {};
+  const hrs = _moduleHours(module);
+  const u = ' ' + _tx('hUnit');
+  const fxc = box.querySelector('[data-cur-fxc]');
+  if (fxc) fxc.textContent = _txf('curFxCredits', { c: Number(rec.credits) > 0 ? rec.credits : '—' });
+  const fxt = box.querySelector('[data-cur-fxt]');
+  if (fxt) fxt.textContent = (hrs ? hrs.total : '—') + u;
+  box.querySelectorAll('[data-cur-h]').forEach(el => { el.textContent = hrs ? hrs.parts[el.getAttribute('data-cur-h')] : '—'; });
+  box.querySelectorAll('[data-cur-hg]').forEach(el => { el.textContent = (hrs ? hrs[el.getAttribute('data-cur-hg')] : '—') + u; });
+  const nc = box.querySelector('[data-cur-needcredits]');
+  if (nc) nc.hidden = !!hrs;
+  const hpc = box.querySelector('input[data-ck="hoursPerCredit"]');
+  if (hpc && document.activeElement !== hpc) hpc.value = _settings().hoursPerCredit;
 }
 
 function _renderHeader(module, idx) {
@@ -822,7 +876,6 @@ function _renderHeader(module, idx) {
   const mods = _modules();
   const prereq = _arr(rec.prerequisites);
   const others = mods.map((m, i) => ({ m, i })).filter(x => x.m.id !== module.id);
-  const override = !!(rec.splitOverride && typeof rec.splitOverride === 'object');
   const los = _liveLOs(module);
   const links = _osLink(module);
   return `
@@ -873,10 +926,7 @@ function _renderHeader(module, idx) {
         </div>
       </div>
       <div class="cur-subhead">${_esc(_tx('curTimeL'))}</div>
-      <div id="curHoursBox">${_hoursBox(module)}</div>
-      <label class="cur-check cur-override"><input type="checkbox" data-cur-action="toggle-override" ${override ? 'checked' : ''}>
-        <span>${_esc(_tx('curOverride'))}</span></label>
-      ${override ? `${_splitInputs('mod', rec.splitOverride)}<div class="cur-split-note" data-cur-sumnote="mod">${_splitSumNote(rec.splitOverride)}</div>` : ''}
+      <div id="curHoursBox" class="cur-timecard">${_timeCard(module)}</div>
       <div class="cur-subhead">${_esc(_tx('curOSLinkL'))}</div>
       ${links.length ? `<ul class="cur-oslink">${links.map(g => `
         <li><strong>${_esc(_txf('curCompetency', { n: g.number }))}</strong>${g.name ? ` — ${_esc(g.name)}` : ''}
@@ -1053,8 +1103,7 @@ function _refreshDerived() {
   const root = _root();
   const module = _selectedModule();
   if (!root || !module) return;
-  const box = root.querySelector('#curHoursBox');
-  if (box) box.innerHTML = _hoursBox(module);
+  _updateTimeCard(module);
   const w = root.querySelector('#curLOHoursWarn');
   if (w) w.innerHTML = _loHoursWarn(module);
   _liveLOs(module).forEach(o => {
@@ -1077,12 +1126,8 @@ function _refreshDerived() {
       opt.textContent = `${_moduleLabel(mods[i], i)}  ${q >= 100 ? '✓' : q + '%'}`;
     });
   }
-  ['set', 'mod'].forEach(sc => {
-    const el = root.querySelector(`[data-cur-sumnote="${sc}"]`);
-    if (!el) return;
-    const split = sc === 'set' ? _settings().split : (_modRec(module.id) || {}).splitOverride;
-    if (split) el.innerHTML = _splitSumNote(split);
-  });
+  const sn = root.querySelector('[data-cur-sumnote="time"]');
+  if (sn) sn.innerHTML = _splitSumNote(_effSplit(_modRec(module.id) || {}));
   // LO hours: refresh automatic values (never the field being typed in).
   const eff = _effectiveLOHours(module);
   eff.forEach((v, loId) => {
@@ -1292,7 +1337,7 @@ const _GUIDE = {
       { h: '🏷️ Header', items: [
         '<strong>Module code</strong> — track + level + position of the module in that level. Example: <em><bdi>CMT 1-1</bdi></em> (first module of level 1).',
         '<strong>Purpose statement</strong> — why the module exists and what learners will be able to do at the end, in one or two sentences. Example: <em>To enable learners to use hand tools, assemble computer components and install peripherals according to manufacturer’s specifications.</em>',
-        '<strong>Credits</strong> — the weight of the module. You enter only the credits; the hours are calculated for you: credits × hours per credit (set in Programme settings), then shared out by the time-split percentages, in whole hours that always add up to the total. Example with 50 hours per credit: 3 credits = 150 h → Theory 15, Practical 67, Formative assessment 8 (Institutional 90 h) · Industry practice 52, Summative assessment 8 (Industry 60 h).',
+        '<strong>Credits</strong> — the weight of the module. You enter only the credits; the hours are calculated for you: credits × hours per credit (set in the Time table), then shared out by the time-split percentages, in whole hours that always add up to the total. Example with 50 hours per credit: 3 credits = 150 h → Theory 15, Practical 67, Formative assessment 8 (Institutional 90 h) · Industry practice 52, Summative assessment 8 (Industry 60 h).',
         '<strong>Pre-requisite modules</strong> — tick the modules a learner must complete before this one. Example: <em>a workplace safety module</em> before a module that uses power tools.' ] },
       { h: '🎯 For each learning outcome', items: [
         '<strong>Learning context</strong> — where the learning takes place. Example: <em>Workshop, classroom or a real or simulated workplace.</em>',
@@ -1323,7 +1368,7 @@ const _GUIDE = {
       { h: '🏷️ En-tête', items: [
         '<strong>Code du module</strong> — filière + niveau + position du module dans ce niveau. Exemple : <em><bdi>CMT 1-1</bdi></em> (premier module du niveau 1).',
         '<strong>Énoncé de l’objectif</strong> — pourquoi le module existe et ce que l’apprenant saura faire à la fin, en une ou deux phrases. Exemple : <em>Permettre aux apprenants d’utiliser les outils à main, d’assembler les composants d’un ordinateur et d’installer les périphériques selon les spécifications du fabricant.</em>',
-        '<strong>Crédits</strong> — le poids du module. Vous saisissez seulement les crédits ; les heures sont calculées : crédits × heures par crédit (Paramètres du programme), puis réparties selon les pourcentages, en heures entières dont la somme égale toujours le total. Exemple avec 50 h par crédit : 3 crédits = 150 h → Théorie 15, Pratique 67, Évaluation formative 8 (Établissement 90 h) · Pratique en entreprise 52, Évaluation sommative 8 (Entreprise 60 h).',
+        '<strong>Crédits</strong> — le poids du module. Vous saisissez seulement les crédits ; les heures sont calculées : crédits × heures par crédit (réglées dans le Tableau horaire), puis réparties selon les pourcentages, en heures entières dont la somme égale toujours le total. Exemple avec 50 h par crédit : 3 crédits = 150 h → Théorie 15, Pratique 67, Évaluation formative 8 (Établissement 90 h) · Pratique en entreprise 52, Évaluation sommative 8 (Entreprise 60 h).',
         '<strong>Modules préalables</strong> — cochez les modules à terminer avant celui-ci. Exemple : <em>un module de sécurité au travail</em> avant un module qui utilise des outils électriques.' ] },
       { h: '🎯 Pour chaque résultat d’apprentissage', items: [
         '<strong>Contexte d’apprentissage</strong> — où l’apprentissage a lieu. Exemple : <em>Atelier, salle de classe ou lieu de travail réel ou simulé.</em>',
@@ -1354,7 +1399,7 @@ const _GUIDE = {
       { h: '🏷️ الترويسة', items: [
         '<strong>رمز الوحدة</strong> — المسار + المستوى + ترتيب الوحدة داخل ذلك المستوى. مثال: <em><bdi>CMT 1-1</bdi></em> (الوحدة الأولى في المستوى 1).',
         '<strong>بيان الغرض</strong> — لماذا وُجدت الوحدة وما الذي سيستطيع المتدرب فعله في نهايتها، في جملة أو جملتين. مثال: <em>تمكين المتدربين من استخدام العدد اليدوية وتجميع مكونات الحاسوب وتنصيب الأجهزة الطرفية وفق مواصفات الصانع.</em>',
-        '<strong>الرصيد / الساعات المعتمدة</strong> — وزن الوحدة. تُدخل الرصيد فقط، والساعات تُحسب تلقائياً: الرصيد × الساعات لكل ساعة معتمدة (من إعدادات البرنامج)، ثم تُوزَّع حسب نسب توزيع الوقت بساعات صحيحة مجموعها يساوي الإجمالي دائماً. مثال بـ 50 ساعة لكل ساعة معتمدة: 3 = 150 ساعة ← نظري 15، عملي 67، تقييم تكويني 8 (المؤسسة 90 ساعة) · تطبيق في موقع العمل 52، تقييم ختامي 8 (موقع العمل 60 ساعة).',
+        '<strong>الرصيد / الساعات المعتمدة</strong> — وزن الوحدة. تُدخل الرصيد فقط، والساعات تُحسب تلقائياً: الرصيد × الساعات لكل ساعة معتمدة (تُضبط في جدول الوقت)، ثم تُوزَّع حسب نسب توزيع الوقت بساعات صحيحة مجموعها يساوي الإجمالي دائماً. مثال بـ 50 ساعة لكل ساعة معتمدة: 3 = 150 ساعة ← نظري 15، عملي 67، تقييم تكويني 8 (المؤسسة 90 ساعة) · تطبيق في موقع العمل 52، تقييم ختامي 8 (موقع العمل 60 ساعة).',
         '<strong>الوحدات المتطلبة سابقاً</strong> — ضع علامة على الوحدات التي يجب أن يُكملها المتدرب قبل هذه الوحدة. مثال: <em>وحدة السلامة في مكان العمل</em> قبل وحدة تستخدم العدد الكهربائية.' ] },
       { h: '🎯 لكل محصلة تعلم', items: [
         '<strong>سياق التعلم</strong> — أين يحدث التعلم. مثال: <em>ورشة أو قاعة دراسية أو موقع عمل حقيقي أو محاكى.</em>',
@@ -1775,10 +1820,12 @@ function _wire() {
       rec.prerequisites = _modules().map(m => m.id).filter(x => set.has(x));
       _schedulePersist(); return;
     }
-    if (t.matches('[data-cur-action="toggle-override"]')) {
+    if (t.matches('[data-cur-action="pct-scope"]')) {
+      // "This module only" starts from the shared percentages; going back
+      // to "Same for all modules" drops this module's own values.
       const module = _selectedModule();
       const rec = _modRec(module.id, true);
-      rec.splitOverride = t.checked ? { ..._settings().split } : null;
+      rec.splitOverride = t.value === 'mod' ? { ..._settings().split } : null;
       renderModuleCurriculum(); _schedulePersist(); return;
     }
     if (t.hasAttribute('data-cs') && (t.getAttribute('data-ck') === 'hoursPerCredit' || t.getAttribute('data-ck') === 'groupSize')) {
