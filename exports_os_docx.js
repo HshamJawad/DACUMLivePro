@@ -315,7 +315,11 @@ export async function exportOccupationalStandardWord() {
         if (emp) {
             children.push(_h2(_t('expEmployability')));
 
-            const EMP_COLS = [4271, 1200, 1200, 1200, 1200];
+            // Level columns 1200 twips each up to four (the historic layout:
+            // 4271 + 4 × 1200); narrower when a project has five or six.
+            const nLv = emp.levelLabels.length;
+            const lvW = nLv <= 4 ? 1200 : Math.floor(4800 / nLv);
+            const EMP_COLS = [TABLE_W - nLv * lvW, ...emp.levelLabels.map(() => lvW)];
             const rows = [new TableRow({
                 tableHeader: true,
                 children: [
@@ -328,7 +332,7 @@ export async function exportOccupationalStandardWord() {
 
             emp.categories.forEach(cat => {
                 rows.push(new TableRow({
-                    children: [_cell(cat.name, { bold: true, fill: LABEL_FILL, span: 5, width: TABLE_W })],
+                    children: [_cell(cat.name, { bold: true, fill: LABEL_FILL, span: nLv + 1, width: TABLE_W })],
                 }));
                 cat.competencies.forEach(comp => {
                     rows.push(new TableRow({

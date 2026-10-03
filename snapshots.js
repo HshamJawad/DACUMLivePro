@@ -150,6 +150,11 @@ export function saveToJSON() {
 
     // Skills Level Matrix
     data.skillsLevelMatrix = appState.skillsLevelData;
+    // Matrix columns (3.40.0). Written only when they differ from the four
+    // defaults, so files of projects that keep the defaults are unchanged.
+    if (Array.isArray(appState.skillsLevelColumns) && appState.skillsLevelColumns.length) {
+      data.skillsLevelColumns = appState.skillsLevelColumns;
+    }
 
     // Task Analysis — keyed the same way appState stores it (by task
     // inputId). importProjectFromData() in dacum_projects.js reads this
@@ -495,6 +500,8 @@ export function loadFromJSONLegacy(event) {
         appState.moduleCurriculumData = normalizeModuleCurriculumData(data.moduleCurriculum);
 
         // Skills Level Matrix
+        appState.skillsLevelColumns = Array.isArray(data.skillsLevelColumns) && data.skillsLevelColumns.length
+          ? data.skillsLevelColumns : null;
         if (data.skillsLevelMatrix) {
           appState.skillsLevelData = data.skillsLevelMatrix;
           renderSkillsLevel();

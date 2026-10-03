@@ -21,6 +21,8 @@ export const appState = {
   // Seeded from i18n at first render, not here: see
   // defaultSkillsLevelData() at the foot of this file.
   skillsLevelData: [],
+  // Matrix columns (levels). null = the four defaults; see skill_levels.js.
+  skillsLevelColumns: null,
 
   // ── Task Verification ──────────────────────────────────────
   verificationRatings: {},   // { taskKey: { importance, frequency, difficulty, ... } }

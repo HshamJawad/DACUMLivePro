@@ -7,6 +7,33 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.40.0 — 2026-10-03 — Editable Skills Level Matrix levels ────
+MINOR. New skill_levels.js; renderer.js, state.js, dacum_projects.js,
+autosave.js, snapshots.js, workshop_snapshots.js, projects.js,
+exports_docx.js, exports_pdf.js, exports_os_docx.js, os_model.js,
+occupational_standard.js, translations.js, sw.js (v148).
+Added   Additional Info → Skills Level Matrix: a "Levels (columns)" row
+        to rename, add (up to 6) or remove (down to 1) the occupational
+        levels, e.g. Chief Programmer / Technician / Assistant. Renaming
+        keeps the ticks; removing a level asks first (naming how many
+        ticks go with it); "Restore default levels" returns to the four
+        defaults. Default names follow the interface language; typed
+        names stay as typed. The legend of the four defaults hides each
+        level once it is renamed or removed. EN/FR/AR, RTL, 360 px.
+Changed The levels are project data (appState.skillsLevelColumns; null =
+        the four defaults, which keep their historic ids so existing
+        projects and JSON files keep their ticks). Saved with the project,
+        in crash backups, workshop snapshots and the JSON file (written
+        only when not the defaults). Clear This Tab resets them.
+Changed The chart Word and PDF exports, the Occupational Standard (Word
+        and tab) all read the levels from skill_levels.js; column widths
+        follow the number of levels. With the default levels all six
+        outputs (Word, PDF, OS × EN/AR) were verified byte-identical
+        before and after (PDF compared without its creation date).
+Fixed   A new project (and Clear All) inherited the previous project's
+        Skills Level Matrix ticks. Both now reset the matrix and its levels
+        to the defaults.
+
 ── 3.39.0 — 2026-10-03 — Occupational Standard tab ────
 MINOR. New os_model.js and occupational_standard.js; exports_os_docx.js,
 index.html, dacum_projects.js, projects.js, tabs.js, translations.js,

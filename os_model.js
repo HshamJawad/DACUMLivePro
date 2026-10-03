@@ -15,6 +15,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { getSkillLevelColumns } from './skill_levels.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
 import { formatDacumDateRange, formatDateLong, formatVenueWithMode } from './exports_shared.js';
 
@@ -139,7 +140,7 @@ export function getOccupationalStandardModel() {
   let employability = null;
   const sl = appState.skillsLevelData;
   if (Array.isArray(sl) && sl.length) {
-    const levelKeys = ['craftsman', 'skilled', 'semiSkilled', 'foundation'];
+    const levelCols = getSkillLevelColumns();   // the project's levels (3.40.0)
     const categories = [];
     let printed = 0;
     sl.forEach(cat => {
@@ -150,14 +151,14 @@ export function getOccupationalStandardModel() {
       comps.forEach(comp => {
         if (!comp.text) return;
         const lv = comp.levels || {};
-        rows.push({ text: comp.text, levels: levelKeys.map(k => !!lv[k]) });
+        rows.push({ text: comp.text, levels: levelCols.map(c => !!lv[c.id]) });
         printed++;
       });
       categories.push({ name: catName, competencies: rows });
     });
     if (printed) {
       employability = {
-        levelLabels: [_t('expCraftsman'), _t('expSkilled'), _t('expSemiSkilled'), _t('expFoundation')],
+        levelLabels: levelCols.map(c => c.exportLabel),
         categories,
         count: printed,
       };

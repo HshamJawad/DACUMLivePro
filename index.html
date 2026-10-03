@@ -108,12 +108,12 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v147';
+      var EXPECTED_SW='v148';
 
       // ── Human-readable build identity (shown in the toolbar) ──
-      // Bumped together with EXPECTED_SW above. MINOR: new Occupational
-      // Standard tab (view + export).
-      var APP_VERSION = '3.39.0';
+      // Bumped together with EXPECTED_SW above. MINOR: editable levels in
+      // the Skills Level Matrix.
+      var APP_VERSION = '3.40.0';
       var APP_RELEASED = '2026-10-03';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };

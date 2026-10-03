@@ -128,6 +128,7 @@ export function importProjectFromData(data, fileName) {
     producedByImage:          s.chartInfo?.producedByImage  || null,
     customSectionCounter:     0,
     skillsLevelData:          s.skillsLevelMatrix || s.skillsLevelData,
+    skillsLevelColumns:       s.skillsLevelColumns || null,
     verificationRatings:      s.verification?.ratings        || {},
     taskMetadata:             s.verification?.taskMetadata   || {},
     // s.taskAnalysis is the key saveToJSON() writes (see snapshots.js).
@@ -920,6 +921,7 @@ function _captureState() {
     producedByImage:          _persistLogo('producedBy',  appState.producedByImage),
     customSectionCounter:     appState.customSectionCounter,
     skillsLevelData:          appState.skillsLevelData,
+    skillsLevelColumns:       appState.skillsLevelColumns      || null,
     verificationRatings:      appState.verificationRatings     || {},
     taskMetadata:             appState.taskMetadata            || {},
     taskAnalysisData:         appState.taskAnalysisData        || {},
@@ -965,6 +967,8 @@ function _applyState(s) {
   appState.producedByImage          = getImageSync(s.producedByImage)  || null;
   appState.customSectionCounter     = s.customSectionCounter     || 0;
   appState.skillsLevelData          = s.skillsLevelData;
+  // Absent in projects saved before 3.40.0 → the four default levels.
+  appState.skillsLevelColumns       = s.skillsLevelColumns       || null;
   appState.verificationRatings      = s.verificationRatings      || {};
   appState.taskMetadata             = s.taskMetadata             || {};
   // Older projects saved before Task Analysis existed simply have no

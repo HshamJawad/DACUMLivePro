@@ -8,6 +8,7 @@
 // globally by index.html.
 // ============================================================
 
+import { getSkillLevelColumns } from './skill_levels.js';
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
@@ -1706,9 +1707,20 @@ export async function exportToWord() {
 
                 // ============ SKILLS LEVEL MATRIX EXPORT ============
                 // Check if there's any meaningful data in Skills Level Matrix
+                // Columns are the project's levels (skill_levels.js, 3.40.0).
+                // With the four defaults every width and label below is the
+                // same as before, so those documents are unchanged.
+                const slCols = getSkillLevelColumns();
+                const slN = slCols.length;
+                const slPct = Math.floor(60 / slN);              // 4 → 15 %
+                const slCompW = 3629;                             // 40 % of 9071
+                const slLevelW = (() => {                         // 4 → 1361,1361,1360,1360
+                    const rest = 9071 - slCompW, base = Math.floor(rest / slN), rem = rest - base * slN;
+                    return slCols.map((_, i) => base + (i < rem ? 1 : 0));
+                })();
                 const hasSkillsLevelData = appState.skillsLevelData?.some(category =>
                     category.competencies.some(comp =>
-                        Object.values(comp.levels).some(v => v === true)
+                        slCols.some(col => (comp.levels || {})[col.id] === true)
                     )
                 );
 
@@ -1750,7 +1762,7 @@ export async function exportToWord() {
                                             bidirectional: _rtl(),
                                         }),
                                     ],
-                                    columnSpan: 5,
+                                    columnSpan: slN + 1,
                                     shading: {
                                         fill: _tblFill(),
                                         type: ShadingType.CLEAR,
@@ -1783,12 +1795,12 @@ export async function exportToWord() {
                                         color: "auto",
                                     },
                                 }),
-                                new TableCell({
+                                ...slCols.map(col => new TableCell({
                                     children: [
                                         new Paragraph({
                                             children: [
                                                 new TextRun({ __shaded: true,
-                                                    text: _t('expCraftsman'),
+                                                    text: col.exportLabel,
                                                     bold: true,
                                                     size: 20,
                                                 }),
@@ -1796,73 +1808,13 @@ export async function exportToWord() {
                                             bidirectional: _rtl(),
                                         }),
                                     ],
-                                    width: { size: 15, type: WidthType.PERCENTAGE },
+                                    width: { size: slPct, type: WidthType.PERCENTAGE },
                                     shading: {
                                         fill: _tblFill(),
                                         type: ShadingType.CLEAR,
                                         color: "auto",
                                     },
-                                }),
-                                new TableCell({
-                                    children: [
-                                        new Paragraph({
-                                            children: [
-                                                new TextRun({ __shaded: true,
-                                                    text: _t('expSkilled'),
-                                                    bold: true,
-                                                    size: 20,
-                                                }),
-                                            ],
-                                            bidirectional: _rtl(),
-                                        }),
-                                    ],
-                                    width: { size: 15, type: WidthType.PERCENTAGE },
-                                    shading: {
-                                        fill: _tblFill(),
-                                        type: ShadingType.CLEAR,
-                                        color: "auto",
-                                    },
-                                }),
-                                new TableCell({
-                                    children: [
-                                        new Paragraph({
-                                            children: [
-                                                new TextRun({ __shaded: true,
-                                                    text: _t('expSemiSkilled'),
-                                                    bold: true,
-                                                    size: 20,
-                                                }),
-                                            ],
-                                            bidirectional: _rtl(),
-                                        }),
-                                    ],
-                                    width: { size: 15, type: WidthType.PERCENTAGE },
-                                    shading: {
-                                        fill: _tblFill(),
-                                        type: ShadingType.CLEAR,
-                                        color: "auto",
-                                    },
-                                }),
-                                new TableCell({
-                                    children: [
-                                        new Paragraph({
-                                            children: [
-                                                new TextRun({ __shaded: true,
-                                                    text: _t('expFoundation'),
-                                                    bold: true,
-                                                    size: 20,
-                                                }),
-                                            ],
-                                            bidirectional: _rtl(),
-                                        }),
-                                    ],
-                                    width: { size: 15, type: WidthType.PERCENTAGE },
-                                    shading: {
-                                        fill: _tblFill(),
-                                        type: ShadingType.CLEAR,
-                                        color: "auto",
-                                    },
-                                }),
+                                })),
                             ],
                         });
 
@@ -1886,12 +1838,12 @@ export async function exportToWord() {
                                             ],
                                             width: { size: 40, type: WidthType.PERCENTAGE },
                                         }),
-                                        new TableCell({
+                                        ...slCols.map(col => new TableCell({
                                             children: [
                                                 new Paragraph({
                                                     children: [
                                                         new TextRun({
-                                                            text: competency.levels.craftsman ? '✓' : '',
+                                                            text: (competency.levels || {})[col.id] ? '✓' : '',
                                                             size: 22,
                                                         }),
                                                     ],
@@ -1899,53 +1851,8 @@ export async function exportToWord() {
                                                     bidirectional: _rtl(),
                                                 }),
                                             ],
-                                            width: { size: 15, type: WidthType.PERCENTAGE },
-                                        }),
-                                        new TableCell({
-                                            children: [
-                                                new Paragraph({
-                                                    children: [
-                                                        new TextRun({
-                                                            text: competency.levels.skilled ? '✓' : '',
-                                                            size: 22,
-                                                        }),
-                                                    ],
-                                                    alignment: AlignmentType.CENTER,
-                                                    bidirectional: _rtl(),
-                                                }),
-                                            ],
-                                            width: { size: 15, type: WidthType.PERCENTAGE },
-                                        }),
-                                        new TableCell({
-                                            children: [
-                                                new Paragraph({
-                                                    children: [
-                                                        new TextRun({
-                                                            text: competency.levels.semiSkilled ? '✓' : '',
-                                                            size: 22,
-                                                        }),
-                                                    ],
-                                                    alignment: AlignmentType.CENTER,
-                                                    bidirectional: _rtl(),
-                                                }),
-                                            ],
-                                            width: { size: 15, type: WidthType.PERCENTAGE },
-                                        }),
-                                        new TableCell({
-                                            children: [
-                                                new Paragraph({
-                                                    children: [
-                                                        new TextRun({
-                                                            text: competency.levels.foundation ? '✓' : '',
-                                                            size: 22,
-                                                        }),
-                                                    ],
-                                                    alignment: AlignmentType.CENTER,
-                                                    bidirectional: _rtl(),
-                                                }),
-                                            ],
-                                            width: { size: 15, type: WidthType.PERCENTAGE },
-                                        }),
+                                            width: { size: slPct, type: WidthType.PERCENTAGE },
+                                        })),
                                     ],
                                 });
                             });
@@ -1966,8 +1873,9 @@ export async function exportToWord() {
                                    which Word honours anyway; the moment one moves to DXA the
                                    table breaks. Widths below are the same proportions the
                                    cells declare, resolved against 9071 twips (16 cm).
-                                   Five columns: 40% competency, then 15% per level. */
-                                columnWidths: [3629, 1361, 1361, 1360, 1360],
+                                   40% competency, then the rest shared by the levels
+                                   (four defaults: 15% each → 1361, 1361, 1360, 1360). */
+                                columnWidths: [slCompW, ...slLevelW],
                                 layout: "fixed",
                                 rows: [headerRow, columnHeaderRow, ...competencyRows],
                             })

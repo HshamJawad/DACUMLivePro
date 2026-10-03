@@ -5,6 +5,9 @@
 // ============================================================
 
 import { appState, defaultSkillsLevelData, skillsLevelIsEmpty } from './state.js';
+import { getSkillLevelColumns, emptyLevels, usesDefaultSkillLevels, DEFAULT_LEVELS,
+         MAX_LEVELS, MIN_LEVELS, renameSkillLevel, addSkillLevel, removeSkillLevel,
+         countSkillLevelTicks, ticksLostOnRestore, restoreDefaultSkillLevels } from './skill_levels.js';
 
 /* i18n access — resolved lazily, see duties.js for the reasoning. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -84,15 +87,10 @@ const ICON_RENAME =
 
 // ── Skills Level Matrix ───────────────────────────────────────
 
-/* Checkbox labels reuse the SAME keys as the explanatory list in the
-   info box above the matrix. Duplicating the wording would let the
-   legend and the checkboxes drift apart in translation. */
-const LEVEL_KEYS = {
-  craftsman:   'lvlCraftsman',
-  skilled:     'lvlSkilled',
-  semiSkilled: 'lvlSemiSkilled',
-  foundation:  'lvlFoundation'
-};
+/* Checkbox labels come from skill_levels.js (3.40.0): the project's own
+   levels, or the four defaults — whose labels reuse the SAME keys as the
+   explanatory list in the info box above the matrix, so the legend and
+   the checkboxes cannot drift apart in translation. */
 
 
 export function toggleSkillsLevelSection() {
@@ -107,7 +105,7 @@ export function addSkillsCategory() {
   appState.skillsLevelData.push({
     id: newId, category: '',
     competencies: [
-      { id: `${newId}.1`, text: '', levels: { craftsman: false, skilled: false, semiSkilled: false, foundation: false } }
+      { id: `${newId}.1`, text: '', levels: emptyLevels() }
     ]
   });
   renderSkillsLevel();
@@ -134,7 +132,7 @@ export function addSkillsCompetency(categoryIndex) {
   const newNum      = category.competencies.length + 1;
   category.competencies.push({
     id: `${categoryId}.${newNum}`, text: '',
-    levels: { craftsman: false, skilled: false, semiSkilled: false, foundation: false }
+    levels: emptyLevels()
   });
   renderSkillsLevel();
 }
@@ -157,8 +155,143 @@ export function updateSkillsCompetencyText(categoryIndex, competencyIndex, text)
 }
 
 export function handleSkillsLevelChange(categoryIndex, competencyIndex, level, isChecked) {
-  appState.skillsLevelData[categoryIndex].competencies[competencyIndex].levels[level] = isChecked;
+  const comp = appState.skillsLevelData[categoryIndex].competencies[competencyIndex];
+  if (!comp.levels) comp.levels = {};
+  comp.levels[level] = isChecked;
 }
+
+// ── Matrix levels (columns) editor — 3.40.0 ───────────────────
+// One row above the matrix: rename, add (up to 6) or remove (down to 1)
+// the occupational levels. The data rules live in skill_levels.js.
+
+function _saveProject() {
+  import('./dacum_projects.js')
+    .then(m => { try { m.saveCurrentProject(); } catch (_) {} })
+    .catch(() => {});
+}
+
+function _injectLevelsStyles() {
+  if (document.getElementById('slEditorStyles')) return;
+  const st = document.createElement('style');
+  st.id = 'slEditorStyles';
+  st.textContent = `
+    #skillLevelsEditor { margin: 0 0 18px; padding: 12px 14px; border: 1px solid #ddd6fe; border-radius: 12px; background: #faf5ff; }
+    #skillLevelsEditor .sl-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 10px; }
+    #skillLevelsEditor .sl-head strong { color: #5b21b6; }
+    #skillLevelsEditor .sl-hint { font-size: .82em; color: #6b7280; }
+    #skillLevelsEditor .sl-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    #skillLevelsEditor .sl-chip { display: inline-flex; align-items: center; gap: 2px; max-width: 100%;
+      background: #fff; border: 1px solid #c4b5fd; border-radius: 8px; padding: 2px 2px 2px 0; }
+    #skillLevelsEditor .sl-name { border: none !important; background: transparent; font: inherit; font-size: .9em; font-weight: 600;
+      color: #312e81; padding: 6px 8px !important; margin: 0 !important; width: auto; min-width: 0; max-width: 100%; box-shadow: none !important; }
+    #skillLevelsEditor .sl-name:focus { outline: 2px solid #8b5cf6; border-radius: 6px; }
+    #skillLevelsEditor .sl-del { border: none; background: transparent; color: #9ca3af; font-size: 1.15em; line-height: 1;
+      padding: 4px 8px !important; margin: 0; cursor: pointer; border-radius: 6px; min-width: 0; }
+    #skillLevelsEditor .sl-del:hover:not(:disabled) { color: #dc2626; background: #fef2f2; }
+    #skillLevelsEditor .sl-del:disabled { opacity: .35; cursor: not-allowed; }
+    #skillLevelsEditor .sl-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    #skillLevelsEditor .sl-btn { margin: 0; padding: 6px 12px !important; border-radius: 8px; border: 1px solid #c4b5fd;
+      background: #fff; color: #5b21b6; font: inherit; font-size: .85em; font-weight: 600; cursor: pointer; }
+    #skillLevelsEditor .sl-btn:disabled { opacity: .45; cursor: not-allowed; }
+    @media (max-width: 480px) { #skillLevelsEditor .sl-chip { max-width: 100%; } }`;
+  document.head.appendChild(st);
+}
+
+function _renderLevelsEditor(container, cols) {
+  _injectLevelsStyles();
+  let box = document.getElementById('skillLevelsEditor');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'skillLevelsEditor';
+    // Above the "Edit Employability Competencies" row.
+    const anchor = container.previousElementSibling || container;
+    anchor.parentNode.insertBefore(box, anchor);
+    _wireLevelsEditor(box);
+  }
+  const atMin = cols.length <= MIN_LEVELS, atMax = cols.length >= MAX_LEVELS;
+  box.innerHTML = `
+    <div class="sl-head">
+      <strong>${escapeHtml(_t('slLevelsTitle'))}</strong>
+      <span class="sl-hint">${escapeHtml(_tf('slLevelsHint', { max: MAX_LEVELS }))}</span>
+    </div>
+    <div class="sl-chips">
+      ${cols.map(c => `
+        <span class="sl-chip">
+          <input type="text" class="sl-name" maxlength="60" data-sl-id="${escapeHtml(c.id)}"
+                 size="${Math.min(28, Math.max(8, c.uiLabel.length + 1))}"
+                 value="${escapeHtml(c.uiLabel)}" aria-label="${escapeHtml(_t('slLevelName'))}">
+          <button type="button" class="sl-del" data-sl-del="${escapeHtml(c.id)}" ${atMin ? 'disabled' : ''}
+                  title="${escapeHtml(_t('slRemoveLevel'))}" aria-label="${escapeHtml(_t('slRemoveLevel'))}: ${escapeHtml(c.uiLabel)}">×</button>
+        </span>`).join('')}
+    </div>
+    <div class="sl-actions">
+      <button type="button" class="sl-btn" data-sl-add ${atMax ? 'disabled' : ''}
+              title="${escapeHtml(atMax ? _tf('slMaxLevels', { max: MAX_LEVELS }) : '')}">＋ ${escapeHtml(_t('slAddLevel'))}</button>
+      ${usesDefaultSkillLevels() ? '' :
+        `<button type="button" class="sl-btn" data-sl-restore>↺ ${escapeHtml(_t('slRestoreDefaults'))}</button>`}
+    </div>`;
+}
+
+function _wireLevelsEditor(box) {
+  box.addEventListener('change', e => {
+    const input = e.target.closest('.sl-name');
+    if (!input) return;
+    renameSkillLevel(input.getAttribute('data-sl-id'), input.value);
+    renderSkillsLevel();
+    _saveProject();
+  });
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.closest('.sl-name')) { e.preventDefault(); e.target.blur(); }
+  });
+  box.addEventListener('click', e => {
+    const del = e.target.closest('[data-sl-del]');
+    if (del) {
+      const id = del.getAttribute('data-sl-del');
+      const col = getSkillLevelColumns().find(c => c.id === id);
+      const n = countSkillLevelTicks(id);
+      if (n && !confirm(_tf('slConfirmRemove', { name: col ? col.uiLabel : id, n }))) return;
+      if (!removeSkillLevel(id)) { alert(_t('slMinLevels')); return; }
+      renderSkillsLevel();
+      _saveProject();
+      return;
+    }
+    if (e.target.closest('[data-sl-add]')) {
+      const id = addSkillLevel();
+      if (!id) { alert(_tf('slMaxLevels', { max: MAX_LEVELS })); return; }
+      renderSkillsLevel();
+      _saveProject();
+      const input = box.querySelector(`.sl-name[data-sl-id="${id}"]`);
+      if (input) { input.focus(); input.select(); }
+      return;
+    }
+    if (e.target.closest('[data-sl-restore]')) {
+      if (!confirm(_tf('slConfirmRestore', { n: ticksLostOnRestore() }))) return;
+      restoreDefaultSkillLevels();
+      renderSkillsLevel();
+      _saveProject();
+    }
+  });
+}
+
+/* The info box explains the four DEFAULT levels. Each explanation stays
+   only while its level is present under its default name. */
+function _syncLevelLegend(cols) {
+  const items = document.querySelectorAll('.skills-level-info-box ul > li');
+  if (items.length !== DEFAULT_LEVELS.length) return;
+  let shown = 0;
+  DEFAULT_LEVELS.forEach((d, i) => {
+    const c = cols.find(x => x.id === d.id);
+    const show = !!c && !c.custom;
+    items[i].style.display = show ? '' : 'none';
+    if (show) shown++;
+  });
+  items[0].parentElement.style.display = shown ? '' : 'none';
+}
+
+// Labels of the default levels follow the interface language.
+window.addEventListener('dacum:langchange', () => {
+  if (document.getElementById('skillsLevelContainer')) renderSkillsLevel();
+});
 
 export function resetSkillsLevel(withConfirm = true) {
   // "Already at defaults" means no tick anywhere and no user-added rows.
@@ -198,6 +331,10 @@ export function renderSkillsLevel() {
     defaultSkillsLevelData().forEach(cat => appState.skillsLevelData.push(cat));
   }
 
+  const levelCols = getSkillLevelColumns();
+  _renderLevelsEditor(container, levelCols);
+  _syncLevelLegend(levelCols);
+
   let html = '';
 
   appState.skillsLevelData.forEach((category, categoryIndex) => {
@@ -235,13 +372,13 @@ export function renderSkillsLevel() {
               data-cat-index="${categoryIndex}" data-comp-index="${competencyIndex}">×</button>
           </div>
           <div class="skills-level-checkboxes">
-            ${['craftsman','skilled','semiSkilled','foundation'].map(level => `
+            ${levelCols.map(col => `
               <label class="skills-level-checkbox-label">
-                <input type="checkbox" ${competency.levels[level] ? 'checked' : ''}
+                <input type="checkbox" ${(competency.levels || {})[col.id] ? 'checked' : ''}
                   data-action="handle-skills-level-change"
                   data-cat-index="${categoryIndex}" data-comp-index="${competencyIndex}"
-                  data-level="${level}">
-                <span>${escapeHtml(_t(LEVEL_KEYS[level]))}</span>
+                  data-level="${escapeHtml(col.id)}">
+                <span>${escapeHtml(col.uiLabel)}</span>
               </label>`).join('')}
           </div>
         </div>`;

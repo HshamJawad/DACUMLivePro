@@ -8,6 +8,7 @@
 // index.html.
 // ============================================================
 
+import { getSkillLevelColumns } from './skill_levels.js';
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
@@ -1391,9 +1392,12 @@ export function exportToPDF() {
         });
         
         // ============ SKILLS LEVEL MATRIX (PDF EXPORT) ============
+        // Columns are the project's levels (skill_levels.js, 3.40.0); the
+        // four defaults draw exactly as before.
+        const slCols = getSkillLevelColumns();
         const hasSkillsLevelData = appState.skillsLevelData?.some(category =>
             category.competencies.some(comp =>
-                Object.values(comp.levels).some(v => v === true)
+                slCols.some(col => (comp.levels || {})[col.id] === true)
             )
         );
 
@@ -1431,14 +1435,22 @@ export function exportToPDF() {
 
                 // Column headers
                 pdf.setFontSize(10);
-                const colWidth = (pageWidth - (margin * 2)) / 5;
-                pdf.setFillColor(245, 245, 245);
-                pdf.rect(margin, yPos - 4, pageWidth - (margin * 2), 6, 'F');
-                pdf.text(_t('expCompetency'), margin + 2, yPos);
-                pdf.text(_t('expCraftsman'), margin + colWidth * 1 + 2, yPos);
-                pdf.text(_t('expSkilled'), margin + colWidth * 2 + 2, yPos);
-                pdf.text(_t('expSemiSkilled'), margin + colWidth * 3 + 2, yPos);
-                pdf.text(_t('expFoundation'), margin + colWidth * 4 + 2, yPos);
+                const colWidth = (pageWidth - (margin * 2)) / (slCols.length + 1);
+                /* A name the user typed may be longer than its column: it is
+                   cut to one line with "..." rather than running into the
+                   next heading. Default names are drawn as they always were. */
+                const _slHead = (col) => {
+                    if (!col.custom && col.isDefault) return col.exportLabel;
+                    const lines = pdf.splitTextToSize(col.exportLabel, colWidth - 4);
+                    return lines.length > 1 ? String(lines[0]).replace(/\s+$/, '') + '...' : lines[0];
+                };
+                const _slHeaders = () => {
+                    pdf.setFillColor(245, 245, 245);
+                    pdf.rect(margin, yPos - 4, pageWidth - (margin * 2), 6, 'F');
+                    pdf.text(_t('expCompetency'), margin + 2, yPos);
+                    slCols.forEach((col, ci) => pdf.text(_slHead(col), margin + colWidth * (ci + 1) + 2, yPos));
+                };
+                _slHeaders();
                 yPos += 8;
 
                 // Competency rows
@@ -1454,13 +1466,7 @@ export function exportToPDF() {
                             // Repeat column headers on new page
                             pdf.setFontSize(10);
                             pdf.setFont(undefined, 'bold');
-                            pdf.setFillColor(245, 245, 245);
-                            pdf.rect(margin, yPos - 4, pageWidth - (margin * 2), 6, 'F');
-                            pdf.text(_t('expCompetency'), margin + 2, yPos);
-                            pdf.text(_t('expCraftsman'), margin + colWidth * 1 + 2, yPos);
-                            pdf.text(_t('expSkilled'), margin + colWidth * 2 + 2, yPos);
-                            pdf.text(_t('expSemiSkilled'), margin + colWidth * 3 + 2, yPos);
-                            pdf.text(_t('expFoundation'), margin + colWidth * 4 + 2, yPos);
+                            _slHeaders();
                             yPos += 8;
                             pdf.setFont(undefined, 'normal');
                         }
@@ -1472,11 +1478,9 @@ export function exportToPDF() {
                         const cellHeight = Math.max(lineHeight * textLines.length, 6);
 
                         // Draw cell borders
-                        pdf.rect(margin, yPos - 4, colWidth, cellHeight);
-                        pdf.rect(margin + colWidth, yPos - 4, colWidth, cellHeight);
-                        pdf.rect(margin + colWidth * 2, yPos - 4, colWidth, cellHeight);
-                        pdf.rect(margin + colWidth * 3, yPos - 4, colWidth, cellHeight);
-                        pdf.rect(margin + colWidth * 4, yPos - 4, colWidth, cellHeight);
+                        for (let ci = 0; ci <= slCols.length; ci++) {
+                            pdf.rect(margin + colWidth * ci, yPos - 4, colWidth, cellHeight);
+                        }
 
                         // Competency text
                         textLines.forEach((line, idx) => {
@@ -1489,18 +1493,11 @@ export function exportToPDF() {
                         // that glyph is in neither Helvetica nor Cairo, and
                         // jsPDF drops unmapped characters silently, so the
                         // matrix was printing blank cells in every language.
-                        if (competency.levels.craftsman) {
-                            drawTick(pdf, margin + colWidth * 1 + (colWidth / 2), checkY);
-                        }
-                        if (competency.levels.skilled) {
-                            drawTick(pdf, margin + colWidth * 2 + (colWidth / 2), checkY);
-                        }
-                        if (competency.levels.semiSkilled) {
-                            drawTick(pdf, margin + colWidth * 3 + (colWidth / 2), checkY);
-                        }
-                        if (competency.levels.foundation) {
-                            drawTick(pdf, margin + colWidth * 4 + (colWidth / 2), checkY);
-                        }
+                        slCols.forEach((col, ci) => {
+                            if ((competency.levels || {})[col.id]) {
+                                drawTick(pdf, margin + colWidth * (ci + 1) + (colWidth / 2), checkY);
+                            }
+                        });
 
                         yPos += cellHeight + 2;
                     });

@@ -194,6 +194,12 @@ function _doClear() {
   document.getElementById('customSectionsContainer').innerHTML = '';
   appState.customSectionCounter = 0;
 
+  // Skills Level Matrix: back to the default rows AND the default levels.
+  // Without this a new project inherited the previous project's ticks
+  // (and, since 3.40.0, its renamed or added levels).
+  appState.skillsLevelColumns = null;
+  resetSkillsLevel(false);
+
   // Hide the scope-missing warning card if it was shown by a previous generation
   _hideScopeMissingWarning();
 
@@ -467,6 +473,7 @@ export function clearCurrentTab(tabId) {
     });
     document.getElementById('customSectionsContainer').innerHTML = '';
     appState.customSectionCounter = 0;
+    appState.skillsLevelColumns = null;   // levels back to the defaults too
     resetSkillsLevel(false); // false = no confirm
     showStatus(_tf('msgTabCleared', { v: _t('tabAdditionalInfo') }), 'success');
 

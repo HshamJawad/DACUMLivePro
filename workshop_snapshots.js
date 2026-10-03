@@ -200,6 +200,7 @@ function _captureFullState() {
     producedByImage:         appState.producedByImage,
     customSectionCounter:    appState.customSectionCounter,
     skillsLevelData:         appState.skillsLevelData,
+    skillsLevelColumns:      appState.skillsLevelColumns      || null,
     verificationRatings:     appState.verificationRatings     || {},
     taskMetadata:            appState.taskMetadata            || {},
     collectionMode:          appState.collectionMode,
@@ -231,6 +232,7 @@ function _applyFullState(s) {
   appState.producedByImage         = s.producedByImage         || null;
   appState.customSectionCounter    = s.customSectionCounter    || 0;
   appState.skillsLevelData         = s.skillsLevelData;
+  appState.skillsLevelColumns      = s.skillsLevelColumns      || null;
   appState.verificationRatings     = s.verificationRatings     || {};
   appState.taskMetadata            = s.taskMetadata            || {};
   appState.collectionMode          = s.collectionMode          || 'workshop';

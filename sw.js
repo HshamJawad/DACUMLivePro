@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v147';
+const CACHE_VERSION = 'v148';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -131,6 +131,8 @@ const PRECACHE_URLS = [
   // Occupational Standard: the shared model (read by the Word exporter
   // and the tab) and the tab itself (3.39.0).
   BASE + 'os_model.js',
+  // Skills Level Matrix columns (3.40.0): read by the matrix and every export.
+  BASE + 'skill_levels.js',
   BASE + 'occupational_standard.js',
   // Third-party libraries, self-hosted since 3.38.0 (were CDN, so Word
   // and PDF export failed offline). Versioned folders: a new version is

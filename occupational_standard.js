@@ -191,7 +191,7 @@ function _renderEmployability(emp) {
   return `<div class="os-table-wrap"><table class="os-emp">
     <thead><tr><th>${_esc(_t('osColCompetency'))}</th>${emp.levelLabels.map(l => `<th class="os-lv">${_esc(l)}</th>`).join('')}</tr></thead>
     <tbody>${emp.categories.map(cat => `
-      <tr class="os-cat"><td colspan="5">${_esc(cat.name)}</td></tr>
+      <tr class="os-cat"><td colspan="${emp.levelLabels.length + 1}">${_esc(cat.name)}</td></tr>
       ${cat.competencies.map(c => `<tr><td>${_esc(c.text)}</td>${c.levels.map(on =>
         `<td class="os-lv">${on ? `<span class="os-tick" aria-label="✓">✓</span>` : ''}</td>`).join('')}</tr>`).join('')}`).join('')}
     </tbody></table></div>`;

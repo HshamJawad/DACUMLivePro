@@ -415,6 +415,7 @@ function _snapshotAppState() {
       producedByImage:          null,
       customSectionCounter:     appState.customSectionCounter    || 0,
       skillsLevelData:          appState.skillsLevelData,
+      skillsLevelColumns:       appState.skillsLevelColumns      || null,
       verificationRatings:      appState.verificationRatings     || {},
       taskMetadata:             appState.taskMetadata            || {},
       supplementaryVerification: appState.supplementaryVerification || null,
@@ -450,6 +451,7 @@ function _applyBackupState(s) {
   appState.producedByImage          = getImageSync(s.producedByImage)  || appState.producedByImage  || null;
   appState.customSectionCounter     = s.customSectionCounter     || 0;
   if (s.skillsLevelData) appState.skillsLevelData = s.skillsLevelData;
+  appState.skillsLevelColumns       = s.skillsLevelColumns       || null;
   appState.verificationRatings      = s.verificationRatings      || {};
   appState.taskMetadata             = s.taskMetadata             || {};
   appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();
