@@ -7,6 +7,13 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.36.1 — 2026-10-03 — Credits field in the Time table ────
+PATCH. module_curriculum.js + dacum-curriculum.css.
+Changed The Credits field moved into the Time table's first line:
+        "Credits [3] × [25] h per credit = 75 h". The separate
+        Credits field above it was removed (same data, data-ck
+        "credits"); Prerequisites now use the full width.
+
 ── 3.36.0 — 2026-10-03 — One place for hours & percentages ────
 MINOR. module_curriculum.js + dacum-curriculum.css.
 Changed The module's Time table is now the only place where hours and

@@ -91,7 +91,7 @@ const _S = {
     curPrereqL: 'Pre-requisite modules',
     curPrereqNone: 'No other modules in the project.',
     curTimeL: 'Time table',
-    curFxCredits: '{c} credits ×',
+    curFxCredits: 'Credits',
     curFxHpc: 'h per credit =',
     curHpcAll: 'Hours per credit apply to all modules.',
     curPctScope: 'Percentages:',
@@ -216,7 +216,7 @@ const _S = {
     curPrereqL: 'Modules préalables',
     curPrereqNone: 'Aucun autre module dans le projet.',
     curTimeL: 'Tableau horaire',
-    curFxCredits: '{c} crédits ×',
+    curFxCredits: 'Crédits',
     curFxHpc: 'h par crédit =',
     curHpcAll: 'Les heures par crédit s’appliquent à tous les modules.',
     curPctScope: 'Pourcentages :',
@@ -340,7 +340,7 @@ const _S = {
     curPrereqL: 'الوحدات المتطلبة سابقاً',
     curPrereqNone: 'لا توجد وحدات أخرى في المشروع.',
     curTimeL: 'جدول الوقت',
-    curFxCredits: 'الرصيد {c} ×',
+    curFxCredits: 'الرصيد',
     curFxHpc: 'ساعة لكل ساعة معتمدة =',
     curHpcAll: 'عدد الساعات لكل ساعة معتمدة يُطبَّق على جميع الوحدات.',
     curPctScope: 'النسب:',
@@ -816,14 +816,16 @@ function _timeCard(module) {
   const scope = own ? 'mod' : 'set';
   const hrs = _moduleHours(module);
   const v = k => (hrs ? hrs.parts[k] : '—');
-  const credits = Number(rec.credits) > 0 ? rec.credits : '—';
   const cell = k => `<div class="cur-h-cell"><span class="cur-h-lbl">${_esc(curLabel(SPLIT_LABEL[k]))}</span>
       <span class="cur-pct-in"><input type="number" min="0" max="100" step="1" inputmode="numeric" class="cur-num cur-pct"
         data-cs="${scope}" data-ck="split.${k}" value="${_esc(_num(split[k]))}" aria-label="${_esc(curLabel(SPLIT_LABEL[k]))} %"><span>%</span></span>
       <strong data-cur-h="${k}">${v(k)}</strong></div>`;
   return `
     <div class="cur-hours-formula cur-fx">
-      <bdi data-cur-fxc>${_esc(_txf('curFxCredits', { c: credits }))}</bdi>
+      <label class="cur-fx-cred"><span>${_esc(_tx('curFxCredits'))}</span>
+        <input type="number" min="0" step="0.5" inputmode="decimal" class="cur-num cur-fx-num" data-cs="mod" data-ck="credits"
+          value="${_esc(_num(rec.credits))}" aria-label="${_esc(_tx('curCreditsL'))}" title="${_esc(_tx('curCreditsL'))}"></label>
+      <span class="cur-fx-op" aria-hidden="true">×</span>
       <input type="number" min="1" step="1" inputmode="numeric" class="cur-num cur-fx-hpc" data-cs="set" data-ck="hoursPerCredit"
         value="${_esc(_settings().hoursPerCredit)}" aria-label="${_esc(_tx('curHpc'))}" title="${_esc(_tx('curHpcAll'))}">
       <span>${_esc(_tx('curFxHpc'))}</span> <strong><bdi data-cur-fxt>${hrs ? hrs.total : '—'} ${_esc(_tx('hUnit'))}</bdi></strong>
@@ -854,11 +856,8 @@ function _updateTimeCard(module) {
   const root = _root();
   const box = root && root.querySelector('#curHoursBox');
   if (!box) return;
-  const rec = _modRec(module.id) || {};
   const hrs = _moduleHours(module);
   const u = ' ' + _tx('hUnit');
-  const fxc = box.querySelector('[data-cur-fxc]');
-  if (fxc) fxc.textContent = _txf('curFxCredits', { c: Number(rec.credits) > 0 ? rec.credits : '—' });
   const fxt = box.querySelector('[data-cur-fxt]');
   if (fxt) fxt.textContent = (hrs ? hrs.total : '—') + u;
   box.querySelectorAll('[data-cur-h]').forEach(el => { el.textContent = hrs ? hrs.parts[el.getAttribute('data-cur-h')] : '—'; });
@@ -915,15 +914,11 @@ function _renderHeader(module, idx) {
       </div>
       <label class="cur-field"><span>${_esc(_tx('curPurposeL'))}</span>
         <textarea class="cur-auto" rows="2" data-cs="mod" data-ck="purpose" placeholder="${_esc(_tx('curPurposePh'))}">${_esc(rec.purpose || '')}</textarea></label>
-      <div class="cur-grid-2">
-        <label class="cur-field"><span>${_esc(_tx('curCreditsL'))}</span>
-          <input type="number" min="0" step="0.5" inputmode="decimal" class="cur-num" data-cs="mod" data-ck="credits" value="${_esc(_num(rec.credits))}"></label>
-        <div class="cur-field"><span>${_esc(_tx('curPrereqL'))}</span>
+      <div class="cur-field"><span>${_esc(_tx('curPrereqL'))}</span>
           ${others.length ? `<div class="cur-checklist" role="group" aria-label="${_esc(_tx('curPrereqL'))}">${others.map(({ m, i }) => `
             <label class="cur-check"><input type="checkbox" data-cur-prereq="${_esc(m.id)}" ${prereq.includes(m.id) ? 'checked' : ''}>
               <span><bdi>${_esc(_moduleCode(m))}</bdi> — ${_esc(m.title || '')}</span></label>`).join('')}</div>`
             : `<div class="cur-hint">${_esc(_tx('curPrereqNone'))}</div>`}
-        </div>
       </div>
       <div class="cur-subhead">${_esc(_tx('curTimeL'))}</div>
       <div id="curHoursBox" class="cur-timecard">${_timeCard(module)}</div>

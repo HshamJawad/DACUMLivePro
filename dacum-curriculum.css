@@ -466,3 +466,10 @@ html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
 #module-curriculum-tab .cur-h-cell input.cur-pct::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 #module-curriculum-tab .cur-h-cell strong { display: block; }
 #module-curriculum-tab .cur-timecard > .cur-hint { display: block; margin-top: 4px; }
+/* Credits field sits at the start of the formula line (3.36.1) */
+#module-curriculum-tab .cur-fx-cred { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-weight: 700; color: var(--cur-ink); }
+#module-curriculum-tab .cur-fx input.cur-fx-num {
+  width: 72px !important; flex: 0 0 auto; margin: 0; padding: 5px 6px; text-align: center;
+  border: 1.5px solid #8b5cf6; border-radius: 8px; font: inherit; font-weight: 700; background: #fff; color: var(--cur-ink);
+}
+#module-curriculum-tab .cur-fx-op { font-weight: 700; color: var(--cur-muted); }
