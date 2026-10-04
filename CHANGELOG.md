@@ -7,6 +7,31 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.47.0 — 2026-10-04 — Competency criteria linked to tasks ────────
+MINOR. modules.js, module_curriculum.js, events.js, translations.js,
+index.html, DACUM_Live_Pro_User_Guide.html, sw.js (v157).
+Added   "🔗 Link criteria to specific tasks (optional)" under the
+        criteria of each competency (2+ tasks): one row per criterion
+        typed for the competency, one toggle per task. A linked
+        criterion traces to the ticked tasks only (e.g. 5S → A3);
+        unlinked, to every task of its competency as before. The same
+        tracing drives Task Analysis "Used in modules", the module's
+        Related Tasks, the Module Builder handoff (sourceTaskIds,
+        performanceCriteria[].sourceTaskIds, taskAnalysis) and the
+        Module Curriculum standard links. Stored as
+        cluster.criterionTasks {"<criterion text>": [taskId…]} inside
+        the cluster (project, JSON, import — no new key). A re-typed
+        criterion keeps its link; a deleted one drops it. The Learning
+        Outcomes source list marks linked criteria [🔗 A3].
+        EN/FR/AR, RTL, 360 px.
+Added   Help. Module Mapping "?" guidelines: "Can a task be taught in
+        more than one module?" (conditions: every criterion taught at
+        least once, deliberate repetition, assessed formally in one
+        module) and "Task criteria or competency criteria?". Task
+        Analysis "?": "Modules and criteria". Performance Criteria /
+        Range "?": a note on competency vs task criteria and the links.
+        User Guide (Competency Clusters): the same, in a short card.
+
 ── 3.46.0 — 2026-10-04 — Task Analysis: order and added sections ─────
 MINOR. task_analysis.js, exports_docx.js, exports_pdf.js, projects.js,
 dacum_projects.js, snapshots.js, state.js, translations.js, index.html,

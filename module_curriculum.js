@@ -34,7 +34,7 @@ import { exportOccupationalStandardWord } from './exports_os_docx.js';
 import { exportCurriculumDocx } from './exports_cur_docx.js';
 import { getModuleCode, suggestModuleCode, isModuleCodeManual, getModuleShortName,
          suggestModuleShortName, assignModuleCode, assignModuleShortName,
-         moduleRef } from './modules.js';
+         moduleRef, criterionTaskIds } from './modules.js';
 
 // ── Strings ──────────────────────────────────────────────────
 // translations.js wins when it has the key (same rule as modules.js);
@@ -650,7 +650,9 @@ function _osLink(module) {
     if (!groups.has(key)) groups.set(key, { number: num, name: cl ? cl.cluster.name : '', pcs: [], taskIds: [] });
     const g = groups.get(key);
     if (pc.id && !g.pcs.includes(pc.id)) g.pcs.push(pc.id);
-    const tids = pc.taskId ? [pc.taskId] : (cl ? _arr(cl.cluster.tasks).map(t => t && t.id).filter(Boolean) : []);
+    // 3.47.0: same tracing as the rest of the tool (criteria linked to
+    // specific tasks trace to those tasks only).
+    const tids = criterionTaskIds(pc);
     tids.forEach(t => { if (!g.taskIds.includes(t)) g.taskIds.push(t); });
   }));
   return [...groups.values()].sort((a, b) => a.number - b.number).map(g => ({

@@ -33,7 +33,8 @@ import { bypassToClusteringTab, resetVerificationDecision, initializeClusteringF
   reassignPCToLO, unassignPCFromLO,
   updateCreateModuleButton, createModule, renameModule, deleteModule,
   removeLoFromModule, addLoToModuleFromDropdown,
-  openModuleBuilderFromMapping, exportModuleMappingJSON }  from './modules.js';
+  openModuleBuilderFromMapping, exportModuleMappingJSON,
+  toggleCriterionTask }  from './modules.js';
 import { showStatus, escapeHtml,
   toggleSkillsLevelSection, addSkillsCategory, removeSkillsCategory,
   updateSkillsCategoryName, addSkillsCompetency, removeSkillsCompetency,
@@ -542,6 +543,10 @@ export function setupEvents() {
       if (action === 'rename-cluster')          renameCluster(target.getAttribute('data-cluster-id'));
       else if (action === 'delete-cluster')     deleteCluster(target.getAttribute('data-cluster-id'));
       else if (action === 'show-pc-range-help') _showPCRangeHelp();
+      else if (action === 'toggle-criterion-task') {
+        toggleCriterionTask(target.getAttribute('data-cluster-id'),
+          parseInt(target.getAttribute('data-crit-index'), 10), target.getAttribute('data-task-id'));
+      }
       else if (action === 'regen-cluster-criteria') {
         generateForSingleCluster(target.getAttribute('data-cluster-id'))
           .then((ok) => { if (ok) { saveCurrentProject(); renderProjectsSidebar(); } })
@@ -951,6 +956,7 @@ function _showTaskAnalysisHelp() {
       ['\u{1F6E0}', _t('helpTAK3'), _t('helpTAV3')],
       ['\u26A0\uFE0F', _t('helpTAK4'), _t('helpTAV4')],
       ['\u2705', _t('helpTAK5'), _t('helpTAV5')],
+      ['\u{1F517}', _t('helpTAK6'), _t('helpTAV6')],
     ],
     note: _t('helpTANote'),
   });
@@ -1064,7 +1070,12 @@ function _showPCRangeHelp() {
         ' ' + _t('helpPCExPart3') + ' ' + chip(_t('chipQualifier'), '#e9d5ff', '#581c87') +
         '\u201D' +
       '</p>' +
-    '</div>';
+    '</div>' +
+
+    /* Competency criteria vs task criteria, and the optional links. */
+    '<p style="margin:14px 0 0;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;' +
+    'border-radius:8px;font-size:0.85em;color:#0c4a6e;line-height:1.6;">\u{1F517} ' +
+      _t('helpPCLinkNote') + '</p>';
 
   _showHelpModal({
     id:       'pcRangeHelpModal',
