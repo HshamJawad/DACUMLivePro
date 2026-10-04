@@ -7,6 +7,32 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.48.0 — 2026-10-04 — Traceability Map ─────────────────────────
+MINOR. trace_map.js (new), modules.js, events.js, translations.js,
+index.html, DACUM_Live_Pro_User_Guide.html, sw.js (v158).
+Added   "🧭 Traceability Map" (button in Competency Clusters and in
+        Module Mapping): a read-only picture of the whole chain in five
+        columns — Occupational Profile (duties and tasks), Competencies,
+        Performance criteria, Learning outcomes, Modules — joined by
+        lines. Data from modules.js getTraceGraph(), which uses the same
+        tracing as the coverage matrix and the Module Builder handoff
+        (Task Analysis criterion → its task; competency criterion → its
+        linked tasks, else every task of the competency).
+        Click a box: its chain lights up and the rest fades (a dashed
+        line shows a criterion tied to specific tasks); the bar below
+        lists the chain; "🔍 Show only this chain" keeps just that
+        chain on screen; click again / Esc to clear, Esc again to close.
+        Filters by duty, competency or module; any column can be hidden
+        (lines bridge across it, at least two columns stay); "Show
+        gaps" marks tasks in no competency, competencies without
+        criteria, criteria in no outcome, outcomes in no module, with a
+        count. Outcomes and modules are ordered to cross the fewest
+        lines. Under 760 px the map becomes a list of tasks, each
+        opening onto its chain, plus a folded list of the other gaps.
+        Nothing is written to the project. Loaded on demand; precached.
+        EN/FR/AR, RTL (the chain runs right to left), 360 px.
+Changed User Guide (Module Mapping): the Traceability Map.
+
 ── 3.47.0 — 2026-10-04 — Competency criteria linked to tasks ────────
 MINOR. modules.js, module_curriculum.js, events.js, translations.js,
 index.html, DACUM_Live_Pro_User_Guide.html, sw.js (v157).

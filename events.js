@@ -204,6 +204,11 @@ export function setupEvents() {
   _on('mmHelpBtn',            'click', () => _showModuleMappingHelp());
   _on('taskVerifyHelpBtn',    'click', () => _showTaskVerificationHelp());
   _on('taskAnalysisHelpBtn',  'click', () => _showTaskAnalysisHelp());
+  /* 3.48.0: Traceability Map — loaded on first use (precached by sw.js). */
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('[data-trace-map]');
+    if (b) import('./trace_map.js').then(m => m.openTraceMap(b));
+  });
 
   // ── Competency Clusters: AI assistance ──────────────────────
   // Two separate actions on purpose — see clustering_ai.js. Both save

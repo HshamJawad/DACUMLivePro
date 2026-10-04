@@ -6,7 +6,7 @@
 import { appState } from './state.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { lwExtractDutiesAndTasks } from './workshop.js';
-import { getTaskCode, getTaskCodeShort, getDutyLabel,
+import { getTaskCode, getTaskCodeShort, getDutyLabel, getDutyCode,
          CLUSTER_ADDED_TASK_PREFIX, isClusterAddedTaskId,
          getAddedTaskLabel } from './codes.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
@@ -4083,6 +4083,80 @@ function _criterionTaskIds(pc) {
 /** Same tracing, for other modules (Module Curriculum). */
 export function criterionTaskIds(pc) {
   return pc ? _criterionTaskIds(pc) : [];
+}
+
+// ── Traceability Map data (3.48.0) ─────────────────────────────
+// One read-only snapshot of the whole chain, for trace_map.js:
+// duty → task → competency → criterion → learning outcome → module.
+// Built from the same sources and the same tracing rules as the rest
+// of the tab (effective criteria, criterionTaskIds, live outcomes), so
+// the map can never disagree with the coverage matrix or the handoff.
+export function getTraceGraph() {
+  _reconcileLearningOutcomes();
+  const cd = appState.clusteringData || { clusters: [] };
+  const lo = appState.learningOutcomesData || { outcomes: [] };
+  const mm = appState.moduleMappingData || { modules: [] };
+
+  const known = new Set();
+  const duties = (appState.dutiesData || []).map(d => ({
+    id: d.id,
+    code: getDutyCode(d.id),
+    title: String(d.title || '').trim(),
+    tasks: (d.tasks || []).filter(t => t && t.inputId && String(t.text || '').trim()).map(t => {
+      known.add(t.inputId);
+      return { id: t.inputId, code: getTaskCodeShort(t.inputId), text: String(t.text).trim() };
+    })
+  })).filter(d => d.tasks.length || d.title);
+
+  /* Tasks a competency holds that are not in the profile: added during
+     clustering, or deleted from the chart and still flagged ⚠. */
+  const extra = [];
+  const comps = (cd.clusters || []).map((c, ci) => {
+    const taskIds = [];
+    (c.tasks || []).forEach(t => {
+      if (!t || !t.id) return;
+      taskIds.push(t.id);
+      if (!known.has(t.id)) {
+        known.add(t.id);
+        extra.push({ id: t.id, code: isClusterAddedTaskId(t.id) ? getAddedTaskLabel() : '⚠',
+                     text: String(t.text || '').trim(), added: isClusterAddedTaskId(t.id) });
+      }
+    });
+    return { id: c.id, num: ci + 1, name: String(c.name || '').trim(), taskIds };
+  });
+
+  const crits = [];
+  const critByKey = new Map();
+  (cd.clusters || []).forEach((c, ci) => {
+    _getClusterEffectiveCriteria(c, ci + 1).forEach(cr => {
+      const text = String(cr.text || '').trim();
+      if (!text || critByKey.has(cr.key)) return;
+      const pc = { text, taskId: cr.taskId, clusterId: c.id };
+      const linked = cr.source === 'ta' ||
+        getCriterionLinkedTasks(c, text).filter(id => (c.tasks || []).some(t => t.id === id)).length > 0;
+      const item = { key: cr.key, id: cr.id, text, compId: c.id, source: cr.source,
+                     taskIds: _criterionTaskIds(pc), linked };
+      crits.push(item);
+      critByKey.set(cr.key, item);
+    });
+  });
+
+  const los = (lo.outcomes || []).map(o => ({
+    id: o.id,
+    number: o.number || '',
+    statement: String(o.statement || '').trim(),
+    critKeys: [...new Set((o.linkedCriteria || [])
+      .filter(pc => pc && !pc.stale && pc.key && critByKey.has(pc.key)).map(pc => pc.key))]
+  }));
+
+  const mods = (mm.modules || []).map(m => ({
+    id: m.id,
+    ref: moduleRef(m),
+    title: String(m.title || '').trim(),
+    loIds: (m.learningOutcomes || []).map(o => o && o.id).filter(Boolean)
+  }));
+
+  return { duties, extra, comps, crits, los, mods };
 }
 
 // ── Competency criteria linked to specific tasks (3.47.0) ───────
