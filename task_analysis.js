@@ -56,12 +56,56 @@ const TEXT_FIELDS = [
 ];
 
 /* All ten sections in on-screen order — shared with task_analysis_ai.js
-   so the AI dialog lists exactly what the form shows. */
+   so the AI dialog lists exactly what the form shows, and with the Word
+   and PDF exports (3.46.0). Ordered by importance (3.46.0): what the
+   worker does, knows and can do, how it is judged, then the supporting
+   detail. */
 export const TA_FIELD_SPECS = [
-  'performanceSteps', 'requiredKnowledge', 'requiredSkills', 'toolsEquipmentMaterials',
-  'safetyOSH', 'conditionsWorkEnvironment', 'decisionsCriticalPoints',
-  'performanceCriteria', 'performanceStandard', 'commonErrorsTroubleshooting',
+  'performanceSteps', 'requiredKnowledge', 'requiredSkills',
+  'performanceCriteria', 'performanceStandard',
+  'toolsEquipmentMaterials', 'safetyOSH', 'decisionsCriticalPoints',
+  'conditionsWorkEnvironment', 'commonErrorsTroubleshooting',
 ].map(key => [...LIST_FIELDS, ...TEXT_FIELDS].find(f => f.key === key));
+
+const _isTextField = (key) => TEXT_FIELDS.some(f => f.key === key);
+
+// ── Sections the user adds (3.46.0) ──────────────────────────────
+// appState.taskAnalysisCustomSections = [{ id, title }] — one list for
+// the whole project, so every task offers the same extra sections (e.g.
+// "Quality Requirements") and the exports line up. Each task keeps its
+// own lines under record.custom[id]. Titles are the user's text, never
+// translated. Field key on screen: "custom:<id>".
+const CUSTOM_PREFIX = 'custom:';
+const _isCustomKey = (key) => String(key || '').indexOf(CUSTOM_PREFIX) === 0;
+const _customId = (key) => String(key).slice(CUSTOM_PREFIX.length);
+
+export function getTaskAnalysisCustomSections() {
+  const c = appState.taskAnalysisCustomSections;
+  return Array.isArray(c) ? c.filter(x => x && x.id) : [];
+}
+
+function _getField(r, key) {
+  if (!r) return _isTextField(key) ? '' : [];
+  if (_isCustomKey(key)) return ((r.custom || {})[_customId(key)]) || [];
+  return r[key];
+}
+function _setField(r, key, value) {
+  if (_isCustomKey(key)) {
+    if (!r.custom || typeof r.custom !== 'object' || Array.isArray(r.custom)) r.custom = {};
+    r.custom[_customId(key)] = value;
+  } else {
+    r[key] = value;
+  }
+}
+
+/* Non-blank custom lines of one record, in section order, as
+   [{ title, items }] — what the exports and the Module Builder handoff
+   read. */
+function _customSectionsOf(r) {
+  return getTaskAnalysisCustomSections()
+    .map(sec => ({ title: sec.title, items: _nonBlank((r && r.custom || {})[sec.id]).map(x => x.trim()) }))
+    .filter(sec => sec.items.length);
+}
 
 // Additional Info holds general, occupation-wide information; Task
 // Analysis holds what THIS task specifically needs. These three fields
@@ -127,7 +171,8 @@ function _isRecordEmpty(r) {
   if (!r) return true;
   return LIST_FIELDS.every(f => !_nonBlank(r[f.key]).length) &&
          !(r.conditionsWorkEnvironment || '').trim() &&
-         !(r.performanceStandard || '').trim();
+         !(r.performanceStandard || '').trim() &&
+         !_customSectionsOf(r).length;
 }
 
 function _status(taskKey) {
@@ -210,6 +255,11 @@ export function getTaskAnalysisRecord(taskKey) {
   if (!r || _isRecordEmpty(r)) return null;
   const clean = { ...r };
   LIST_FIELDS.forEach(f => { clean[f.key] = _nonBlank(r[f.key]).map(s => s.trim()); });
+  // 3.46.0: user-added sections travel as [{ title, items }], not as the
+  // internal id-keyed map.
+  delete clean.custom;
+  const custom = _customSectionsOf(r);
+  if (custom.length) clean.customSections = custom;
   return clean;
 }
 
@@ -243,6 +293,9 @@ export function getTaskAnalysisExportData() {
       // numbering, based on whether a line already carries one — see
       // _writeList()/_pushList() in exports_pdf.js / exports_docx.js.
       LIST_FIELDS.forEach(f => { record[f.key] = _nonBlank(raw[f.key]).map(s => s.trim()); });
+      // 3.46.0: user-added sections, in section order, non-blank only.
+      delete record.custom;
+      record.customSections = _customSectionsOf(raw);
       return {
         dutyLetter: getDutyLetter(entry.dutyIndex),
         dutyTitle:  entry.dutyTitle,
@@ -546,17 +599,99 @@ function _renderFormPanel() {
       </div>
     </div>
 
-    ${_renderListField(byField.performanceSteps,            r.performanceSteps)}
-    ${_renderListField(byField.requiredKnowledge,           r.requiredKnowledge)}
-    ${_renderListField(byField.requiredSkills,              r.requiredSkills)}
-    ${_renderListField(byField.toolsEquipmentMaterials,     r.toolsEquipmentMaterials)}
-    ${_renderListField(byField.safetyOSH,                   r.safetyOSH)}
-    ${_renderTextField(TEXT_FIELDS[0], r.conditionsWorkEnvironment)}
-    ${_renderListField(byField.decisionsCriticalPoints,     r.decisionsCriticalPoints)}
-    ${_renderListField(byField.performanceCriteria,         r.performanceCriteria)}
-    ${_renderTextField(TEXT_FIELDS[1], r.performanceStandard)}
-    ${_renderListField(byField.commonErrorsTroubleshooting, r.commonErrorsTroubleshooting)}
+    ${TA_FIELD_SPECS.map(f => _isTextField(f.key)
+        ? _renderTextField(f, r[f.key])
+        : _renderListField(byField[f.key], r[f.key])).join('')}
+    ${getTaskAnalysisCustomSections().map(sec => _renderCustomField(sec, (r.custom || {})[sec.id])).join('')}
+    <div class="ta-custom-add-row">
+      <button type="button" class="btn-add ta-custom-add" data-action="ta-custom-add">➕ ${escapeHtml(_t('taCustomAdd'))}</button>
+      <span class="ta-custom-hint">${escapeHtml(_t('taCustomHint'))}</span>
+    </div>
   `;
+}
+
+/* A user-added section: same card as the list sections, plus rename and
+   delete (both act on the section for the whole project). */
+function _renderCustomField(sec, items) {
+  const key = CUSTOM_PREFIX + sec.id;
+  const text = (items || []).join('\n');
+  return `
+    <div class="section-container ta-custom-section" data-field-block="${escapeHtml(key)}">
+      <div class="section-header-editable">
+        <h3 dir="auto">${escapeHtml(sec.title)}</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn-format btn-icon" data-action="ta-custom-rename" data-section-id="${escapeHtml(sec.id)}"
+                  title="${escapeHtml(_t('taCustomRename'))}" aria-label="${escapeHtml(_t('taCustomRename'))}">✏️</button>
+          <button type="button" class="btn-format btn-icon" data-action="ta-format-list"
+                  data-field="${escapeHtml(key)}" data-format-type="number"
+                  title="${escapeHtml(_t('ttAddNumbering'))}" aria-label="${escapeHtml(_t('ttAddNumbering'))}">${ICON_NUMBER}</button>
+          <button type="button" class="btn-format btn-icon" data-action="ta-format-list"
+                  data-field="${escapeHtml(key)}" data-format-type="bullet"
+                  title="${escapeHtml(_t('ttAddBullets'))}" aria-label="${escapeHtml(_t('ttAddBullets'))}">${ICON_BULLET}</button>
+          <button type="button" class="btn-clear-section" data-action="ta-clear-field" data-field="${escapeHtml(key)}">
+            🗑️ ${_t('btnClear')}
+          </button>
+          <button type="button" class="btn-clear-section ta-custom-delete" data-action="ta-custom-delete" data-section-id="${escapeHtml(sec.id)}"
+                  title="${escapeHtml(_t('taCustomDelete'))}">✕ ${escapeHtml(_t('taCustomDelete'))}</button>
+        </div>
+      </div>
+      <textarea data-action="ta-edit-list" data-field="${escapeHtml(key)}" dir="auto"
+                placeholder="${escapeHtml(_t('taCustomPh'))}">${escapeHtml(text)}</textarea>
+    </div>`;
+}
+
+function _customAdd() {
+  const title = (prompt(_t('taCustomPrompt'), _t('taCustomDefault')) || '').trim().slice(0, 80);
+  if (!title) return;
+  const list = getTaskAnalysisCustomSections();
+  if (list.some(x => x.title.toLowerCase() === title.toLowerCase())) {
+    showStatus(_t('taCustomExists'), 'error');
+    return;
+  }
+  let n = list.length + 1, id;
+  do { id = 'tacs_' + n++; } while (list.some(x => x.id === id));
+  appState.taskAnalysisCustomSections = [...list, { id, title }];
+  _renderFormPanel();
+  _saveSoon();
+  showStatus(_tf('taCustomAdded', { name: title }), 'success');
+}
+
+function _customRename(id) {
+  const list = getTaskAnalysisCustomSections();
+  const sec = list.find(x => x.id === id);
+  if (!sec) return;
+  const title = (prompt(_t('taCustomRenamePrompt'), sec.title) || '').trim().slice(0, 80);
+  if (!title || title === sec.title) return;
+  if (list.some(x => x.id !== id && x.title.toLowerCase() === title.toLowerCase())) {
+    showStatus(_t('taCustomExists'), 'error');
+    return;
+  }
+  sec.title = title;
+  _renderFormPanel();
+  _saveSoon();
+}
+
+function _customDelete(id) {
+  const list = getTaskAnalysisCustomSections();
+  const sec = list.find(x => x.id === id);
+  if (!sec) return;
+  const used = Object.values(appState.taskAnalysisData || {})
+    .filter(r => r && r.custom && _nonBlank(r.custom[id]).length).length;
+  const msg = used ? _tf('taCustomDeleteConfirmUsed', { name: sec.title, n: used })
+                   : _tf('taCustomDeleteConfirm', { name: sec.title });
+  if (!confirm(msg)) return;
+  appState.taskAnalysisCustomSections = list.filter(x => x.id !== id);
+  Object.values(appState.taskAnalysisData || {}).forEach(r => {
+    if (r && r.custom && typeof r.custom === 'object') delete r.custom[id];
+  });
+  _renderNav();
+  _renderFormPanel();
+  _saveSoon();
+  showStatus(_tf('taCustomDeleted', { name: sec.title }), 'success');
+}
+
+function _saveSoon() {
+  try { import('./dacum_projects.js').then(m => m.saveCurrentProject()).catch(() => {}); } catch (_) {}
 }
 
 // ── Clear (per-task and whole-tab) ──────────────────────────────
@@ -577,6 +712,9 @@ function _clearOneTaskAnalysis(taskKey) {
 /** Called by clearCurrentTab('task-analysis-tab') in projects.js. */
 export function clearAllTaskAnalysis() {
   appState.taskAnalysisData = {};
+  // 3.46.0: the tab returns to its starting state — the sections the
+  // user added go too.
+  appState.taskAnalysisCustomSections = [];
   _selectedTaskKey = null;
   renderTaskAnalysisTab();
 }
@@ -730,6 +868,10 @@ export function setupTaskAnalysisEvents() {
       return;
     }
 
+    if (action === 'ta-custom-add')    { _customAdd(); return; }
+    if (action === 'ta-custom-rename') { _customRename(btn.getAttribute('data-section-id')); return; }
+    if (action === 'ta-custom-delete') { _customDelete(btn.getAttribute('data-section-id')); return; }
+
     if (action === 'ta-pick-from-info') {
       _openAdditionalInfoPicker(btn.getAttribute('data-field'));
       return;
@@ -755,21 +897,21 @@ export function setupTaskAnalysisEvents() {
 
       textarea.value = formatted.join('\n');
       const r = _ensureRecord(_selectedTaskKey);
-      r[field] = formatted;
+      _setField(r, field, formatted);
       showStatus(_t(formatType === 'number' ? 'msgFormattedNumbering' : 'msgFormattedBullets'), 'success');
       return;
     }
 
     if (action === 'ta-clear-field') {
       const field = btn.getAttribute('data-field');
-      const isList = LIST_FIELDS.some(f => f.key === field);
+      const isList = !_isTextField(field);
       const r = _record(_selectedTaskKey);
-      const current = r ? r[field] : (isList ? [] : '');
+      const current = r ? _getField(r, field) : (isList ? [] : '');
       const isEmpty = isList ? !(current && current.length) : !(current || '').trim();
       if (isEmpty) { showStatus(_t('msgSectionAlreadyEmpty'), 'success'); return; }
       if (!confirm(_t('confirmClearSection'))) return;
       const rec = _ensureRecord(_selectedTaskKey);
-      rec[field] = isList ? [] : '';
+      _setField(rec, field, isList ? [] : '');
       _clearAiDraft(field);
       const textarea = btn.closest('.section-container')?.querySelector('textarea');
       if (textarea) textarea.value = '';
@@ -795,7 +937,7 @@ export function setupTaskAnalysisEvents() {
       // the caret and an in-progress new line behave normally) and are
       // filtered out only where they matter — status, export, and the
       // "is this empty" checks (see _isRecordEmpty / getTaskAnalysisExportData).
-      r[field] = el.value.split('\n');
+      _setField(r, field, el.value.split('\n'));
       _clearAiDraft(field);
       return;
     }

@@ -2331,10 +2331,12 @@ export async function exportToWord() {
 
                         const _hasMarker = (s) => /^(\d+[.\)]|[•\-\*○●])\s+/.test(s);
 
+                        // 3.46.0: a label starting with '=' is a user-added section title, used as typed.
+                        const _taLbl = (labelKey) => String(labelKey).charAt(0) === '=' ? String(labelKey).slice(1) : _t(labelKey);
                         const _pushList = (labelKey, items) => {
                             if (!items || !items.length) return;
                             children.push(new Paragraph({
-                                children: [new TextRun({ text: _t(labelKey), bold: true, size: 22 })],
+                                children: [new TextRun({ text: _taLbl(labelKey), bold: true, size: 22 })],
                                 spacing: { before: 150, after: 60 },
                                 bidirectional: _rtl(),
                             }));
@@ -2358,7 +2360,7 @@ export async function exportToWord() {
                         const _pushText = (labelKey, value) => {
                             if (!value || !value.trim()) return;
                             children.push(new Paragraph({
-                                children: [new TextRun({ text: _t(labelKey), bold: true, size: 22 })],
+                                children: [new TextRun({ text: _taLbl(labelKey), bold: true, size: 22 })],
                                 spacing: { before: 150, after: 60 },
                                 bidirectional: _rtl(),
                             }));
@@ -2389,16 +2391,19 @@ export async function exportToWord() {
                             }));
 
                             const r = entry.record;
+                            // 3.46.0: same order as the Task Analysis tab (by importance),
+                            // then the sections the user added.
                             _pushList('taLblSteps',      r.performanceSteps);
                             _pushList('taLblKnowledge',  r.requiredKnowledge);
                             _pushList('taLblSkills',     r.requiredSkills);
-                            _pushList('taLblTools',      r.toolsEquipmentMaterials);
-                            _pushList('taLblSafety',     r.safetyOSH);
-                            _pushText('taLblConditions', r.conditionsWorkEnvironment);
-                            _pushList('taLblDecisions',  r.decisionsCriticalPoints);
                             _pushList('taLblCriteria',   r.performanceCriteria);
                             _pushText('taLblStandard',   r.performanceStandard);
+                            _pushList('taLblTools',      r.toolsEquipmentMaterials);
+                            _pushList('taLblSafety',     r.safetyOSH);
+                            _pushList('taLblDecisions',  r.decisionsCriticalPoints);
+                            _pushText('taLblConditions', r.conditionsWorkEnvironment);
                             _pushList('taLblErrors',     r.commonErrorsTroubleshooting);
+                            (r.customSections || []).forEach(sec => _pushList('=' + sec.title, sec.items));
 
                             children.push(new Paragraph({
                                 children: [new TextRun({ text: '', size: 4 })],

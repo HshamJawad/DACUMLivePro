@@ -162,6 +162,11 @@ export function saveToJSON() {
     // feature existed, which is what makes old exports import cleanly.
     data.taskAnalysis = appState.taskAnalysisData || {};
     data.taskAnalysisPriority = appState.taskAnalysisPriority || {};
+    // 3.46.0: written only when the user added sections, so files of
+    // projects without them are unchanged.
+    if (Array.isArray(appState.taskAnalysisCustomSections) && appState.taskAnalysisCustomSections.length) {
+      data.taskAnalysisCustomSections = appState.taskAnalysisCustomSections;
+    }
 
     // Supplementary Occupational Verification — its own top-level key,
     // separate from data.verification so task results stay untouched.

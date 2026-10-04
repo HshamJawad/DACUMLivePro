@@ -206,6 +206,13 @@ function _doClear() {
   // ── Task Verification (individual ratings + UI) ───────────
   appState.verificationRatings  = {};
   appState.taskMetadata         = {};
+  // 3.46.0: Task Analysis was never reset here, so a new project (and
+  // Clear All) kept the previous project's analysis, priority stars —
+  // keyed by the same task ids (duty_1_1 …) and therefore shown on the
+  // new project's tasks.
+  appState.taskAnalysisData           = {};
+  appState.taskAnalysisPriority       = {};
+  appState.taskAnalysisCustomSections = [];
   appState.collectionMode       = 'workshop';
   appState.workflowMode         = 'standard';
   const modeWorkshop = document.getElementById('mode-workshop');

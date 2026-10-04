@@ -55,6 +55,8 @@ export const appState = {
   // starred as deserving detailed Task Analysis. Same key convention
   // as taskAnalysisData above.
   taskAnalysisPriority: {},
+  // Sections the user adds to every task's analysis (3.46.0): [{ id, title }].
+  taskAnalysisCustomSections: [],
 
   // ── Supplementary Occupational Verification (optional) ─────
   // Occupation-level evidence (knowledge & skills, tools, behaviours,

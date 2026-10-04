@@ -135,6 +135,8 @@ export function importProjectFromData(data, fileName) {
     // Absent in files exported before this feature existed — {} then.
     taskAnalysisData:         s.taskAnalysis                 || {},
     taskAnalysisPriority:     s.taskAnalysisPriority          || {},
+    // 3.46.0 — absent in older files: no added sections.
+    taskAnalysisCustomSections: Array.isArray(s.taskAnalysisCustomSections) ? s.taskAnalysisCustomSections : [],
     // Absent in files exported before Supplementary Verification existed.
     supplementaryVerification: s.supplementaryVerification    || null,
     collectionMode:           s.verification?.collectionMode || 'workshop',
@@ -926,6 +928,7 @@ function _captureState() {
     taskMetadata:             appState.taskMetadata            || {},
     taskAnalysisData:         appState.taskAnalysisData        || {},
     taskAnalysisPriority:     appState.taskAnalysisPriority    || {},
+    taskAnalysisCustomSections: appState.taskAnalysisCustomSections || [],
     supplementaryVerification: appState.supplementaryVerification || null,
     collectionMode:           appState.collectionMode,
     workflowMode:             appState.workflowMode,
@@ -975,6 +978,7 @@ function _applyState(s) {
   // key here — falling back to {} is what makes them load normally.
   appState.taskAnalysisData         = s.taskAnalysisData         || {};
   appState.taskAnalysisPriority     = s.taskAnalysisPriority     || {};
+  appState.taskAnalysisCustomSections = Array.isArray(s.taskAnalysisCustomSections) ? s.taskAnalysisCustomSections : [];
   // Older projects have no such key — the default is the feature OFF,
   // which is exactly how those projects behaved before.
   appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();

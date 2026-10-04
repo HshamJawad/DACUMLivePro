@@ -1886,12 +1886,14 @@ export function exportToPDF() {
 
                 const _hasMarker = (s) => /^(\d+[.\)]|[•\-\*○●])\s+/.test(s);
 
+                // 3.46.0: a label starting with '=' is a user-added section title, used as typed.
+                const _taLbl = (labelKey) => String(labelKey).charAt(0) === '=' ? String(labelKey).slice(1) : _t(labelKey);
                 const _writeList = (labelKey, items) => {
                     if (!items || !items.length) return;
                     _ensureRoom(10);
                     pdf.setFontSize(11);
                     pdf.setFont(undefined, 'bold');
-                    pdf.text(_t(labelKey), margin + 4, yPos);
+                    pdf.text(_taLbl(labelKey), margin + 4, yPos);
                     yPos += 5.5;
                     pdf.setFontSize(10);
                     pdf.setFont(undefined, 'normal');
@@ -1917,7 +1919,7 @@ export function exportToPDF() {
                     _ensureRoom(10);
                     pdf.setFontSize(11);
                     pdf.setFont(undefined, 'bold');
-                    pdf.text(_t(labelKey), margin + 4, yPos);
+                    pdf.text(_taLbl(labelKey), margin + 4, yPos);
                     yPos += 5.5;
                     pdf.setFontSize(10);
                     pdf.setFont(undefined, 'normal');
@@ -1948,16 +1950,19 @@ export function exportToPDF() {
                     yPos += 1;
 
                     const r = entry.record;
+                    // 3.46.0: same order as the Task Analysis tab (by importance),
+                    // then the sections the user added.
                     _writeList('taLblSteps',      r.performanceSteps);
                     _writeList('taLblKnowledge',  r.requiredKnowledge);
                     _writeList('taLblSkills',     r.requiredSkills);
-                    _writeList('taLblTools',      r.toolsEquipmentMaterials);
-                    _writeList('taLblSafety',     r.safetyOSH);
-                    _writeText('taLblConditions', r.conditionsWorkEnvironment);
-                    _writeList('taLblDecisions',  r.decisionsCriticalPoints);
                     _writeList('taLblCriteria',   r.performanceCriteria);
                     _writeText('taLblStandard',   r.performanceStandard);
+                    _writeList('taLblTools',      r.toolsEquipmentMaterials);
+                    _writeList('taLblSafety',     r.safetyOSH);
+                    _writeList('taLblDecisions',  r.decisionsCriticalPoints);
+                    _writeText('taLblConditions', r.conditionsWorkEnvironment);
                     _writeList('taLblErrors',     r.commonErrorsTroubleshooting);
+                    (r.customSections || []).forEach(sec => _writeList('=' + sec.title, sec.items));
 
                     _ensureRoom(4);
                     pdf.setDrawColor(220, 220, 220);
