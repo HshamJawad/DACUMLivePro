@@ -23,6 +23,9 @@ Added   "🔗 Link criteria to specific tasks (optional)" under the
         the cluster (project, JSON, import — no new key). A re-typed
         criterion keeps its link; a deleted one drops it. The Learning
         Outcomes source list marks linked criteria [🔗 A3].
+        Ticking every task is the same as no link, so nothing is stored
+        and the row reads "all tasks"; a linked row has "↺ Clear" to go
+        back to all tasks. The panel stays open while you work in it.
         EN/FR/AR, RTL, 360 px.
 Added   Help. Module Mapping "?" guidelines: "Can a task be taught in
         more than one module?" (conditions: every criterion taught at

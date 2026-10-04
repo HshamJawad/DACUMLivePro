@@ -34,7 +34,7 @@ import { bypassToClusteringTab, resetVerificationDecision, initializeClusteringF
   updateCreateModuleButton, createModule, renameModule, deleteModule,
   removeLoFromModule, addLoToModuleFromDropdown,
   openModuleBuilderFromMapping, exportModuleMappingJSON,
-  toggleCriterionTask }  from './modules.js';
+  toggleCriterionTask, clearCriterionTasks }  from './modules.js';
 import { showStatus, escapeHtml,
   toggleSkillsLevelSection, addSkillsCategory, removeSkillsCategory,
   updateSkillsCategoryName, addSkillsCompetency, removeSkillsCompetency,
@@ -546,6 +546,10 @@ export function setupEvents() {
       else if (action === 'toggle-criterion-task') {
         toggleCriterionTask(target.getAttribute('data-cluster-id'),
           parseInt(target.getAttribute('data-crit-index'), 10), target.getAttribute('data-task-id'));
+      }
+      else if (action === 'clear-criterion-tasks') {
+        clearCriterionTasks(target.getAttribute('data-cluster-id'),
+          parseInt(target.getAttribute('data-crit-index'), 10));
       }
       else if (action === 'regen-cluster-criteria') {
         generateForSingleCluster(target.getAttribute('data-cluster-id'))

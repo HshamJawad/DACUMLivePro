@@ -576,6 +576,8 @@ const _LOCAL_STRINGS = {
     critTasksTitle:           'Link criteria to specific tasks (optional)',
     critTasksHint:            'By default a competency criterion traces to every task of the competency. Tick the tasks a criterion really belongs to, so Task Analysis, “Used in modules” and Module Builder follow only those tasks.',
     critTasksAll:             'all tasks',
+    critTasksClear:           'Clear',
+    critTasksClearTip:        'Back to all tasks of the competency',
     lblModuleLevel:           'Level',
     lblModuleTrack:           'Track / code prefix',
     phModuleTrack:            'Common to all',
@@ -691,6 +693,8 @@ const _LOCAL_STRINGS = {
     critTasksTitle:           'Relier les critères à des tâches précises (facultatif)',
     critTasksHint:            'Par défaut, un critère de compétence est relié à toutes les tâches de la compétence. Cochez les tâches auxquelles il appartient vraiment : l’analyse des tâches, « Utilisée dans les modules » et Module Builder ne suivront que celles-ci.',
     critTasksAll:             'toutes les tâches',
+    critTasksClear:           'Effacer',
+    critTasksClearTip:        'Revenir à toutes les tâches de la compétence',
     lblModuleLevel:           'Niveau',
     lblModuleTrack:           'Filière / préfixe du code',
     phModuleTrack:            'Commun à tous',
@@ -806,6 +810,8 @@ const _LOCAL_STRINGS = {
     critTasksTitle:           'ربط المعايير بمهام محددة (اختياري)',
     critTasksHint:            'افتراضياً يرتبط معيار الكفاءة بكل مهام الكفاءة. أشّر المهام التي يخصها المعيار فعلاً، فيتبعها وحدها تحليل المهمة وسطر «تُستخدم في الوحدات» و Module Builder.',
     critTasksAll:             'كل المهام',
+    critTasksClear:           'إلغاء',
+    critTasksClearTip:        'العودة إلى كل مهام الكفاءة',
     lblModuleLevel:           'المستوى',
     lblModuleTrack:           'المسار / بادئة الرمز',
     phModuleTrack:            'مشتركة للجميع',
@@ -4099,9 +4105,23 @@ export function toggleCriterionTask(clusterId, critIndex, taskId) {
   if (!cluster.criterionTasks || typeof cluster.criterionTasks !== 'object') cluster.criterionTasks = {};
   const cur = new Set(getCriterionLinkedTasks(cluster, text));
   if (cur.has(taskId)) cur.delete(taskId); else cur.add(taskId);
-  const ordered = (cluster.tasks || []).map(t => t.id).filter(id => cur.has(id));
-  if (ordered.length) cluster.criterionTasks[text] = ordered;
+  const all = (cluster.tasks || []).map(t => t.id);
+  const ordered = all.filter(id => cur.has(id));
+  /* Every task ticked = the default ("all tasks"): nothing is stored,
+     so the row does not look linked when it is not. */
+  if (ordered.length && ordered.length < all.length) cluster.criterionTasks[text] = ordered;
   else delete cluster.criterionTasks[text];
+  _persistClusters();
+  renderClusters();
+}
+
+/** "↺" on a linked row: back to all tasks. */
+export function clearCriterionTasks(clusterId, critIndex) {
+  const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
+  if (!cluster || !cluster.criterionTasks) return;
+  const text = (cluster.performanceCriteria || [])[critIndex];
+  if (!text || !cluster.criterionTasks[text]) return;
+  delete cluster.criterionTasks[text];
   _persistClusters();
   renderClusters();
 }
@@ -4120,15 +4140,34 @@ function _carryCriterionLinks(cluster, oldList, newList) {
   cluster.criterionTasks = next;
 }
 
+/* Panels the user opened stay open across re-renders (a click on a
+   chip re-renders the clusters; removing the last link must not fold
+   the panel under the user's hand). Remembered for this page load. */
+const _critPanelOpen = new Set();
+if (typeof document !== 'undefined') {
+  document.addEventListener('toggle', e => {
+    const d = e.target;
+    if (!d || !d.classList || !d.classList.contains('crit-task-links')) return;
+    const id = d.getAttribute('data-cluster-id');
+    if (d.open) _critPanelOpen.add(id); else _critPanelOpen.delete(id);
+  }, true);
+}
+
 /* The optional panel under a competency's criteria: one row per
    criterion typed for the competency, one toggle per task. */
 function _renderCriterionTaskLinks(cluster, clusterNumber, taCount) {
   const crit = cluster.performanceCriteria || [];
   const tasks = cluster.tasks || [];
   if (!crit.length || tasks.length < 2) return '';
-  const anyLinked = crit.some(t => getCriterionLinkedTasks(cluster, t).length);
+  const taskIds = tasks.map(t => t.id);
+  /* A link covering every task (older data) is shown as "all tasks". */
+  const linkedOf = text => {
+    const ids = getCriterionLinkedTasks(cluster, text).filter(id => taskIds.includes(id));
+    return ids.length < taskIds.length ? ids : [];
+  };
+  const anyLinked = crit.some(t => linkedOf(t).length);
   const rows = crit.map((text, i) => {
-    const linked = new Set(getCriterionLinkedTasks(cluster, text));
+    const linked = new Set(linkedOf(text));
     const chips = tasks.map(t => {
       const on = linked.has(t.id);
       return `<button type="button" class="crit-task-chip${on ? ' is-on' : ''}" data-action="toggle-criterion-task"
@@ -4138,11 +4177,13 @@ function _renderCriterionTaskLinks(cluster, clusterNumber, taCount) {
     return `
       <div class="crit-task-row">
         <div class="crit-task-text" dir="auto"><strong><bdi>${clusterNumber}-${taCount + i + 1}</bdi></strong> ${_esc(text)}</div>
-        <div class="crit-task-chips">${chips}<span class="crit-task-state">${linked.size ? '' : _esc(_tx('critTasksAll'))}</span></div>
+        <div class="crit-task-chips">${chips}${linked.size
+          ? `<button type="button" class="crit-task-clear" data-action="clear-criterion-tasks" data-cluster-id="${_esc(cluster.id)}" data-crit-index="${i}" title="${_esc(_tx('critTasksClearTip'))}">↺ ${_esc(_tx('critTasksClear'))}</button>`
+          : `<span class="crit-task-state">${_esc(_tx('critTasksAll'))}</span>`}</div>
       </div>`;
   }).join('');
   return `
-    <details class="crit-task-links"${anyLinked ? ' open' : ''}>
+    <details class="crit-task-links" data-cluster-id="${_esc(cluster.id)}"${anyLinked || _critPanelOpen.has(cluster.id) ? ' open' : ''}>
       <summary>🔗 ${_esc(_tx('critTasksTitle'))}</summary>
       <p class="crit-task-hint">${_esc(_tx('critTasksHint'))}</p>
       ${rows}
