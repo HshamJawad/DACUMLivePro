@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v154';
+      var EXPECTED_SW='v155';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.44.0';
+      var APP_VERSION = '3.45.0';
       var APP_RELEASED = '2026-10-04';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1666,6 +1666,11 @@
             .ta-form-duty{font-size:0.82em;color:#667eea;font-weight:700;text-transform:uppercase;
                 letter-spacing:.02em;}
             .ta-form-task{font-size:1.12em;font-weight:700;color:#1e293b;margin-top:2px;}
+            /* 3.45.0: modules this task's analysis reaches */
+            .ta-used-in{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;font-size:0.84em;color:#475569;}
+            .ta-used-label{font-weight:700;}
+            .ta-used-chip{background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;border-radius:999px;padding:2px 10px;font-weight:600;white-space:nowrap;}
+            .ta-used-in-none{color:#94a3b8;}
             .ta-status-pill{font-size:0.76em;padding:5px 12px;border-radius:20px;font-weight:700;
                 white-space:nowrap;}
             .ta-clear-btn{margin-top:10px;background:none;border:1px solid #fca5a5;color:#dc2626;

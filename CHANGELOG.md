@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.45.0 — 2026-10-04 — Task Analysis: where it goes ────────────────
+MINOR. task_analysis.js, modules.js, translations.js, index.html,
+sw.js (v155). Pairs with Module Builder 3.10.0 ("Where is the Task
+Analysis?"); each works without the other.
+Added   Task Analysis tab: under the task title, "📦 Used in modules:"
+        with the code of every module whose outcomes trace back to the
+        task (a Task Analysis criterion to its own task, a competency
+        criterion to every task of its competency — the same tracing as
+        the Module Builder handoff). "Not used in any module yet" when
+        none does; nothing before modules exist. EN/FR/AR, RTL, 360 px.
+        New export getModulesUsingTask(taskId) in modules.js.
+Fixed   Task labels in French and Arabic read "TASK Tâche A1" /
+        "TASK المهمة أ1" — on module cards ("Related Tasks"), in the
+        criteria and coverage lists, and in the codes sent to Module
+        Builder: the translated label was prefixed with "TASK" again.
+        English keeps "TASK A1"; French and Arabic use their own label
+        ("Tâche A1", "المهمة أ1").
+
 ── 3.44.0 — 2026-10-04 — Module Builder handoff: tasks and more fields ─
 MINOR. modules.js, sw.js (v154). Pairs with Module Builder 3.9.0, which
 reads the new fields; an older Module Builder ignores them safely.

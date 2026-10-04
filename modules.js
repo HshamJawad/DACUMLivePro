@@ -6,7 +6,7 @@
 import { appState } from './state.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { lwExtractDutiesAndTasks } from './workshop.js';
-import { getTaskCode, getDutyLabel,
+import { getTaskCode, getTaskCodeShort, getDutyLabel,
          CLUSTER_ADDED_TASK_PREFIX, isClusterAddedTaskId,
          getAddedTaskLabel } from './codes.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
@@ -38,8 +38,31 @@ function _taskLabel(taskId) {
   // A task added during Competency Clustering has no DACUM code — it is
   // labelled as an added task instead (see codes.js getTaskCode).
   if (isClusterAddedTaskId(taskId)) return getAddedTaskLabel().toUpperCase();
-  const raw = (getTaskCode(taskId) || '').replace(/^task\s*/i, '').trim();
-  return `TASK ${raw}`;
+  /* 3.45.0: getTaskCode() is translated ("Tâche A1", "المهمة أ1"), so
+     stripping an English "task" prefix and adding "TASK" produced
+     "TASK Tâche A1" / "TASK المهمة أ1" in French and Arabic — on screen
+     and in what Module Builder receives. English keeps "TASK A1"; the
+     other languages use their own translated label. */
+  const short = getTaskCodeShort(taskId);
+  if (!short) return (getTaskCode(taskId) || '').trim();
+  const lang = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'en';
+  return lang === 'en' ? `TASK ${short}` : (getTaskCode(taskId) || `TASK ${short}`).trim();
+}
+
+/**
+ * Modules whose learning outcomes trace back to this task (3.45.0) —
+ * shown in the Task Analysis tab, so the analyst knows where an analysis
+ * will go. Same tracing as the Module Builder handoff: a Task Analysis
+ * criterion to its own task, a competency criterion to every task of its
+ * competency.
+ * @returns {{id:string, ref:string, title:string}[]}
+ */
+export function getModulesUsingTask(taskId) {
+  const mm = appState.moduleMappingData || {};
+  return (mm.modules || []).filter(m =>
+    (m.learningOutcomes || []).some(o =>
+      (o.linkedCriteria || []).some(pc => _criterionTaskIds(pc).includes(taskId))))
+    .map(m => ({ id: m.id, ref: moduleRef(m), title: m.title || '' }));
 }
 
 // ── Task Analysis traceability for clusters ─────────────────────

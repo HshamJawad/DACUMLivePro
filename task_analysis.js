@@ -21,6 +21,9 @@
 import { appState }        from './state.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { getDutyLetter }   from './codes.js';
+// Circular with modules.js (which imports from here); used only inside
+// render functions, after both modules have finished loading.
+import { getModulesUsingTask } from './modules.js';
 import { syncAllFromDOM }  from './duties.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -133,6 +136,22 @@ function _status(taskKey) {
   const coreFilled = _CORE_COMPLETE_KEYS.every(k => _nonBlank(r[k]).length > 0) &&
                       (r.performanceStandard || '').trim();
   return coreFilled ? 'completed' : 'in-progress';
+}
+
+/* 3.45.0: which training modules this task's analysis will reach
+   (they also receive it in Module Builder). Nothing while no module
+   exists yet. */
+function _usedInLine(taskKey) {
+  const mm = appState.moduleMappingData || {};
+  if (!(mm.modules || []).length) return '';
+  let mods = [];
+  try { mods = getModulesUsingTask(taskKey); } catch (_) { mods = []; }
+  if (!mods.length) {
+    return `<div class="ta-used-in ta-used-in-none">📦 ${escapeHtml(_t('taUsedInNone'))}</div>`;
+  }
+  const chips = mods.map(m =>
+    `<span class="ta-used-chip" title="${escapeHtml(m.title)}"><bdi>${escapeHtml(m.ref || m.title)}</bdi></span>`).join('');
+  return `<div class="ta-used-in">📦 <span class="ta-used-label">${escapeHtml(_t('taUsedIn'))}</span> ${chips}</div>`;
 }
 
 function _statusLabel(status) {
@@ -507,6 +526,7 @@ function _renderFormPanel() {
         <div>
           <div class="ta-form-duty">${_bdi(letter)}: ${escapeHtml(entry.dutyTitle)}</div>
           <div class="ta-form-task">${_bdi(letter + entry.taskNum)}. ${escapeHtml(entry.task.text)}</div>
+          ${_usedInLine(entry.taskKey)}
         </div>
         <span id="taskAnalysisStatusPill"
               class="completion-indicator ${status === 'completed' ? 'complete' : 'incomplete'} ta-status-pill ta-status-pill-${status}">
