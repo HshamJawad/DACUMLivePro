@@ -14,7 +14,8 @@ body {
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* 3.56.0: the warm grey page of Module Builder (was the purple gradient) */
+    background: #E8E9E6;
     min-height: 100vh;
     padding: 20px;
     padding-top: 60px; /* toolbar height — always applied regardless of cache state */

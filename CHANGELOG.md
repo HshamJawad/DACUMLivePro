@@ -7,6 +7,11 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.56.0 — 2026-10-05 — Page background in the Module Builder grey ─
+MINOR. dacum-styles.css, index.html, sw.js (v166).
+Changed The page background behind the content is Module Builder's
+        warm grey #E8E9E6 instead of the purple gradient.
+
 ── 3.55.0 — 2026-10-05 — Sidebar in the Module Builder silver ──────
 MINOR. dacum_projects.js, index.html, sw.js (v165).
 Changed The sidebar (navigation + projects) uses Module Builder's
