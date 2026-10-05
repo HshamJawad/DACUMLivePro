@@ -7,6 +7,27 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.50.0 — 2026-10-05 — Criterion-to-task links removed ───────────
+MINOR. modules.js, events.js, trace_map.js, translations.js,
+module_curriculum.js, index.html, DACUM_Live_Pro_User_Guide.html,
+sw.js (v160).
+Removed The optional criterion-to-task links (added in 3.47.0): the
+        panel under a competency's criteria, its chips and "↺ Clear",
+        the "[🔗 A3]" tag in the Learning Outcomes source list, the 🔗
+        mark and its legend item in the Traceability Map, the help and
+        User Guide text that explained it, and its CSS and strings.
+        It confused users for little benefit.
+Changed Tracing is back to the pre-3.47.0 rule everywhere (Task
+        Analysis "Used in modules", Module Builder handoff
+        sourceTaskIds / performanceCriteria[].sourceTaskIds, Module
+        Curriculum related tasks, Traceability Map): a Task Analysis
+        criterion traces to its own task; a competency criterion to
+        every task of its competency. In the Traceability Map the
+        dashed line and 🔬 now mark Task Analysis criteria only.
+Compat  Projects saved by 3.47.0–3.49.0 may still hold
+        a per-criterion task map on each competency. It is left in
+        the data, no longer read anywhere; no migration.
+
 ── 3.49.0 — 2026-10-05 — Programme id in the Module Builder handoff ──
 MINOR. modules.js, index.html, sw.js (v159).
 Added   The Module Builder handoff (localStorage dacum_modules_export)

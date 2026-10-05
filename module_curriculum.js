@@ -650,8 +650,8 @@ function _osLink(module) {
     if (!groups.has(key)) groups.set(key, { number: num, name: cl ? cl.cluster.name : '', pcs: [], taskIds: [] });
     const g = groups.get(key);
     if (pc.id && !g.pcs.includes(pc.id)) g.pcs.push(pc.id);
-    // 3.47.0: same tracing as the rest of the tool (criteria linked to
-    // specific tasks trace to those tasks only).
+    // Same tracing as the rest of the tool: a Task Analysis criterion to
+    // its task, a competency criterion to every task of its competency.
     const tids = criterionTaskIds(pc);
     tids.forEach(t => { if (!g.taskIds.includes(t)) g.taskIds.push(t); });
   }));

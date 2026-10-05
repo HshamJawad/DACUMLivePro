@@ -427,7 +427,6 @@ export function renderClusters() {
               placeholder="${_t('phFirstCriterion')}"
               style="min-height:100px;border:none;border-radius:0;box-shadow:none;display:block;width:100%;box-sizing:border-box;padding:10px 14px;">${displayValue}</textarea>
           </div>
-          ${_renderCriterionTaskLinks(cluster, clusterNumber, taCriteria.length)}
         </div>
       </div>`;
   });
@@ -576,11 +575,6 @@ const _LOCAL_STRINGS = {
     loSyncRemoved:            'Criteria removed because their task is no longer in any competency: {n}',
     loSyncStale:              'Criteria reworded or deleted in Competency Clusters / Task Analysis: {n} — marked ⚠ for your review',
     lblStaleCriterion:        'Reworded or deleted at the source — review, then keep or remove (✕)',
-    critTasksTitle:           'Link criteria to specific tasks (optional)',
-    critTasksHint:            'By default a competency criterion traces to every task of the competency. Tick the tasks a criterion really belongs to, so Task Analysis, “Used in modules” and Module Builder follow only those tasks.',
-    critTasksAll:             'all tasks',
-    critTasksClear:           'Clear',
-    critTasksClearTip:        'Back to all tasks of the competency',
     lblModuleLevel:           'Level',
     lblModuleTrack:           'Track / code prefix',
     phModuleTrack:            'Common to all',
@@ -693,11 +687,6 @@ const _LOCAL_STRINGS = {
     loSyncRemoved:            'Critères retirés car leur tâche n’est plus dans aucune compétence : {n}',
     loSyncStale:              'Critères reformulés ou supprimés dans les groupes / l’analyse des tâches : {n} — signalés ⚠ pour vérification',
     lblStaleCriterion:        'Reformulé ou supprimé à la source — vérifiez, puis conservez ou retirez (✕)',
-    critTasksTitle:           'Relier les critères à des tâches précises (facultatif)',
-    critTasksHint:            'Par défaut, un critère de compétence est relié à toutes les tâches de la compétence. Cochez les tâches auxquelles il appartient vraiment : l’analyse des tâches, « Utilisée dans les modules » et Module Builder ne suivront que celles-ci.',
-    critTasksAll:             'toutes les tâches',
-    critTasksClear:           'Effacer',
-    critTasksClearTip:        'Revenir à toutes les tâches de la compétence',
     lblModuleLevel:           'Niveau',
     lblModuleTrack:           'Filière / préfixe du code',
     phModuleTrack:            'Commun à tous',
@@ -810,11 +799,6 @@ const _LOCAL_STRINGS = {
     loSyncRemoved:            'معايير أُزيلت لأن مهمتها لم تعد في أي كفاءة: {n}',
     loSyncStale:              'معايير عُدّلت صياغتها أو حُذفت في تجمعات الكفاءات / تحليل المهمة: {n} — موسومة بـ ⚠ لمراجعتها',
     lblStaleCriterion:        'عُدّلت أو حُذفت في المصدر — راجعها ثم أبقِها أو أزلها (✕)',
-    critTasksTitle:           'ربط المعايير بمهام محددة (اختياري)',
-    critTasksHint:            'افتراضياً يرتبط معيار الكفاءة بكل مهام الكفاءة. أشّر المهام التي يخصها المعيار فعلاً، فيتبعها وحدها تحليل المهمة وسطر «تُستخدم في الوحدات» و Module Builder.',
-    critTasksAll:             'كل المهام',
-    critTasksClear:           'إلغاء',
-    critTasksClearTip:        'العودة إلى كل مهام الكفاءة',
     lblModuleLevel:           'المستوى',
     lblModuleTrack:           'المسار / بادئة الرمز',
     phModuleTrack:            'مشتركة للجميع',
@@ -1744,9 +1728,7 @@ export function updateClusterRange(clusterId, value) {
 export function updateClusterCriteria(clusterId, value) {
   const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
   if (cluster) {
-    const before = (cluster.performanceCriteria || []).slice();
     cluster.performanceCriteria = value.split('\n').map(l => l.trim()).filter(l => l);
-    _carryCriterionLinks(cluster, before, cluster.performanceCriteria);
     renderClusters();
   }
 }
@@ -1759,11 +1741,7 @@ export function updateClusterCriteriaFromNumbered(clusterId, value) {
     const match = line.match(/^\d+-\d+\s+(.*)$/);
     return match ? match[1].trim() : line.trim();
   }).filter(line => line);
-  const before = (cluster.performanceCriteria || []).slice();
   cluster.performanceCriteria = stripped;
-  _carryCriterionLinks(cluster, before, stripped);
-  // 3.47.0: the per-criterion task links below the box follow the text.
-  if (before.join('\n') !== stripped.join('\n')) renderClusters();
 }
 
 export function handleCriteriaKeydown(event, clusterId) {
@@ -1892,8 +1870,6 @@ export function renderPCSourceList() {
           <label for="cb_${pcId}" class="pc-label">
             <span class="pc-number">${pcId}:</span> ${c.text}
             ${c.source === 'ta' ? `<span style="color:#94a3b8;font-size:0.9em;margin-inline-start:6px;">[${_taskLabel(c.taskId)}]</span>` : ''}
-            ${c.source !== 'ta' && getCriterionLinkedTasks(cluster, c.text).length
-              ? `<span style="color:#94a3b8;font-size:0.9em;margin-inline-start:6px;">[🔗 ${getCriterionLinkedTasks(cluster, c.text).map(id => _esc(_taskShort(id))).join(', ')}]</span>` : ''}
           </label>
           ${isUsed ? `<span class="pc-used-badge">${_t('lblUsed')}${_usedLevels.has(c.key) ? ' · ' + _usedLevels.get(c.key) : ''}</span>` : ''}
           ${lo.outcomes.length > 0 ? `
@@ -2914,8 +2890,7 @@ const _GUIDE = {
           'A task follows the modules of its competency: Task Analysis → "Used in modules" lists them, and Module Builder receives the task’s analysis with each of them.' ] },
         { h: '🎯 Task criteria or competency criteria?', items: [
           '<strong>Per-task criteria</strong> (Task Analysis) describe one task precisely, so tracing is exact: a module that uses the criterion uses that task only. Writing them early, as a draft, is recommended — they become the raw material for the competency criteria.',
-          '<strong>Competency criteria</strong> (Competency Clusters) describe integrated performance across the tasks of the competency. By default each one traces to all tasks of its competency.',
-          'To make the tracing precise, open "🔗 Link criteria to specific tasks" under the criteria of a competency and choose the task(s) each criterion concerns (e.g. 5S → A3 only). Optional; no choice = all tasks.' ] },
+          '<strong>Competency criteria</strong> (Competency Clusters) describe integrated performance across the tasks of the competency. Each one traces to all tasks of its competency.' ] },
         { h: '📚 Reference', items: [
           'The level descriptors of the national qualifications framework (knowledge, skills, autonomy and responsibility) are the authority.',
           'The number of levels comes from that framework, not from the content — set it in the module-generation card or above the coverage matrix.' ] },
@@ -2985,8 +2960,7 @@ const _GUIDE = {
           'Une tâche suit les modules de sa compétence : Analyse des tâches → « Utilisée dans les modules » les énumère, et Module Builder reçoit l’analyse de la tâche avec chacun d’eux.' ] },
         { h: '🎯 Critères de tâche ou critères de compétence ?', items: [
           '<strong>Critères par tâche</strong> (Analyse des tâches) : ils décrivent une tâche précisément, la traçabilité est donc exacte : un module qui utilise le critère n’utilise que cette tâche. Il est recommandé de les rédiger tôt, en brouillon — ils servent de matière première aux critères de compétence.',
-          '<strong>Critères de compétence</strong> (Regroupements de compétences) : ils décrivent une performance intégrée sur l’ensemble des tâches de la compétence. Par défaut, chacun renvoie à toutes les tâches de sa compétence.',
-          'Pour une traçabilité précise, ouvrez « 🔗 Relier les critères à des tâches précises » sous les critères d’une compétence et choisissez la ou les tâches concernées par chaque critère (ex. 5S → A3 seulement). Facultatif ; aucun choix = toutes les tâches.' ] },
+          '<strong>Critères de compétence</strong> (Regroupements de compétences) : ils décrivent une performance intégrée sur l’ensemble des tâches de la compétence. Chacun renvoie à toutes les tâches de sa compétence.' ] },
         { h: '📚 Référence', items: [
           'Les descripteurs de niveaux du cadre national des certifications (savoirs, aptitudes, autonomie et responsabilité) font autorité.',
           'Le nombre de niveaux vient de ce cadre, pas du contenu — réglez-le dans la carte de génération des modules ou au-dessus de la matrice de couverture.' ] },
@@ -3056,8 +3030,7 @@ const _GUIDE = {
           'المهمة تتبع وحدات كفاءتها: يعرضها تحليل المهمة في سطر «تُستخدم في الوحدات»، ويستقبل Module Builder تحليل المهمة مع كل واحدة منها.' ] },
         { h: '🎯 معايير المهمة أم معايير الكفاءة؟', items: [
           '<strong>معايير المهمة</strong> (تحليل المهمة) تصف مهمة واحدة بدقة، فيكون التتبع دقيقاً: الوحدة التي تستخدم المعيار تستخدم تلك المهمة وحدها. ويُنصح بكتابتها مبكراً كمسودة، فهي المادة الخام لمعايير الكفاءة.',
-          '<strong>معايير الكفاءة</strong> (تجمعات الكفاءات) تصف الأداء المتكامل عبر مهام الكفاءة كلها. وكل معيار منها يرتبط افتراضياً بجميع مهام كفاءته.',
-          'لجعل التتبع دقيقاً، افتح «🔗 ربط المعايير بمهام محددة» تحت معايير الكفاءة واختر المهمة أو المهام التي يخصها كل معيار (مثال: 5S ← أ3 فقط). الربط اختياري؛ وعدم الاختيار يعني جميع المهام.' ] },
+          '<strong>معايير الكفاءة</strong> (تجمعات الكفاءات) تصف الأداء المتكامل عبر مهام الكفاءة كلها. وكل معيار منها يرتبط بجميع مهام كفاءته.' ] },
         { h: '📚 المرجع', items: [
           'واصفات المستويات في الإطار الوطني للمؤهلات (المعرفة، المهارة، الاستقلالية والمسؤولية) هي المرجع.',
           'عدد المستويات يحدده ذلك الإطار لا المحتوى، ويُضبط من بطاقة توليد الوحدات أو أعلى مصفوفة التغطية.' ] },
@@ -4074,13 +4047,7 @@ function _collectModuleTaskAnalysis(module) {
 function _criterionTaskIds(pc) {
   if (pc.taskId) return [pc.taskId];
   const cluster = (appState.clusteringData.clusters || []).find(c => c.id === pc.clusterId);
-  if (!cluster) return [];
-  const all = (cluster.tasks || []).map(t => t.id).filter(Boolean);
-  /* 3.47.0: a competency criterion the user linked to specific tasks
-     traces to those tasks only (still in the competency); unlinked, to
-     every task of its competency as before. */
-  const linked = getCriterionLinkedTasks(cluster, pc.text).filter(id => all.includes(id));
-  return linked.length ? linked : all;
+  return cluster ? (cluster.tasks || []).map(t => t.id).filter(Boolean) : [];
 }
 
 /** Same tracing, for other modules (Module Curriculum). */
@@ -4135,8 +4102,8 @@ export function getTraceGraph() {
       const text = String(cr.text || '').trim();
       if (!text || critByKey.has(cr.key)) return;
       const pc = { text, taskId: cr.taskId, clusterId: c.id };
-      const linked = cr.source === 'ta' ||
-        getCriterionLinkedTasks(c, text).filter(id => (c.tasks || []).some(t => t.id === id)).length > 0;
+      // A Task Analysis criterion traces to its own task only (dashed line).
+      const linked = cr.source === 'ta';
       const item = { key: cr.key, id: cr.id, text, compId: c.id, source: cr.source,
                      taskIds: _criterionTaskIds(pc), linked };
       crits.push(item);
@@ -4160,117 +4127,6 @@ export function getTraceGraph() {
   }));
 
   return { duties, extra, comps, crits, los, mods };
-}
-
-// ── Competency criteria linked to specific tasks (3.47.0) ───────
-// cluster.criterionTasks = { "<criterion text>": [taskId, …] } — keyed
-// by the text, like the "pc|<clusterId>|<text>" keys learning outcomes
-// use, so a link follows the criterion wherever it is used. Optional:
-// a criterion with no entry traces to every task of its competency.
-export function getCriterionLinkedTasks(cluster, text) {
-  const map = cluster && cluster.criterionTasks;
-  if (!map || typeof map !== 'object') return [];
-  const v = map[String(text || '').trim()];
-  return Array.isArray(v) ? v.filter(Boolean) : [];
-}
-
-export function toggleCriterionTask(clusterId, critIndex, taskId) {
-  const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
-  if (!cluster) return;
-  const text = (cluster.performanceCriteria || [])[critIndex];
-  if (!text) return;
-  if (!cluster.criterionTasks || typeof cluster.criterionTasks !== 'object') cluster.criterionTasks = {};
-  const cur = new Set(getCriterionLinkedTasks(cluster, text));
-  if (cur.has(taskId)) cur.delete(taskId); else cur.add(taskId);
-  const all = (cluster.tasks || []).map(t => t.id);
-  const ordered = all.filter(id => cur.has(id));
-  /* Every task ticked = the default ("all tasks"): nothing is stored,
-     so the row does not look linked when it is not. */
-  if (ordered.length && ordered.length < all.length) cluster.criterionTasks[text] = ordered;
-  else delete cluster.criterionTasks[text];
-  _persistClusters();
-  renderClusters();
-}
-
-/** "↺" on a linked row: back to all tasks. */
-export function clearCriterionTasks(clusterId, critIndex) {
-  const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
-  if (!cluster || !cluster.criterionTasks) return;
-  const text = (cluster.performanceCriteria || [])[critIndex];
-  if (!text || !cluster.criterionTasks[text]) return;
-  delete cluster.criterionTasks[text];
-  _persistClusters();
-  renderClusters();
-}
-
-/* Keeps links on criteria the user re-typed: when the list keeps its
-   length, a changed line inherits the link of the line it replaced.
-   Links of texts no longer in the list are dropped. */
-function _carryCriterionLinks(cluster, oldList, newList) {
-  const map = cluster.criterionTasks;
-  if (!map || typeof map !== 'object') return;
-  const next = {};
-  newList.forEach((text, i) => {
-    if (map[text]) next[text] = map[text];
-    else if (oldList.length === newList.length && map[oldList[i]] && !newList.includes(oldList[i])) next[text] = map[oldList[i]];
-  });
-  cluster.criterionTasks = next;
-}
-
-/* Panels the user opened stay open across re-renders (a click on a
-   chip re-renders the clusters; removing the last link must not fold
-   the panel under the user's hand). Remembered for this page load. */
-const _critPanelOpen = new Set();
-if (typeof document !== 'undefined') {
-  document.addEventListener('toggle', e => {
-    const d = e.target;
-    if (!d || !d.classList || !d.classList.contains('crit-task-links')) return;
-    const id = d.getAttribute('data-cluster-id');
-    if (d.open) _critPanelOpen.add(id); else _critPanelOpen.delete(id);
-  }, true);
-}
-
-/* The optional panel under a competency's criteria: one row per
-   criterion typed for the competency, one toggle per task. */
-function _renderCriterionTaskLinks(cluster, clusterNumber, taCount) {
-  const crit = cluster.performanceCriteria || [];
-  const tasks = cluster.tasks || [];
-  if (!crit.length || tasks.length < 2) return '';
-  const taskIds = tasks.map(t => t.id);
-  /* A link covering every task (older data) is shown as "all tasks". */
-  const linkedOf = text => {
-    const ids = getCriterionLinkedTasks(cluster, text).filter(id => taskIds.includes(id));
-    return ids.length < taskIds.length ? ids : [];
-  };
-  const anyLinked = crit.some(t => linkedOf(t).length);
-  const rows = crit.map((text, i) => {
-    const linked = new Set(linkedOf(text));
-    const chips = tasks.map(t => {
-      const on = linked.has(t.id);
-      return `<button type="button" class="crit-task-chip${on ? ' is-on' : ''}" data-action="toggle-criterion-task"
-                data-cluster-id="${_esc(cluster.id)}" data-crit-index="${i}" data-task-id="${_esc(t.id)}"
-                aria-pressed="${on}" title="${_esc(t.text || '')}"><bdi>${_esc(_taskShort(t.id))}</bdi></button>`;
-    }).join('');
-    return `
-      <div class="crit-task-row">
-        <div class="crit-task-text" dir="auto"><strong><bdi>${clusterNumber}-${taCount + i + 1}</bdi></strong> ${_esc(text)}</div>
-        <div class="crit-task-chips">${chips}${linked.size
-          ? `<button type="button" class="crit-task-clear" data-action="clear-criterion-tasks" data-cluster-id="${_esc(cluster.id)}" data-crit-index="${i}" title="${_esc(_tx('critTasksClearTip'))}">↺ ${_esc(_tx('critTasksClear'))}</button>`
-          : `<span class="crit-task-state">${_esc(_tx('critTasksAll'))}</span>`}</div>
-      </div>`;
-  }).join('');
-  return `
-    <details class="crit-task-links" data-cluster-id="${_esc(cluster.id)}"${anyLinked || _critPanelOpen.has(cluster.id) ? ' open' : ''}>
-      <summary>🔗 ${_esc(_tx('critTasksTitle'))}</summary>
-      <p class="crit-task-hint">${_esc(_tx('critTasksHint'))}</p>
-      ${rows}
-    </details>`;
-}
-
-/* Short task code for the chips: "C3", or the added-task label. */
-function _taskShort(taskId) {
-  if (isClusterAddedTaskId(taskId)) return getAddedTaskLabel();
-  return getTaskCodeShort(taskId) || taskId;
 }
 
 function _clusterTask(taskId) {

@@ -11,8 +11,8 @@
 // here writes to the project. The data is one snapshot taken by
 // modules.js getTraceGraph(), which uses the same tracing rules as the
 // coverage matrix and the Module Builder handoff (a Task Analysis
-// criterion traces to its own task; a competency criterion to the tasks
-// it is linked to, or to every task of its competency).
+// criterion traces to its own task; a competency criterion to every
+// task of its competency).
 //
 //   • Click a box: its chain lights up, the rest fades. Click it again,
 //     click empty space or press Esc to clear.
@@ -44,7 +44,7 @@ const S = {
     g_crit: 'Criteria in no outcome: {n}', g_lo: 'Outcomes in no module: {n}',
     n_task: 'In no competency', n_comp: 'No criteria', n_crit: 'In no learning outcome', n_lo: 'In no module',
     selected: 'Selected', hint: 'Click any box to light up its chain. Click it again, or press Esc, to clear.',
-    lg_link: 'link', lg_linked: 'criterion linked to specific tasks', lg_ta: 'criterion from Task Analysis',
+    lg_link: 'link', lg_ta: 'criterion from Task Analysis (traces to its own task only)',
     lg_chain: 'chain of the selected box', lg_gap: 'gap',
     compN: 'Competency {n}', extraGroup: 'Not in the Occupational Profile',
     empty: 'Nothing to show yet — add duties and tasks first.',
@@ -61,7 +61,7 @@ const S = {
     g_crit: 'Critères sans résultat : {n}', g_lo: 'Résultats sans module : {n}',
     n_task: 'Dans aucune compétence', n_comp: 'Aucun critère', n_crit: 'Dans aucun résultat d’apprentissage', n_lo: 'Dans aucun module',
     selected: 'Sélection', hint: 'Cliquez sur une case pour éclairer sa chaîne. Cliquez à nouveau, ou appuyez sur Échap, pour effacer.',
-    lg_link: 'lien', lg_linked: 'critère relié à des tâches précises', lg_ta: 'critère issu de l’analyse des tâches',
+    lg_link: 'lien', lg_ta: 'critère issu de l’analyse des tâches (relié à sa seule tâche)',
     lg_chain: 'chaîne de la case choisie', lg_gap: 'lacune',
     compN: 'Compétence {n}', extraGroup: 'Hors profil professionnel',
     empty: 'Rien à afficher pour l’instant — ajoutez d’abord des fonctions et des tâches.',
@@ -78,7 +78,7 @@ const S = {
     g_crit: 'معايير ليست في أي محصلة: {n}', g_lo: 'محصلات ليست في أي وحدة: {n}',
     n_task: 'ليست في أي كفاءة', n_comp: 'بلا معايير', n_crit: 'ليس في أي محصلة تعلم', n_lo: 'ليست في أي وحدة',
     selected: 'المختار', hint: 'انقر أي مربع لتُضاء سلسلته. انقره مرة أخرى، أو اضغط Esc، للإلغاء.',
-    lg_link: 'رابط', lg_linked: 'معيار مرتبط بمهام محددة', lg_ta: 'معيار من تحليل المهمة',
+    lg_link: 'رابط', lg_ta: 'معيار من تحليل المهمة (يرتبط بمهمته فقط)',
     lg_chain: 'سلسلة المربع المختار', lg_gap: 'فجوة',
     compN: 'الكفاءة {n}', extraGroup: 'خارج الوصف المهني',
     empty: 'لا شيء لعرضه بعد — أضف الواجبات والمهام أولاً.',
@@ -213,7 +213,7 @@ function _text(type, item) {
 }
 function _box(type, id, item) {
   const gap = _gapOf(type, id);
-  const mark = type === 'crit' ? (item.source === 'ta' ? '🔬 ' : item.linked ? '🔗 ' : '') : '';
+  const mark = type === 'crit' ? (item.source === 'ta' ? '🔬 ' : '') : '';
   const text = _text(type, item);
   return `<button type="button" class="tm-n tm-${type}${gap ? ' tm-gap' : ''}" data-t="${type}" data-id="${_esc(id)}"
             title="${_esc(text)}"><span class="tm-row"><bdi class="tm-code">${_esc(_code(type, item))}</bdi> ${mark}<span class="tm-x" dir="auto">${_esc(text)}</span></span>${gap
@@ -302,9 +302,9 @@ function _edges() {
       nodesOf(a, p).forEach(x => nodesOf(b, p).forEach(y => add(a, x, b, y, kind)));
     });
   }
-  /* With the competency column shown, a criterion tied to specific
-     tasks gets its own dashed line from those tasks — drawn only for
-     the chain on screen, or the map turns into a web. */
+  /* With the competency column shown, a Task Analysis criterion gets
+     its own dashed line from its task — drawn only for the chain on
+     screen, or the map turns into a web. */
   if (ui.focus && cols.includes('task') && cols.includes('comp') && cols.includes('crit')) {
     G.crits.forEach(p => { if (p.linked) p.taskIds.forEach(t => add('task', t, 'crit', p.key, 'linked')); });
   }
@@ -383,7 +383,7 @@ function _renderList(body) {
   const pill = (type, id) => {
     const it = X[type].get(id); if (!it) return '';
     return `<div class="tm-n tm-${type} is-static"><span class="tm-row"><bdi class="tm-code">${_esc(_code(type, it))}</bdi> ${
-      type === 'crit' ? (it.source === 'ta' ? '🔬 ' : it.linked ? '🔗 ' : '') : ''}<span class="tm-x" dir="auto">${_esc(_text(type, it))}</span></span></div>`;
+      type === 'crit' ? (it.source === 'ta' ? '🔬 ' : '') : ''}<span class="tm-x" dir="auto">${_esc(_text(type, it))}</span></span></div>`;
   };
   const taskEntry = t => {
     const c = _chain('task', t.id);
@@ -430,8 +430,7 @@ function _toolbarHtml() {
 
 function _legendHtml() {
   return `<span><i class="tm-lg"></i>${_esc(_s('lg_link'))}</span>
-    <span><i class="tm-lg is-linked"></i>🔗 ${_esc(_s('lg_linked'))}</span>
-    <span>🔬 ${_esc(_s('lg_ta'))}</span>
+    <span><i class="tm-lg is-linked"></i>🔬 ${_esc(_s('lg_ta'))}</span>
     <span><i class="tm-lg is-on"></i>${_esc(_s('lg_chain'))}</span>
     <span><i class="tm-lg-gap"></i>${_esc(_s('lg_gap'))}</span>`;
 }

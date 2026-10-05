@@ -33,8 +33,7 @@ import { bypassToClusteringTab, resetVerificationDecision, initializeClusteringF
   reassignPCToLO, unassignPCFromLO,
   updateCreateModuleButton, createModule, renameModule, deleteModule,
   removeLoFromModule, addLoToModuleFromDropdown,
-  openModuleBuilderFromMapping, exportModuleMappingJSON,
-  toggleCriterionTask, clearCriterionTasks }  from './modules.js';
+  openModuleBuilderFromMapping, exportModuleMappingJSON }  from './modules.js';
 import { showStatus, escapeHtml,
   toggleSkillsLevelSection, addSkillsCategory, removeSkillsCategory,
   updateSkillsCategoryName, addSkillsCompetency, removeSkillsCompetency,
@@ -548,14 +547,6 @@ export function setupEvents() {
       if (action === 'rename-cluster')          renameCluster(target.getAttribute('data-cluster-id'));
       else if (action === 'delete-cluster')     deleteCluster(target.getAttribute('data-cluster-id'));
       else if (action === 'show-pc-range-help') _showPCRangeHelp();
-      else if (action === 'toggle-criterion-task') {
-        toggleCriterionTask(target.getAttribute('data-cluster-id'),
-          parseInt(target.getAttribute('data-crit-index'), 10), target.getAttribute('data-task-id'));
-      }
-      else if (action === 'clear-criterion-tasks') {
-        clearCriterionTasks(target.getAttribute('data-cluster-id'),
-          parseInt(target.getAttribute('data-crit-index'), 10));
-      }
       else if (action === 'regen-cluster-criteria') {
         generateForSingleCluster(target.getAttribute('data-cluster-id'))
           .then((ok) => { if (ok) { saveCurrentProject(); renderProjectsSidebar(); } })
@@ -1079,12 +1070,7 @@ function _showPCRangeHelp() {
         ' ' + _t('helpPCExPart3') + ' ' + chip(_t('chipQualifier'), '#e9d5ff', '#581c87') +
         '\u201D' +
       '</p>' +
-    '</div>' +
-
-    /* Competency criteria vs task criteria, and the optional links. */
-    '<p style="margin:14px 0 0;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;' +
-    'border-radius:8px;font-size:0.85em;color:#0c4a6e;line-height:1.6;">\u{1F517} ' +
-      _t('helpPCLinkNote') + '</p>';
+    '</div>';
 
   _showHelpModal({
     id:       'pcRangeHelpModal',
