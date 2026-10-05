@@ -7,6 +7,16 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.55.0 — 2026-10-05 — Sidebar in the Module Builder silver ──────
+MINOR. dacum_projects.js, index.html, sw.js (v165).
+Changed The sidebar (navigation + projects) uses Module Builder's
+        silver rail instead of the dark theme: gradient #EFF0EE →
+        #DADCDE → #CDD0D2, hairline #BFC4C9, ink #3F464D (labels
+        #6B7379), active entry on #FCFCFB with a #6E767D spine and a
+        soft shadow, "+ New" in #6E767D, light search box and project
+        cards. Brand title and section labels in the same ink.
+        Layout, sizes, collapse and mobile drawer unchanged.
+
 ── 3.54.0 — 2026-10-05 — Full Draft card in the same blue ──────────
 MINOR. dacum-draft.css, index.html, sw.js (v164).
 Changed The "✨ Generate Full Draft" card (Chart Info) uses the same

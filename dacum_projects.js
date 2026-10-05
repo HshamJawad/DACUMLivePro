@@ -642,8 +642,8 @@ export function initProjectsSidebar() {
           <svg class="dps-search-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="dpsSearchGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#cba6f7"/>
-                <stop offset="100%" stop-color="#89b4fa"/>
+                <stop offset="0%" stop-color="#6E767D"/>
+                <stop offset="100%" stop-color="#8A9197"/>
               </linearGradient>
             </defs>
             <circle cx="8.5" cy="8.5" r="5" stroke="url(#dpsSearchGrad)" stroke-width="1.8"/>
@@ -1744,21 +1744,23 @@ function _injectCSS() {
   height: calc(100vh - 60px);
   overflow-y: auto;
   overflow-x: hidden;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  /* 3.55.0: silver rail, same palette as Module Builder */
+  background: linear-gradient(180deg, #EFF0EE 0%, #DADCDE 60%, #CDD0D2 100%);
+  color: #3F464D;
+  border-inline-end: 1px solid #BFC4C9;
   display: flex;
   flex-direction: column;
   transition: width 0.25s cubic-bezier(.4,0,.2,1);
   z-index: 300;
-  box-shadow: 2px 0 16px rgba(0,0,0,0.3);
+  box-shadow: 0 0 18px rgba(15,23,42,0.13);
   /* Single-unit scrollbar (ChatGPT style) */
   scrollbar-width: thin;
-  scrollbar-color: #6c7086 transparent;
+  scrollbar-color: #AEB4BA transparent;
 }
 .dps-sidebar::-webkit-scrollbar       { width: 5px; }
 .dps-sidebar::-webkit-scrollbar-track { background: transparent; }
-.dps-sidebar::-webkit-scrollbar-thumb { background: #6c7086; border-radius: 5px; }
-.dps-sidebar::-webkit-scrollbar-thumb:hover { background: #a6adc8; }
+.dps-sidebar::-webkit-scrollbar-thumb { background: #AEB4BA; border-radius: 5px; }
+.dps-sidebar::-webkit-scrollbar-thumb:hover { background: #959CA3; }
 
 /* Collapsed state: slim 68px icon rail */
 .dps-sidebar.dps-collapsed {
@@ -1774,7 +1776,7 @@ function _injectCSS() {
   align-items: center;
   justify-content: space-between;
   padding: 0 10px 0 16px;     /* no top/bottom padding — height from min-height */
-  border-bottom: 1px solid #313244;
+  border-bottom: 1px solid #BFC4C9;
   flex-shrink: 0;
   min-height: 56px;
   gap: 10px;                   /* guaranteed gap between brand and button */
@@ -1791,7 +1793,7 @@ function _injectCSS() {
 .dps-brand-text {
   font-size: 1rem;             /* slightly smaller so it comfortably fits */
   font-weight: 800;
-  color: #cba6f7;
+  color: #3F464D;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1809,10 +1811,10 @@ function _injectCSS() {
 
 /* Collapse / expand button — always visible, never overlaps title */
 .dps-collapse-btn {
-  background: rgba(203,166,247,0.08);
-  border: 1.5px solid #6c7086;
+  background: rgba(255,255,255,0.6);
+  border: 1.5px solid #BFC4C9;
   border-radius: 8px;
-  color: #cdd6f4;
+  color: #3F464D;
   width: 32px;
   height: 32px;
   min-width: 32px;
@@ -1832,9 +1834,9 @@ function _injectCSS() {
   stroke: currentColor;
 }
 .dps-collapse-btn:hover {
-  background: rgba(203,166,247,0.22);
-  border-color: #cba6f7;
-  color: #cba6f7;
+  background: #FFFFFF;
+  border-color: #6E767D;
+  color: #2F3439;
 }
 .dps-sidebar.dps-collapsed .dps-top {
   justify-content: center;
@@ -1850,13 +1852,13 @@ function _injectCSS() {
 .dps-nav {
   padding: 10px 8px 8px;
   flex-shrink: 0;
-  border-bottom: 1px solid #313244;
+  border-bottom: 1px solid #BFC4C9;
 }
 .dps-nav-label {
   font-size: 0.67em;
   font-weight: 700;
   letter-spacing: 0.09em;
-  color: #45475a;
+  color: #6B7379;
   padding: 0 8px 8px;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1885,7 +1887,7 @@ function _injectCSS() {
   border-radius: 8px;
   padding: 9px 10px;
   cursor: pointer;
-  color: #a6adc8;
+  color: #3F464D;
   font-size: 1rem;       /* ~16px per spec */
   font-weight: 700;
   font-family: inherit;
@@ -1897,12 +1899,13 @@ function _injectCSS() {
   box-sizing: border-box;
 }
 .dps-nav-item:hover {
-  background: #2a2a3e;
-  color: #cdd6f4;
+  background: rgba(255,255,255,0.72);
+  color: #2F3439;
 }
 .dps-nav-item.dps-nav-active {
-  background: #2a273f;
-  color: #cba6f7;
+  background: #FCFCFB;
+  color: #3F464D;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.12);
 }
 .dps-nav-item.dps-nav-active::before {
   content: '';
@@ -1911,7 +1914,7 @@ function _injectCSS() {
   top: 20%;
   height: 60%;
   width: 3px;
-  background: #cba6f7;
+  background: #6E767D;
   border-radius: 0 3px 3px 0;
 }
 .dps-nav-icon {
@@ -1952,8 +1955,8 @@ function _injectCSS() {
   left: 74px;
   top: 50%;
   transform: translateY(-50%);
-  background: #313244;
-  color: #cdd6f4;
+  background: #3F464D;
+  color: #FFFFFF;
   padding: 5px 12px;
   border-radius: 7px;
   font-size: 0.82em;
@@ -1984,7 +1987,7 @@ function _injectCSS() {
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px 8px;
-  border-bottom: 1px solid #313244;
+  border-bottom: 1px solid #BFC4C9;
   gap: 8px;
   flex-shrink: 0;
   min-height: 44px;
@@ -1994,7 +1997,7 @@ function _injectCSS() {
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
-  color: #a6adc8;
+  color: #6B7379;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   opacity: 1;
@@ -2004,8 +2007,8 @@ function _injectCSS() {
 
 /* ── New project button ── */
 .dps-new-btn {
-  background: #cba6f7;
-  color: #1e1e2e;
+  background: #6E767D;
+  color: #FFFFFF;
   border: none;
   border-radius: 6px;
   padding: 4px 10px;
@@ -2016,7 +2019,7 @@ function _injectCSS() {
   flex-shrink: 0;
   transition: background 0.15s;
 }
-.dps-new-btn:hover { background: #b4a1e8; }
+.dps-new-btn:hover { background: #5B6268; }
 .dps-sidebar.dps-collapsed .dps-new-btn { display: none; }
 
 /* ── Search ── */
@@ -2046,9 +2049,9 @@ function _injectCSS() {
   width: 100%;
   padding: 6px 10px 6px 30px;
   border-radius: 8px;
-  border: 1.5px solid #313244;
-  background: #181825;
-  color: #cdd6f4;
+  border: 1.5px solid #BFC4C9;
+  background: #FCFCFB;
+  color: #3F464D;
   font-size: 0.8em;
   outline: none;
   box-sizing: border-box;
@@ -2057,8 +2060,8 @@ function _injectCSS() {
 }
 .dps-search-box.has-value .dps-search,
 .dps-search-box.is-focused .dps-search { padding-left: 10px; }
-.dps-search:focus { border-color: #cba6f7; }
-.dps-search::placeholder { color: #45475a; font-style: italic; }
+.dps-search:focus { border-color: #6E767D; }
+.dps-search::placeholder { color: #8A9197; font-style: italic; }
 
 /* ── Project list ── */
 .dps-list {
@@ -2076,9 +2079,9 @@ function _injectCSS() {
   padding: 5px 8px;
   min-height: 30px;
   background: transparent;
-  border: 1px dashed #45475a;
+  border: 1px dashed #AEB4BA;
   border-radius: 6px;
-  color: #7f849c;
+  color: #6B7379;
   font: inherit;
   font-size: 0.72em;
   text-align: start;
@@ -2087,9 +2090,9 @@ function _injectCSS() {
   transition: color 0.15s, border-color 0.15s;
 }
 .dps-storage-row:hover,
-.dps-storage-row:focus-visible { color: #cdd6f4; border-color: #89b4fa; outline: none; }
-.dps-storage-row.dps-storage-idb    { border-style: solid; border-color: #a6e3a1; color: #a6e3a1; }
-.dps-storage-row.dps-storage-locked { border-style: solid; border-color: #f38ba8; color: #f38ba8; }
+.dps-storage-row:focus-visible { color: #2F3439; border-color: #6E767D; outline: none; }
+.dps-storage-row.dps-storage-idb    { border-style: solid; border-color: #15803D; color: #15803D; }
+.dps-storage-row.dps-storage-locked { border-style: solid; border-color: #B42318; color: #B42318; }
 .dps-storage-icon  { flex-shrink: 0; }
 .dps-storage-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .dps-sidebar.dps-collapsed .dps-storage-row { display: none; }
@@ -2142,7 +2145,7 @@ function _injectCSS() {
   .dps-st-actions .dps-st-btn { flex: 1 1 100%; }
 }
 .dps-empty {
-  color: #6c7086;
+  color: #6B7379;
   font-size: 0.82em;
   text-align: center;
   padding: 20px 8px;
@@ -2157,16 +2160,16 @@ function _injectCSS() {
   align-items: flex-start;
   gap: 6px;
   border-radius: 10px;
-  border: 1px solid #313244;
+  border: 1px solid #C6CACE;
   margin-bottom: 7px;
-  background: #181825;
+  background: rgba(255,255,255,0.55);
   transition: background 0.15s, border-color 0.15s;
   cursor: pointer;
   padding: 2px 2px 2px 0;
 }
-.dps-card:hover         { background: #26263a; border-color: #45475a; }
-.dps-card.dps-active    { background: #2a273f; border-color: #cba6f7; }
-.dps-card.dps-editing   { border-color: #cba6f7; background: #2a273f; }
+.dps-card:hover         { background: rgba(255,255,255,0.85); border-color: #AEB4BA; }
+.dps-card.dps-active    { background: #FCFCFB; border-color: #6E767D; box-shadow: 0 2px 8px rgba(15,23,42,0.12); }
+.dps-card.dps-editing   { border-color: #6E767D; background: #FCFCFB; }
 .dps-card-body          { flex: 1; padding: 8px 4px 8px 10px; min-width: 0; }
 
 /* Name display + inline input */
@@ -2175,19 +2178,19 @@ function _injectCSS() {
   display: block;
   font-size: 0.88em;
   font-weight: 600;
-  color: #cdd6f4;
+  color: #3F464D;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dps-active .dps-card-name { color: #cba6f7; }
+.dps-active .dps-card-name { color: #2F3439; }
 
 .dps-card-name-input {
   width: 100%;
-  background: #1e1e2e;
-  border: 1.5px solid #cba6f7;
+  background: #FFFFFF;
+  border: 1.5px solid #6E767D;
   border-radius: 5px;
-  color: #cdd6f4;
+  color: #3F464D;
   font-size: 0.88em;
   font-weight: 600;
   font-family: inherit;
@@ -2196,13 +2199,13 @@ function _injectCSS() {
   box-sizing: border-box;
 }
 
-.dps-card-meta  { font-size: 0.72em; color: #6c7086; margin-top: 2px; }
+.dps-card-meta  { font-size: 0.72em; color: #6B7379; margin-top: 2px; }
 .dps-card-stats {
   display: flex;
   gap: 8px;
   margin-top: 4px;
   font-size: 0.72em;
-  color: #a6adc8;
+  color: #6B7379;
 }
 
 /* ── Card action buttons — always visible, clearly colored ── */
@@ -2230,11 +2233,11 @@ function _injectCSS() {
 .dps-icon-btn:active { transform: scale(0.92); }
 
 /* Rename — blue tint */
-.dps-rename { background: #1e3a5f; color: #93c5fd; }
-.dps-rename:hover { background: #2563eb; color: #fff; }
+.dps-rename { background: #E5E7EA; color: #3F464D; }
+.dps-rename:hover { background: #6E767D; color: #fff; }
 
 /* Delete — red tint */
-.dps-delete { background: #3e2a2a; color: #f38ba8; }
+.dps-delete { background: #F7E3E0; color: #B42318; }
 .dps-delete:hover { background: #dc2626; color: #fff; }
 
 /* ── Legacy dpsToggle: hidden, kept for dacum-mobile.js compat ── */
