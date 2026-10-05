@@ -365,6 +365,7 @@ export function renderClusters() {
   cd.clusters.forEach((cluster, clusterIndex) => {
     const clusterNumber = clusterIndex + 1;
     const taCriteria = _getClusterEffectiveCriteria(cluster, clusterNumber).filter(c => c.source === 'ta');
+    _trackTaCriteriaCount(cluster, clusterNumber, taCriteria.length);
     let displayValue = '';
     if (cluster.performanceCriteria && cluster.performanceCriteria.length > 0) {
       displayValue = cluster.performanceCriteria
@@ -409,14 +410,17 @@ export function renderClusters() {
             <button type="button" class="tab-help-btn" data-action="show-pc-range-help" title="${_t('ttPCRangeHelp')}" aria-label="${_t('ttPCRangeHelp')}" aria-haspopup="dialog">?</button>
           </div>
           <div class="cluster-helper-text">${_t('hintCriteria')}</div>
+          ${_renderCritRenumberNote(cluster)}
           <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff;">
             ${taCriteria.length ? `
-              <div style="padding:10px 14px 8px;border-bottom:1px solid #eef0f4;">
+              <div class="crit-ta-block">
+                <div class="crit-ta-title">🔬 ${_esc(_t('lblFromTaskAnalysis'))}</div>
                 ${taCriteria.map(c => `
-                  <div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:0.92em;color:#334155;">
-                    <span>${c.id} ${c.text} <span style="color:#94a3b8;">[${_taskLabel(c.taskId)}]</span></span>
+                  <div class="crit-ta-row" dir="auto">
+                    <span><bdi>${c.id}</bdi> ${_esc(c.text)} <span class="crit-ta-code">[${_esc(_taskLabel(c.taskId))}]</span></span>
                   </div>`).join('')}
               </div>` : ''}
+            <div class="crit-guide">${_esc(_tx(taCriteria.length ? 'critHintWithTA' : 'critHintNoTA'))}</div>
             <textarea id="criteria_${cluster.id}"
               data-cluster-number="${clusterNumber}"
               data-cluster-id="${cluster.id}"
@@ -427,11 +431,13 @@ export function renderClusters() {
               placeholder="${_t('phFirstCriterion')}"
               style="min-height:100px;border:none;border-radius:0;box-shadow:none;display:block;width:100%;box-sizing:border-box;padding:10px 14px;">${displayValue}</textarea>
           </div>
+          ${_renderCritDupNote(cluster, clusterNumber, taCriteria)}
         </div>
       </div>`;
   });
 
   container.innerHTML = html;
+  if (_taCountDirty) { _taCountDirty = false; _persistClusters(); }
 }
 
 export function renameCluster(clusterId) {
@@ -575,6 +581,11 @@ const _LOCAL_STRINGS = {
     loSyncRemoved:            'Criteria removed because their task is no longer in any competency: {n}',
     loSyncStale:              'Criteria reworded or deleted in Competency Clusters / Task Analysis: {n} — marked ⚠ for your review',
     lblStaleCriterion:        'Reworded or deleted at the source — review, then keep or remove (✕)',
+    critHintWithTA:           'The criteria above come from Task Analysis and are counted automatically. Add here only criteria that describe the integrated performance of the competency — do not repeat them.',
+    critHintNoTA:             'Write the criteria here, or per task in Task Analysis — criteria written there appear above this box automatically.',
+    critDupNote:              '{n} repeats a Task Analysis criterion ({src}), so it is counted twice. Remove one of them.',
+    critRenumberNote:         'The Task Analysis criteria of this competency changed from {from} to {to}, so the criteria typed below are now numbered {first} to {last}. Learning outcomes follow the new numbers automatically.',
+    critRenumberDismiss:      'Got it',
     lblModuleLevel:           'Level',
     lblModuleTrack:           'Track / code prefix',
     phModuleTrack:            'Common to all',
@@ -687,6 +698,11 @@ const _LOCAL_STRINGS = {
     loSyncRemoved:            'Critères retirés car leur tâche n’est plus dans aucune compétence : {n}',
     loSyncStale:              'Critères reformulés ou supprimés dans les groupes / l’analyse des tâches : {n} — signalés ⚠ pour vérification',
     lblStaleCriterion:        'Reformulé ou supprimé à la source — vérifiez, puis conservez ou retirez (✕)',
+    critHintWithTA:           'Les critères ci-dessus viennent de l’analyse des tâches et sont pris en compte automatiquement. N’ajoutez ici que des critères décrivant la performance intégrée de la compétence — sans les répéter.',
+    critHintNoTA:             'Rédigez les critères ici, ou par tâche dans l’analyse des tâches — les critères rédigés là-bas apparaissent automatiquement au-dessus de cette zone.',
+    critDupNote:              '{n} reprend un critère de l’analyse des tâches ({src}) : il est compté deux fois. Supprimez l’un des deux.',
+    critRenumberNote:         'Les critères de l’analyse des tâches de cette compétence sont passés de {from} à {to} : les critères saisis ci-dessous sont désormais numérotés de {first} à {last}. Les résultats d’apprentissage suivent automatiquement la nouvelle numérotation.',
+    critRenumberDismiss:      'Compris',
     lblModuleLevel:           'Niveau',
     lblModuleTrack:           'Filière / préfixe du code',
     phModuleTrack:            'Commun à tous',
@@ -799,6 +815,11 @@ const _LOCAL_STRINGS = {
     loSyncRemoved:            'معايير أُزيلت لأن مهمتها لم تعد في أي كفاءة: {n}',
     loSyncStale:              'معايير عُدّلت صياغتها أو حُذفت في تجمعات الكفاءات / تحليل المهمة: {n} — موسومة بـ ⚠ لمراجعتها',
     lblStaleCriterion:        'عُدّلت أو حُذفت في المصدر — راجعها ثم أبقِها أو أزلها (✕)',
+    critHintWithTA:           'المعايير أعلاه من تحليل المهمة وتُحتسب تلقائياً. أضف هنا فقط المعايير التي تصف الأداء المتكامل للكفاءة، ولا تكررها.',
+    critHintNoTA:             'اكتب المعايير هنا، أو اكتبها لكل مهمة في تحليل المهام؛ والمعايير المكتوبة هناك تظهر تلقائياً فوق هذا المربع.',
+    critDupNote:              'المعيار {n} يكرر معياراً من تحليل المهمة ({src})، فيُحتسب مرتين. احذف أحدهما.',
+    critRenumberNote:         'تغيّر عدد معايير تحليل المهمة لهذه الكفاءة من {from} إلى {to}، فأصبح ترقيم المعايير المكتوبة أدناه من {first} إلى {last}. والمحصلات تتبع الترقيم الجديد تلقائياً.',
+    critRenumberDismiss:      'حسناً',
     lblModuleLevel:           'المستوى',
     lblModuleTrack:           'المسار / بادئة الرمز',
     phModuleTrack:            'مشتركة للجميع',
@@ -1742,6 +1763,7 @@ export function updateClusterCriteriaFromNumbered(clusterId, value) {
     return match ? match[1].trim() : line.trim();
   }).filter(line => line);
   cluster.performanceCriteria = stripped;
+  _refreshCritDupNote(cluster);
 }
 
 export function handleCriteriaKeydown(event, clusterId) {
@@ -2890,7 +2912,8 @@ const _GUIDE = {
           'A task follows the modules of its competency: Task Analysis → "Used in modules" lists them, and Module Builder receives the task’s analysis with each of them.' ] },
         { h: '🎯 Task criteria or competency criteria?', items: [
           '<strong>Per-task criteria</strong> (Task Analysis) describe one task precisely, so tracing is exact: a module that uses the criterion uses that task only. Writing them early, as a draft, is recommended — they become the raw material for the competency criteria.',
-          '<strong>Competency criteria</strong> (Competency Clusters) describe integrated performance across the tasks of the competency. Each one traces to all tasks of its competency.' ] },
+          '<strong>Competency criteria</strong> (Competency Clusters) describe integrated performance across the tasks of the competency. Each one traces to all tasks of its competency.',
+          '<strong>Numbering</strong>: in each competency the Task Analysis criteria come first (read-only), then the criteria typed in the box. Adding Task Analysis criteria later renumbers the typed ones; learning outcomes follow automatically. Do not type the same criterion in both places — it would be counted twice.' ] },
         { h: '📚 Reference', items: [
           'The level descriptors of the national qualifications framework (knowledge, skills, autonomy and responsibility) are the authority.',
           'The number of levels comes from that framework, not from the content — set it in the module-generation card or above the coverage matrix.' ] },
@@ -2960,7 +2983,8 @@ const _GUIDE = {
           'Une tâche suit les modules de sa compétence : Analyse des tâches → « Utilisée dans les modules » les énumère, et Module Builder reçoit l’analyse de la tâche avec chacun d’eux.' ] },
         { h: '🎯 Critères de tâche ou critères de compétence ?', items: [
           '<strong>Critères par tâche</strong> (Analyse des tâches) : ils décrivent une tâche précisément, la traçabilité est donc exacte : un module qui utilise le critère n’utilise que cette tâche. Il est recommandé de les rédiger tôt, en brouillon — ils servent de matière première aux critères de compétence.',
-          '<strong>Critères de compétence</strong> (Regroupements de compétences) : ils décrivent une performance intégrée sur l’ensemble des tâches de la compétence. Chacun renvoie à toutes les tâches de sa compétence.' ] },
+          '<strong>Critères de compétence</strong> (Regroupements de compétences) : ils décrivent une performance intégrée sur l’ensemble des tâches de la compétence. Chacun renvoie à toutes les tâches de sa compétence.',
+          '<strong>Numérotation</strong> : dans chaque compétence, les critères de l’analyse des tâches viennent d’abord (lecture seule), puis ceux saisis dans la zone. Ajouter plus tard des critères dans l’analyse des tâches renumérote ceux saisis ; les résultats d’apprentissage suivent automatiquement. Ne saisissez pas le même critère aux deux endroits — il serait compté deux fois.' ] },
         { h: '📚 Référence', items: [
           'Les descripteurs de niveaux du cadre national des certifications (savoirs, aptitudes, autonomie et responsabilité) font autorité.',
           'Le nombre de niveaux vient de ce cadre, pas du contenu — réglez-le dans la carte de génération des modules ou au-dessus de la matrice de couverture.' ] },
@@ -3030,7 +3054,8 @@ const _GUIDE = {
           'المهمة تتبع وحدات كفاءتها: يعرضها تحليل المهمة في سطر «تُستخدم في الوحدات»، ويستقبل Module Builder تحليل المهمة مع كل واحدة منها.' ] },
         { h: '🎯 معايير المهمة أم معايير الكفاءة؟', items: [
           '<strong>معايير المهمة</strong> (تحليل المهمة) تصف مهمة واحدة بدقة، فيكون التتبع دقيقاً: الوحدة التي تستخدم المعيار تستخدم تلك المهمة وحدها. ويُنصح بكتابتها مبكراً كمسودة، فهي المادة الخام لمعايير الكفاءة.',
-          '<strong>معايير الكفاءة</strong> (تجمعات الكفاءات) تصف الأداء المتكامل عبر مهام الكفاءة كلها. وكل معيار منها يرتبط بجميع مهام كفاءته.' ] },
+          '<strong>معايير الكفاءة</strong> (تجمعات الكفاءات) تصف الأداء المتكامل عبر مهام الكفاءة كلها. وكل معيار منها يرتبط بجميع مهام كفاءته.',
+          '<strong>الترقيم</strong>: في كل كفاءة تأتي معايير تحليل المهمة أولاً (للقراءة فقط)، ثم المعايير المكتوبة في المربع. وإضافة معايير في تحليل المهمة لاحقاً تغيّر ترقيم المكتوبة، والمحصلات تتبعها تلقائياً. لا تكتب المعيار نفسه في الموضعين، وإلا احتُسب مرتين.' ] },
         { h: '📚 المرجع', items: [
           'واصفات المستويات في الإطار الوطني للمؤهلات (المعرفة، المهارة، الاستقلالية والمسؤولية) هي المرجع.',
           'عدد المستويات يحدده ذلك الإطار لا المحتوى، ويُضبط من بطاقة توليد الوحدات أو أعلى مصفوفة التغطية.' ] },
@@ -4127,6 +4152,85 @@ export function getTraceGraph() {
   }));
 
   return { duties, extra, comps, crits, los, mods };
+}
+
+// ── Criteria from two sources (3.52.0) ─────────────────────────
+// A competency shows its Task Analysis criteria first (read-only,
+// numbered N-1…) and the criteria typed in its box after them. These
+// helpers warn about a typed criterion that repeats a Task Analysis one
+// (it would be counted twice) and explain the renumbering of the typed
+// criteria when the Task Analysis criteria of the competency change.
+
+/* Same normalisation as clustering_ai.js: case, spaces, end punctuation. */
+function _critNorm(t) {
+  return String(t || '').toLowerCase().replace(/\s+/g, ' ').replace(/[\s.。;؛,،!?؟:]+$/u, '').trim();
+}
+
+function _critDuplicates(cluster, clusterNumber, taCriteria) {
+  if (!taCriteria.length) return [];
+  const byText = new Map();
+  taCriteria.forEach(c => { const k = _critNorm(c.text); if (k && !byText.has(k)) byText.set(k, c); });
+  const out = [];
+  (cluster.performanceCriteria || []).forEach((text, i) => {
+    const hit = byText.get(_critNorm(text));
+    if (hit) out.push({ id: `${clusterNumber}-${taCriteria.length + i + 1}`, src: hit });
+  });
+  return out;
+}
+
+function _renderCritDupNote(cluster, clusterNumber, taCriteria) {
+  const dups = _critDuplicates(cluster, clusterNumber, taCriteria);
+  const body = dups.map(d => `<div>⚠ ${_esc(_txf('critDupNote', {
+      n: d.id, src: `${d.src.id} · ${_taskLabel(d.src.taskId)}` }))}</div>`).join('');
+  return `<div class="crit-dup-note" id="critdup_${_esc(cluster.id)}" role="status"${dups.length ? '' : ' hidden'}>${body}</div>`;
+}
+
+function _refreshCritDupNote(cluster) {
+  const el = typeof document !== 'undefined' && document.getElementById('critdup_' + cluster.id);
+  if (!el) return;
+  const cd = appState.clusteringData;
+  const idx = (cd.clusters || []).indexOf(cluster);
+  if (idx < 0) return;
+  const ta = _getClusterEffectiveCriteria(cluster, idx + 1).filter(c => c.source === 'ta');
+  el.outerHTML = _renderCritDupNote(cluster, idx + 1, ta);
+}
+
+/* cluster.taCriteriaCount remembers how many Task Analysis criteria the
+   competency had when it was last drawn, so a change made in the Task
+   Analysis tab can be explained here. Absent (older projects) = record
+   silently, no notice. Notices last until dismissed or page reload. */
+const _critRenumber = new Map();
+let _taCountDirty = false;
+
+function _trackTaCriteriaCount(cluster, clusterNumber, count) {
+  const prev = cluster.taCriteriaCount;
+  if (prev === count) return;
+  cluster.taCriteriaCount = count;
+  /* First record on an older project: no save of its own — it rides
+     along with the next save. A real change is saved at once. */
+  if (typeof prev === 'number') _taCountDirty = true;
+  const typed = (cluster.performanceCriteria || []).length;
+  if (typeof prev !== 'number' || !typed) { _critRenumber.delete(cluster.id); return; }
+  const first = _critRenumber.get(cluster.id);
+  _critRenumber.set(cluster.id, {
+    from: first ? first.from : prev, to: count,
+    firstNo: `${clusterNumber}-${count + 1}`, lastNo: `${clusterNumber}-${count + typed}`
+  });
+  if (first && first.from === count) _critRenumber.delete(cluster.id);   // back where it was
+}
+
+function _renderCritRenumberNote(cluster) {
+  const n = _critRenumber.get(cluster.id);
+  if (!n) return '';
+  return `<div class="crit-renumber-note" role="status">
+      <span>ℹ️ ${_esc(_txf('critRenumberNote', { from: n.from, to: n.to, first: n.firstNo, last: n.lastNo }))}</span>
+      <button type="button" class="crit-renumber-ok" data-action="dismiss-crit-renumber" data-cluster-id="${_esc(cluster.id)}">${_esc(_tx('critRenumberDismiss'))}</button>
+    </div>`;
+}
+
+export function dismissCriteriaRenumberNote(clusterId) {
+  _critRenumber.delete(clusterId);
+  renderClusters();
 }
 
 function _clusterTask(taskId) {

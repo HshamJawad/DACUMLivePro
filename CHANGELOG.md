@@ -7,6 +7,34 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.52.0 — 2026-10-05 — Competency criteria from two sources ──────
+MINOR. modules.js, events.js, translations.js, index.html,
+DACUM_Live_Pro_User_Guide.html, sw.js (v162).
+Fixed   The Task Analysis criteria shown above a competency's criteria
+        box had no heading (the "From Task Analysis (read-only here)"
+        string existed but was never rendered). The block now carries
+        "🔬 From Task Analysis …" on a light background. Their text is
+        now HTML-escaped.
+Added   A guidance line inside the criteria box: with Task Analysis
+        criteria, "add only criteria for the integrated performance —
+        do not repeat them"; without, "write them here or per task in
+        Task Analysis".
+Added   Duplicate warning under the box: a typed criterion that repeats
+        a Task Analysis criterion of the same competency (same text,
+        ignoring case, spaces and end punctuation) is flagged ⚠ with
+        both numbers — it would be counted twice. Updated on blur;
+        never blocks saving.
+Added   Renumbering notice in Competency Clusters: when the number of
+        Task Analysis criteria of a competency changes, its typed
+        criteria shift (e.g. 3-1 → 3-25); a notice gives the new range
+        and says learning outcomes follow (they are linked by text).
+        Dismissable; kept until dismissed or reload. The count is kept
+        in cluster.taCriteriaCount (new, optional; older projects get
+        it silently on first view, without a notice).
+Docs    PC & Range help: "Two sources, one list" note. Module Mapping
+        guide: numbering item. User Guide: paragraph k638 in
+        "Competency criteria and their tasks". EN / FR / AR.
+
 ── 3.51.0 — 2026-10-05 — Import without a Skills Level Matrix ──────
 MINOR. dacum_projects.js, renderer.js, snapshots.js,
 workshop_snapshots.js, sw.js (v161).
