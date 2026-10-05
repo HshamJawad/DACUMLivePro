@@ -7,6 +7,13 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.57.0 — 2026-10-05 — Logo buttons like the section buttons ─────
+MINOR. dacum-styles.css, index.html, sw.js (v167).
+Changed Chart Info "Add Logo" and "Remove" now look like the Additional
+        Info section buttons: Add Logo slate (#f1f5f9 / #475569, hairline
+        #cbd5e1), Remove red tint (#fef2f2 / #b91c1c) turning solid red
+        on hover. Behaviour unchanged.
+
 ── 3.56.0 — 2026-10-05 — Page background in the Module Builder grey ─
 MINOR. dacum-styles.css, index.html, sw.js (v166).
 Changed The page background behind the content is Module Builder's

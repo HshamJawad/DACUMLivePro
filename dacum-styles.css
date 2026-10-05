@@ -305,26 +305,55 @@ input[type="date"]:focus {
     background: white;
 }
 
-.btn-add-image {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    color: white;
+/* 3.57.0: same look as the Additional Info section buttons
+   (.btn-format / .btn-clear-section): slate at rest, red tint for
+   the destructive one, solid red only on hover. */
+.btn-add-image,
+.btn-remove-image {
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.88em;
+    font-weight: 600;
+    font-family: inherit;
+    white-space: nowrap;
     padding: 8px 16px;
-    font-size: 0.95em;
+    box-shadow: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-add-image {
+    background: #f1f5f9;
+    color: #475569;
 }
 
 .btn-add-image:hover {
-    box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+    background: #e2e8f0;
+    color: #1e293b;
+    border-color: #94a3b8;
+    box-shadow: none;
+    filter: none;
 }
 
 .btn-remove-image {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    padding: 6px 12px;
-    font-size: 0.85em;
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
 }
 
 .btn-remove-image:hover {
-    box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+    box-shadow: none;
+    filter: none;
+}
+
+.btn-add-image:focus-visible,
+.btn-remove-image:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
 }
 
 .duty-row, .ks-row, .behavior-row {
