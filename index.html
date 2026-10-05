@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v162';
+      var EXPECTED_SW='v163';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.52.0';
+      var APP_VERSION = '3.53.0';
       var APP_RELEASED = '2026-10-05';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -923,10 +923,10 @@
             </div>
             
             <!-- AI Generation Section -->
-            <div style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center;">
+            <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiCardTitle">AI-Powered DACUM Generation</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiCardDesc">Generate complete duties and tasks automatically based on occupation details</p>
-                <button class="btn-ai-generate" id="aiGenerateBtn"  style="background: white; color: #667eea; padding: 12px 30px; font-size: 1.05em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <button class="btn-ai-generate" id="aiGenerateBtn"  style="background: white; color: #0284c7; padding: 12px 30px; font-size: 1.05em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                     🤖 <span data-i18n="btnGenerateAI">Generate AI Draft</span>
                 </button>
                 <p style="color: rgba(255,255,255,0.8); margin: 15px 0 0 0; font-size: 0.85em;">💡 <span data-i18n="aiCardHintV2">Fill Occupation Title in Chart Info. Adding Scope of Work &amp; Job Title improves results.</span></p>
@@ -1052,10 +1052,10 @@
             </div>
 
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
-            <div style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center;">
+            <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiInfoTitle">AI-Powered Supporting Information</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiInfoDesc">Generate Knowledge, Skills, Behaviors, Tools, Trends, Acronyms and Career Path automatically</p>
-                <button class="btn-ai-generate" id="aiGenerateInfoBtn" style="background: white; color: #667eea; padding: 12px 30px; font-size: 1.05em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <button class="btn-ai-generate" id="aiGenerateInfoBtn" style="background: white; color: #0284c7; padding: 12px 30px; font-size: 1.05em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                     🤖 <span data-i18n="btnGenerateInfo">Generate Supporting Info</span>
                 </button>
                 <p style="color: rgba(255,255,255,0.8); margin: 15px 0 0 0; font-size: 0.85em;">💡 <span data-i18n="aiInfoHint">Uses Occupation Title from Chart Info. If duties &amp; tasks already exist, they are used as the evidence base for far more accurate results. Custom sections you added are never overwritten.</span></p>
@@ -1765,11 +1765,11 @@
             </div>
             
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
-            <div style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center;">
+            <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiClusterTitle">AI Clustering Assistant</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiClusterDesc">Two separate steps — review the clusters before generating their criteria</p>
                 <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                    <button class="btn-ai-generate" id="aiSuggestClustersBtn" style="background: white; color: #667eea; padding: 12px 22px; font-size: 1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <button class="btn-ai-generate" id="aiSuggestClustersBtn" style="background: white; color: #0284c7; padding: 12px 22px; font-size: 1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                         🤖 <span data-i18n="btnSuggestClusters">Suggest Competency Clusters</span>
                     </button>
                     <button id="aiGenCriteriaBtn" style="background: rgba(255,255,255,0.18); color: white; border: 1.5px solid rgba(255,255,255,0.55); padding: 12px 22px; font-size: 1em; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
@@ -1865,7 +1865,7 @@
             </div>
 
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
-            <div style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center;">
+            <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiLOTitle">Generate Learning Outcomes</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiLODesc">Choose the design pattern — you can use a different one for each cluster</p>
                 <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -1875,7 +1875,7 @@
                     <button id="loGenPatternBBtn" style="background: rgba(255,255,255,0.18); color: white; border: 1.5px solid rgba(255,255,255,0.55); padding: 11px 18px; font-size: 0.95em; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
                         🧩 <span data-i18n="btnPatternB">Pattern B — Many-to-One</span>
                     </button>
-                    <button class="btn-ai-generate" id="loGenPatternCBtn" style="background: white; color: #667eea; padding: 11px 18px; font-size: 0.95em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <button class="btn-ai-generate" id="loGenPatternCBtn" style="background: white; color: #0284c7; padding: 11px 18px; font-size: 0.95em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                         ⚖️ <span data-i18n="btnPatternC">Pattern C — Hybrid</span>
                     </button>
                 </div>
@@ -1940,14 +1940,14 @@
             </div>
 
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
-            <div style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; text-align: center;">
+            <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiMMTitle">Automatic Module Generation</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiMMDesc">Build modules from your Learning Outcomes, or keep grouping them manually below</p>
                 <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                     <button id="mmGenOneToOneBtn" style="background: rgba(255,255,255,0.18); color: white; border: 1.5px solid rgba(255,255,255,0.55); padding: 12px 22px; font-size: 1em; font-weight: bold; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
                         ⚡ <span data-i18n="btnOneModulePerLO">One Module per Outcome</span>
                     </button>
-                    <button class="btn-ai-generate" id="mmGenAIBtn" style="background: white; color: #667eea; padding: 12px 22px; font-size: 1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                    <button class="btn-ai-generate" id="mmGenAIBtn" style="background: white; color: #0284c7; padding: 12px 22px; font-size: 1em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
                         🤖 <span data-i18n="btnAIGroupModules">AI Group &amp; Sequence Modules</span>
                     </button>
                 </div>

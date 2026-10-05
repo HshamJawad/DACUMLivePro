@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.53.0 — 2026-10-05 — AI cards in the Module Builder blue ───────
+MINOR. index.html, sw.js (v163).
+Changed The five AI generation cards (Duties & Tasks, Additional Info,
+        Competency Clusters, Learning Outcomes, Module Mapping) use the
+        sky-blue gradient of Module Builder's Module Management card
+        (#0ea5e9 → #0284c7, shadow rgba(14,165,233,.3)) instead of the
+        purple one; their white primary buttons use #0284c7 text. Same
+        layout, ids and behaviour; class ai-gen-card added as a hook.
+
 ── 3.52.0 — 2026-10-05 — Competency criteria from two sources ──────
 MINOR. modules.js, events.js, translations.js, index.html,
 DACUM_Live_Pro_User_Guide.html, sw.js (v162).
