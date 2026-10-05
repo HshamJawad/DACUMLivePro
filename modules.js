@@ -4,6 +4,9 @@
 // ============================================================
 
 import { appState } from './state.js';
+// 3.49.0: the active project's name for the Module Builder handoff.
+// project_store.js imports nothing, so this adds no cycle.
+import { readProjects } from './project_store.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { lwExtractDutiesAndTasks } from './workshop.js';
 import { getTaskCode, getTaskCodeShort, getDutyLabel, getDutyCode,
@@ -4347,6 +4350,25 @@ function _buildModuleExport(module, moduleNumber) {
 }
 
 /**
+ * 3.49.0 — identity of the programme being handed off: the active DACUM
+ * project's id (stable for the life of the project, also after a rename)
+ * and its sidebar name. Falls back to the occupation title for the name;
+ * the id is null only when no project is active, and Module Builder then
+ * matches by occupation and asks.
+ */
+function _handoffProgramme(occupation) {
+  let id = null, name = '';
+  try { id = localStorage.getItem('dacum_active_project') || null; } catch (_) { id = null; }
+  if (id) {
+    try {
+      const p = (readProjects() || []).find(x => x && x.id === id);
+      if (p && p.name) name = String(p.name);
+    } catch (_) { /* name is cosmetic; the id is what matters */ }
+  }
+  return { id, name: name || occupation || '' };
+}
+
+/**
  * Hands off to Module Builder. With no argument, transfers every
  * module (the original, unchanged behaviour, still wired to the
  * existing "Proceed to Module Builder" banner button). Pass a
@@ -4369,9 +4391,20 @@ export function openModuleBuilderFromMapping(moduleId = null) {
 
   if (moduleId && modulesToSend.length === 0) return;
 
+  const programme = _handoffProgramme(occupation);
+
   const exportObject = {
     source: 'DACUM Live Pro v1.0',
     exportDate: new Date().toISOString(),
+    // 3.49.0: which DACUM project these modules belong to. Module Builder
+    // keeps one project per programme and uses this id to tell "more
+    // modules of the same programme" from "a different programme", so two
+    // programmes are never mixed in one library. Optional on the receiving
+    // side: an older payload without it still imports.
+    handoffVersion: 2,
+    programId: programme.id,
+    programName: programme.name,
+    dacumVersion: (window.DACUM_BUILD && window.DACUM_BUILD.version) || '',
     occupation,
     // 3.44.0: the remaining Chart Info fields Module Builder's cover has
     // a row for, and how modules are labelled here (code / number / both).
@@ -4397,11 +4430,18 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     if (moduleId) {
       let existing = null;
       try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (_) { existing = null; }
-      if (existing && Array.isArray(existing.modules)) {
+      // 3.49.0: modules still waiting from ANOTHER project are dropped,
+      // not merged — otherwise one payload would carry two programmes
+      // under a single programId.
+      const sameProgramme = existing && (existing.programId || null) === (programme.id || null);
+      if (existing && Array.isArray(existing.modules) && sameProgramme) {
         const others = existing.modules.filter(m => m.moduleId !== moduleId);
         payload = { ...existing, exportDate: exportObject.exportDate, occupation,
                     occupationTitle, jobTitle, sector: exportObject.sector, labelMode: exportObject.labelMode,
                     occupationalReference: exportObject.occupationalReference,
+                    handoffVersion: exportObject.handoffVersion,
+                    programId: exportObject.programId, programName: exportObject.programName,
+                    dacumVersion: exportObject.dacumVersion,
                     modules: [...others, ...exportObject.modules] };
       }
     }

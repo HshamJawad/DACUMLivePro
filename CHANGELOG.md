@@ -7,6 +7,20 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.49.0 — 2026-10-05 — Programme id in the Module Builder handoff ──
+MINOR. modules.js, index.html, sw.js (v159).
+Added   The Module Builder handoff (localStorage dacum_modules_export)
+        now says which project its modules come from: handoffVersion 2,
+        programId (the active project's id, stable after a rename),
+        programName (the project's sidebar name, else the occupation)
+        and dacumVersion. Module Builder 3.12+ keeps one project per
+        programme with these, so two programmes never mix in its
+        module library. Older Module Builder builds ignore the fields.
+Fixed   Sending one module ("Build in Module Builder") while modules of
+        ANOTHER project were still waiting in the handoff merged the
+        two programmes into one payload; those waiting modules are now
+        replaced instead.
+
 ── 3.48.0 — 2026-10-04 — Traceability Map ─────────────────────────
 MINOR. trace_map.js (new), modules.js, events.js, translations.js,
 index.html, DACUM_Live_Pro_User_Guide.html, sw.js (v158).
