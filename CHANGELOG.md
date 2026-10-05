@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.58.0 — 2026-10-05 — Green buttons in slate ────────────────────
+MINOR. dacum-styles.css, dacum-components.css, index.html, sw.js (v168).
+Changed Every green button now uses the slate of the Additional Info
+        section buttons (#f1f5f9 / #475569, hairline #cbd5e1; hover
+        #e2e8f0 / #1e293b / #94a3b8): + Add Duty, + Add Task (list and
+        card views), Add Section, Save, Create Cluster, Create Learning
+        Outcome, Create Module, Export Dashboard, Add Category, Add
+        Competency, the QR dialog's green button, and the Live Workshop
+        Copy Link / Export CSV. Disabled Create buttons are lighter
+        still (#f8fafc / #94a3b8). Badges, status marks and success
+        flashes stay green. Behaviour unchanged.
+
 ── 3.57.0 — 2026-10-05 — Logo buttons like the section buttons ─────
 MINOR. dacum-styles.css, index.html, sw.js (v167).
 Changed Chart Info "Add Logo" and "Remove" now look like the Additional

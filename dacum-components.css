@@ -1237,22 +1237,23 @@
         align-items: center;
         justify-content: center;
         gap: 4px;
-        background: #10b981;
-        color: #ffffff;
-        border: none;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #cbd5e1;
         border-radius: 10px;
         padding: 8px 14px;
         font-size: 0.85em;
         font-weight: 600;
         white-space: nowrap;
         cursor: pointer;
-        box-shadow: 0 2px 6px rgba(16,185,129,0.22);
+        box-shadow: none;
         transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
       }
       .card-view-mode .dcv-add-task-btn:hover {
-        background: #059669;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(16,185,129,0.32);
+        background: #e2e8f0;
+        color: #1e293b;
+        border-color: #94a3b8;
+        box-shadow: none;
       }
 
       /* ── Mobile (≤768px) ──────────────────────────────────────

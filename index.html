@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v167';
+      var EXPECTED_SW='v168';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.57.0';
+      var APP_VERSION = '3.58.0';
       var APP_RELEASED = '2026-10-05';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1157,7 +1157,7 @@
             
             <!-- Add Section Button -->
             <div style="margin-top: 20px; text-align: center;">
-                <button class="btn-add" id="btnAddCustomSection" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 12px 24px; font-size: 1.05em;">
+                <button class="btn-add" id="btnAddCustomSection" style="padding: 12px 24px; font-size: 1.05em;">
                     ➕ <span data-i18n="btnAddSection">Add Section</span>
                 </button>
             </div>
@@ -1494,9 +1494,9 @@
                                         cursor: text;
                                         font-weight: 500;"></div>
                             <button id="btnLWCopyLink" 
-                                    style="background: #10b981; 
-                                           color: white; 
-                                           border: none; 
+                                    style="background: #f1f5f9; 
+                                           color: #475569; 
+                                           border: 1px solid #cbd5e1; 
                                            padding: 12px 24px; 
                                            font-weight: 600; 
                                            border-radius: 6px; 
@@ -1504,8 +1504,8 @@
                                            margin-left: 12px;
                                            font-size: 0.9em;
                                            transition: background 0.2s;"
-                                    onmouseover="this.style.background='#059669'"
-                                    onmouseout="this.style.background='#10b981'">
+                                    onmouseover="this.style.background='#e2e8f0'"
+                                    onmouseout="this.style.background='#f1f5f9'">
                                 📋 <span data-i18n="btnCopyLink">Copy Link</span>
                             </button>
                             <button id="btnLWShowQR" 
@@ -1560,7 +1560,7 @@
                             <button id="btnLWExportJSON" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">
                                 📄 <span data-i18n="btnExportJSONVoting">Export JSON</span><br><span style="font-size: 0.85em; opacity: 0.9;" data-i18n="subWithVotingData">(With Voting Data)</span>
                             </button>
-                            <button id="btnLWExportCSV" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">
+                            <button id="btnLWExportCSV" style="background: #f1f5f9; color: #475569; padding: 15px 20px; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">
                                 📊 <span data-i18n="btnExportCSVVoting">Export CSV</span><br><span style="font-size: 0.85em; opacity: 0.9;" data-i18n="subTasksScores">(Tasks & Scores)</span>
                             </button>
                             <button id="btnLWExportSnapshot" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">
