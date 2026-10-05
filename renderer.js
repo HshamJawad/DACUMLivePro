@@ -354,6 +354,9 @@ export function renderSkillsLevel() {
      storage.js load a saved project first without being overwritten.
      An empty array means a genuinely new matrix. */
   if (skillsLevelIsEmpty()) {
+    // 3.51.0: skillsLevelIsEmpty() is also true when the value is not an
+    // array at all (missing in the loaded data) — make it one first.
+    if (!Array.isArray(appState.skillsLevelData)) appState.skillsLevelData = [];
     defaultSkillsLevelData().forEach(cat => appState.skillsLevelData.push(cat));
   }
 

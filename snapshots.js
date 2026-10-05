@@ -507,7 +507,7 @@ export function loadFromJSONLegacy(event) {
         // Skills Level Matrix
         appState.skillsLevelColumns = Array.isArray(data.skillsLevelColumns) && data.skillsLevelColumns.length
           ? data.skillsLevelColumns : null;
-        if (data.skillsLevelMatrix) {
+        if (Array.isArray(data.skillsLevelMatrix)) {
           appState.skillsLevelData = data.skillsLevelMatrix;
           renderSkillsLevel();
         }

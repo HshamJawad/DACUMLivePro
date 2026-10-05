@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.51.0 — 2026-10-05 — Import without a Skills Level Matrix ──────
+MINOR. dacum_projects.js, renderer.js, snapshots.js,
+workshop_snapshots.js, sw.js (v161).
+Fixed   Importing a JSON file that has no skillsLevelMatrix (a hand-made
+        file, or one from another tool) failed with ERR-WORKSHOP-001
+        ("Cannot read properties of undefined (reading 'push')") in
+        renderSkillsLevel. The matrix is now always an array when a
+        project is imported, opened or restored from a snapshot; an
+        empty one is seeded with the default categories, as for a new
+        project. A project already stored without a matrix by the failed
+        import opens again. Files exported by the tool are unaffected.
+
 ── 3.50.0 — 2026-10-05 — Criterion-to-task links removed ───────────
 MINOR. modules.js, events.js, trace_map.js, translations.js,
 module_curriculum.js, index.html, DACUM_Live_Pro_User_Guide.html,

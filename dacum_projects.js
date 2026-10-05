@@ -127,7 +127,10 @@ export function importProjectFromData(data, fileName) {
     producedForImage:         s.chartInfo?.producedForImage || null,
     producedByImage:          s.chartInfo?.producedByImage  || null,
     customSectionCounter:     0,
-    skillsLevelData:          s.skillsLevelMatrix || s.skillsLevelData,
+    // 3.51.0: a file without the matrix (hand-made or from another tool)
+    // gets an empty one; renderSkillsLevel() then seeds the defaults.
+    skillsLevelData:          Array.isArray(s.skillsLevelMatrix) ? s.skillsLevelMatrix
+                              : Array.isArray(s.skillsLevelData) ? s.skillsLevelData : [],
     skillsLevelColumns:       s.skillsLevelColumns || null,
     verificationRatings:      s.verification?.ratings        || {},
     taskMetadata:             s.verification?.taskMetadata   || {},
@@ -969,7 +972,9 @@ function _applyState(s) {
   appState.producedForImage         = getImageSync(s.producedForImage) || null;
   appState.producedByImage          = getImageSync(s.producedByImage)  || null;
   appState.customSectionCounter     = s.customSectionCounter     || 0;
-  appState.skillsLevelData          = s.skillsLevelData;
+  // 3.51.0: never undefined — projects imported before this fix from a
+  // file without the matrix were stored with none.
+  appState.skillsLevelData          = Array.isArray(s.skillsLevelData) ? s.skillsLevelData : [];
   // Absent in projects saved before 3.40.0 → the four default levels.
   appState.skillsLevelColumns       = s.skillsLevelColumns       || null;
   appState.verificationRatings      = s.verificationRatings      || {};

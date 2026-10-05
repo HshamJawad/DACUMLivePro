@@ -231,7 +231,7 @@ function _applyFullState(s) {
   appState.producedForImage        = s.producedForImage        || null;
   appState.producedByImage         = s.producedByImage         || null;
   appState.customSectionCounter    = s.customSectionCounter    || 0;
-  appState.skillsLevelData         = s.skillsLevelData;
+  appState.skillsLevelData         = Array.isArray(s.skillsLevelData) ? s.skillsLevelData : [];
   appState.skillsLevelColumns      = s.skillsLevelColumns      || null;
   appState.verificationRatings     = s.verificationRatings     || {};
   appState.taskMetadata            = s.taskMetadata            || {};
