@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.54.0 — 2026-10-05 — Full Draft card in the same blue ──────────
+MINOR. dacum-draft.css, index.html, sw.js (v164).
+Changed The "✨ Generate Full Draft" card (Chart Info) uses the same
+        sky-blue gradient as the other AI cards (#0ea5e9 → #0284c7);
+        its button text is #0284c7. The generator dialog is unchanged.
+
 ── 3.53.0 — 2026-10-05 — AI cards in the Module Builder blue ───────
 MINOR. index.html, sw.js (v163).
 Changed The five AI generation cards (Duties & Tasks, Additional Info,

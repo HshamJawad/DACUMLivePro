@@ -14,9 +14,10 @@
   margin-top: 22px;
   padding: 20px 22px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  /* 3.54.0: Module Builder blue, like the other AI cards */
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
   color: #fff;
-  box-shadow: 0 4px 18px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 }
 
 .dg-card-head {
@@ -50,7 +51,7 @@
   border: none;
   border-radius: 10px;
   background: #fff;
-  color: #4f46e5;
+  color: #0284c7;
   font: 700 1em/1.2 inherit;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
