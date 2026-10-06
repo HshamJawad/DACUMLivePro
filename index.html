@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v173';
+      var EXPECTED_SW='v175';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.63.0';
+      var APP_VERSION = '3.65.0';
       var APP_RELEASED = '2026-10-06';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1007,13 +1007,12 @@
               <div class="view-segmented" role="tablist" aria-label="Switch duties view" data-i18n="ttViewSwitch" data-i18n-attr="aria-label">
                 <button data-view-switch="card"  class="view-seg-btn is-active" role="tab" aria-selected="true">🃏 <span data-i18n="viewCard">Card</span></button>
                 <button data-view-switch="table" class="view-seg-btn"           role="tab" aria-selected="false">📋 <span data-i18n="viewTable">Table</span></button>
-                <button data-view-switch="wall"  class="view-seg-btn"           role="tab" aria-selected="false" title="DACUM Workshop display — read-only wall view" data-i18n="ttViewWall" data-i18n-attr="title">🧱 <span data-i18n="viewWall">Wall</span></button>
               </div>
               <!-- Legacy hidden button kept for backward compat (still wired in events.js) -->
               <button id="btnToggleDutiesView" class="dcv-toggle-btn is-card" style="display:none;" aria-hidden="true">📋 Table View</button>
             </div>
 
-            <!-- Print-only header for Wall View printouts.  Populated by duties.js
+            <!-- Print-only header for Card View printouts.  Populated by duties.js
                  before window.print() is called.  Hidden on-screen, visible only in print. -->
             <div id="wallPrintHeader" class="wall-print-header" aria-hidden="true">
                 <h1 id="wallPrintTitle"></h1>

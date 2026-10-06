@@ -421,16 +421,6 @@ html[dir="rtl"] .dcv-task-add {
   left: 6px;
 }
 
-/* WALL VIEW — the one place where mirroring is a judgement call.
-   A DACUM wall is read as a matrix: duties down the inline-start
-   edge, tasks flowing away from them. Arabic facilitators read that
-   matrix right-to-left, so the columns must mirror or the chart
-   contradicts the reading order of its own text. */
-html[dir="rtl"] .wall-view-grid,
-html[dir="rtl"] .wv-duty-row {
-  direction: rtl;
-}
-
 /* The zoom percentage readout is a number with a % sign — leave it
    LTR so the sign stays on the correct side of the digits. */
 html[dir="rtl"] .wv-zoom-pct {
@@ -438,14 +428,7 @@ html[dir="rtl"] .wv-zoom-pct {
   unicode-bidi: isolate;
 }
 
-/* The wall toolbar is a fixed overlay; its zoom cluster reads
-   [− 100% +] in every language because the operators are spatial,
-   not linguistic. Locking it to LTR keeps − on the left of +. */
-html[dir="rtl"] .wv-zoom-group {
-  direction: ltr;
-}
-
-/* Print header for wall printouts follows the content language. */
+/* Print header for Card View printouts follows the content language. */
 html[dir="rtl"] .wall-print-header {
   direction: rtl;
   text-align: right;
@@ -1010,13 +993,3 @@ html[dir="rtl"] .card-view-mode .dcv-tasks-area {
   margin-right: 0;
 }
 
-/* Wall View shares the .dcv-duty-card class but is neither sticky nor
-   asymmetric — it sets its own uniform 10px radius. Restated here so
-   the mirrored corners above cannot leak into it through the shared
-   selector; `inherit` would have been wrong, since the parent radius
-   is not 10px. */
-html[dir="rtl"] .wall-view-mode .dcv-duty-card {
-  border-radius: 10px;
-  left: auto;
-  right: auto;
-}

@@ -7,6 +7,42 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.65.0 — 2026-10-06 — Wall View merged into Card View ───────────
+MINOR. duties.js, drag_drop.js, events.js, dacum-components.css,
+dacum-rtl.css, translations.js, index.html,
+DACUM_Live_Pro_User_Guide.html, sw.js (v175).
+Changed 🖥 Fullscreen in Card View is now the presentation view the Wall
+        used to be: app chrome hidden, and each duty's tasks WRAP onto
+        as many lines as needed, so the whole chart is on screen with
+        no sideways scrolling (zoom 25–150 % still works). Normal Card
+        View keeps its one-line scroll strips for editing; print wraps
+        as before. Where the page cannot go fullscreen (iPhone Safari,
+        or a refused request) the same view opens inside the window, so
+        the button works on every device. Leave with Esc, ✕ Exit, the
+        button again, or by switching tab.
+Removed Wall View: the 🧱 Wall switch, its renderer, toolbar, auto-zoom,
+        Ctrl +/− shortcuts and sticky-note skin (duties.js ~400 lines,
+        dacum-components.css ~25 KB), its RTL rules, and its unused
+        strings (viewWall, ttViewWall, headingWallView, emptyWall*,
+        ttWvExit, ttWvZoomReset, ttWvPrint, ttWvFullscreen). A stored
+        view mode of 'wall' opens Card View. drag_drop.js now wires
+        Card View only. The .wall-toolbar / #wallPrintHeader names stay
+        (used by Card View).
+Fixed   Phones (≤480 px): with ＋ and ✕ in the header (3.63.0) the
+        140 px task card clipped "المهمة ب10" / "Tâche B10". Task cards
+        are 150 px there, the header buttons 20 px and the label tighter
+        — no label clipped in EN / FR / AR at 360–480 px, and two cards
+        still fit per line in the presentation view.
+Docs    User Guide, Card view: paragraph on the bar and the ＋ / ✕ card
+        buttons (k639, EN / FR / AR).
+
+── 3.64.0 — 2026-10-06 — Card View zooms out to 25 % ───────────────
+MINOR. duties.js, index.html, sw.js (v174).
+Changed Card View zoom now goes down to 25 % (was 50 %), so a large
+        chart fits on one screen. Steps follow Wall View: 5 points
+        below 50 % (50 → 45 → … → 25), 10 points above. Upper limit
+        stays 150 %.
+
 ── 3.63.0 — 2026-10-06 — Card View: Exit, ＋ / ✕ on every card ─────
 MINOR. duties.js, dacum-components.css, translations.js, index.html,
 sw.js (v173).

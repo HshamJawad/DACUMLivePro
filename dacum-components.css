@@ -183,8 +183,8 @@
         #dacumVersionBadge:not(.dacum-version-update) { display: none; }
       }
 
-      /* The wall is a presentation surface — no build chrome on it. */
-      body.wall-view-active #dacumVersionBadge { display: none !important; }
+      /* The presentation view has no build chrome on it. */
+      body.card-view-fullscreen #dacumVersionBadge { display: none !important; }
 
       /* ── Tab header row ────────────────────────────────────────
          Title on one side, "Clear This Tab" on the other, aligned on
@@ -1030,7 +1030,7 @@
       }
 
       /* ══════════════════════════════════════════════════════════
-         SHARED CARD HEADER  (Card View + Wall View)
+         SHARED CARD HEADER  (Card View)
          Adapted from DACUM Lite's .cv-duty-card-top /
          .cv-task-card-top: drag handle + label on the left, action
          buttons on the right, all INSIDE the card. Replaces the old
@@ -1121,8 +1121,7 @@
          `.dcv-close-btn { position:absolute; top:-8px; right:-8px }`
          for both views. Stays a small red circle (Lite keeps the
          circular delete too) — it just lives in the header row. */
-      .card-view-mode .dcv-close-btn,
-      .wall-view-mode .dcv-close-btn {
+      .card-view-mode .dcv-close-btn {
         position: static !important;
         top: auto !important;
         right: auto !important;
@@ -1141,8 +1140,8 @@
         box-shadow: 0 1px 4px rgba(0,0,0,0.18);
       }
 
-      /* ── ＋ add button — Wall View only (Card View uses the
-         inline "＋ Task" pill at the end of the strip instead) ── */
+      /* ── ＋ add button — hidden unless a view shows it (Card View
+         does, in each card header; see the Card View toolbar block) ── */
       .dcv-add-btn { display: none; }
 
       /* ══════════════════════════════════════════════════════════
@@ -1295,7 +1294,7 @@
       }
 
       /* ══════════════════════════════════════════════════════════
-         Segmented view switch (Card / Table / Wall)
+         Segmented view switch (Card / Table)
          ══════════════════════════════════════════════════════════ */
       .view-segmented {
         display: inline-flex;
@@ -1325,70 +1324,9 @@
       }
 
       /* ══════════════════════════════════════════════════════════
-         WALL VIEW — read-only DACUM workshop display
-         ══════════════════════════════════════════════════════════
-         - Default (not fullscreen): sidebar + top toolbar STAY visible.
-           The wall content sits to the right of the sidebar and fills
-           the remaining viewport.  User can still switch projects.
-         - Fullscreen: sidebar + top toolbar + all tabs HIDE.  Only the
-           wall toolbar + rows remain.  Scrollbars appear on .wall-rows
-           when zoomed content overflows the viewport.
-         - Read-only: no editing inputs, no drag, no add/remove buttons.
+         TOOLBAR (.wall-toolbar — name kept from the former Wall View;
+         used by the Card View bar, #cardViewToolbar)
          ══════════════════════════════════════════════════════════ */
-
-      /* Break out of the container's max-width while Wall is active,
-         but DO NOT remove the sidebar margin — the sidebar stays. */
-      body.wall-view-active .container {
-        max-width: none !important;
-        width: auto !important;
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-        padding-top: 8px !important;
-      }
-
-      /* Collapse the residual whitespace above the toggle row.  In Wall
-         View the AI block, Clear-This-Tab, and Refine card are all
-         hidden, so we shrink the toggle row's own top margin too. */
-      body.wall-view-active #duties-tab {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-      }
-      body.wall-view-active #duties-tab > div:has(> .view-segmented) {
-        margin-top: 0 !important;
-        margin-bottom: 8px !important;
-      }
-
-      /* Hide non-Duties chrome inside the duties tab so the wall is clean,
-         but leave the sidebar + top toolbar alone for navigation.
-         NOTE: #btnAddDutyCard is intentionally NOT hidden here — Wall
-         View is interactive now (sticky-note redesign), so the floating
-         "＋ Add Duty" button stays visible, same as Card View. The
-         legacy table-view #btnAddDuty stays hidden either way. */
-      body.wall-view-active .tab-buttons,
-      body.wall-view-active .tab-content:not(#duties-tab),
-      body.wall-view-active #refineResultsSection,
-      body.wall-view-active #scopeMissingWarning,
-      body.wall-view-active #duties-tab > h2,
-      body.wall-view-active #duties-tab > [data-action="clear-tab"],
-      body.wall-view-active #duties-tab > div:has([data-action="clear-tab"]),
-      body.wall-view-active #duties-tab > div:has(> #aiGenerateBtn),
-      body.wall-view-active #btnAddDuty,
-      body.wall-view-active #duties-tab > div:last-child {
-        display: none !important;
-      }
-
-      /* Default custom-properties (overridden per render in JS) */
-      .wall-view-mode {
-        --wv-font:     13px;
-        --wv-card-w:   130px;
-        --wv-duty-w:   220px;
-        --wv-duty-h:   220px;   /* kept equal to --wv-duty-w by duties.js */
-        --wv-task-gap: 8px;
-
-        width: 100%;
-        box-sizing: border-box;
-      }
-
       /* Toolbar — sticks to the top of the duties tab viewport */
       .wall-toolbar {
         position: sticky;
@@ -1435,9 +1373,9 @@
       }
 
       /* ══════════════════════════════════════════════════════════
-         CARD VIEW TOOLBAR (3.62.0) — the Wall View tools for Card
-         View: zoom, reset, print, fullscreen. Same .wall-toolbar
-         skin; sits above #dutiesContainer (see duties.js).
+         CARD VIEW TOOLBAR (3.62.0) — exit, zoom, reset, print,
+         fullscreen. .wall-toolbar skin; sits above #dutiesContainer
+         (see duties.js).
          ══════════════════════════════════════════════════════════ */
       .wall-toolbar.cv-toolbar { justify-content: space-between; }
       .wall-toolbar .wv-btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -1448,8 +1386,7 @@
          duty card working; the number comes from --cv-zoom. */
       #dutiesContainer.card-view-mode > .duty-row { zoom: var(--cv-zoom, 1); }
 
-      /* ＋ / ✕ on every card (3.63.0) — the Wall View square icon
-         buttons: ＋ on a duty card adds a duty, on a task card adds a
+      /* ＋ / ✕ on every card (3.63.0) — small square icon buttons: ＋ on a duty card adds a duty, on a task card adds a
          task to that duty; ✕ removes. Light lavender / light rose. */
       .card-view-mode .dcv-card-top-right { gap: 5px; }
       .card-view-mode .dcv-add-btn,
@@ -1485,6 +1422,21 @@
       @media (max-width: 480px) {
         .wall-toolbar.cv-toolbar { justify-content: center; padding: 6px 8px; }
         .wall-toolbar.cv-toolbar .wv-btn { padding: 6px 9px; }
+        /* 3.65.0: room for "المهمة أ1" / "Tâche A1" beside ＋ and ✕ on a
+           phone (the 140px card clipped the label); two cards still
+           fit per line on a 360px screen in the presentation view. */
+        #dutiesContainer.card-view-mode .dcv-task-card { width: 150px !important; min-width: 150px !important; }
+        .card-view-mode .dcv-card-top,
+        .card-view-mode .dcv-card-top-left,
+        .card-view-mode .dcv-card-top-right { gap: 3px !important; }
+        .card-view-mode .dcv-add-btn,
+        .card-view-mode .dcv-close-btn {
+          width: 20px !important; height: 20px !important;
+          min-width: 20px !important; min-height: 20px !important; max-width: 20px !important;
+          font-size: 11px !important; border-radius: 6px !important;
+        }
+        .card-view-mode .dcv-card-top .dcv-task-label,
+        .card-view-mode .dcv-card-top .dcv-duty-label { letter-spacing: 0 !important; font-size: 10.5px !important; }
       }
 
       /* Fullscreen (Card View): only the toolbar and the cards. */
@@ -1507,6 +1459,17 @@
       }
       body.card-view-fullscreen #dacumAppWrapper > .container { padding: 0 12px 16px !important; min-height: 100vh; }
       body.card-view-fullscreen .wall-toolbar.cv-toolbar { top: 0; border-radius: 0 0 10px 10px; }
+      /* 3.65.0: presentation = the former Wall View layout. Each duty's
+         tasks wrap onto as many lines as needed — no sideways scroll —
+         so the whole chart is on screen. Normal Card View keeps its
+         one-line scroll strips for editing. */
+      body.card-view-fullscreen .card-view-mode .dcv-row { overflow-x: visible !important; }
+      body.card-view-fullscreen .card-view-mode .dcv-duty-card { position: static !important; }
+      body.card-view-fullscreen .card-view-mode .dcv-tasks-scroll {
+        flex-wrap: wrap !important;
+        overflow: visible !important;
+        align-content: flex-start;
+      }
       /* The cards scroll under the bar (an overflow-x:hidden ancestor
          stops position:sticky from working against the page). */
       body.card-view-fullscreen #dutiesContainer.card-view-mode {
@@ -1551,527 +1514,8 @@
         body.card-view-printing .dcv-task-input { resize: none; }
       }
 
-      /* Scrollable wrapper for rows — gives horizontal/vertical scrollbars
-         when zoomed content overflows.  Height is max so small content stays
-         top-aligned. */
-      .wall-rows-scroll {
-        width: 100%;
-        overflow: auto;
-        max-height: calc(100vh - 160px);   /* fits below toolbars */
-        border-radius: 8px;
-      }
-      .wall-rows {
-        display: flex;
-        flex-direction: column;
-        /* Was 10px on top of each .duty-row's own 20px card padding.
-           With the card removed the rows need to carry that separation
-           themselves, or duties run together on the wall. */
-        gap: 16px;
-        min-width: min-content;   /* ensures horizontal scroll when rows are wider than viewport */
-      }
-
-      /* ── Wall View sticky-note cards ───────────────────────────
-         Wall View renders the SAME .dcv-row / .dcv-duty-card /
-         .dcv-tasks-area / .dcv-tasks-scroll / .dcv-task-card /
-         .dcv-duty-drag-handle / .dcv-close-btn class names Card View
-         uses (see duties.js _makeWallDutyCard / _makeWallTaskCard),
-         so events.js delegation + drag_drop.js's SortableJS wiring
-         keep working unchanged. But the visual skin here is entirely
-         Wall-View-specific — indigo/cream sticky notes with an inline
-         header row (drag-dots + title on the left, small square ＋ / ✕
-         icon buttons on the right) — matching the reference "after"
-         screenshot, NOT Card View's own lighter gradient cards with
-         absolute floating circular buttons. Everything below is
-         scoped under .wall-view-mode, so Card View is never touched. */
-
-      /* ── Open layout: no box around the duty row ───────────────
-         dacum-styles.css wraps every .duty-row in a light-blue card
-         (background + 2px border + 20px padding). That reads fine in
-         the editing views, but on a projector or smartboard it wastes
-         a frame's worth of space per duty and boxes in what should
-         read as one continuous wall. Stripped here so the duty and its
-         notes sit directly on the surface. */
-      .wall-view-mode .duty-row {
-        background: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        border-radius: 0 !important;
-      }
-
-      .wall-view-mode .dcv-row {
-        padding: 0;
-        border-bottom: none;
-        gap: var(--wv-task-gap);
-        /* align-items:flex-start, not stretch: a stretched duty card
-           grows to the height of the tallest task row and leaves the
-           dead space visible in the screenshot. Sizing it to its own
-           content lets the row close up. */
-        align-items: flex-start;
-      }
-
-      /* ── Header row: drag handle + title (left) ── ＋ / ✕ (right) ──
-         Tighter gaps than Card View — wall cards are ~132px wide, so
-         every pixel of horizontal room matters. */
-      .wall-view-mode .dcv-card-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 4px;
-        margin-bottom: calc(var(--wv-font) * 0.4);
-      }
-      .wall-view-mode .dcv-card-top-left {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        min-width: 0;
-        flex: 1 1 auto;
-        overflow: hidden;
-      }
-      .wall-view-mode .dcv-card-top-right {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        flex: 0 0 auto;
-      }
-
-      /* Drag handles — dot-grid SVG, inline in the header (not
-         absolutely positioned like Card View's duty handle).
-         `position: static !important` is essential: dacum-styles.css /
-         the Card View block above position these absolutely at
-         top:6px;left:8px, which would stack the dots ON TOP of the
-         "Duty A" / "Task A1" label instead of beside it. */
-      .wall-view-mode .dcv-duty-drag-handle,
-      .wall-view-mode .dcv-task-drag-handle {
-        display: inline-flex !important;
-        position: static !important;
-        top: auto !important;
-        left: auto !important;
-        align-items: center;
-        justify-content: center;
-        width: calc(var(--wv-font) * 1.05);
-        min-width: 12px;
-        height: auto;
-        flex-shrink: 0;
-        padding: 0;
-        background: none !important;
-        border-radius: 0;
-        cursor: grab;
-        transition: color 0.15s, opacity 0.15s;
-      }
-      .wall-view-mode .dcv-duty-drag-handle:active,
-      .wall-view-mode .dcv-task-drag-handle:active { cursor: grabbing; }
-      .wall-view-mode .dcv-duty-drag-handle { color: rgba(255,255,255,0.55); }
-      .wall-view-mode .dcv-duty-drag-handle:hover { color: rgba(255,255,255,0.9); }
-      .wall-view-mode .dcv-task-drag-handle { color: rgba(79,70,229,0.32); }
-      .wall-view-mode .dcv-task-drag-handle:hover { color: rgba(79,70,229,0.62); }
-
-      .wall-view-mode .dcv-duty-label,
-      .wall-view-mode .dcv-task-label {
-        margin: 0;
-        /* dacum-styles.css reserves padding-right:20px on these labels
-           to clear the old floating ✕ — no longer needed now that the
-           buttons live in their own header column. */
-        padding-right: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        /* Was 0.82 — too small to read from the back of a room once
-           the auto-zoom shrinks --wv-font on a dense chart. */
-        font-size: calc(var(--wv-font) * 0.95);
-        font-weight: 800;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-      }
-
-      /* Small square icon buttons — these fully replace Card View's
-         absolutely-positioned floating circular ✕ inside Wall View.
-         The !important flags neutralise dacum-styles.css's
-         `.dcv-close-btn { position:absolute; top:-8px; right:-8px;
-         border-radius:50% }`, which otherwise keeps rendering the old
-         red circle hanging off the card corner. */
-      .wall-view-mode .dcv-add-btn,
-      .wall-view-mode .dcv-close-btn {
-        display: flex !important;
-        position: static !important;
-        top: auto !important;
-        right: auto !important;
-        align-items: center;
-        justify-content: center;
-        width: calc(var(--wv-font) * 1.55);
-        height: calc(var(--wv-font) * 1.55);
-        /* 18px floor (was 22px): two buttons + gaps must still leave
-           room for the "Task A1" label inside a 132px card. */
-        min-width: 18px;
-        min-height: 18px;
-        border: none !important;
-        border-radius: 6px !important;
-        font-size: calc(var(--wv-font) * 0.85);
-        font-weight: 800;
-        line-height: 1;
-        cursor: pointer;
-        box-shadow: none !important;
-        padding: 0;
-        transition: filter 0.15s, transform 0.1s;
-      }
-      .wall-view-mode .dcv-add-btn:hover,
-      .wall-view-mode .dcv-close-btn:hover  { filter: brightness(1.08); transform: translateY(-1px); }
-      .wall-view-mode .dcv-add-btn:active,
-      .wall-view-mode .dcv-close-btn:active { transform: scale(0.94); }
-
-      /* Duty card (indigo bg) — light/translucent button skin */
-      .wall-view-mode .dcv-duty-card .dcv-add-btn   { background: rgba(255,255,255,0.20); color: #ffffff; }
-      .wall-view-mode .dcv-duty-card .dcv-close-btn { background: rgba(248,113,113,0.32); color: #fecaca; }
-
-      /* Task card (cream bg) — light lavender / light rose button skin */
-      .wall-view-mode .dcv-task-card .dcv-add-btn   { background: #e7e5f7; color: #4338ca; }
-      .wall-view-mode .dcv-task-card .dcv-close-btn { background: #fee2e2; color: #dc2626; }
-
-      /* ── Duty card — solid indigo gradient (matches the reference) ── */
-      .wall-view-mode .dcv-duty-card {
-        /* !important on width: dacum-responsive.css forces fixed
-           widths on .dcv-duty-card / .dcv-task-card at tablet & phone
-           breakpoints, which would override the --wv-* auto-zoom
-           sizing and break the wall layout on those screens. */
-        width: var(--wv-duty-w) !important;
-        min-width: var(--wv-duty-w) !important;
-        /* Square by default: --wv-duty-h is set to the same pixel value
-           as --wv-duty-w in duties.js, as a MIN-height rather than a
-           fixed one. So a short duty title gives a clean square block,
-           and a long one grows downward — naturally lining the card up
-           with a second row of task notes instead of leaving the gap
-           that a fixed height would force. */
-        min-height: var(--wv-duty-h, var(--wv-duty-w));
-        align-self: flex-start;
-        display: flex;
-        flex-direction: column;
-        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-        border: none;
-        border-radius: 10px;
-        padding: 8px 10px 10px;
-        box-shadow: 0 2px 6px rgba(79,70,229,0.28);
-      }
-      .wall-view-mode .dcv-duty-label { color: #ffffff !important; }
-
-      /* Duty text on the indigo card.
-         dacum-typography.css sets `.dcv-duty-input { color:#1e3a8a
-         !important; font-weight:700 !important }` — dark navy on a dark
-         indigo card, which is what made the title hard to read. Both
-         have to be overridden with !important to win, and the size is
-         raised a little since the card is the anchor of the row. */
-      .wall-view-mode .dcv-duty-input {
-        font-size: calc(var(--wv-font) * 1.05) !important;
-        /* Fill whatever height the square leaves below the header, so
-           clicking anywhere in the card lands in the text field. */
-        flex: 1 1 auto;
-        min-height: calc(var(--wv-font) * 2.4);
-        resize: none;
-        padding: 4px 6px;
-        color: #ffffff !important;
-        font-weight: 600 !important;
-        font-style: normal;
-        text-shadow: 0 1px 2px rgba(30, 27, 75, 0.35);
-      }
-      .wall-view-mode .dcv-duty-input::placeholder {
-        color: rgba(255, 255, 255, 0.6) !important;
-        font-style: italic;
-      }
-      .wall-view-mode .dcv-duty-input::placeholder { color: rgba(255,255,255,0.55); }
-
-      /* Tasks wrap onto multiple lines within the row instead of
-         horizontally scrolling — keeps the "see the whole chart at
-         once" wall spirit while staying the same draggable strip
-         drag_drop.js already wires (Sortable works fine wrapped). */
-      .wall-view-mode .dcv-tasks-area  { overflow: visible; margin-left: var(--wv-task-gap); }
-      .wall-view-mode .dcv-tasks-scroll {
-        flex-wrap: wrap;
-        overflow: visible;
-        align-items: flex-start;
-        padding: 2px 2px 2px 0;
-        gap: var(--wv-task-gap);
-      }
-
-      /* ── Task card — pale cream sticky note (matches the reference) ── */
-      .wall-view-mode .dcv-task-card {
-        /* max() enforces a hard floor even when the user zooms out
-           manually with 🔍− (which multiplies --wv-card-w below the
-           auto-computed floor in _computeWallAutoZoom). Under ~130px
-           the header's handle + label + ＋/✕ chrome leaves no room
-           for the task text. */
-        width: max(var(--wv-card-w), 132px) !important;
-        min-width: max(var(--wv-card-w), 132px) !important;
-        min-height: 0;
-        align-self: flex-start;
-        background: #fffdf0;
-        border: 1px solid #fde68a;
-        border-radius: 8px;
-        padding: 6px 8px 7px;
-        box-shadow:
-          0 1px 2px rgba(161,98,7,0.10),
-          0 4px 8px rgba(161,98,7,0.06);
-        transition: transform 0.12s, box-shadow 0.12s;
-      }
-      .wall-view-mode .dcv-task-card:hover {
-        transform: translateY(-2px) rotate(-0.3deg);
-        box-shadow:
-          0 2px 4px rgba(161,98,7,0.18),
-          0 10px 18px rgba(161,98,7,0.14);
-        z-index: 1;
-      }
-      .wall-view-mode .dcv-task-label { color: #78350f; }
-      .wall-view-mode .dcv-task-input {
-        font-size: calc(var(--wv-font) * 1.05) !important;
-        min-height: calc(var(--wv-font) * 2.2);
-        padding: 3px 5px;
-        color: #422006 !important;
-        font-weight: 600 !important;
-        font-style: normal;
-      }
-      .wall-view-mode .dcv-task-input::placeholder { color: rgba(66,32,6,0.45); }
-
-      /* Cursor affordances, matching Card View's drag feel — drag
-         starts from the handle/card body, never from the ＋ / ✕
-         buttons or the textarea itself. */
-      .wall-view-mode .dcv-task-card                 { cursor: grab; }
-      .wall-view-mode .dcv-task-card:active           { cursor: grabbing; }
-      .wall-view-mode .dcv-task-card .dcv-task-input  { cursor: text; }
-
-      /* Empty-state */
-      .wall-empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #64748b;
-      }
-      .wall-empty-state .wall-empty-icon { font-size: 3.4em; opacity: 0.5; margin-bottom: 8px; }
-      .wall-empty-state h3 { margin: 8px 0; color: #334155; font-size: 1.25em; }
-      .wall-empty-state p  { margin: 0 0 18px; font-size: 0.95em; }
-      .wall-empty-state .wall-btn-primary {
-        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-        color: #ffffff;
-        border: none;
-        padding: 10px 22px;
-        font-size: 0.95em;
-        font-weight: 600;
-        border-radius: 8px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(79,70,229,0.25);
-      }
-      .wall-empty-state .wall-btn-primary:hover { opacity: 0.92; }
-
       /* Print-only header (hidden by default) */
       .wall-print-header { display: none; }
-
-      /* ─── Responsive: stack duty card above tasks on narrow viewports ─── */
-      @media (max-width: 720px) {
-        .wall-view-mode { --wv-duty-w: 100%; }
-        .wall-view-mode .dcv-row { flex-direction: column; }
-        .wall-view-mode .dcv-duty-card {
-          width: 100%;
-          min-width: 0;
-          /* A square is meaningless once the card spans the full width
-             of a phone — let it hug its text again. */
-          min-height: 0;
-        }
-      }
-
-      /* ══════════════════════════════════════════════════════════
-         FULLSCREEN mode — strip everything except wall + toolbar
-         Scrollbars appear on .wall-rows-scroll when zoomed content
-         exceeds viewport, so the user can pan horizontally/vertically.
-         ══════════════════════════════════════════════════════════ */
-      :fullscreen body.wall-view-active #dacumTopToolbar,
-      :fullscreen body.wall-view-active #dacumProjectsSidebar,
-      :fullscreen body.wall-view-active .tab-buttons,
-      :fullscreen body.wall-view-active #refineResultsSection,
-      :fullscreen body.wall-view-active #scopeMissingWarning,
-      :fullscreen body.wall-view-active #dutiesViewHeading,
-      :fullscreen body.wall-view-active .view-segmented,
-      :fullscreen body.wall-view-active #btnToggleDutiesView,
-      :fullscreen body.wall-view-active #duties-tab > div:has([data-action="clear-tab"]),
-      :fullscreen body.wall-view-active [data-action="clear-tab"],
-      body.wall-view-fullscreen #dacumTopToolbar,
-      body.wall-view-fullscreen #dacumProjectsSidebar,
-      body.wall-view-fullscreen .tab-buttons,
-      body.wall-view-fullscreen #refineResultsSection,
-      body.wall-view-fullscreen #scopeMissingWarning,
-      body.wall-view-fullscreen #dutiesViewHeading,
-      body.wall-view-fullscreen .view-segmented,
-      body.wall-view-fullscreen #btnToggleDutiesView,
-      body.wall-view-fullscreen #duties-tab > div:has([data-action="clear-tab"]),
-      body.wall-view-fullscreen [data-action="clear-tab"] {
-        display: none !important;
-      }
-      /* Fullscreen: collapse all vertical spacing above the toolbar
-         so the wall content starts right at the top edge of the screen. */
-      :fullscreen body.wall-view-active,
-      body.wall-view-fullscreen {
-        margin: 0 !important;
-      }
-      :fullscreen body.wall-view-active #dacumAppWrapper,
-      body.wall-view-fullscreen #dacumAppWrapper {
-        margin-left: 0 !important;
-        padding: 0 !important;
-      }
-      :fullscreen body.wall-view-active .container,
-      body.wall-view-fullscreen .container {
-        margin: 0 !important;
-        padding: 6px !important;
-        padding-top: 0 !important;
-      }
-      :fullscreen body.wall-view-active #duties-tab,
-      body.wall-view-fullscreen #duties-tab {
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-      }
-      :fullscreen body.wall-view-active .wall-view-mode,
-      body.wall-view-fullscreen .wall-view-mode {
-        margin-top: 0 !important;
-      }
-      :fullscreen body.wall-view-active .wall-toolbar,
-      body.wall-view-fullscreen .wall-toolbar {
-        top: 0;            /* no 60px top bar anymore */
-        margin-top: 0;     /* sits flush with the top edge */
-        border-radius: 0 0 10px 10px;   /* only bottom corners rounded */
-      }
-      :fullscreen body.wall-view-active .wall-rows-scroll,
-      body.wall-view-fullscreen .wall-rows-scroll {
-        max-height: calc(100vh - 60px);
-      }
-
-      /* Smooth scrollbars (optional cosmetic) */
-      .wall-rows-scroll::-webkit-scrollbar        { width: 10px; height: 10px; }
-      .wall-rows-scroll::-webkit-scrollbar-thumb  { background: #cbd5e1; border-radius: 6px; }
-      .wall-rows-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-      /* ══════════════════════════════════════════════════════════
-         PRINT — Wall View only
-         ══════════════════════════════════════════════════════════ */
-      @media print {
-        /* ── Page margins ──────────────────────────────────────────
-           Declared ONCE, here. There used to be a second @page rule at
-           the end of this block that only set the footer counter;
-           re-declaring @page like that drops the margin in some
-           engines, which is why pages after the first printed with
-           cards flush against the paper edge. Margin and footer now
-           live in the same rule so they cannot come apart. */
-        @page {
-          margin: 12mm 10mm 14mm 10mm;
-          /* Browser date/title headers are user-controlled — user can
-             disable them in print dialog under "Headers and footers". */
-          @bottom-center {
-            content: "Page " counter(page) " of " counter(pages);
-            font-size: 9pt;
-            color: #64748b;
-          }
-        }
-
-        body.wall-view-active {
-          background: #ffffff !important;
-        }
-        /* Hide everything except the wall print header and rows */
-        body.wall-view-active #dacumTopToolbar,
-        body.wall-view-active #dacumProjectsSidebar,
-        body.wall-view-active .wall-toolbar,
-        body.wall-view-active .tab-buttons,
-        body.wall-view-active #dutiesViewHeading,
-        body.wall-view-active .view-segmented,
-        body.wall-view-active #btnToggleDutiesView,
-        body.wall-view-active [data-action="clear-tab"],
-        body.wall-view-active #btnAddDuty,
-        body.wall-view-active #btnAddDutyCard,
-        body.wall-view-active #refineResultsSection,
-        body.wall-view-active #scopeMissingWarning,
-        body.wall-view-active #aiGenerateBtn,
-        body.wall-view-active #duties-tab > div:has(> #aiGenerateBtn),
-        body.wall-view-active #duties-tab > div:first-of-type,
-        body.wall-view-active #duties-tab > div:last-child {
-          display: none !important;
-        }
-        body.wall-view-active .container,
-        body.wall-view-active #dacumAppWrapper,
-        body.wall-view-active #duties-tab {
-          margin: 0 !important; padding: 0 !important; box-shadow: none !important;
-        }
-
-        /* Belt and braces: an explicit inner margin on the rows
-           themselves. @page margins are honoured inconsistently across
-           browsers and print-to-PDF backends, so this guarantees white
-           space around the cards on EVERY page even where the page
-           margin is ignored — the symptom being cards printed hard
-           against the paper edge from page 2 onward. */
-        body.wall-view-active .wall-rows-scroll {
-          padding: 5mm !important;
-          box-sizing: border-box !important;
-        }
-        /* Never let a card sit across the fold. */
-        body.wall-view-active .duty-row {
-          page-break-inside: avoid;
-          break-inside: avoid;
-        }
-        /* Print header (block-level, on first page only via CSS) */
-        body.wall-view-active .wall-print-header {
-          display: block !important;
-          text-align: center;
-          margin: 0 0 10mm 0;
-          padding-bottom: 4mm;
-          border-bottom: 1px solid #94a3b8;
-          page-break-after: avoid;
-          break-after: avoid;
-        }
-        body.wall-view-active .wall-print-header h1 {
-          font-size: 18pt;
-          font-weight: 700;
-          color: #1e293b;
-          margin: 0 0 3mm 0;
-        }
-        body.wall-view-active .wall-print-header p {
-          font-size: 11pt;
-          color: #475569;
-          margin: 0;
-        }
-        /* Rows: shrink and layout for print */
-        .wall-view-mode {
-          --wv-font:     10px;
-          --wv-card-w:   100px;
-          --wv-duty-w:   150px;
-          --wv-task-gap: 4px;
-        }
-        .wall-rows-scroll {
-          overflow: visible !important;
-          max-height: none !important;
-        }
-        body.wall-view-active .duty-row { page-break-inside: avoid; break-inside: avoid; }
-        body.wall-view-active .dcv-task-card {
-          box-shadow: none !important;
-          border: 1px solid #d6d3d1;
-          background: #fef9c3 !important;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        body.wall-view-active .dcv-duty-card {
-          box-shadow: none !important;
-          background: linear-gradient(145deg, #bfdbfe, #93c5fd) !important;
-          border-color: #60a5fa !important;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-        /* Interactive controls have no place on a printed chart —
-           the wall's editing affordances (✕ remove, ＋ add, drag
-           handles) are screen-only. */
-        body.wall-view-active .dcv-close-btn,
-        body.wall-view-active .dcv-add-btn,
-        body.wall-view-active .dcv-duty-drag-handle,
-        body.wall-view-active .dcv-task-drag-handle,
-        body.wall-view-active #btnAddDutyCard {
-          display: none !important;
-        }
-        /* Textareas should read as plain printed text, not form fields */
-        body.wall-view-active .dcv-duty-input,
-        body.wall-view-active .dcv-task-input {
-          pointer-events: none;
-        }
-      }
 
 
 /* ============================================================

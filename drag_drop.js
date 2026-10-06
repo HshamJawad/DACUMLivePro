@@ -1,9 +1,7 @@
 // ============================================================
 // /drag_drop.js
-// Drag & Drop for TASK CARDS + DUTY CARDS — Card View AND Wall View.
-// (Wall View reuses the identical .dcv-duty-card / .dcv-task-card
-// markup at a scaled-down size — see duties.js _makeWallDutyCard /
-// _makeWallTaskCard — so the exact same Sortable wiring applies.)
+// Drag & Drop for TASK CARDS + DUTY CARDS — Card View.
+// (3.65.0: Wall View, which shared this wiring, was removed.)
 //
 // Uses SortableJS (loaded globally via CDN in index.html).
 //
@@ -39,19 +37,9 @@ const DUTY_INIT_FLAG  = '_dacumDutyDragInit';
 const GROUP_NAME      = 'dacum-tasks';
 
 // ── Which modes get drag & drop? ────────────────────────────────
-//
-// Wall View is its own overlay (toggled via the `wall-view-active`
-// body class) rather than a persisted `getViewMode()` value — when
-// it's active, the persisted mode underneath is still whatever the
-// user had before ('card' or 'table'), by design (see duties.js).
-// Since the sticky-note redesign, Wall View reuses the exact same
-// .duty-row / .dcv-tasks-scroll / .dcv-task-card markup as Card View
-// (see duties.js _makeWallDutyCard / _makeWallTaskCard), so the same
-// Sortable wiring below applies to it unchanged — it just needs its
-// own explicit allow here instead of the earlier hard "always skip
-// Wall View" guard.
+// Card View only — Table View keeps its original non-draggable rows.
 function _dragEnabled() {
-  return document.body.classList.contains('wall-view-active') || getViewMode() === 'card';
+  return getViewMode() === 'card';
 }
 
 let _observer  = null;
@@ -96,21 +84,13 @@ function _scheduleInit() {
 // ── Duty-level sortable ──────────────────────────────────────
 
 function _initDutiesContainer() {
-  // Card View and Wall View get drag & drop — Table View keeps its
-  // original (non-draggable) behaviour.
+  // Card View only — Table View keeps its original (non-draggable)
+  // behaviour.
   if (!_dragEnabled()) return;
 
-  // Pick the element that DIRECTLY parents the `.duty-row` nodes —
-  // Sortable only sorts a container's immediate children.
-  //   • Card View:  #dutiesContainer > .duty-row
-  //   • Wall View:  #dutiesContainer > .wall-rows-scroll > .wall-rows > .duty-row
-  // Attaching to #dutiesContainer in Wall View silently did nothing
-  // (no direct `.duty-row` children), which is why duty cards were
-  // undraggable there. `.wall-rows` is rebuilt on every wall render,
-  // so it's a fresh node each time and the init flag below naturally
-  // re-wires it without needing an explicit destroy.
-  const container = document.querySelector('#dutiesContainer .wall-rows')
-                 || document.getElementById('dutiesContainer');
+  // Sortable only sorts a container's immediate children:
+  //   #dutiesContainer > .duty-row
+  const container = document.getElementById('dutiesContainer');
   if (!container) return;
 
   // MutationObserver fires for every innerHTML re-render, which
@@ -155,12 +135,8 @@ function _onDutyDragEnd(evt) {
   pushHistoryState();
 
   // 3 · Re-order appState.dutiesData from new DOM order.
-  //     Read from evt.to — the container the row was actually dropped
-  //     into — since that's `.wall-rows` in Wall View and
-  //     `#dutiesContainer` in Card View (see _initDutiesContainer).
-  const container = evt.to
-                 || document.querySelector('#dutiesContainer .wall-rows')
-                 || document.getElementById('dutiesContainer');
+  //     Read from evt.to — the container the row was dropped into.
+  const container = evt.to || document.getElementById('dutiesContainer');
   if (!container) return;
 
   const byId = {};
@@ -202,8 +178,8 @@ function _onDutyDragEnd(evt) {
 // ── Task-level sortable (existing, unchanged) ────────────────
 
 function _initAllScrolls() {
-  // Card View and Wall View get drag & drop — Table View keeps its
-  // original (non-draggable) behaviour.
+  // Card View only — Table View keeps its original (non-draggable)
+  // behaviour.
   if (!_dragEnabled()) return;
 
   document.querySelectorAll('.dcv-tasks-scroll').forEach(scrollEl => {

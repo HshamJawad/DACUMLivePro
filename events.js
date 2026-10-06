@@ -426,8 +426,8 @@ export function setupEvents() {
         syncAllFromDOM(); pushHistoryState();
         addTask(target.getAttribute('data-duty-id'));
       } else if (target.matches('[data-action="add-duty"]')) {
-        // Wall View duty cards carry their own ＋ button that adds a
-        // whole new duty row (task cards' ＋ adds a task instead).
+        // Duty cards carry their own ＋ button that adds a whole new
+        // duty row (task cards' ＋ adds a task instead).
         syncAllFromDOM(); pushHistoryState();
         addDuty();
       } else if (target.matches('[data-action="remove-duty"]')) {
@@ -445,14 +445,14 @@ export function setupEvents() {
     // View toggle button (legacy 2-state Card ↔ Table)
     _on('btnToggleDutiesView', 'click', toggleViewMode);
 
-    // Segmented view switch (3-state: Card / Table / Wall) — delegated
-    // so it works even if the buttons are re-rendered.  Any element
-    // with data-view-switch="card|table|wall" triggers switchToViewMode.
+    // Segmented view switch (Card / Table) — delegated so it works
+    // even if the buttons are re-rendered.  Any element with
+    // data-view-switch="card|table" triggers switchToViewMode.
     document.addEventListener('click', function (e) {
       const btn = e.target.closest('[data-view-switch]');
       if (!btn) return;
       const mode = btn.getAttribute('data-view-switch');
-      if (mode === 'card' || mode === 'table' || mode === 'wall') {
+      if (mode === 'card' || mode === 'table') {
         switchToViewMode(mode);
       }
     });
