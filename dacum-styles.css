@@ -1622,7 +1622,9 @@ textarea {
 
 /* Task Verification Tab Styles */
 .verification-mode-selector {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* 3.60.0: the sky-blue of the AI cards (was purple) */
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 30px;
@@ -1997,7 +1999,9 @@ textarea {
 
 /* Workshop Participant Count Field */
 .workshop-participants {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    /* 3.60.0: slate like the Additional Info buttons (was green) */
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
     padding: 20px;
     border-radius: 12px;
     margin: 20px 0;
@@ -2005,7 +2009,7 @@ textarea {
 }
 
 .workshop-participants h3 {
-    color: white;
+    color: #475569;
     margin: 0 0 15px 0;
 }
 
@@ -2014,9 +2018,10 @@ textarea {
     padding: 10px;
     font-size: 1.2em;
     text-align: center;
-    border: 2px solid white;
+    border: 2px solid #cbd5e1;
     border-radius: 8px;
     font-weight: bold;
+    background: #fff;
 }
 
 /* Count Input Grid */

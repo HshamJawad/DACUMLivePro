@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v169';
+      var EXPECTED_SW='v170';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.59.0';
+      var APP_VERSION = '3.60.0';
       var APP_RELEASED = '2026-10-06';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1262,7 +1262,7 @@
             <div class="workshop-participants" id="workshopParticipantsSection" style="display: none;">
                 <h3 style="display: inline-block; margin: 0 15px 0 0;">👥 <span data-i18n="lblParticipantCount">Number of Workshop Participants:</span></h3>
                 <input type="number" id="workshopParticipants" min="1" max="50" value="10" style="display: inline-block; width: 80px;">
-                <p style="color: white; margin: 10px 0 0 0; font-size: 0.9em;" data-i18n="hintParticipants">
+                <p style="color: #64748b; margin: 10px 0 0 0; font-size: 0.9em;" data-i18n="hintParticipants">
                     Enter the total number of workshop participants (recommended: 8–20). This is the maximum number of responses per task.
                 </p>
             </div>

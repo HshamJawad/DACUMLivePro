@@ -7,6 +7,14 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.60.0 — 2026-10-06 — Task Verification cards recoloured ────────
+MINOR. dacum-styles.css, index.html, sw.js (v170).
+Changed Task Verification: the "Data Collection Mode" and "Workflow
+        Mode" cards use the sky-blue of the AI cards (#0ea5e9 →
+        #0284c7) instead of purple; the "👥 Number of Workshop
+        Participants" card is slate (#f1f5f9, hairline #cbd5e1, heading
+        #475569, hint #64748b) instead of green.
+
 ── 3.59.0 — 2026-10-06 — Skills Level Matrix bar in slate ──────────
 MINOR. dacum-styles.css, index.html, sw.js (v169).
 Changed The "📊 Skills Level Matrix" collapsible bar (Additional Info)
