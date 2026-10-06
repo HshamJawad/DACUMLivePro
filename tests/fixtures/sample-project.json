@@ -1,0 +1,974 @@
+{
+  "version": "1.0",
+  "savedDate": "2026-10-06T18:54:52.627Z",
+  "chartInfo": {
+    "dacumDate": "2026-10-06",
+    "dacumDateEnd": "",
+    "venue": "",
+    "workshopFormat": "inperson",
+    "producedFor": "",
+    "producedBy": "",
+    "occupationTitle": "Maintenance Technician",
+    "scopeOfWork": "Repairs and maintains desktop and laptop computers in a service workshop.",
+    "jobTitle": "Computer Maintenance Technician",
+    "sector": "",
+    "context": "",
+    "producedForImage": null,
+    "producedByImage": null,
+    "facilitators": [],
+    "observers": [],
+    "panelMembers": []
+  },
+  "duties": [
+    {
+      "duty": "Duty A",
+      "tasks": [
+        "Perform task A1",
+        "Perform task A2",
+        "Perform task A3",
+        "Perform task A4"
+      ]
+    },
+    {
+      "duty": "Duty B",
+      "tasks": [
+        "Perform task B1",
+        "Perform task B2",
+        "Perform task B3",
+        "Perform task B4"
+      ]
+    },
+    {
+      "duty": "Duty C",
+      "tasks": [
+        "Perform task C1",
+        "Perform task C2",
+        "Perform task C3",
+        "Perform task C4"
+      ]
+    }
+  ],
+  "additionalInfo": {
+    "headings": {
+      "knowledge": "Knowledge Requirements",
+      "skills": "Skills Requirements",
+      "behaviors": "Worker Behaviors/Traits",
+      "tools": "Tools, Equipment, Supplies and Materials",
+      "trends": "Future Trends and Concerns",
+      "acronyms": "Acronyms",
+      "careerPath": "Career Path"
+    },
+    "content": {
+      "knowledge": "• knowledge item 1\n• knowledge item 2",
+      "skills": "• skills item 1\n• skills item 2",
+      "behaviors": "• behaviors item 1\n• behaviors item 2",
+      "tools": "• tools item 1\n• tools item 2",
+      "trends": "• trends item 1\n• trends item 2",
+      "acronyms": "• PC - Personal Computer",
+      "careerPath": "• Entry Level: Assistant"
+    },
+    "customSections": []
+  },
+  "dutiesData": [
+    {
+      "id": "duty_1",
+      "num": 1,
+      "title": "Duty A",
+      "tasks": [
+        {
+          "divId": "task_duty_1_1",
+          "inputId": "duty_1_1",
+          "num": 1,
+          "text": "Perform task A1"
+        },
+        {
+          "divId": "task_duty_1_2",
+          "inputId": "duty_1_2",
+          "num": 2,
+          "text": "Perform task A2"
+        },
+        {
+          "divId": "task_duty_1_3",
+          "inputId": "duty_1_3",
+          "num": 3,
+          "text": "Perform task A3"
+        },
+        {
+          "divId": "task_duty_1_4",
+          "inputId": "duty_1_4",
+          "num": 4,
+          "text": "Perform task A4"
+        }
+      ]
+    },
+    {
+      "id": "duty_2",
+      "num": 2,
+      "title": "Duty B",
+      "tasks": [
+        {
+          "divId": "task_duty_2_1",
+          "inputId": "duty_2_1",
+          "num": 1,
+          "text": "Perform task B1"
+        },
+        {
+          "divId": "task_duty_2_2",
+          "inputId": "duty_2_2",
+          "num": 2,
+          "text": "Perform task B2"
+        },
+        {
+          "divId": "task_duty_2_3",
+          "inputId": "duty_2_3",
+          "num": 3,
+          "text": "Perform task B3"
+        },
+        {
+          "divId": "task_duty_2_4",
+          "inputId": "duty_2_4",
+          "num": 4,
+          "text": "Perform task B4"
+        }
+      ]
+    },
+    {
+      "id": "duty_3",
+      "num": 3,
+      "title": "Duty C",
+      "tasks": [
+        {
+          "divId": "task_duty_3_1",
+          "inputId": "duty_3_1",
+          "num": 1,
+          "text": "Perform task C1"
+        },
+        {
+          "divId": "task_duty_3_2",
+          "inputId": "duty_3_2",
+          "num": 2,
+          "text": "Perform task C2"
+        },
+        {
+          "divId": "task_duty_3_3",
+          "inputId": "duty_3_3",
+          "num": 3,
+          "text": "Perform task C3"
+        },
+        {
+          "divId": "task_duty_3_4",
+          "inputId": "duty_3_4",
+          "num": 4,
+          "text": "Perform task C4"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "collectionMode": "survey",
+    "workflowMode": "standard",
+    "ratings": {
+      "duty_1_task_0": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_1_task_1": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_1_task_2": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_1_task_3": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_2_task_0": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_2_task_1": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_2_task_2": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_2_task_3": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_3_task_0": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_3_task_1": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_3_task_2": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      },
+      "duty_3_task_3": {
+        "importance": 2,
+        "frequency": 2,
+        "difficulty": 1,
+        "criticality": null
+      }
+    },
+    "taskMetadata": {},
+    "workshopParticipants": 10,
+    "priorityFormula": "if",
+    "trainingLoadMethod": "advanced",
+    "workshopCounts": {},
+    "workshopResults": {}
+  },
+  "competencyClusters": {
+    "clusters": [
+      {
+        "id": "cluster_1",
+        "name": "Maintain hardware components",
+        "tasks": [
+          {
+            "id": "duty_1_1",
+            "text": "Perform task A1",
+            "dutyTitle": "Duty A",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_1_2",
+            "text": "Perform task A2",
+            "dutyTitle": "Duty A",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_1_3",
+            "text": "Perform task A3",
+            "dutyTitle": "Duty A",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_1_4",
+            "text": "Perform task A4",
+            "dutyTitle": "Duty A",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_2_1",
+            "text": "Perform task B1",
+            "dutyTitle": "Duty B",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_2_2",
+            "text": "Perform task B2",
+            "dutyTitle": "Duty B",
+            "priorityIndex": null
+          }
+        ],
+        "range": "Applies across workshop and on-site settings.",
+        "performanceCriteria": [
+          "Work is checked against specifications 1",
+          "Work is checked against specifications 2",
+          "Work is checked against specifications 3",
+          "Work is checked against specifications 4"
+        ],
+        "taCriteriaCount": 0,
+        "_aiDraft": {
+          "range": true,
+          "criteria": true
+        }
+      },
+      {
+        "id": "cluster_2",
+        "name": "Configure software systems",
+        "tasks": [
+          {
+            "id": "duty_2_3",
+            "text": "Perform task B3",
+            "dutyTitle": "Duty B",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_2_4",
+            "text": "Perform task B4",
+            "dutyTitle": "Duty B",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_3_1",
+            "text": "Perform task C1",
+            "dutyTitle": "Duty C",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_3_2",
+            "text": "Perform task C2",
+            "dutyTitle": "Duty C",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_3_3",
+            "text": "Perform task C3",
+            "dutyTitle": "Duty C",
+            "priorityIndex": null
+          },
+          {
+            "id": "duty_3_4",
+            "text": "Perform task C4",
+            "dutyTitle": "Duty C",
+            "priorityIndex": null
+          }
+        ],
+        "range": "Applies across workshop and on-site settings.",
+        "performanceCriteria": [
+          "Work is checked against specifications 1",
+          "Work is checked against specifications 2",
+          "Work is checked against specifications 3",
+          "Work is checked against specifications 4"
+        ],
+        "taCriteriaCount": 0,
+        "_aiDraft": {
+          "range": true,
+          "criteria": true
+        }
+      }
+    ],
+    "availableTasks": [],
+    "clusterCounter": 2
+  },
+  "learningOutcomes": {
+    "outcomes": [
+      {
+        "id": "lo_1",
+        "number": "LO1",
+        "statement": "Perform outcome 0",
+        "linkedCriteria": [
+          {
+            "id": "1-1",
+            "text": "Work is checked against specifications 1",
+            "clusterNumber": 1,
+            "taskId": null,
+            "clusterId": "cluster_1",
+            "key": "pc|cluster_1|Work is checked against specifications 1"
+          },
+          {
+            "id": "1-4",
+            "text": "Work is checked against specifications 4",
+            "clusterNumber": 1,
+            "taskId": null,
+            "clusterId": "cluster_1",
+            "key": "pc|cluster_1|Work is checked against specifications 4"
+          },
+          {
+            "id": "2-3",
+            "text": "Work is checked against specifications 3",
+            "clusterNumber": 2,
+            "taskId": null,
+            "clusterId": "cluster_2",
+            "key": "pc|cluster_2|Work is checked against specifications 3"
+          }
+        ]
+      },
+      {
+        "id": "lo_2",
+        "number": "LO2",
+        "statement": "Perform outcome 1",
+        "linkedCriteria": [
+          {
+            "id": "1-2",
+            "text": "Work is checked against specifications 2",
+            "clusterNumber": 1,
+            "taskId": null,
+            "clusterId": "cluster_1",
+            "key": "pc|cluster_1|Work is checked against specifications 2"
+          },
+          {
+            "id": "2-1",
+            "text": "Work is checked against specifications 1",
+            "clusterNumber": 2,
+            "taskId": null,
+            "clusterId": "cluster_2",
+            "key": "pc|cluster_2|Work is checked against specifications 1"
+          },
+          {
+            "id": "2-4",
+            "text": "Work is checked against specifications 4",
+            "clusterNumber": 2,
+            "taskId": null,
+            "clusterId": "cluster_2",
+            "key": "pc|cluster_2|Work is checked against specifications 4"
+          }
+        ]
+      },
+      {
+        "id": "lo_3",
+        "number": "LO3",
+        "statement": "Perform outcome 2",
+        "linkedCriteria": [
+          {
+            "id": "1-3",
+            "text": "Work is checked against specifications 3",
+            "clusterNumber": 1,
+            "taskId": null,
+            "clusterId": "cluster_1",
+            "key": "pc|cluster_1|Work is checked against specifications 3"
+          },
+          {
+            "id": "2-2",
+            "text": "Work is checked against specifications 2",
+            "clusterNumber": 2,
+            "taskId": null,
+            "clusterId": "cluster_2",
+            "key": "pc|cluster_2|Work is checked against specifications 2"
+          }
+        ]
+      }
+    ],
+    "outcomeCounter": 3
+  },
+  "moduleMapping": {
+    "modules": [
+      {
+        "title": "Implementing Core Work",
+        "rationale": "Groups the core outcomes.",
+        "learningOutcomes": [
+          {
+            "id": "lo_1",
+            "number": "LO1",
+            "statement": "Perform outcome 0",
+            "linkedCriteria": [
+              {
+                "id": "1-1",
+                "text": "Work is checked against specifications 1",
+                "clusterNumber": 1,
+                "taskId": null,
+                "clusterId": "cluster_1",
+                "key": "pc|cluster_1|Work is checked against specifications 1"
+              },
+              {
+                "id": "1-4",
+                "text": "Work is checked against specifications 4",
+                "clusterNumber": 1,
+                "taskId": null,
+                "clusterId": "cluster_1",
+                "key": "pc|cluster_1|Work is checked against specifications 4"
+              },
+              {
+                "id": "2-3",
+                "text": "Work is checked against specifications 3",
+                "clusterNumber": 2,
+                "taskId": null,
+                "clusterId": "cluster_2",
+                "key": "pc|cluster_2|Work is checked against specifications 3"
+              }
+            ]
+          },
+          {
+            "id": "lo_2",
+            "number": "LO2",
+            "statement": "Perform outcome 1",
+            "linkedCriteria": [
+              {
+                "id": "1-2",
+                "text": "Work is checked against specifications 2",
+                "clusterNumber": 1,
+                "taskId": null,
+                "clusterId": "cluster_1",
+                "key": "pc|cluster_1|Work is checked against specifications 2"
+              },
+              {
+                "id": "2-1",
+                "text": "Work is checked against specifications 1",
+                "clusterNumber": 2,
+                "taskId": null,
+                "clusterId": "cluster_2",
+                "key": "pc|cluster_2|Work is checked against specifications 1"
+              },
+              {
+                "id": "2-4",
+                "text": "Work is checked against specifications 4",
+                "clusterNumber": 2,
+                "taskId": null,
+                "clusterId": "cluster_2",
+                "key": "pc|cluster_2|Work is checked against specifications 4"
+              }
+            ]
+          },
+          {
+            "id": "lo_3",
+            "number": "LO3",
+            "statement": "Perform outcome 2",
+            "linkedCriteria": [
+              {
+                "id": "1-3",
+                "text": "Work is checked against specifications 3",
+                "clusterNumber": 1,
+                "taskId": null,
+                "clusterId": "cluster_1",
+                "key": "pc|cluster_1|Work is checked against specifications 3"
+              },
+              {
+                "id": "2-2",
+                "text": "Work is checked against specifications 2",
+                "clusterNumber": 2,
+                "taskId": null,
+                "clusterId": "cluster_2",
+                "key": "pc|cluster_2|Work is checked against specifications 2"
+              }
+            ]
+          }
+        ],
+        "id": "module_1"
+      }
+    ],
+    "moduleCounter": 1
+  },
+  "moduleCurriculum": {
+    "settings": {
+      "programmeName": "",
+      "filePrefix": "",
+      "levelStyle": "short",
+      "hoursPerCredit": 25,
+      "groupSize": 15,
+      "split": {
+        "theory": 10,
+        "practical": 45,
+        "formative": 5,
+        "practice": 35,
+        "summative": 5
+      }
+    },
+    "byModule": {}
+  },
+  "skillsLevelMatrix": [
+    {
+      "id": 1,
+      "category": "Communication",
+      "competencies": [
+        {
+          "id": "1.1",
+          "text": "Verbally communicate with others",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "1.2",
+          "text": "Communicate with others in writing",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "category": "Teamwork",
+      "competencies": [
+        {
+          "id": "2.1",
+          "text": "Work within a team",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "2.2",
+          "text": "Solve disputes and negotiate with others",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "2.3",
+          "text": "Defend rights at work",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "2.4",
+          "text": "Time and resource management",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "2.5",
+          "text": "Make decisions",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "category": "Self-marketing",
+      "competencies": [
+        {
+          "id": "3.1",
+          "text": "CV writing",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "3.2",
+          "text": "Job interviews",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "3.3",
+          "text": "Presentation skills",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "category": "Problem Solving",
+      "competencies": [
+        {
+          "id": "4.1",
+          "text": "Identify and analyse work problems",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "4.2",
+          "text": "Solve problems at a work site",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "4.3",
+          "text": "Evaluate results and make decisions",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "category": "Entrepreneurship",
+      "competencies": [
+        {
+          "id": "5.1",
+          "text": "Critical thinking",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "5.2",
+          "text": "Find/create small business idea project",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "5.3",
+          "text": "Prepare simple feasibility studies for their projects",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "5.4",
+          "text": "Prepare business plan of project to present to loans institutions",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "5.5",
+          "text": "Managing, improving and developing their project",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "category": "Computer/ICT skills",
+      "competencies": [
+        {
+          "id": "6.1",
+          "text": "Use a computer",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "6.2",
+          "text": "Use internet",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "category": "Foreign Languages",
+      "competencies": [
+        {
+          "id": "7.1",
+          "text": "Basic communication skills",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "7.2",
+          "text": "Use English technical terms related to construction",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "category": "Mathematical Skills",
+      "competencies": [
+        {
+          "id": "8.1",
+          "text": "Perform basic measurement operations",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "8.2",
+          "text": "Perform mathematical operations",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "category": "",
+      "competencies": [
+        {
+          "id": "9.1",
+          "text": "",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        },
+        {
+          "id": "9.2",
+          "text": "",
+          "levels": {
+            "craftsman": false,
+            "skilled": false,
+            "semiSkilled": false,
+            "foundation": false
+          }
+        }
+      ]
+    }
+  ],
+  "taskAnalysis": {
+    "duty_1_1": {
+      "performanceSteps": [
+        "Prepare the workspace",
+        "Inspect the unit"
+      ],
+      "requiredKnowledge": [
+        "Component layout"
+      ],
+      "requiredSkills": [
+        "Use a screwdriver"
+      ],
+      "toolsEquipmentMaterials": [
+        "Screwdriver set"
+      ],
+      "safetyOSH": [
+        "Disconnect power"
+      ],
+      "conditionsWorkEnvironment": "Service workshop",
+      "decisionsCriticalPoints": [],
+      "performanceCriteria": [
+        "Unit is inspected against the checklist"
+      ],
+      "performanceStandard": "All checklist items verified.",
+      "commonErrorsTroubleshooting": []
+    }
+  },
+  "taskAnalysisPriority": {},
+  "supplementaryVerification": {
+    "enabled": false,
+    "itemCounter": 0,
+    "categoryCounter": 0,
+    "categories": [
+      {
+        "id": "knowledgeSkills",
+        "key": "svCatKnowledgeSkills",
+        "name": "",
+        "enabled": true,
+        "renameable": false,
+        "source": [
+          "knowledgeInput",
+          "skillsInput"
+        ],
+        "items": []
+      },
+      {
+        "id": "toolsEquipment",
+        "key": "svCatTools",
+        "name": "",
+        "enabled": true,
+        "renameable": false,
+        "source": [
+          "toolsInput"
+        ],
+        "items": []
+      },
+      {
+        "id": "workBehaviours",
+        "key": "svCatBehaviours",
+        "name": "",
+        "enabled": true,
+        "renameable": false,
+        "source": [
+          "behaviorsInput"
+        ],
+        "items": []
+      },
+      {
+        "id": "futureTrends",
+        "key": "svCatTrends",
+        "name": "",
+        "enabled": true,
+        "renameable": false,
+        "source": [
+          "trendsInput"
+        ],
+        "items": []
+      },
+      {
+        "id": "other",
+        "key": "svCatOther",
+        "name": "",
+        "enabled": false,
+        "renameable": true,
+        "source": [],
+        "items": []
+      }
+    ]
+  }
+}
