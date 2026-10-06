@@ -12,7 +12,7 @@ part of the app: nothing in this folder is loaded or cached by it.
 | `specs/full-draft.spec.js` | All seven stages complete; with the AI down, a filled project asks first, saves a snapshot, stops at stage 1 and changes nothing. |
 | `specs/job-title.spec.js` | Job Title required; a job from another occupation is questioned; the prompt analyses the job. |
 | `specs/ai-cards.spec.js` | Task Analysis, cluster and Additional Info cards: only ticked parts change, restore works, marks are saved. |
-| `specs/curriculum.spec.js` | Outcome Undo, coverage filter, Module Builder handoff, Word export. |
+| `specs/curriculum.spec.js` | Outcome Undo, coverage filter, Module Builder handoff, chart Word export, Module Curriculum tab and its Word export. |
 
 `fixtures/sample-project.json` is a synthetic project (made with the
 app's own Full Draft against the stand-in), not real workshop data.

@@ -46,3 +46,16 @@ test('Word export builds a document with the chart in it', async ({ page }) => {
   expect(buf.length).toBeGreaterThan(5000);
   expect(errors).toEqual([]);
 });
+
+test('Module Curriculum: the tab renders and its Word export builds', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(() => window.switchTab('module-curriculum-tab'));
+  await expect(page.locator('#module-curriculum-tab')).toContainText('Implementing Core Work');
+  const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }),
+    page.evaluate(async () => { const m = await import('./module_curriculum.js'); const { appState } = await import('./state.js');
+      return m.exportModuleCurriculumWord(appState.moduleMappingData.modules[0].id); })]);
+  const buf = fs.readFileSync(await dl.path());
+  expect(buf.slice(0, 2).toString()).toBe('PK');
+  expect(errors).toEqual([]);
+});
