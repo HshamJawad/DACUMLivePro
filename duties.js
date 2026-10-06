@@ -207,8 +207,12 @@ function _renderCardView(container) {
           <span class="dcv-duty-drag-handle" title="${_t('ttDragDuty')}" aria-label="${_t('ttDragDuty')}">${_DRAG_DOTS_SVG}</span>
           <span class="dcv-duty-label">${_tf('lblDuty', { code: _bdi(dutyLetter) })}</span>
         </div>
-        <button class="dcv-close-btn" data-action="remove-duty" data-duty-id="${duty.id}"
-                title="${_t('ttRemoveDuty')}" aria-label="${_t('ttRemoveDuty')}">✕</button>
+        <div class="dcv-card-top-right">
+          <button class="dcv-add-btn" data-action="add-duty"
+                  title="${_t('ttAddDuty')}" aria-label="${_t('ttAddDuty')}">＋</button>
+          <button class="dcv-close-btn" data-action="remove-duty" data-duty-id="${duty.id}"
+                  title="${_t('ttRemoveDuty')}" aria-label="${_t('ttRemoveDuty')}">✕</button>
+        </div>
       </div>
       <textarea class="dcv-duty-input"
                 data-duty-id="${duty.id}"
@@ -226,7 +230,7 @@ function _renderCardView(container) {
     tasksScroll.id = `tasks_${duty.id}`;
 
     duty.tasks.forEach((task, taskIndex) => {
-      tasksScroll.appendChild(_makeTaskCard(task, `${dutyLetter}${taskIndex + 1}`));
+      tasksScroll.appendChild(_makeTaskCard(task, `${dutyLetter}${taskIndex + 1}`, duty.id));
     });
 
     // ── Add Task button lives INSIDE the scroll strip ──
@@ -247,7 +251,7 @@ function _renderCardView(container) {
   _applyCardZoom(container);
 }
 
-function _makeTaskCard(task, displayCode) {
+function _makeTaskCard(task, displayCode, dutyId) {
   const card = document.createElement('div');
   card.className = 'dcv-task-card';
   card.id = task.divId;
@@ -257,8 +261,12 @@ function _makeTaskCard(task, displayCode) {
         <span class="dcv-task-drag-handle" title="${_t('ttDragTask')}" aria-label="${_t('ttDragTask')}">${_DRAG_DOTS_SVG}</span>
         <span class="dcv-task-label">${_tf('lblTask', { code: _bdi(displayCode) })}</span>
       </div>
-      <button class="dcv-close-btn" data-action="remove-task" data-task-div-id="${task.divId}"
-              title="${_t('ttRemoveTask')}" aria-label="${_t('ttRemoveTask')}">✕</button>
+      <div class="dcv-card-top-right">
+        <button class="dcv-add-btn" data-action="add-task" data-duty-id="${dutyId}"
+                title="${_t('ttAddTask')}" aria-label="${_t('ttAddTask')}">＋</button>
+        <button class="dcv-close-btn" data-action="remove-task" data-task-div-id="${task.divId}"
+                title="${_t('ttRemoveTask')}" aria-label="${_t('ttRemoveTask')}">✕</button>
+      </div>
     </div>
     <textarea class="dcv-task-input"
               data-task-id="${task.inputId}"
@@ -302,11 +310,23 @@ function _applyCardZoom(container) {
   const inn = document.querySelector('#cardViewToolbar [data-cv-action="zoom-in"]');
   if (out) out.disabled = z <= CARD_ZOOM_MIN;
   if (inn) inn.disabled = z >= CARD_ZOOM_MAX;
+  _syncCardExitButton();
+}
+
+/* Exit is live while there is something to leave: fullscreen, or a
+   zoom other than 100 %. */
+function _syncCardExitButton() {
+  const b = document.querySelector('#cardViewToolbar [data-cv-action="exit"]');
+  if (b) b.disabled = !document.fullscreenElement && _getCardZoom() === 1;
 }
 
 function _cardToolbarHtml() {
   const fs = !!document.fullscreenElement;
+  const canExit = fs || _getCardZoom() !== 1;
   return `
+    <div class="wv-left">
+      <button type="button" class="wv-btn wv-btn-exit" data-cv-action="exit" title="${_t('ttCvExit')}"${canExit ? '' : ' disabled'}>✕ ${_t('wvExit')}</button>
+    </div>
     <div class="wv-center">
       <button type="button" class="wv-btn" data-cv-action="zoom-out" title="${_t('ttWvZoomOut').replace(/\s*\(.*\)$/, '')}" aria-label="${_t('ttWvZoomOut').replace(/\s*\(.*\)$/, '')}">🔍−</button>
       <span class="wv-zoom-pct" aria-live="polite">100%</span>
@@ -350,6 +370,10 @@ function _onCardToolbarClick(e) {
     case 'zoom-reset': _setCardZoom(1);                    _applyCardZoom(); break;
     case 'print':      _printCardView(); break;
     case 'fullscreen': _toggleCardFullscreen(); break;
+    case 'exit':
+      _setCardZoom(1); _applyCardZoom();
+      if (document.fullscreenElement) _exitFullscreen();
+      break;
   }
 }
 
@@ -388,6 +412,7 @@ function _syncCardFsButton() {
   const on = !!document.fullscreenElement;
   b.classList.toggle('is-on', on);
   b.setAttribute('aria-pressed', String(on));
+  _syncCardExitButton();
 }
 
 if (typeof document !== 'undefined') {

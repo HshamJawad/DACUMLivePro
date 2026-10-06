@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.63.0 — 2026-10-06 — Card View: Exit, ＋ / ✕ on every card ─────
+MINOR. duties.js, dacum-components.css, translations.js, index.html,
+sw.js (v173).
+Added   "✕ Exit" at the start of the Card View bar, as in Wall View:
+        leaves fullscreen and returns the zoom to 100 %. Greyed out
+        while there is nothing to leave (normal screen at 100 %).
+Added   Every card carries the Wall View square buttons in its header:
+        ＋ on a duty card adds a duty, ＋ on a task card adds a task to
+        that duty; ✕ removes (light lavender ＋ / light rose ✕,
+        24 px). Same data-action hooks as Wall View, so history, undo
+        and drag & drop are unchanged. Hidden in print. The "＋ Task"
+        pill at the end of each row stays.
+
 ── 3.62.0 — 2026-10-06 — Card View tools ───────────────────────────
 MINOR. duties.js, dacum-components.css, translations.js, index.html,
 sw.js (v172).
