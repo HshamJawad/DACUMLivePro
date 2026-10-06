@@ -258,6 +258,7 @@ export function getTaskAnalysisRecord(taskKey) {
   // 3.46.0: user-added sections travel as [{ title, items }], not as the
   // internal id-keyed map.
   delete clean.custom;
+  delete clean._aiPrev;
   const custom = _customSectionsOf(r);
   if (custom.length) clean.customSections = custom;
   return clean;
@@ -295,6 +296,7 @@ export function getTaskAnalysisExportData() {
       LIST_FIELDS.forEach(f => { record[f.key] = _nonBlank(raw[f.key]).map(s => s.trim()); });
       // 3.46.0: user-added sections, in section order, non-blank only.
       delete record.custom;
+      delete record._aiPrev;
       record.customSections = _customSectionsOf(raw);
       return {
         dutyLetter: getDutyLetter(entry.dutyIndex),
@@ -309,7 +311,7 @@ export function getTaskAnalysisExportData() {
 // ── AI assistance hooks (used by task_analysis_ai.js) ───────────
 
 function _fieldFilled(r, key) {
-  const v = r ? r[key] : null;
+  const v = r ? _getField(r, key) : null;
   return Array.isArray(v) ? _nonBlank(v).length > 0 : !!(v || '').trim();
 }
 
@@ -323,6 +325,12 @@ export function getTaskAnalysisContext(taskKey) {
   const record = _view(taskKey);
   const filled = {};
   TA_FIELD_SPECS.forEach(f => { filled[f.key] = _fieldFilled(record, f.key); });
+  // 3.70.0: the user's own sections are offered to the AI as well.
+  // Field key "custom:<id>", same as on screen; the title is the rule.
+  const customSections = getTaskAnalysisCustomSections().map(sec => ({
+    key: CUSTOM_PREFIX + sec.id, title: sec.title,
+  }));
+  customSections.forEach(c => { filled[c.key] = _fieldFilled(record, c.key); });
 
   const clusterCriteria = [];
   (appState.clusteringData?.clusters || []).forEach(c => {
@@ -339,19 +347,34 @@ export function getTaskAnalysisContext(taskKey) {
     taskText:   entry.task.text,
     siblings:   flat.filter(f => f.dutyId === entry.dutyId && f.taskKey !== taskKey)
                     .map(f => f.task.text).slice(0, 25),
-    record, filled, clusterCriteria,
+    record, filled, clusterCriteria, customSections,
   };
 }
 
 /** Writes AI-generated sections into one task and marks each as an
- *  AI draft until the user edits it. Only the keys passed are touched. */
+ *  AI draft until the user edits it. Only the keys passed are touched.
+ *  3.70.0: keys may be "custom:<id>" (the user's own sections), and a
+ *  section that already had content keeps its previous value in
+ *  r._aiPrev[key] so "↶ Restore previous" can bring it back — Undo in
+ *  the toolbar covers Duties & Tasks only. The kept value goes as soon
+ *  as the user edits, clears or restores that section. */
 export function writeTaskAnalysisAI(taskKey, values) {
   const r = _ensureRecord(taskKey);
   if (!r._aiDraft || typeof r._aiDraft !== 'object') r._aiDraft = {};
+  if (!r._aiPrev || typeof r._aiPrev !== 'object' || Array.isArray(r._aiPrev)) r._aiPrev = {};
   Object.keys(values).forEach(k => {
-    r[k] = Array.isArray(values[k]) ? values[k].slice() : String(values[k]);
+    if (_fieldFilled(r, k)) {
+      // A second run keeps the user's ORIGINAL text, not the first draft.
+      if (!(r._aiDraft[k] && r._aiPrev[k] != null)) {
+        r._aiPrev[k] = JSON.parse(JSON.stringify(_getField(r, k)));
+      }
+    } else {
+      delete r._aiPrev[k];
+    }
+    _setField(r, k, Array.isArray(values[k]) ? values[k].slice() : String(values[k]));
     r._aiDraft[k] = true;
   });
+  if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
   if (taskKey === _selectedTaskKey) _renderFormPanel();
   _touchStatus(taskKey);
   try {
@@ -362,17 +385,41 @@ export function writeTaskAnalysisAI(taskKey, values) {
 function _aiBadge(key) {
   const r = _record(_selectedTaskKey);
   if (!r || !r._aiDraft || !r._aiDraft[key]) return '';
-  return ` <span class="ta-ai-badge" data-ta-ai-badge="${key}"
-      style="font-size:.62em;font-weight:700;color:#6d28d9;background:#f5f3ff;border:1px solid #ddd6fe;
-             border-radius:999px;padding:2px 8px;vertical-align:middle;white-space:nowrap;">✨ ${escapeHtml(_t('taAiBadge'))}</span>`;
+  const k = escapeHtml(key);
+  const restore = (r._aiPrev && r._aiPrev[key] != null) ? `
+      <button type="button" class="ta-ai-restore" data-action="ta-ai-restore" data-field="${k}"
+              title="${escapeHtml(_t('taAiRestoreTip'))}">↶ ${escapeHtml(_t('taAiRestore'))}</button>` : '';
+  return ` <span class="ta-ai-badge-wrap" data-ta-ai-badge="${k}"><span class="ta-ai-badge">✨ ${escapeHtml(_t('taAiBadge'))}</span>${restore}</span>`;
 }
 
 function _clearAiDraft(key) {
   const r = _record(_selectedTaskKey);
-  if (r && r._aiDraft && r._aiDraft[key]) {
-    delete r._aiDraft[key];
-    document.querySelector(`[data-ta-ai-badge="${key}"]`)?.remove();
+  if (!r) return;
+  const had = !!(r._aiDraft && r._aiDraft[key]);
+  if (had) delete r._aiDraft[key];
+  if (r._aiPrev && key in r._aiPrev) {
+    delete r._aiPrev[key];
+    if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
   }
+  if (had) {
+    document.querySelectorAll('[data-ta-ai-badge]').forEach(el => {
+      if (el.getAttribute('data-ta-ai-badge') === key) el.remove();
+    });
+  }
+}
+
+/* 3.70.0: put back what a section held before the AI replaced it. */
+function _restoreAiPrevious(key) {
+  const r = _record(_selectedTaskKey);
+  if (!r || !r._aiPrev || r._aiPrev[key] == null) return;
+  _setField(r, key, JSON.parse(JSON.stringify(r._aiPrev[key])));
+  if (r._aiDraft) delete r._aiDraft[key];
+  delete r._aiPrev[key];
+  if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
+  _renderFormPanel();
+  _touchStatus(_selectedTaskKey);
+  _saveSoon();
+  showStatus(_t('taAiRestored') + ' ✓', 'success');
 }
 
 // ── Selection state (module-local, not persisted) ──────────────
@@ -588,9 +635,7 @@ function _renderFormPanel() {
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
         <button type="button" class="ta-ai-btn" data-action="ta-ai-open" data-task-key="${entry.taskKey}"
-                title="${escapeHtml(_t('taAiTitle'))}"
-                style="margin-top:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;
-                       border-radius:8px;padding:7px 14px;font-size:.85em;font-weight:700;cursor:pointer;">
+                title="${escapeHtml(_t('taAiTitle'))}">
           ${_t('taAiBtn')}
         </button>
         <button type="button" class="ta-clear-btn" data-action="ta-clear-analysis" data-task-key="${entry.taskKey}">
@@ -618,7 +663,7 @@ function _renderCustomField(sec, items) {
   return `
     <div class="section-container ta-custom-section" data-field-block="${escapeHtml(key)}">
       <div class="section-header-editable">
-        <h3 dir="auto">${escapeHtml(sec.title)}</h3>
+        <h3><bdi dir="auto">${escapeHtml(sec.title)}</bdi>${_aiBadge(key)}</h3>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button type="button" class="btn-format btn-icon" data-action="ta-custom-rename" data-section-id="${escapeHtml(sec.id)}"
                   title="${escapeHtml(_t('taCustomRename'))}" aria-label="${escapeHtml(_t('taCustomRename'))}">✏️</button>
@@ -683,6 +728,11 @@ function _customDelete(id) {
   appState.taskAnalysisCustomSections = list.filter(x => x.id !== id);
   Object.values(appState.taskAnalysisData || {}).forEach(r => {
     if (r && r.custom && typeof r.custom === 'object') delete r.custom[id];
+    if (r && r._aiDraft) delete r._aiDraft[CUSTOM_PREFIX + id];
+    if (r && r._aiPrev) {
+      delete r._aiPrev[CUSTOM_PREFIX + id];
+      if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
+    }
   });
   _renderNav();
   _renderFormPanel();
@@ -865,6 +915,11 @@ export function setupTaskAnalysisEvents() {
 
     if (action === 'ta-clear-analysis') {
       _clearOneTaskAnalysis(btn.getAttribute('data-task-key'));
+      return;
+    }
+
+    if (action === 'ta-ai-restore') {
+      _restoreAiPrevious(btn.getAttribute('data-field'));
       return;
     }
 

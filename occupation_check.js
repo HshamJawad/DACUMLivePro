@@ -37,7 +37,7 @@
 //  problem it solves.
 // ============================================================
 
-const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
+import { BACKEND_URL } from './ai_client.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
 

@@ -37,7 +37,7 @@ import { showStatus } from './renderer.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -50,7 +50,6 @@ const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 const _aiDir = () => (window.i18n ? window.i18n.aiDirective() : '');
 
 
-const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 
 // Maps the JSON keys the model returns → the textarea that receives
 // them. Order here is also the order used in the overwrite warning.

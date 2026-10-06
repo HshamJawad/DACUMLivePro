@@ -25,6 +25,11 @@
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 
+/* 3.70.0: the one address of the AI backend. It used to be repeated in
+   eight files (every AI card, the Full Draft ratings stage and the
+   occupation check); moving the server now means changing this line. */
+export const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
+
 export class AIServiceError extends Error {
   constructor(kind, message, detail) {
     super(message || kind);
