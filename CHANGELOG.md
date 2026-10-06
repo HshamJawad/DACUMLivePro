@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.59.0 — 2026-10-06 — Skills Level Matrix bar in slate ──────────
+MINOR. dacum-styles.css, index.html, sw.js (v169).
+Changed The "📊 Skills Level Matrix" collapsible bar (Additional Info)
+        is slate instead of green: open #f1f5f9 / #475569 with a
+        #cbd5e1 rule, hover #e2e8f0 / #1e293b.
+
 ── 3.58.0 — 2026-10-05 — Green buttons in slate ────────────────────
 MINOR. dacum-styles.css, dacum-components.css, index.html, sw.js (v168).
 Changed Every green button now uses the slate of the Additional Info

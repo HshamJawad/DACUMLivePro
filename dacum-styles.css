@@ -3164,14 +3164,15 @@ textarea {
 }
 
 .skills-level-header:hover {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
+    background: #e2e8f0;
+    color: #1e293b;
 }
 
+/* 3.59.0: slate like the Additional Info buttons (was green) */
 .skills-level-header.active {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    border-bottom-color: #047857;
+    background: #f1f5f9;
+    color: #475569;
+    border-bottom-color: #cbd5e1;
 }
 
 .skills-level-title {
