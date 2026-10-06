@@ -75,22 +75,14 @@ function _activeMode() {
 }
 
 function _updateToggleButton() {
-  const btn     = document.getElementById('btnToggleDutiesView');
-  const heading = document.getElementById('dutiesViewHeading');
-  const mode    = _activeMode();
-  if (btn) {
-    const isCard = mode === 'card';
-    btn.textContent = isCard ? '📋 ' + _t('viewTable') : '🃏 ' + _t('viewCard');
-    btn.className   = 'dcv-toggle-btn' + (isCard ? ' is-card' : '');
-  }
-  // Update segmented toggle's active button (if present)
+  // The Card / Table switch is drawn inside the bar (_cardToolbarHtml);
+  // keep any other [data-view-switch] in step as well.
+  const mode = _activeMode();
   document.querySelectorAll('[data-view-switch]').forEach(el => {
-    const target = el.getAttribute('data-view-switch');
-    el.classList.toggle('is-active', target === mode);
+    const on = el.getAttribute('data-view-switch') === mode;
+    el.classList.toggle('is-active', on);
+    el.setAttribute('aria-selected', String(on));
   });
-  if (heading) {
-    heading.textContent = mode === 'card' ? _t('headingCardView') : _t('headingTableView');
-  }
 }
 
 // ── DOM Renderer ──────────────────────────────────────────────
@@ -365,11 +357,19 @@ if (typeof document !== 'undefined') {
   }, true);
 }
 
+/* Card / Table switch — first thing on the bar in both views. */
+function _viewSwitchHtml(mode) {
+  const b = (m, icon, key) => `<button type="button" data-view-switch="${m}" role="tab"
+      class="view-seg-btn${mode === m ? ' is-active' : ''}" aria-selected="${mode === m}">${icon} ${_t(key)}</button>`;
+  return `<div class="view-segmented" role="tablist" aria-label="${_t('ttViewSwitch')}">${b('card', '🃏', 'viewCard')}${b('table', '📋', 'viewTable')}</div>`;
+}
+
 function _cardToolbarHtml() {
   const fs = _isPresenting();
   const canExit = fs || _getCardZoom() !== 1;
   return `
     <div class="wv-left">
+      ${_viewSwitchHtml('card')}
       <button type="button" class="wv-btn wv-btn-exit" data-cv-action="exit" title="${_t('ttCvExit')}"${canExit ? '' : ' disabled'}>✕ ${_t('wvExit')}</button>
     </div>
     <div class="wv-center">
@@ -391,13 +391,6 @@ function _cardToolbarHtml() {
 
 function _setCardToolbar(mode, container) {
   let bar = document.getElementById('cardViewToolbar');
-  if (mode !== 'card') {
-    _ccOpen = false;
-    if (bar) bar.style.display = 'none';
-    if (container) container.style.removeProperty('--cv-zoom');
-    if (_isPresenting()) _leavePresentation();
-    return;
-  }
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'cardViewToolbar';
@@ -406,10 +399,21 @@ function _setCardToolbar(mode, container) {
     if (container && container.parentNode) container.parentNode.insertBefore(bar, container);
     bar.addEventListener('click', _onCardToolbarClick);
   }
-  /* Rebuilt on every render so labels follow a language switch. */
-  bar.innerHTML = _cardToolbarHtml();
   bar.setAttribute('aria-label', _t('ariaCvToolbar'));
   bar.style.display = '';
+  /* Table View: the bar carries only the switch — the other tools
+     act on the cards. */
+  if (mode !== 'card') {
+    _ccOpen = false;
+    bar.classList.add('cv-toolbar-table');
+    bar.innerHTML = `<div class="wv-left">${_viewSwitchHtml(mode)}</div>`;
+    if (container) container.style.removeProperty('--cv-zoom');
+    if (_isPresenting()) _leavePresentation();
+    return;
+  }
+  bar.classList.remove('cv-toolbar-table');
+  /* Rebuilt on every render so labels follow a language switch. */
+  bar.innerHTML = _cardToolbarHtml();
 }
 
 function _onCardToolbarClick(e) {

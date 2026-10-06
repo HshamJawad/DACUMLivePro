@@ -442,8 +442,6 @@ export function setupEvents() {
       }
     });
 
-    // View toggle button (legacy 2-state Card ↔ Table)
-    _on('btnToggleDutiesView', 'click', toggleViewMode);
 
     // Segmented view switch (Card / Table) — delegated so it works
     // even if the buttons are re-rendered.  Any element with

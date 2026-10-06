@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v176';
+      var EXPECTED_SW='v177';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.66.0';
+      var APP_VERSION = '3.67.0';
       var APP_RELEASED = '2026-10-06';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1001,16 +1001,8 @@
                 </div>
             </div>
 
-            <!-- View toggle — sits between AI section and the duties area -->
-            <div style="display:flex; align-items:center; justify-content:space-between; margin: 18px 0 10px 0; flex-wrap:wrap; gap:10px;">
-              <span id="dutiesViewHeading" style="font-size:1.05em; font-weight:700; color:#374151;">Card View — Duties &amp; Tasks</span>
-              <div class="view-segmented" role="tablist" aria-label="Switch duties view" data-i18n="ttViewSwitch" data-i18n-attr="aria-label">
-                <button data-view-switch="card"  class="view-seg-btn is-active" role="tab" aria-selected="true">🃏 <span data-i18n="viewCard">Card</span></button>
-                <button data-view-switch="table" class="view-seg-btn"           role="tab" aria-selected="false">📋 <span data-i18n="viewTable">Table</span></button>
-              </div>
-              <!-- Legacy hidden button kept for backward compat (still wired in events.js) -->
-              <button id="btnToggleDutiesView" class="dcv-toggle-btn is-card" style="display:none;" aria-hidden="true">📋 Table View</button>
-            </div>
+            <!-- 3.67.0: the Card / Table switch lives in the bar above the
+                 cards (#cardViewToolbar, built by duties.js). -->
 
             <!-- Print-only header for Card View printouts.  Populated by duties.js
                  before window.print() is called.  Hidden on-screen, visible only in print. -->

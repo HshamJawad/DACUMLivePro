@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.67.0 — 2026-10-06 — Card / Table switch on the bar ────────────
+MINOR. duties.js, events.js, dacum-components.css, translations.js,
+index.html, sw.js (v177).
+Changed The Card / Table switch moved into the Duties & Tasks bar, at
+        its start: [🃏 Card | 📋 Table] ✕ Exit · 🔍− 100% 🔍+ ⟲ Reset ·
+        🎨 Colours 🖨 Print 🖥 Fullscreen. The separate row with
+        "Card View — Duties & Tasks" and the switch is gone (one line
+        of height saved; the tab has its own title).
+        - Everything fits on one line with icons and labels on desktop
+          (≈ 860 px needed; the bar is 900 px at 1280 px with the
+          sidebar open, wider when it is folded). On a narrower window
+          the bar wraps to a second line — labels are never dropped.
+        - Table View: the bar shows the switch only (the other tools act
+          on the cards).
+        - Presentation (fullscreen): the switch is hidden.
+Removed The legacy hidden #btnToggleDutiesView, the #dutiesViewHeading
+        line and their strings (headingCardView, headingTableView).
+
 ── 3.66.0 — 2026-10-06 — Card colours ──────────────────────────────
 MINOR. card_colors.js (new), duties.js, export_settings.js,
 dacum-components.css, translations.js, index.html, sw.js (v176).

@@ -1379,7 +1379,12 @@
          ══════════════════════════════════════════════════════════ */
       /* z-index 40: above the sticky duty card (30), so the 🎨 panel
          that hangs from the bar is never painted under a card. */
-      .wall-toolbar.cv-toolbar { justify-content: space-between; z-index: 40; }
+      .wall-toolbar.cv-toolbar { justify-content: space-between; z-index: 40; margin-top: 18px; }
+      /* 3.67.0: the Card / Table switch sits at the start of the bar. */
+      .wall-toolbar.cv-toolbar .wv-left { gap: 10px; flex-wrap: wrap; }
+      .wall-toolbar.cv-toolbar .view-segmented { padding: 2px; }
+      .wall-toolbar.cv-toolbar .view-seg-btn { padding: 5px 12px; }
+      body.card-view-fullscreen .cv-toolbar .view-segmented { display: none; }
       .wall-toolbar .wv-btn:disabled { opacity: .45; cursor: not-allowed; }
       .wall-toolbar .wv-btn:disabled:hover { background:#f8fafc; border-color:#cbd5e1; color:#334155; }
       .wall-toolbar .wv-btn.is-on { background:#e0f2fe; border-color:#7dd3fc; color:#0369a1; }
@@ -1540,7 +1545,6 @@
       body.card-view-fullscreen #duties-tab > .ai-gen-card,
       body.card-view-fullscreen #scopeMissingWarning,
       body.card-view-fullscreen #refineResultsSection,
-      body.card-view-fullscreen #duties-tab > div:has(> .view-segmented),
       body.card-view-fullscreen #duties-tab > .step-nav-row {
         display: none !important;
       }
