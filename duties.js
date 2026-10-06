@@ -105,7 +105,14 @@ export function renderDutiesFromState() {
   else                       _renderTableView(container);
 }
 
-// ── TABLE VIEW (original, unchanged) ─────────────────────────
+// ── TABLE VIEW ────────────────────────────────────────────────
+
+/* 3.68.0: task delete in Table View — the soft rose square with an ✕
+   used for list rows in Module Curriculum. Inline SVG so the cross is
+   crisp at any size; pointer-events:none in CSS keeps the click on the
+   button, which events.js matches by data-action. */
+const _X_SVG = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">'
+  + '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
 
 function _renderTableView(container) {
   container.className = '';   // remove card-view-mode class
@@ -143,8 +150,8 @@ function _renderTableView(container) {
         <span class="task-label">${_tf('lblTaskColon', { code: _bdi(dutyLetter + (taskIndex + 1)) })}</span>
         <input type="text" style="flex:1;" placeholder="${_t('phEnterTaskDesc')}"
                data-task-id="${task.inputId}" value="${_esc(task.text)}">
-        <button class="btn-remove" data-action="remove-task" data-task-div-id="${task.divId}"
-                title="${_t('ttRemoveTask')}" aria-label="${_t('ttRemoveTask')}">🗑️</button>
+        <button type="button" class="task-del-x" data-action="remove-task" data-task-div-id="${task.divId}"
+                title="${_t('ttRemoveTask')}" aria-label="${_t('ttRemoveTask')}">${_X_SVG}</button>
       `;
       taskList.appendChild(taskDiv);
     });

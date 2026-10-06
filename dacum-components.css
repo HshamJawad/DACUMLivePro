@@ -1446,6 +1446,22 @@
         .card-view-mode .dcv-card-top .dcv-duty-label { letter-spacing: 0 !important; font-size: 10.5px !important; }
       }
 
+      /* Table View task delete (3.68.0) — same look as Module
+         Curriculum's .cur-li-del: soft rose square, red ✕. */
+      .task-item .task-del-x {
+        box-sizing: border-box; flex: 0 0 auto;
+        width: 36px; height: 36px; min-width: 36px; max-width: 36px; min-height: 36px;
+        padding: 0 !important; margin: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 8px; border: 1px solid #fecaca !important;
+        background: #fff5f5 !important; color: #b91c1c !important;
+        box-shadow: none !important; filter: none !important; cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .task-item .task-del-x:hover { background: #fee2e2 !important; border-color: #fca5a5 !important; }
+      .task-item .task-del-x:focus-visible { outline: 2px solid #b91c1c; outline-offset: 2px; }
+      .task-item .task-del-x svg { display: block; pointer-events: none; }
+
       /* ══════════════════════════════════════════════════════════
          CARD COLOURS (3.66.0) — see card_colors.js. Screen + print
          only. A pick sets data-cc-duty / data-cc-task and the

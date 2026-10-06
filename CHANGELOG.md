@@ -7,6 +7,14 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.68.0 — 2026-10-06 — Table View task delete as a soft ✕ ────────
+MINOR. duties.js, dacum-components.css, index.html, sw.js (v178).
+Changed Duties & Tasks → Table View: each task's 🗑️ red button is now
+        the soft rose square with a red ✕ used for list rows in Module
+        Curriculum (#fff5f5 / #fecaca / #b91c1c; hover #fee2e2), the ✕
+        an inline SVG. Same data-action, so delete and undo are
+        unchanged. The duty-level buttons are not touched.
+
 ── 3.67.0 — 2026-10-06 — Card / Table switch on the bar ────────────
 MINOR. duties.js, events.js, dacum-components.css, translations.js,
 index.html, sw.js (v177).
