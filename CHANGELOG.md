@@ -7,6 +7,34 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.74.0 — 2026-10-06 — One AI call path; the preflight check runs
+MINOR (internal). ai_client.js, projects.js, additional_info_ai.js,
+clustering_ai.js, learning_outcomes_ai.js, module_mapping_ai.js,
+task_analysis_ai.js, draft_ratings.js, occupation_check.js,
+.github/workflows/preflight.yml (moved), index.html, sw.js (v185).
+Changed One way to call the AI: callAI() / parseAIReply() in
+        ai_client.js. The eight files that each repeated fetch → error
+        check → read → strip fences → JSON.parse now call it. It reads
+        every text block (some read only the first), survives prose or
+        fences around the JSON (most failed on it), reports a reply cut
+        off at the output limit as "incomplete", and appends the
+        language directive (occupation check: lang:false, as before).
+        Prompts and what each card does with the result are unchanged.
+Fixed   Full Draft stopped at "Competency Clusters" on a new project: the
+        task pool was filled only when the Clusters tab was opened, which
+        a run never does, so it read "not enough tasks". On a filled
+        project the pool still held the OLD tasks of duties the run had
+        just regenerated. suggestClustersAI() now refreshes the pool from
+        Duties & Tasks first (the same calls the tab makes) and suggests
+        only tasks that exist now.
+Fixed   The preflight workflow never ran: it sat in the repository root
+        (GitHub reads .github/workflows/ only) and called scripts in a
+        tools/ folder that does not exist. Moved and corrected; it runs
+        on every push.
+Tested  Full Draft end to end (all seven stages) with replies wrapped in
+        prose and split across blocks: completes. 3.73.0 failed at stage
+        1 on such replies, and at stage 3 even on clean ones.
+
 ── 3.73.0 — 2026-10-06 — Full Draft: real stage checks, confirm before replacing
 MINOR. draft_agent.js, draft_ui.js, dacum-draft.css, translations.js,
 index.html, sw.js (v184).

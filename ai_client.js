@@ -30,6 +30,68 @@ const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
    occupation check); moving the server now means changing this line. */
 export const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 
+/* ── 3.74.0: ONE way to call the AI and read its reply ─────────
+   Eight files each repeated fetch → error check → read → strip fences
+   → JSON.parse, every copy slightly different: some read only the
+   first text block, most failed on a line of prose around the JSON,
+   one had no output-language directive. These are the best of each:
+
+   • every text block of the reply, joined;
+   • ``` fences removed;
+   • a failed parse retried on the outermost {...};
+   • a reply cut off at the output limit reported as such (it is
+     classified "incomplete", not as a generic failure);
+   • the interface-language directive appended unless lang:false;
+   • errors classified by throwIfAIError() / classifyAIError() as
+     before, with the same messages the cards already relied on.
+
+   callAI(prompt, opts) → parsed JSON object (throws on failure)
+     opts.lang   false = no output-language directive (default true)
+*/
+
+/** All text blocks of a backend (Anthropic Messages) reply, joined. */
+export function aiReplyText(data) {
+  return ((data && data.content) || [])
+    .map(b => (b && b.type === 'text' && typeof b.text === 'string') ? b.text : '')
+    .join('');
+}
+
+/** Parse the JSON object a reply carries (see the rules above). */
+export function parseAIReply(data) {
+  const raw = aiReplyText(data);
+  if (!raw.trim()) throw new Error('Invalid response from backend - no content found');
+  const body = raw.trim().replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  try { return JSON.parse(body); }
+  catch (_) {
+    const a = body.indexOf('{'), b = body.lastIndexOf('}');
+    if (a !== -1 && b > a) {
+      try { return JSON.parse(body.slice(a, b + 1)); } catch (_) {}
+    }
+    if (data && data.stop_reason === 'max_tokens') {
+      throw new Error('AI reply was cut off at the output limit - JSON incomplete');
+    }
+    throw new Error('Failed to parse AI response as JSON');
+  }
+}
+
+const _langDirective = () =>
+  (typeof window !== 'undefined' && window.i18n && window.i18n.aiDirective) ? window.i18n.aiDirective() : '';
+
+/** Send a prompt to the backend and return the parsed JSON reply. */
+export async function callAI(prompt, opts = {}) {
+  const directive = opts.lang === false ? '' : _langDirective();
+  const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ prompt: String(prompt || '') + directive }),
+  });
+  await throwIfAIError(response);
+  let data;
+  try { data = await response.json(); }
+  catch (_) { throw new Error('Invalid response from backend - no content found'); }
+  return parseAIReply(data);
+}
+
 /* 3.72.0: the two prompt lines every AI card uses to say WHAT is being
    analysed. In DACUM the unit of analysis is the JOB — the duties and
    tasks of the people who hold it — and the occupation is only its

@@ -23,7 +23,7 @@
 // ============================================================
 
 import { appState }            from './state.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
+import { showAIServiceError, jobFocusLines, callAI } from './ai_client.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { incrementUsage, showLoadingModal, hideLoadingModal } from './storage.js';
 import { getTaskAnalysisContext, writeTaskAnalysisAI,
@@ -133,21 +133,8 @@ async function _generate(taskKey, wanted) {
   showLoadingModal();
   await new Promise(r => setTimeout(r, 60));
   try {
-    const res = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: _buildPrompt(ctx, wanted) + _aiDir() }),
-    });
-    await throwIfAIError(res);
-    const data = await res.json();
-    const text = (data.content || []).map(b => (b.type === 'text' ? b.text : '')).join('')
-      .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    let parsed;
-    try { parsed = JSON.parse(text); }
-    catch (_) {
-      const a = text.indexOf('{'), b = text.lastIndexOf('}');
-      parsed = JSON.parse(text.slice(a, b + 1));
-    }
+    // 3.74.0: one shared call (ai_client.js callAI).
+    const parsed = await callAI(_buildPrompt(ctx, wanted));
     const sections = parsed.sections || parsed;
 
     const out = {};

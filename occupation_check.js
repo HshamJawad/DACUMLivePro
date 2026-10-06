@@ -37,7 +37,7 @@
 //  problem it solves.
 // ============================================================
 
-import { BACKEND_URL } from './ai_client.js';
+import { callAI } from './ai_client.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
 
@@ -163,24 +163,10 @@ export async function verifyOccupation(title, jobTitle = '') {
 
   let result;
   try {
-    const res = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ prompt: _prompt(clean, lang, job) })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-
-    const data = await res.json();
-    const text = (data?.content || []).map(b => (b && b.type === 'text' ? b.text : '')).join('');
-    if (!text.trim()) throw new Error('empty response');
-
-    const body = text.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    let parsed;
-    try { parsed = JSON.parse(body); }
-    catch (_) {
-      const a = body.indexOf('{'), b = body.lastIndexOf('}');
-      parsed = JSON.parse(body.slice(a, b + 1));
-    }
+    // 3.74.0: one shared call (ai_client.js callAI). No language
+    // directive: the prompt names the language of "reason" itself.
+    // Any failure still lands in the catch below and fails open.
+    const parsed = await callAI(_prompt(clean, lang, job), { lang: false });
 
     const verdict = [VERDICT.KNOWN, VERDICT.TYPO, VERDICT.UNKNOWN]
       .includes(parsed.verdict) ? parsed.verdict : VERDICT.UNCHECKED;

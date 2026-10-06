@@ -50,12 +50,13 @@
 import { appState }   from './state.js';
 import { showStatus } from './renderer.js';
 import { renderAvailableTasks, renderClusters, persistClustering,
-         loText } from './modules.js';
+         loText, initializeClusteringFromTasks, syncClusteringWithProfile,
+         isClusterAddedTask } from './modules.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
+import { showAIServiceError, jobFocusLines, callAI } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -65,7 +66,7 @@ const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 /* Output-language directive for the generation backend. Appended at the
    ONE place this module builds a request, so any prompt added later is
    covered without having to remember. Empty string in English. */
-const _aiDir = () => (window.i18n ? window.i18n.aiDirective() : '');
+const _aiDir = () => (window.i18n ? window.i18n.aiDirective() : '');   // (callAI appends it)
 
 
 
@@ -91,31 +92,10 @@ function _chartContext() {
          (country  ? `\nCOUNTRY / CONTEXT: ${country}` : '');
 }
 
-async function _callBackend(prompt) {
-  const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ prompt: prompt + _aiDir() }),
-  });
-  await throwIfAIError(response);
-  const data = await response.json();
-  // 3.71.0: every text block, not only the first.
-  const raw = (data.content || []).map(b => (b && b.type === 'text' ? b.text : '')).join('');
-  if (!raw.trim()) {
-    throw new Error('Invalid response from backend - no content found');
-  }
-  const jsonText = raw.trim()
-    .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  try { return JSON.parse(jsonText); }
-  catch (_) {
-    // A line of prose before or after the object is common; take the
-    // outermost {...} before giving up.
-    const a = jsonText.indexOf('{'), b = jsonText.lastIndexOf('}');
-    if (a !== -1 && b > a) {
-      try { return JSON.parse(jsonText.slice(a, b + 1)); } catch (_) {}
-    }
-    throw new Error('Failed to parse AI response as JSON');
-  }
+// 3.74.0: one shared call (ai_client.js callAI) — every text block,
+// fences removed, {...} fallback, output-language directive.
+function _callBackend(prompt) {
+  return callAI(prompt);
 }
 
 function _guardQuota() {
@@ -283,13 +263,35 @@ function _dutyMirrorWarning(clusters) {
 
 export async function suggestClustersAI() {
   const cd = appState.clusteringData;
+
+  /* 3.74.0 — bring the task pool up to date with Duties & Tasks first.
+     It used to be seeded only when the Clusters tab was opened, so a
+     Full Draft (which never opens it) found an empty pool on a new
+     project and stopped with "not enough tasks"; on a filled project it
+     still held the OLD tasks of duties the run had just regenerated.
+     Both calls are the ones the tab itself makes on entry. */
+  if (cd && Array.isArray(cd.clusters) && Array.isArray(cd.availableTasks)) {
+    try {
+      if (!cd.clusters.length && !cd.availableTasks.length) initializeClusteringFromTasks();
+      else syncClusteringWithProfile();
+    } catch (err) { console.warn('[clusters] pool refresh failed', err); }
+  }
+
   const available = cd?.availableTasks || [];
   const existing  = cd?.clusters || [];
+
+  // Only tasks that exist in the profile now (or were added during
+  // clustering) — a removed task must not be suggested again.
+  const present = new Set();
+  (appState.dutiesData || []).forEach(d => (d.tasks || []).forEach(t => {
+    if (t && t.inputId && String(t.text || '').trim()) present.add(t.inputId);
+  }));
+  const current = t => t && (present.has(t.id) || isClusterAddedTask(t));
 
   // Work from the full task pool, not just what is left unassigned —
   // otherwise a partial manual clustering would produce a suggestion
   // built on the leftovers, which is worse than no suggestion.
-  const pool = [...available, ...existing.flatMap(c => c.tasks || [])];
+  const pool = [...available, ...existing.flatMap(c => c.tasks || [])].filter(current);
 
   if (pool.length < MIN_TASKS_PER_CLUSTER * 2) {
     showStatus(_tf('msgNotEnoughTasks', { n: pool.length }), 'error');

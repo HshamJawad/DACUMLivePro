@@ -37,7 +37,7 @@ import { showStatus } from './renderer.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
+import { showAIServiceError, jobFocusLines, callAI } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -328,25 +328,9 @@ export async function generateAdditionalInfoAI() {
   const matrixKeys = new Set(matrixComps.map(c => c.toLowerCase()));
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt + langDir })
-    });
-
-    await throwIfAIError(response);
-
-    const data = await response.json();
-    if (!data.content || !data.content[0] || !data.content[0].text) {
-      throw new Error('Invalid response from backend - no content found');
-    }
-
-    const jsonText = data.content[0].text.trim()
-      .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-    let info;
-    try { info = JSON.parse(jsonText); }
-    catch (e) { throw new Error('Failed to parse AI response as JSON'); }
+    // 3.74.0: one shared call (ai_client.js callAI); it appends the
+    // same language directive (langDir) the prompt was told about.
+    const info = await callAI(prompt);
 
     // ── Write into the textareas ────────────────────────────
     // Partial responses are tolerated: a section the model omitted

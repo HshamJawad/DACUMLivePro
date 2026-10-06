@@ -23,7 +23,7 @@ import { showStatus }                   from './renderer.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { getDutyLetter }                from './codes.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
+import { showAIServiceError, callAI } from './ai_client.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -102,20 +102,8 @@ export async function generateDraftRatings() {
   showLoadingModal();   // no-op during a Full Draft run
 
   try {
-    const res = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        prompt: _buildPrompt(duties) +
-                (window.i18n ? window.i18n.aiDirective() : '')
-      }),
-    });
-    await throwIfAIError(res);
-
-    const data = await res.json();
-    const text = (data.content || [])
-      .map(b => (b.type === 'text' ? b.text : '')).join('');
-    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
+    // 3.74.0: one shared call (ai_client.js callAI).
+    const json = await callAI(_buildPrompt(duties));
 
     _applyRatings(json.ratings || [], duties);
     incrementUsage();

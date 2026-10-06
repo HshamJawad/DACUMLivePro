@@ -49,7 +49,7 @@ import { renderPCSourceList, renderLearningOutcomes,
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
+import { showAIServiceError, jobFocusLines, callAI } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -314,24 +314,8 @@ export async function generateLearningOutcomesAI(pattern = 'C') {
   await new Promise(r => setTimeout(r, 100));
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ prompt: _buildPrompt(selection, pattern) + _aiDir() }),
-    });
-    await throwIfAIError(response);
-
-    const data = await response.json();
-    if (!data.content?.[0]?.text) {
-      throw new Error('Invalid response from backend - no content found');
-    }
-
-    const jsonText = data.content[0].text.trim()
-      .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-    let parsed;
-    try { parsed = JSON.parse(jsonText); }
-    catch (e) { throw new Error('Failed to parse AI response as JSON'); }
+    // 3.74.0: one shared call (ai_client.js callAI).
+    const parsed = await callAI(_buildPrompt(selection, pattern));
 
     if (!Array.isArray(parsed.outcomes) || !parsed.outcomes.length) {
       throw new Error('AI response contained no learning outcomes');

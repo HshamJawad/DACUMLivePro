@@ -16,7 +16,7 @@ import { syncTaskAnalysisTab, clearAllTaskAnalysis, hasAnyTaskAnalysis,
          countTaskAnalysisRecords } from './task_analysis.js';
 import { isBatchRun } from './draft_mode.js';
 import { renderOccupationalStandard } from './occupational_standard.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
+import { showAIServiceError, callAI } from './ai_client.js';
 import { renderModuleCurriculum, clearModuleCurriculum,
          isModuleCurriculumEmpty } from './module_curriculum.js';
 import { verifyOccupation, needsConfirmation, VERDICT, describeCheck,
@@ -739,25 +739,8 @@ Return ONLY valid JSON using the following structure:
 Generate the DACUM draft now in valid JSON format only.`;
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt + _aiDir() })
-    });
-
-    await throwIfAIError(response);
-
-    const data = await response.json();
-    if (!data.content || !data.content[0] || !data.content[0].text) {
-      throw new Error('Invalid response from backend - no content found');
-    }
-
-    let jsonText = data.content[0].text.trim()
-      .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-    let dacumData;
-    try { dacumData = JSON.parse(jsonText); }
-    catch (e) { throw new Error('Failed to parse AI response as JSON'); }
+    // 3.74.0: one shared call (ai_client.js callAI).
+    const dacumData = await callAI(prompt);
 
     if (!dacumData.duties || !Array.isArray(dacumData.duties)) {
       throw new Error('Invalid DACUM structure - duties array not found');
