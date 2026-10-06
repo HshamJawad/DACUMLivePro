@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.70.1 — 2026-10-06 — Task Analysis: selected task on hover ─────
+PATCH. index.html, sw.js (v181).
+Fixed   Task Analysis navigator: hovering the selected task turned its
+        background pale under white text, so the task seemed to vanish
+        (.ta-nav-task:hover outranked .ta-nav-task-active). The selected
+        task now stays blue on hover, a shade darker (#0369a1).
+Changed Hover on the other tasks in the sky-blue family (#f0f9ff /
+        #7dd3fc, was indigo); keyboard focus ring added.
+
 ── 3.70.0 — 2026-10-06 — Task Analysis AI: restore, added sections ──
 MINOR. task_analysis.js, task_analysis_ai.js, ai_client.js,
 additional_info_ai.js, clustering_ai.js, draft_ratings.js,

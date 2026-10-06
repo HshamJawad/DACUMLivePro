@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v180';
+      var EXPECTED_SW='v181';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.70.0';
+      var APP_VERSION = '3.70.1';
       var APP_RELEASED = '2026-10-06';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1640,8 +1640,15 @@
                 background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;
                 font-size:0.85em;cursor:pointer;color:#334155;transition:background .15s,border-color .15s;
                 font-family:inherit;}
-            .ta-nav-task:hover{background:#eef2ff;border-color:#c7d2fe;}
-            .ta-nav-task-active{background:#0284c7;border-color:#0284c7;color:#fff;}
+            /* 3.70.1: hover in the sky-blue family (was indigo #eef2ff), and
+               the selected task keeps its blue on hover — .ta-nav-task:hover
+               outranked .ta-nav-task-active, so hovering the selected task
+               turned its background pale under white text and it vanished. */
+            .ta-nav-task:hover{background:#f0f9ff;border-color:#7dd3fc;}
+            .ta-nav-task:focus-visible{outline:2px solid #0369a1;outline-offset:2px;}
+            .ta-nav-task-active,
+            .ta-nav-task-active:hover{background:#0284c7;border-color:#0284c7;color:#fff;}
+            .ta-nav-task-active:hover{background:#0369a1;border-color:#0369a1;}
             .ta-nav-task-active .ta-nav-code{color:#fff;}
             .ta-nav-dot{flex-shrink:0;width:16px;text-align:center;}
             .ta-status-completed .ta-nav-dot{color:#16a34a;}
