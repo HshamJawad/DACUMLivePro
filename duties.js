@@ -121,6 +121,7 @@ export function renderDutiesFromState() {
   _updateToggleButton();
 
   const mode = _activeMode();
+  _setCardToolbar(mode, container);
   if (mode === 'wall')       _renderWallView(container);
   else if (mode === 'card')  _renderCardView(container);
   else                       _renderTableView(container);
@@ -242,6 +243,8 @@ function _renderCardView(container) {
     dutyDiv.appendChild(row);
     container.appendChild(dutyDiv);
   });
+
+  _applyCardZoom(container);
 }
 
 function _makeTaskCard(task, displayCode) {
@@ -263,6 +266,135 @@ function _makeTaskCard(task, displayCode) {
               rows="2">${_esc(task.text)}</textarea>
   `;
   return card;
+}
+
+// ── CARD VIEW TOOLBAR (3.62.0) ────────────────────────────────
+// The Wall View tools — zoom out / in, reset, print, fullscreen — for
+// Card View. The bar lives OUTSIDE #dutiesContainer, just above it:
+// drag_drop.js sorts #dutiesContainer's direct children in Card View
+// and observes it for re-renders, so nothing foreign may sit inside.
+// Zoom is CSS `zoom` on each .duty-row (via --cv-zoom), so cards keep
+// their own layout and drag & drop is untouched.
+
+const SS_CARD_ZOOM   = 'dacum_card_zoom';
+const CARD_ZOOM_MIN  = 0.5;
+const CARD_ZOOM_MAX  = 1.5;
+
+function _getCardZoom() {
+  let raw = null;
+  try { raw = sessionStorage.getItem(SS_CARD_ZOOM); } catch (_) {}
+  const n = raw ? parseFloat(raw) : 1;
+  return (isFinite(n) && n >= CARD_ZOOM_MIN && n <= CARD_ZOOM_MAX) ? n : 1;
+}
+
+function _setCardZoom(z) {
+  const clamped = Math.round(Math.max(CARD_ZOOM_MIN, Math.min(CARD_ZOOM_MAX, z)) * 100) / 100;
+  try { sessionStorage.setItem(SS_CARD_ZOOM, String(clamped)); } catch (_) {}
+  return clamped;
+}
+
+function _applyCardZoom(container) {
+  const z = _getCardZoom();
+  (container || document.getElementById('dutiesContainer'))?.style.setProperty('--cv-zoom', String(z));
+  const pct = document.querySelector('#cardViewToolbar .wv-zoom-pct');
+  if (pct) pct.textContent = `${Math.round(z * 100)}%`;
+  const out = document.querySelector('#cardViewToolbar [data-cv-action="zoom-out"]');
+  const inn = document.querySelector('#cardViewToolbar [data-cv-action="zoom-in"]');
+  if (out) out.disabled = z <= CARD_ZOOM_MIN;
+  if (inn) inn.disabled = z >= CARD_ZOOM_MAX;
+}
+
+function _cardToolbarHtml() {
+  const fs = !!document.fullscreenElement;
+  return `
+    <div class="wv-center">
+      <button type="button" class="wv-btn" data-cv-action="zoom-out" title="${_t('ttWvZoomOut').replace(/\s*\(.*\)$/, '')}" aria-label="${_t('ttWvZoomOut').replace(/\s*\(.*\)$/, '')}">🔍−</button>
+      <span class="wv-zoom-pct" aria-live="polite">100%</span>
+      <button type="button" class="wv-btn" data-cv-action="zoom-in" title="${_t('ttWvZoomIn').replace(/\s*\(.*\)$/, '')}" aria-label="${_t('ttWvZoomIn').replace(/\s*\(.*\)$/, '')}">🔍+</button>
+      <button type="button" class="wv-btn" data-cv-action="zoom-reset" title="${_t('ttCvZoomReset')}">⟲ ${_t('wvReset')}</button>
+    </div>
+    <div class="wv-right">
+      <button type="button" class="wv-btn" data-cv-action="print" title="${_t('ttCvPrint')}">🖨 ${_t('wvPrint')}</button>
+      <button type="button" class="wv-btn${fs ? ' is-on' : ''}" data-cv-action="fullscreen" title="${_t('ttWvFullscreen')}" aria-pressed="${fs}">🖥 ${_t('wvFullscreen')}</button>
+    </div>`;
+}
+
+function _setCardToolbar(mode, container) {
+  let bar = document.getElementById('cardViewToolbar');
+  if (mode !== 'card') {
+    if (bar) bar.style.display = 'none';
+    if (container) container.style.removeProperty('--cv-zoom');
+    if (document.body.classList.contains('card-view-fullscreen')) _exitFullscreen();
+    return;
+  }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'cardViewToolbar';
+    bar.className = 'wall-toolbar cv-toolbar';
+    bar.setAttribute('role', 'toolbar');
+    if (container && container.parentNode) container.parentNode.insertBefore(bar, container);
+    bar.addEventListener('click', _onCardToolbarClick);
+  }
+  /* Rebuilt on every render so labels follow a language switch. */
+  bar.innerHTML = _cardToolbarHtml();
+  bar.setAttribute('aria-label', _t('ariaCvToolbar'));
+  bar.style.display = '';
+}
+
+function _onCardToolbarClick(e) {
+  const btn = e.target.closest('[data-cv-action]');
+  if (!btn || btn.disabled) return;
+  switch (btn.getAttribute('data-cv-action')) {
+    case 'zoom-in':    _setCardZoom(_getCardZoom() + 0.1); _applyCardZoom(); break;
+    case 'zoom-out':   _setCardZoom(_getCardZoom() - 0.1); _applyCardZoom(); break;
+    case 'zoom-reset': _setCardZoom(1);                    _applyCardZoom(); break;
+    case 'print':      _printCardView(); break;
+    case 'fullscreen': _toggleCardFullscreen(); break;
+  }
+}
+
+function _printCardView() {
+  _populatePrintHeader();
+  document.body.classList.add('card-view-printing');
+  const done = () => {
+    document.body.classList.remove('card-view-printing');
+    window.removeEventListener('afterprint', done);
+  };
+  window.addEventListener('afterprint', done);
+  window.print();
+  /* Chromium's print() blocks until the dialog closes; afterprint has
+     already fired by now. The timeout covers browsers where it has not. */
+  setTimeout(done, 1500);
+}
+
+function _toggleCardFullscreen() {
+  const root = document.documentElement;
+  if (document.fullscreenElement) { _exitFullscreen(); return; }
+  if (!root.requestFullscreen) return;
+  document.body.classList.add('card-view-fullscreen');
+  root.requestFullscreen()
+    .then(() => {
+      _syncCardFsButton();
+      window.scrollTo(0, 0);
+      const c = document.getElementById('dutiesContainer');
+      if (c) c.scrollTop = 0;
+    })
+    .catch(() => { document.body.classList.remove('card-view-fullscreen'); });
+}
+
+function _syncCardFsButton() {
+  const b = document.querySelector('#cardViewToolbar [data-cv-action="fullscreen"]');
+  if (!b) return;
+  const on = !!document.fullscreenElement;
+  b.classList.toggle('is-on', on);
+  b.setAttribute('aria-pressed', String(on));
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) document.body.classList.remove('card-view-fullscreen');
+    _syncCardFsButton();
+  });
 }
 
 // ── Add Duty button visibility ────────────────────────────────

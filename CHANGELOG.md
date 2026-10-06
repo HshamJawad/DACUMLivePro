@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.62.0 — 2026-10-06 — Card View tools ───────────────────────────
+MINOR. duties.js, dacum-components.css, translations.js, index.html,
+sw.js (v172).
+Added   Duties & Tasks → Card View has the Wall View tools in a bar
+        above the cards: 🔍− / % / 🔍+ zoom (50–150 %, step 10, kept for
+        the session in sessionStorage dacum_card_zoom), ⟲ Reset (100 %),
+        🖨 Print and 🖥 Fullscreen. Same .wall-toolbar look.
+        - Zoom is CSS zoom on each .duty-row (--cv-zoom): editing, the
+          sticky duty card and drag & drop work at any zoom.
+        - Print: the print header (occupation, job title, date), then
+          every duty with ALL its tasks (the strip wraps instead of
+          scrolling); no ✕ / ＋ / drag handles; card colours kept.
+        - Fullscreen: only the bar and the cards; Esc or the button
+          exits; leaving Card View exits it too.
+        The bar sits outside #dutiesContainer, so drag_drop.js and the
+        Wall / Table views are unchanged. Tooltips EN / FR / AR.
+
 ── 3.61.0 — 2026-10-06 — Proceed buttons in sky-blue ───────────────
 MINOR. dacum-components.css, index.html, sw.js (v171).
 Changed Every "Proceed to …" button (.btn-next-step) uses the sky-blue
