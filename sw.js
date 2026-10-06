@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v187';
+const CACHE_VERSION = 'v188';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -91,6 +91,7 @@ const PRECACHE_URLS = [
   BASE + 'projects.js',
   BASE + 'exports_shared.js',
   BASE + 'exports_docx.js',
+  BASE + 'exports_docx_sections.js',
   BASE + 'exports_pdf.js',
   // Second DOCX layout: Occupational Profile + Occupational Standard.
   // Reached only from events.js (the toolbar button), never from
@@ -101,6 +102,7 @@ const PRECACHE_URLS = [
   // Module Curriculum tab (3.33.0) and its CUR Word layout. Imported by
   // events.js / tabs.js / projects.js; the exporter only through it.
   BASE + 'module_curriculum.js',
+  BASE + 'module_curriculum_text.js',
   // Traceability Map (3.48.0): imported on demand by events.js only.
   BASE + 'trace_map.js',
   BASE + 'exports_cur_docx.js',

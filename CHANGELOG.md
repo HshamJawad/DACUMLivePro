@@ -7,6 +7,31 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.77.0 — 2026-10-06 — Word export and Module Curriculum broken up (no behaviour change)
+MINOR (internal). exports_docx.js, exports_docx_sections.js (new),
+module_curriculum.js, module_curriculum_text.js (new), sw.js (v188),
+index.html, tests/specs/curriculum.spec.js, tests/README.md.
+Changed exportToWord() was one 2,040-line function. Its ten report
+        sections (duties, additional info, custom sections, skills
+        matrix, two verification appendices, Task Analysis, clusters,
+        learning outcomes, modules) are now functions of their own in
+        exports_docx_sections.js, each receiving the exportToWord()
+        locals it reads and writing none (checked by scope analysis;
+        blocks with return / await / outer writes would have been left).
+        exportToWord() is 681 lines; exports_docx.js 1,474,
+        exports_docx_sections.js 1,430.
+Changed module_curriculum.js keeps the logic (1,332 lines); its text
+        tables — interface strings, export labels, the two guidance
+        texts — moved to module_curriculum_text.js (622 lines).
+Fixed   exports_docx.js called lwExportVerifiedDOCX() without importing
+        it (unreachable today: tvExportMode is forced to 'appendix'; it
+        would have thrown). Imported from workshop.js.
+Tested  Word chart report and Task Verification report (two projects ×
+        EN/AR) and the Module Curriculum tab, its data model and its
+        Word export (two projects × EN/FR/AR): all 26 outputs identical
+        to 3.76.0, part by part. New behaviour test for the Module
+        Curriculum tab and export (18 tests).
+
 ── Tests — 2026-10-06 — behaviour tests run on every push (app unchanged)
 No app change; APP_VERSION / CACHE_VERSION stay at 3.76.0 / v187.
 tests/ (new), .github/workflows/tests.yml (new).
