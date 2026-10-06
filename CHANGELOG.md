@@ -7,6 +7,14 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.61.0 — 2026-10-06 — Proceed buttons in sky-blue ───────────────
+MINOR. dacum-components.css, index.html, sw.js (v171).
+Changed Every "Proceed to …" button (.btn-next-step) uses the sky-blue
+        gradient of the AI cards (#0ea5e9 → #0284c7; hover #0284c7 →
+        #0369a1) instead of #667eea. The grey "Skip to Competency
+        Clustering", the amber emphasis buttons and the disabled state
+        are unchanged.
+
 ── 3.60.0 — 2026-10-06 — Task Verification cards recoloured ────────
 MINOR. dacum-styles.css, index.html, sw.js (v170).
 Changed Task Verification: the "Data Collection Mode" and "Workflow
