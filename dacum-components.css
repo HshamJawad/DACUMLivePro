@@ -495,7 +495,7 @@
         margin: 0 0 14px;
       }
       .tvc-global-btn {
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);   /* 3.69.0: was purple */
         color: #fff;
         border: none;
         border-radius: 9px;
@@ -503,7 +503,7 @@
         font-size: 0.9em;
         font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 3px 10px rgba(102,126,234,0.32);
+        box-shadow: 0 3px 10px rgba(14,165,233,0.32);
       }
       .tvc-global-hint { font-size: 0.82em; color: #64748b; }
 
@@ -1461,6 +1461,44 @@
       .task-item .task-del-x:hover { background: #fee2e2 !important; border-color: #fca5a5 !important; }
       .task-item .task-del-x:focus-visible { outline: 2px solid #b91c1c; outline-offset: 2px; }
       .task-item .task-del-x svg { display: block; pointer-events: none; }
+
+      /* ══════════════════════════════════════════════════════════
+         TASK VERIFICATION in the AI-card blue (3.69.0). Scoped to the
+         tab so the same classes elsewhere keep their colours. Every
+         gradient stays a gradient: #0ea5e9 → #0284c7 (hover → #0369a1).
+         ══════════════════════════════════════════════════════════ */
+      #verification-tab .duty-accordion-header:hover,
+      #verification-tab .duty-accordion-header.active,
+      #verification-tab .verification-table th,
+      #verification-tab .results-dashboard-header,
+      #verification-tab .dashboard-table th {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+      }
+      #verification-tab .results-dashboard-header:hover {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+      }
+      #verification-tab .duty-accordion-header.active { border-bottom-color: #0369a1 !important; }
+      #verification-tab .duty-accordion:hover { border-color: #0ea5e9; box-shadow: 0 4px 12px rgba(14,165,233,0.12); }
+      #verification-tab .results-dashboard { border-color: #0ea5e9; }
+      #verification-tab .summary-card { border-left-color: #0ea5e9; }
+      #verification-tab .rank-badge { background: #0284c7; }
+      #verification-tab .priority-formula-selector h4,
+      #verification-tab .scale-legend-label,
+      #verification-tab .score-display,
+      #verification-tab .priority-index,
+      #verification-tab .count-input-item label,
+      #verification-tab .summary-card h4 { color: #0284c7; }
+      #verification-tab .formula-option:hover,
+      #verification-tab .dpd-selector:hover { border-color: #0ea5e9; }
+      #verification-tab .task-comments:focus,
+      #verification-tab .count-input-item input:focus,
+      #verification-tab .dpd-selector:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.15); }
+      #verification-tab .sv-btn { border-color: #0ea5e9; color: #0369a1; }
+      #verification-tab .sv-btn.sv-primary { background: #0284c7; border-color: #0284c7; color: #fff; }
+      #verification-tab .sv-sep { border-inline-start-color: #0ea5e9; }
+      #verification-tab .sv-res-cat h5 { color: #0369a1; }
+      #verification-tab .sv-head h3 { color: #0369a1; }
+      #verification-tab .sv-badge { background: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
 
       /* ══════════════════════════════════════════════════════════
          CARD COLOURS (3.66.0) — see card_colors.js. Screen + print

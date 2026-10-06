@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v178';
+      var EXPECTED_SW='v179';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.68.0';
+      var APP_VERSION = '3.69.0';
       var APP_RELEASED = '2026-10-06';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1336,17 +1336,17 @@
                         <!-- Duty-Level Summary Section -->
                         <div style="margin-top: 30px; border-top: 2px solid #e5e7eb; padding-top: 20px;">
                             <div class="duty-level-header" id="btnToggleDutyLevelSummary" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 8px; margin-bottom: 15px;">
-                                <h4 style="margin: 0; color: #667eea; font-size: 1.1em;">📋 <span data-i18n="lblDutySummary">Duty-Level Summary</span></h4>
-                                <div id="dutyLevelToggle" style="font-size: 1.2em; color: #667eea;">▼</div>
+                                <h4 style="margin: 0; color: #0284c7; font-size: 1.1em;">📋 <span data-i18n="lblDutySummary">Duty-Level Summary</span></h4>
+                                <div id="dutyLevelToggle" style="font-size: 1.2em; color: #0284c7;">▼</div>
                             </div>
                             <div id="dutyLevelContent" style="display: block;">
                                 <!-- Training Load Method Selector -->
-                                <div style="margin-bottom: 20px; padding: 15px; background: #f0f7ff; border-radius: 8px; border: 2px solid #667eea;">
+                                <div style="margin-bottom: 20px; padding: 15px; background: #f0f7ff; border-radius: 8px; border: 2px solid #0284c7;">
                                     <h5 style="margin: 0 0 10px 0; color: #333; font-size: 1em;" data-i18n="lblTrainingLoadMethod">Training Load Calculation Method:</h5>
                                     <div style="display: flex; flex-direction: column; gap: 10px;">
                                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                                             <input type="radio" name="trainingLoadMethod" value="advanced" checked style="width: 16px; height: 16px;">
-                                            <span style="font-weight: 600;" data-i18n="methodAdvanced">Advanced</span> — <span data-i18n="methodAdvancedDesc">Σ (Priority Index × Mean Difficulty)</span> <span style="color: #667eea; font-style: italic;" data-i18n="lblRecommended">(Recommended)</span>
+                                            <span style="font-weight: 600;" data-i18n="methodAdvanced">Advanced</span> — <span data-i18n="methodAdvancedDesc">Σ (Priority Index × Mean Difficulty)</span> <span style="color: #0284c7; font-style: italic;" data-i18n="lblRecommended">(Recommended)</span>
                                         </label>
                                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                                             <input type="radio" name="trainingLoadMethod" value="simple" style="width: 16px; height: 16px;">
@@ -1354,7 +1354,7 @@
                                         </label>
                                     </div>
                                     <div id="trainingLoadMethodLabel" style="margin-top: 10px; padding: 8px; background: white; border-radius: 4px; font-size: 0.9em; color: #666;">
-                                        Current Method: <strong style="color: #667eea;">Advanced</strong>
+                                        Current Method: <strong style="color: #0284c7;">Advanced</strong>
                                     </div>
                                 </div>
                                 
@@ -1417,13 +1417,13 @@
             </div>
             
             <!-- ===== LIVE WORKSHOP MODULE (MVP INTEGRATION) ===== -->
-            <div id="liveWorkshopSection" style="display: none; margin-top: 40px; padding-top: 40px; border-top: 3px solid #667eea;">
-                <h2 style="color: #667eea; text-align: center; margin-bottom: 20px;">🎯 <span data-i18n="h2LiveWorkshop">Live Workshop Voting System</span></h2>
+            <div id="liveWorkshopSection" style="display: none; margin-top: 40px; padding-top: 40px; border-top: 3px solid #0284c7;">
+                <h2 style="color: #0284c7; text-align: center; margin-bottom: 20px;">🎯 <span data-i18n="h2LiveWorkshop">Live Workshop Voting System</span></h2>
                 
                 <!-- Step 1: Finalize for Live Workshop -->
                 <div id="lwStep1-finalize" style="margin: 30px 0;">
-                    <div style="background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 100%); padding: 25px; border-radius: 12px; border: 2px solid #667eea; margin-bottom: 20px;">
-                        <h3 style="color: #667eea; margin: 0 0 15px 0;">📋 <span data-i18n="lwReadyTitle">Ready to Start Live Voting?</span></h3>
+                    <div style="background: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 100%); padding: 25px; border-radius: 12px; border: 2px solid #0284c7; margin-bottom: 20px;">
+                        <h3 style="color: #0284c7; margin: 0 0 15px 0;">📋 <span data-i18n="lwReadyTitle">Ready to Start Live Voting?</span></h3>
                         <p style="color: #334155; margin: 0 0 15px 0; line-height: 1.6;" data-i18n="lwReadyIntro">
                             Finalize your duties and tasks to create a live voting session. After finalization:
                         </p>
@@ -1447,7 +1447,7 @@
                         }
                     </style>
                     <div class="lw-decision-actions">
-                        <button class="btn-primary"  id="btnLWFinalize" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 40px; font-size: 1.1em; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        <button class="btn-primary"  id="btnLWFinalize" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: white; padding: 15px 40px; font-size: 1.1em; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
                             🔒 <span data-i18n="btnLWFinalize">Finalize & Create Live Voting Session</span>
                         </button>
                         <button type="button" class="btn-bypass-verification btn-next-step btn-next-strong" id="btnBypassToClustering">
@@ -1546,7 +1546,7 @@
 
                     <!-- Export Buttons (shown after results) -->
                     <div id="lwExportButtons" style="display: none; margin-top: 30px; padding: 25px; background: #f9fafb; border-radius: 12px; border: 2px solid #e5e7eb;">
-                        <h3 style="color: #667eea; margin: 0 0 20px 0; text-align: center;">📥 <span data-i18n="lblExportVotingResults">Export Voting Results</span></h3>
+                        <h3 style="color: #0284c7; margin: 0 0 20px 0; text-align: center;">📥 <span data-i18n="lblExportVotingResults">Export Voting Results</span></h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                             <button id="btnLWExportJSON" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">
                                 📄 <span data-i18n="btnExportJSONVoting">Export JSON</span><br><span style="font-size: 0.85em; opacity: 0.9;" data-i18n="subWithVotingData">(With Voting Data)</span>
@@ -1641,20 +1641,20 @@
                 font-size:0.85em;cursor:pointer;color:#334155;transition:background .15s,border-color .15s;
                 font-family:inherit;}
             .ta-nav-task:hover{background:#eef2ff;border-color:#c7d2fe;}
-            .ta-nav-task-active{background:#667eea;border-color:#667eea;color:#fff;}
+            .ta-nav-task-active{background:#0284c7;border-color:#0284c7;color:#fff;}
             .ta-nav-task-active .ta-nav-code{color:#fff;}
             .ta-nav-dot{flex-shrink:0;width:16px;text-align:center;}
             .ta-status-completed .ta-nav-dot{color:#16a34a;}
             .ta-nav-task-active.ta-status-completed .ta-nav-dot{color:#bbf7d0;}
             .ta-status-in-progress .ta-nav-dot{color:#d97706;}
             .ta-nav-task-active.ta-status-in-progress .ta-nav-dot{color:#fde68a;}
-            .ta-nav-code{font-weight:700;color:#667eea;flex-shrink:0;}
+            .ta-nav-code{font-weight:700;color:#0284c7;flex-shrink:0;}
             .ta-nav-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .ta-form-header{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
                 padding:14px 16px;margin-bottom:18px;}
             .ta-form-header-row{display:flex;justify-content:space-between;align-items:flex-start;
                 gap:12px;flex-wrap:wrap;}
-            .ta-form-duty{font-size:0.82em;color:#667eea;font-weight:700;text-transform:uppercase;
+            .ta-form-duty{font-size:0.82em;color:#0284c7;font-weight:700;text-transform:uppercase;
                 letter-spacing:.02em;}
             .ta-form-task{font-size:1.12em;font-weight:700;color:#1e293b;margin-top:2px;}
             /* 3.45.0: modules this task's analysis reaches */

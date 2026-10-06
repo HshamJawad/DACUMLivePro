@@ -433,10 +433,10 @@ export function lwDisplayResults() {
     : 'Average Importance × Average Frequency';
 
   let html = `
-    <div style="background:white;padding:25px;border-radius:12px;border:2px solid #667eea;">
-      <h3 style="color:#667eea;margin:0 0 20px 0;text-align:center;">📊 Voting Results Summary</h3>
+    <div style="background:white;padding:25px;border-radius:12px;border:2px solid #0284c7;">
+      <h3 style="color:#0284c7;margin:0 0 20px 0;text-align:center;">📊 Voting Results Summary</h3>
       <div style="text-align:center;margin-bottom:25px;">
-        <div style="display:inline-block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:15px 30px;border-radius:12px;">
+        <div style="display:inline-block;background:linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);color:white;padding:15px 30px;border-radius:12px;">
           <div style="font-size:0.9em;opacity:0.9;margin-bottom:5px;">Total Participants</div>
           <div style="font-size:2.5em;font-weight:700;">${totalVotes}</div>
         </div>
@@ -445,13 +445,13 @@ export function lwDisplayResults() {
         <table style="width:100%;border-collapse:collapse;margin-top:20px;">
           <thead>
             <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
-              <th style="padding:12px;text-align:left;font-weight:600;color:#667eea;">Rank</th>
-              <th style="padding:12px;text-align:left;font-weight:600;color:#667eea;">Duty</th>
-              <th style="padding:12px;text-align:left;font-weight:600;color:#667eea;">Task</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#667eea;">Avg<br>Importance</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#667eea;">Avg<br>Frequency</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#667eea;">Avg<br>Difficulty</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#667eea;">Priority<br>Index</th>
+              <th style="padding:12px;text-align:left;font-weight:600;color:#0284c7;">Rank</th>
+              <th style="padding:12px;text-align:left;font-weight:600;color:#0284c7;">Duty</th>
+              <th style="padding:12px;text-align:left;font-weight:600;color:#0284c7;">Task</th>
+              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Avg<br>Importance</th>
+              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Avg<br>Frequency</th>
+              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Avg<br>Difficulty</th>
+              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Priority<br>Index</th>
             </tr>
           </thead>
           <tbody>`;
@@ -466,9 +466,9 @@ export function lwDisplayResults() {
         </td>
         <td style="padding:12px;color:#334155;font-weight:500;">${lwEscapeHtml(task.dutyTitle)}</td>
         <td style="padding:12px;color:#475569;">${lwEscapeHtml(task.taskText)}</td>
-        <td style="padding:12px;text-align:center;font-weight:600;color:#667eea;">${task.avgImportance.toFixed(2)}</td>
-        <td style="padding:12px;text-align:center;font-weight:600;color:#667eea;">${task.avgFrequency.toFixed(2)}</td>
-        <td style="padding:12px;text-align:center;font-weight:600;color:#667eea;">${task.avgDifficulty.toFixed(2)}</td>
+        <td style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">${task.avgImportance.toFixed(2)}</td>
+        <td style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">${task.avgFrequency.toFixed(2)}</td>
+        <td style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">${task.avgDifficulty.toFixed(2)}</td>
         <td style="padding:12px;text-align:center;font-weight:700;font-size:1.1em;color:#10b981;">${task.priorityIndex.toFixed(2)}</td>
       </tr>`;
   });
@@ -477,7 +477,7 @@ export function lwDisplayResults() {
           </tbody>
         </table>
       </div>
-      <div style="margin-top:25px;padding:15px;background:#f0f7ff;border-radius:8px;border-left:4px solid #667eea;">
+      <div style="margin-top:25px;padding:15px;background:#f0f7ff;border-radius:8px;border-left:4px solid #0284c7;">
         <p style="margin:0;color:#334155;font-size:0.9em;line-height:1.6;">
           <strong>Priority Index</strong> = ${formulaText}<br>
           <strong>Higher values</strong> indicate greater training priority and importance for the occupation.

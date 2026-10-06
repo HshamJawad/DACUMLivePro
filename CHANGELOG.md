@@ -7,6 +7,21 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.69.0 — 2026-10-06 — Task Verification in the AI-card blue ─────
+MINOR. dacum-components.css, index.html, tasks.js, workshop.js,
+sw.js (v179).
+Changed Task Verification & Training Priority: every purple bar and
+        button uses the sky-blue of the AI cards, gradients kept as
+        gradients (#0ea5e9 → #0284c7; hover → #0369a1): duty accordion
+        headers (open / hover), verification and results table headers,
+        the Results Dashboard header, 📊 View Results Chart, 🔒 Finalize
+        & Create Live Voting Session, the Supplementary Verification
+        buttons. Purple accents in the tab (Priority Index and score
+        numbers, section titles, Duty-Level Summary, Live Workshop
+        headings and borders, voting-results summary) follow in
+        #0284c7. Rules are scoped to #verification-tab, so the same
+        classes elsewhere are unchanged.
+
 ── 3.68.0 — 2026-10-06 — Table View task delete as a soft ✕ ────────
 MINOR. duties.js, dacum-components.css, index.html, sw.js (v178).
 Changed Duties & Tasks → Table View: each task's 🗑️ red button is now

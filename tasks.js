@@ -91,7 +91,7 @@ export function updateTrainingLoadMethod() {
   appState.trainingLoadMethod = advanced && advanced.checked ? 'advanced' : 'simple';
   const label = document.getElementById('trainingLoadMethodLabel');
   if (label) {
-    label.innerHTML = `${_t('lblCurrentMethod')} <strong style="color:#667eea;">${_t(appState.trainingLoadMethod === 'advanced' ? 'methodAdvanced' : 'methodSimple')}</strong>`;
+    label.innerHTML = `${_t('lblCurrentMethod')} <strong style="color:#0284c7;">${_t(appState.trainingLoadMethod === 'advanced' ? 'methodAdvanced' : 'methodSimple')}</strong>`;
   }
   updateDutyLevelSummary();
 }
@@ -769,7 +769,7 @@ export function refreshDashboard() {
       const threshold         = validResults[Math.floor(validResults.length * 0.3)]?.priorityIndex || 0;
       const highPriorityCount = validResults.filter(r => r.priorityIndex >= threshold).length;
       const labelHtml = projectLabel
-        ? `<div style="grid-column:1/-1;text-align:center;margin-bottom:8px;font-size:0.82em;color:#667eea;font-weight:600;">Showing results for: ${escapeHtml(projectLabel)}</div>`
+        ? `<div style="grid-column:1/-1;text-align:center;margin-bottom:8px;font-size:0.82em;color:#0284c7;font-weight:600;">Showing results for: ${escapeHtml(projectLabel)}</div>`
         : '';
       summaryEl.innerHTML = `${labelHtml}
         <div class="summary-card"><h4>${_t('cardTasksVerified')}</h4><p>${validResults.length}</p></div>
@@ -897,7 +897,7 @@ function updateDutyLevelSummaryFromSource(resultsSource) {
     <td style="text-align:center;"><span class="mean-value">${duty.avgDifficulty.toFixed(2)}</span></td>
     <td style="text-align:center;"><span class="priority-index">${duty.avgPriority.toFixed(2)}</span></td>
     <td style="text-align:center;">${duty.highPriorityCount}</td>
-    <td style="text-align:center;"><strong style="color:#667eea;">${duty.trainingLoad.toFixed(2)}</strong></td>
+    <td style="text-align:center;"><strong style="color:#0284c7;">${duty.trainingLoad.toFixed(2)}</strong></td>
   </tr>`).join('');
 }
 
