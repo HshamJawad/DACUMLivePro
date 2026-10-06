@@ -7,6 +7,40 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.72.0 — 2026-10-06 — The Job Title is required: DACUM analyses the job
+MINOR. projects.js, draft_ui.js, draft_agent.js, occupation_check.js,
+ai_client.js, additional_info_ai.js, clustering_ai.js,
+learning_outcomes_ai.js, module_mapping_ai.js, task_analysis_ai.js,
+dacum-draft.css, translations.js, index.html,
+DACUM_Live_Pro_User_Guide.html, sw.js (v183).
+Changed Job Title is required for AI generation (Duties & Tasks card,
+        "Generate Anyway", Full Draft): a DACUM chart describes a job —
+        the duties and tasks of the people who hold it — not the whole
+        occupation. It may equal the Occupation Title when the
+        occupation is a single job (said under the field). Manual work,
+        exports and older projects without one are not blocked.
+Changed Duties & Tasks prompt: the job is the UNIT OF ANALYSIS and the
+        occupation context only; never tasks of other jobs in the same
+        occupation. Removed "assume a generic role" and "generate for the
+        full occupation". Same job-first wording in the Additional Info,
+        Clusters, Learning Outcomes, Module Mapping and Task Analysis
+        prompts (ai_client.js jobFocusLines(); a project without a Job
+        Title tells the model to infer the job from the chart).
+Added   The title check also judges the Job Title in the same call: a
+        real job, and one that belongs to the occupation. The same
+        warning card (Duties & Tasks, Full Draft) then offers the
+        suggestion, "Edit the Job Title" or "Generate anyway"; the bypass
+        is per occupation + job pair.
+Changed Chart Info: * on Occupation Title and Job Title, a line under Job
+        Title, help text and AI-card hint updated; Full Draft lists both
+        as needed first. User Guide updated.
+Changed Full Draft "Start Generating" / "Save & Continue" in the AI-card
+        blue (was indigo #4f46e5), stage ticks too.
+Fixed   Full Draft stopped at "Range & Criteria" every time: its check read
+        cluster.criteria, which does not exist (the field is
+        performanceCriteria), so the stage always looked empty; the
+        overwrite warning never listed it either. EN/FR/AR.
+
 ── 3.71.0 — 2026-10-06 — Competency Clusters: the card AI button ───
 MINOR. clustering_ai.js, modules.js, events.js, dacum-styles.css,
 translations.js, index.html, sw.js (v182).

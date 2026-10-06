@@ -48,7 +48,19 @@ const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
    answer for a given string does not change within a session. */
 const _cache = new Map();
 
-const _key = (title, lang) => lang + '\u0000' + title.trim().toLowerCase();
+const _key = (title, lang, job = '') => lang + '\u0000' + title.trim().toLowerCase() +
+  '\u0000' + String(job || '').trim().toLowerCase();
+
+/* 3.72.0: the Job Title is checked in the same call — that it is a
+   real job and that it belongs to the occupation (DACUM analyses the
+   job; the occupation is its family). */
+export const JOB_VERDICT = {
+  FITS:      'fits',
+  TYPO:      'likely_typo',
+  MISMATCH:  'not_in_occupation',
+  UNKNOWN:   'unknown',
+  UNCHECKED: 'unchecked',
+};
 
 /* Verdicts. `unchecked` is not a fourth classification the model can
    return — it is what WE record when we could not ask. */
@@ -59,8 +71,25 @@ export const VERDICT = {
   UNCHECKED: 'unchecked',
 };
 
-function _prompt(title, lang) {
+function _prompt(title, lang, job = '') {
   const langName = lang === 'ar' ? 'Arabic' : lang === 'fr' ? 'French' : 'English';
+  const jobBlock = job ? `
+
+SECOND STRING — JOB TITLE: ${JSON.stringify(job)}
+In DACUM the chart describes this JOB; the occupation above is only its
+wider family. Judge the job title with exactly one "job_verdict":
+  "fits"              a real job or role that plausibly belongs to the
+                      occupation, or is the occupation itself (the same
+                      string as the occupation is "fits").
+  "likely_typo"       a misspelling of a specific real job you can name.
+                      Put that job in "job_suggestion".
+  "not_in_occupation" a real job, but clearly from a different occupation
+                      (e.g. occupation "Maintenance Technician", job
+                      "Accountant").
+  "unknown"           not recognisable as a job or role.
+Be generous: specialisations, local or dialect names, emerging roles and
+seniority variants are "fits". "job_reason" is ONE short sentence in
+${langName} for the user; omit it when "fits".` : '';
 
   return `You are validating a single input field before an occupational
 analysis tool generates a DACUM chart from it. You are NOT generating
@@ -105,8 +134,11 @@ RULES:
   to the user, explaining the verdict. Omit it when the verdict is
   "known".
 
+${jobBlock}
+
 Return ONLY this JSON, no prose, no code fences:
-{"verdict":"known|likely_typo|unknown","suggestion":"","standard_name":"","reason":""}`;
+{"verdict":"known|likely_typo|unknown","suggestion":"","standard_name":"","reason":""${
+  job ? ',"job_verdict":"fits|likely_typo|not_in_occupation|unknown","job_suggestion":"","job_reason":""' : ''}}`;
 }
 
 /**
@@ -116,14 +148,17 @@ Return ONLY this JSON, no prose, no code fences:
  * @returns {Promise<{verdict:string, suggestion:string,
  *                    standardName:string, reason:string, title:string}>}
  */
-export async function verifyOccupation(title) {
+export async function verifyOccupation(title, jobTitle = '') {
   const clean = String(title || '').trim();
+  const job   = String(jobTitle || '').trim();
   const lang  = window.i18n && window.i18n.getLang ? window.i18n.getLang() : 'en';
 
-  const miss = { verdict: VERDICT.UNCHECKED, suggestion: '', standardName: '', reason: '', title: clean };
+  const noJob = { verdict: JOB_VERDICT.UNCHECKED, suggestion: '', reason: '' };
+  const miss = { verdict: VERDICT.UNCHECKED, suggestion: '', standardName: '', reason: '',
+                 title: clean, jobTitle: job, job: noJob };
   if (!clean) return miss;
 
-  const key = _key(clean, lang);
+  const key = _key(clean, lang, job);
   if (_cache.has(key)) return _cache.get(key);
 
   let result;
@@ -131,17 +166,21 @@ export async function verifyOccupation(title) {
     const res = await fetch(`${BACKEND_URL}/api/generate-dacum`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ prompt: _prompt(clean, lang) })
+      body:    JSON.stringify({ prompt: _prompt(clean, lang, job) })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
 
     const data = await res.json();
-    const text = data?.content?.[0]?.text;
-    if (!text) throw new Error('empty response');
+    const text = (data?.content || []).map(b => (b && b.type === 'text' ? b.text : '')).join('');
+    if (!text.trim()) throw new Error('empty response');
 
-    const parsed = JSON.parse(
-      text.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    );
+    const body = text.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    let parsed;
+    try { parsed = JSON.parse(body); }
+    catch (_) {
+      const a = body.indexOf('{'), b = body.lastIndexOf('}');
+      parsed = JSON.parse(body.slice(a, b + 1));
+    }
 
     const verdict = [VERDICT.KNOWN, VERDICT.TYPO, VERDICT.UNKNOWN]
       .includes(parsed.verdict) ? parsed.verdict : VERDICT.UNCHECKED;
@@ -152,7 +191,22 @@ export async function verifyOccupation(title) {
       standardName: String(parsed.standard_name || '').trim(),
       reason:       String(parsed.reason        || '').trim(),
       title:        clean,
+      jobTitle:     job,
+      job:          noJob,
     };
+
+    if (job) {
+      const jv = [JOB_VERDICT.FITS, JOB_VERDICT.TYPO, JOB_VERDICT.MISMATCH, JOB_VERDICT.UNKNOWN]
+        .includes(parsed.job_verdict) ? parsed.job_verdict : JOB_VERDICT.UNCHECKED;
+      result.job = {
+        verdict:    jv,
+        suggestion: String(parsed.job_suggestion || '').trim(),
+        reason:     String(parsed.job_reason     || '').trim(),
+      };
+      if (result.job.verdict === JOB_VERDICT.TYPO && !result.job.suggestion) {
+        result.job.verdict = JOB_VERDICT.UNKNOWN;
+      }
+    }
 
     /* A typo verdict with nothing to suggest is not actionable — the
        user would be told they are wrong and offered no way forward.
@@ -169,9 +223,51 @@ export async function verifyOccupation(title) {
   return result;
 }
 
-/** True when the title should be questioned before generating. */
-export function needsConfirmation(result) {
+/** True when the occupation title itself should be questioned. */
+function _occNeeds(result) {
   return result.verdict === VERDICT.TYPO || result.verdict === VERDICT.UNKNOWN;
+}
+/** True when the job title should be questioned (3.72.0). */
+function _jobNeeds(result) {
+  const v = result && result.job && result.job.verdict;
+  return v === JOB_VERDICT.TYPO || v === JOB_VERDICT.MISMATCH || v === JOB_VERDICT.UNKNOWN;
+}
+
+/** True when the titles should be questioned before generating. */
+export function needsConfirmation(result) {
+  return !!result && (_occNeeds(result) || _jobNeeds(result));
+}
+
+/**
+ * What the warning should say, for both warning cards (Duties & Tasks,
+ * Full Draft). The occupation is asked about first; the job only when
+ * the occupation is fine. `field` is the Chart Info input to correct.
+ */
+export function describeCheck(result) {
+  const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
+  if (_occNeeds(result)) {
+    const isTypo = result.verdict === VERDICT.TYPO;
+    return {
+      field: 'occupationTitle', isTypo, suggestion: result.suggestion,
+      title: isTypo ? _tf('occWarnTypoTitle', { v: result.suggestion }) : _t('occWarnUnknownTitle'),
+      body:  result.reason || _t(isTypo ? 'occWarnTypoBody' : 'occWarnUnknownBody'),
+      typed: _tf('occWarnYouTyped', { v: result.title }),
+      editLabel: _t('occBtnEdit'),
+    };
+  }
+  const j = result.job || {};
+  const isTypo = j.verdict === JOB_VERDICT.TYPO;
+  const titleKey = isTypo ? 'jobWarnTypoTitle'
+                 : j.verdict === JOB_VERDICT.MISMATCH ? 'jobWarnMismatchTitle' : 'jobWarnUnknownTitle';
+  const bodyKey  = isTypo ? 'jobWarnTypoBody'
+                 : j.verdict === JOB_VERDICT.MISMATCH ? 'jobWarnMismatchBody' : 'jobWarnUnknownBody';
+  return {
+    field: 'jobTitle', isTypo, suggestion: j.suggestion,
+    title: _tf(titleKey, { v: j.suggestion, occ: result.title }),
+    body:  j.reason || _tf(bodyKey, { occ: result.title }),
+    typed: _tf('jobWarnYouTyped', { job: result.jobTitle, occ: result.title }),
+    editLabel: _t('jobBtnEdit'),
+  };
 }
 
 /* ── Bypass ledger ────────────────────────────────────────────
@@ -184,16 +280,20 @@ export function needsConfirmation(result) {
    Re-asking would train them to click through it, which is exactly
    how a gate stops working. */
 const _bypassed = new Set();
+// 3.72.0: keyed on the occupation + job PAIR — accepting a job for one
+// occupation says nothing about the same job under another.
+const _bk = (title, job) => String(title || '').trim().toLowerCase() +
+  '\u0000' + String(job || '').trim().toLowerCase();
 
-export function markBypassed(title) {
-  _bypassed.add(String(title || '').trim().toLowerCase());
+export function markBypassed(title, job = '') {
+  _bypassed.add(_bk(title, job));
 }
 
-export function wasBypassed(title) {
-  return _bypassed.has(String(title || '').trim().toLowerCase());
+export function wasBypassed(title, job = '') {
+  return _bypassed.has(_bk(title, job));
 }
 
-/** Applying a suggestion invalidates the bypass for the OLD string only. */
-export function clearBypass(title) {
-  _bypassed.delete(String(title || '').trim().toLowerCase());
+/** Applying a suggestion invalidates the bypass for the OLD pair only. */
+export function clearBypass(title, job = '') {
+  _bypassed.delete(_bk(title, job));
 }

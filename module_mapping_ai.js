@@ -46,7 +46,7 @@ import { renderModules, renderModuleLoList,
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -224,8 +224,6 @@ within each level.`;
 }
 
 function _buildPrompt(outcomes, opts) {
-  const occupation = (document.getElementById('occupationTitle')?.value || '').trim();
-  const jobTitle   = (document.getElementById('jobTitle')?.value || '').trim();
   const scope      = (document.getElementById('scopeOfWork')?.value || '').trim();
 
   // Each outcome is listed with its competency and criteria so the
@@ -256,8 +254,7 @@ ${existing.map(m => {
 
   return `You are a curriculum design engine specialized in competency-based training (CBT) derived from DACUM analysis.
 
-OCCUPATION: ${occupation || '(not specified)'}${jobTitle ? `
-JOB / ROLE: ${jobTitle}` : ''}${scope ? `
+${jobFocusLines()}${scope ? `
 SCOPE OF WORK: ${scope}` : ''}
 ${existingBlock}
 LEARNING OUTCOMES TO ORGANISE (${outcomes.length} total):
@@ -280,7 +277,7 @@ GROUPING RULES:
 MODULE TITLE RULES:
 - Name the module for the COMPETENCE it develops.
 - Action-oriented noun phrase, e.g. "Implementing Hardware Procedures".
-- 3-8 words, specific to this occupation.
+- 3-8 words, specific to this job.
 - NO numbering of any kind ("Module 1", "1.", "M1") — the app numbers modules.
 ${opts.assignLevels ? _levelRules(opts.levelCount, tracks) : `
 SEQUENCING RULES:

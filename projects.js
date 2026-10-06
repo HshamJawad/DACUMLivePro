@@ -19,7 +19,7 @@ import { renderOccupationalStandard } from './occupational_standard.js';
 import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
 import { renderModuleCurriculum, clearModuleCurriculum,
          isModuleCurriculumEmpty } from './module_curriculum.js';
-import { verifyOccupation, needsConfirmation, VERDICT,
+import { verifyOccupation, needsConfirmation, VERDICT, describeCheck,
          markBypassed, wasBypassed, clearBypass } from './occupation_check.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -567,7 +567,7 @@ export async function generateAIDacum() {
     return;
   }
 
-  // ── Read inputs (occupationTitle required; rest optional) ──
+  // ── Read inputs (occupation AND job required since 3.72.0) ──
   const inputs = _readAIInputs();
 
   // ── Hard validation: only Occupation Title is required ──
@@ -577,6 +577,17 @@ export async function generateAIDacum() {
     // progress". The status line carries the same message.
     if (!isBatchRun()) alert(_t('msgOccupationRequiredAlert'));
     showStatus(_t('msgOccupationRequired'), 'error');
+    return;
+  }
+
+  /* 3.72.0 — DACUM analyses a JOB: the duties and tasks of the people
+     who hold it. The occupation is its wider family, so a chart built
+     from the occupation alone mixes several jobs. The Job Title may be
+     the same as the occupation when the occupation is a single job. */
+  if (!inputs.jobTitle) {
+    if (!isBatchRun()) alert(_t('msgJobTitleRequiredAlert'));
+    showStatus(_t('msgJobTitleRequired'), 'error');
+    _focusChartInfoField('jobTitle');
     return;
   }
 
@@ -590,9 +601,9 @@ export async function generateAIDacum() {
      question BEFORE the run starts — which is where it is worth
      most, ahead of seven chained calls and the whole day's quota,
      rather than after the first one has already been spent. */
-  if (!isBatchRun() && !wasBypassed(inputs.occupationTitle)) {
+  if (!isBatchRun() && !wasBypassed(inputs.occupationTitle, inputs.jobTitle)) {
     showStatus(_t('msgCheckingOccupation'), 'info');
-    const check = await verifyOccupation(inputs.occupationTitle);
+    const check = await verifyOccupation(inputs.occupationTitle, inputs.jobTitle);
     if (needsConfirmation(check)) {
       _showOccupationWarning(check);
       showStatus(_t('msgOccupationQuestionable'), 'error');
@@ -658,21 +669,27 @@ async function _runAIGeneration(inputs) {
 Your task is to generate a DATA-INFORMED DACUM DRAFT that will be injected directly into a DACUM chart UI.
 
 INPUT:
-Occupation Title (BASE CONTEXT): ${occupationTitle}${jobTitle ? `
-Job / Role (PRIMARY FOCUS): ${jobTitle}` : ''}${scopeOfWork ? `
-Scope of Work (CRITICAL BOUNDARY): ${scopeOfWork}` : ''}${sector ? `
+Job Title (UNIT OF ANALYSIS — the job this chart describes): ${jobTitle}
+Occupation (CONTEXT ONLY — the wider family this job belongs to): ${occupationTitle}${
+  jobTitle.toLowerCase() === occupationTitle.toLowerCase() ? `
+(The job and the occupation are the same here: analyse it as ONE job, not as a family of jobs.)` : ''}${scopeOfWork ? `
+Scope of Work (CRITICAL BOUNDARY of this job): ${scopeOfWork}` : ''}${sector ? `
 Sector: ${sector}` : ''}${context ? `
 Country / Context: ${context}` : ''}
 
-SCOPE INTERPRETATION RULE (VERY IMPORTANT):
-- If Scope of Work is provided → it DEFINES and LIMITS the analysis.
-- If Job Title is provided → generate duties/tasks for that specific job within the occupation.
-- If Job Title is NOT provided → assume a generic role within the occupation,
-  but STRICTLY guided by the Scope if available.
-- Never generate for the full occupation unless neither Scope nor Job Title are provided.
+UNIT OF ANALYSIS (DACUM — VERY IMPORTANT):
+- A DACUM chart describes ONE JOB: the duties and tasks performed by
+  competent workers who HOLD THAT JOB. It is not a map of the occupation.
+- The occupation is context only — use it for vocabulary, sector norms
+  and typical work settings. NEVER include duties or tasks that belong
+  to other jobs in the same occupation (other specialisations,
+  neighbouring trades, supervisory or managerial roles).
+- If Scope of Work is provided → it further DEFINES and LIMITS this job.
+- Test every duty and task: "Does a competent holder of THIS job perform
+  this as part of the job?" If not, leave it out.
 
 TASK:
-Generate a DACUM draft that reflects the REAL WORK performed within the defined scope.
+Generate a DACUM draft that reflects the REAL WORK performed by holders of this job.
 
 STRUCTURE GUIDELINES (FLEXIBLE):
 - Duties: typically 6–12 (based on actual scope coverage)
@@ -699,8 +716,8 @@ TASK RULES:
 - Focus strictly on real, hands-on job execution tasks
 
 QUALITY CONTROL:
-- Ensure all duties and tasks stay INSIDE the defined scope
-- Avoid generic occupation-wide tasks when a scope is given
+- Ensure all duties and tasks stay INSIDE this job (and its scope when given)
+- Avoid generic occupation-wide tasks that the holder of this job does not perform
 - Prefer specificity over completeness when the two conflict
 
 METHODOLOGICAL NOTE:
@@ -934,19 +951,20 @@ function _showOccupationWarning(check) {
   const anchor = document.getElementById('scopeMissingWarning');
   if (!anchor || !anchor.parentNode) return;
 
-  const isTypo  = check.verdict === VERDICT.TYPO;
+  /* 3.72.0: the same card asks about the job title when the
+     occupation is fine (describeCheck picks which, and the field). */
+  const d       = describeCheck(check);
+  const isTypo  = d.isTypo;
   const esc     = (v) => String(v == null ? '' : v)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  const title = isTypo
-    ? _tf('occWarnTypoTitle', { v: check.suggestion })
-    : _t('occWarnUnknownTitle');
+  const title = d.title;
 
   /* The model's own sentence is preferred when it gave one: it can say
      WHY this particular string looks wrong, which a fixed string
      cannot. The generic body is the fallback. */
-  const body = check.reason || _t(isTypo ? 'occWarnTypoBody' : 'occWarnUnknownBody');
+  const body = d.body;
 
   const btn = (id, label, primary) => `
     <button id="${id}" type="button"
@@ -971,11 +989,11 @@ function _showOccupationWarning(check) {
           ${esc(body)}
         </p>
         <p style="margin:0 0 10px; font-size:0.8em; color:#78350f;">
-          ${esc(_tf('occWarnYouTyped', { v: check.title }))}
+          ${esc(d.typed)}
         </p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          ${isTypo ? btn('btnOccApply', _tf('occBtnUseSuggestion', { v: check.suggestion }), true) : ''}
-          ${btn('btnOccEdit', _t('occBtnEdit'), !isTypo)}
+          ${isTypo ? btn('btnOccApply', _tf('occBtnUseSuggestion', { v: d.suggestion }), true) : ''}
+          ${btn('btnOccEdit', d.editLabel, !isTypo)}
           ${btn('btnOccAnyway', _t('occBtnGenerateAnyway'), false)}
         </div>
       </div>
@@ -987,35 +1005,40 @@ function _showOccupationWarning(check) {
   /* Apply the suggestion — the ONLY path that writes to the field, and
      only ever on an explicit click. Nothing here corrects silently. */
   el.querySelector('#btnOccApply')?.addEventListener('click', () => {
-    const field = document.getElementById('occupationTitle');
+    const field = document.getElementById(d.field);
     if (field) {
-      clearBypass(field.value);
-      field.value = check.suggestion;
+      clearBypass(check.title, check.jobTitle);
+      field.value = d.suggestion;
       field.dispatchEvent(new Event('input',  { bubbles: true }));
       field.dispatchEvent(new Event('change', { bubbles: true }));
     }
     _hideOccupationWarning();
-    showStatus(_tf('msgOccupationCorrected', { v: check.suggestion }), 'success');
+    showStatus(_tf('msgOccupationCorrected', { v: d.suggestion }), 'success');
   });
 
   el.querySelector('#btnOccEdit')?.addEventListener('click', () => {
     _hideOccupationWarning();
-    const field = document.getElementById('occupationTitle');
-    if (field && typeof window.switchTab === 'function') {
-      try { window.switchTab('info-tab'); } catch (_) {}
-    }
-    setTimeout(() => { if (field) { field.focus(); field.select(); } }, 80);
+    _focusChartInfoField(d.field);
   });
 
-  /* Proceed as typed. Recorded so this exact string is not questioned
+  /* Proceed as typed. Recorded so this exact pair is not questioned
      again — see the bypass ledger in occupation_check.js. */
   el.querySelector('#btnOccAnyway')?.addEventListener('click', () => {
-    markBypassed(check.title);
+    markBypassed(check.title, check.jobTitle);
     _hideOccupationWarning();
     generateAIDacum().then(ok => {
       if (ok) document.dispatchEvent(new CustomEvent('dacum:ai-generated'));
     });
   });
+}
+
+/** Takes the user to a Chart Info field and selects it. */
+function _focusChartInfoField(id) {
+  const field = document.getElementById(id);
+  if (field && typeof window.switchTab === 'function') {
+    try { window.switchTab('info-tab'); } catch (_) {}
+  }
+  setTimeout(() => { if (field) { field.focus(); try { field.select(); } catch (_) {} } }, 80);
 }
 
 function _showScopeMissingWarning() {
@@ -1060,6 +1083,11 @@ function _showScopeMissingWarning() {
       const inputs = _readAIInputs();
       if (!inputs.occupationTitle) {
         alert(_t('msgOccupationRequiredAlert'));
+        return;
+      }
+      if (!inputs.jobTitle) {
+        alert(_t('msgJobTitleRequiredAlert'));
+        _focusChartInfoField('jobTitle');
         return;
       }
 

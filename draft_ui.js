@@ -15,7 +15,7 @@ import { STAGES, runDraft, cancelDraft, resumeDraft,
          quotaCheck,
          scopeIsMissing }                    from './draft_agent.js';
 import { switchTab }                         from './projects.js';
-import { verifyOccupation, needsConfirmation, VERDICT,
+import { verifyOccupation, needsConfirmation, VERDICT, describeCheck,
          markBypassed, wasBypassed,
          clearBypass }                       from './occupation_check.js';
 import { showStatus }                        from './renderer.js';
@@ -230,7 +230,7 @@ function _setupBody() {
           <label style="display:flex;align-items:center;gap:10px;width:100%;cursor:${i === 0 ? 'default' : 'pointer'};">
             <input type="checkbox" class="dg-chain-cb" data-idx="${i}"
                    ${i < _depth ? 'checked' : ''} ${i === 0 ? 'disabled' : ''}
-                   style="width:18px;height:18px;flex-shrink:0;accent-color:#4f46e5;cursor:inherit;">
+                   style="width:18px;height:18px;flex-shrink:0;accent-color:#0284c7;cursor:inherit;">
             <span class="dg-chain-num">${i + 1}</span>
             <span class="dg-chain-label" style="flex:1;${i < _depth ? '' : 'text-decoration:line-through;'}">${_esc(_t(s.labelKey))}</span>
             ${i < _depth ? '' : `<span style="font-size:.75em;font-weight:700;color:#94a3b8;">${_esc(_t('dgExcluded'))}</span>`}
@@ -252,27 +252,24 @@ function _setupBody() {
       </label>`;
     }).join('')}
 
-    ${_occCheck && needsConfirmation(_occCheck) ? `
+    ${_occCheck && needsConfirmation(_occCheck) ? (() => { const d = describeCheck(_occCheck); return `
       <div class="dg-note dg-note-warn">
-        <strong>\u{1F50D} ${_esc(_occCheck.verdict === VERDICT.TYPO
-          ? _tf('occWarnTypoTitle', { v: _occCheck.suggestion })
-          : _t('occWarnUnknownTitle'))}</strong>
-        <p>${_esc(_occCheck.reason || _t(_occCheck.verdict === VERDICT.TYPO
-          ? 'occWarnTypoBody' : 'occWarnUnknownBody'))}</p>
-        <p>${_esc(_tf('occWarnYouTyped', { v: _occCheck.title }))}</p>
+        <strong>\u{1F50D} ${_esc(d.title)}</strong>
+        <p>${_esc(d.body)}</p>
+        <p>${_esc(d.typed)}</p>
         <div class="dg-scope-actions">
-          ${_occCheck.verdict === VERDICT.TYPO ? `
+          ${d.isTypo ? `
             <button type="button" class="dg-inline-btn" id="dgOccApply">
-              ${_esc(_tf('occBtnUseSuggestion', { v: _occCheck.suggestion }))}
+              ${_esc(_tf('occBtnUseSuggestion', { v: d.suggestion }))}
             </button>` : ''}
           <button type="button" class="dg-inline-btn dg-inline-ghost" id="dgOccEdit">
-            ${_esc(_t('occBtnEdit'))}
+            ${_esc(d.editLabel)}
           </button>
           <button type="button" class="dg-inline-btn dg-inline-ghost" id="dgOccAnyway">
             ${_esc(_t('occBtnGenerateAnyway'))}
           </button>
         </div>
-      </div>` : ''}
+      </div>`; })() : ''}
 
     <div class="dg-note dg-note-warn" id="dgScopeNote" style="${scopeIsMissing() ? '' : 'display:none;'}">
       <strong>\u26A0\uFE0F ${_esc(_t('dgScopeSoftTitle'))}</strong>
@@ -327,14 +324,14 @@ function _quotaBlock(ids) {
 
 /* ── Job information used for generation ──────────────────────
    The same inputs the Duties & Tasks generator sends to the model
-   (generateAIDacum → _readAIInputs in projects.js): Occupation Title is
-   the only hard requirement; Job Title, Scope of Work, Sector and
-   Context are optional but narrow the draft to the actual JOB. Each
+   (generateAIDacum → _readAIInputs in projects.js): Occupation Title and
+   (3.72.0) Job Title are required — DACUM analyses the job; Scope of
+   Work, Sector and Context are optional but narrow it further. Each
    field here edits the real Chart Info field directly, so a value
    entered in this dialog is already in the tab when the user returns. */
 const JOB_FIELDS = [
   { id: 'occupationTitle', key: 'labelOccupation', required: true },
-  { id: 'jobTitle',        key: 'labelJobTitle' },
+  { id: 'jobTitle',        key: 'labelJobTitle', required: true, hintKey: 'hintJobTitleReq' },
   { id: 'scopeOfWork',     key: 'labelScope', tag: 'textarea' },
   { id: 'sector',          key: 'labelSector' },
   { id: 'context',         key: 'labelContext' },
@@ -354,6 +351,7 @@ function _jobFieldsHtml() {
     return `
     <label class="dg-prereq-field">
       <span>${_esc(_fieldLabel(f))}</span>
+      ${f.hintKey ? `<small style="display:block;margin:-2px 0 6px;font-size:.8em;color:#64748b;line-height:1.45;font-weight:400;">${_esc(_t(f.hintKey))}</small>` : ''}
       ${f.tag === 'textarea'
         ? `<textarea id="dgFix_${f.id}" data-dg-field="${f.id}" rows="3"
                      placeholder="${_esc(ph)}">${_esc(val)}</textarea>`
@@ -497,7 +495,7 @@ function _wire() {
       if (!dst) return;
       dst.value = el.value;
       try { dst.dispatchEvent(new Event('input',  { bubbles: true })); } catch (_) {}
-      if (el.getAttribute('data-dg-field') === 'occupationTitle') _occCheck = null;
+      if (['occupationTitle', 'jobTitle'].includes(el.getAttribute('data-dg-field'))) _occCheck = null;
       const note = document.getElementById('dgScopeNote');
       if (note) note.style.display = scopeIsMissing() ? '' : 'none';
     });
@@ -619,11 +617,12 @@ function _wire() {
        costs the day and produces a chart for the wrong occupation. */
     if (missingPrerequisites().length) { renderModal(); return; }
     const title = (document.getElementById('occupationTitle')?.value || '').trim();
-    if (title && !wasBypassed(title)) {
+    const job   = (document.getElementById('jobTitle')?.value || '').trim();
+    if (title && !wasBypassed(title, job)) {
       const startBtn = q('#dgStart');
       if (startBtn) { startBtn.disabled = true; startBtn.textContent = _t('msgCheckingOccupation'); }
 
-      _occCheck = await verifyOccupation(title);
+      _occCheck = await verifyOccupation(title, job);
 
       if (needsConfirmation(_occCheck)) {
         renderModal();   // repaints setup, now carrying the warning
@@ -647,13 +646,14 @@ function _wire() {
   /* Apply the suggestion — the only path that writes to the field, and
      only ever on an explicit click. Nothing corrects silently. */
   q('#dgOccApply')?.addEventListener('click', () => {
-    const field = document.getElementById('occupationTitle');
+    const d = _occCheck ? describeCheck(_occCheck) : null;
+    const field = d ? document.getElementById(d.field) : null;
     if (field && _occCheck) {
-      clearBypass(field.value);
-      field.value = _occCheck.suggestion;
+      clearBypass(_occCheck.title, _occCheck.jobTitle);
+      field.value = d.suggestion;
       field.dispatchEvent(new Event('input',  { bubbles: true }));
       field.dispatchEvent(new Event('change', { bubbles: true }));
-      showStatus(_tf('msgOccupationCorrected', { v: _occCheck.suggestion }), 'success');
+      showStatus(_tf('msgOccupationCorrected', { v: d.suggestion }), 'success');
     }
     _occCheck = null;
     renderModal();
@@ -663,17 +663,18 @@ function _wire() {
      staying open: they are going to Chart Info to retype the title, and
      a modal hanging in front of that is in the way, not helpful. */
   q('#dgOccEdit')?.addEventListener('click', () => {
+    const fieldId = _occCheck ? describeCheck(_occCheck).field : 'occupationTitle';
     _occCheck = null;
     closeDraftModal();
     try { switchTab('info-tab'); } catch (_) {}
     setTimeout(() => {
-      const field = document.getElementById('occupationTitle');
+      const field = document.getElementById(fieldId);
       if (field) { field.focus(); field.select(); }
     }, 80);
   });
 
   q('#dgOccAnyway')?.addEventListener('click', () => {
-    if (_occCheck) markBypassed(_occCheck.title);
+    if (_occCheck) markBypassed(_occCheck.title, _occCheck.jobTitle);
     _occCheck = null;
     renderModal();   // clean setup panel; Start now proceeds unchallenged
   });

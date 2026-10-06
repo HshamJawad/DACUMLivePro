@@ -336,8 +336,8 @@
   cursor: pointer;
 }
 
-.dg-btn-go    { background: #4f46e5; color: #fff; }
-.dg-btn-go:hover { background: #4338ca; }
+.dg-btn-go    { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #fff; }   /* 3.72.0: AI-card blue (was #4f46e5) */
+.dg-btn-go:hover { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); }
 
 .dg-btn-ghost { background: #e2e8f0; color: #475569; }
 .dg-btn-ghost:hover { background: #cbd5e1; }

@@ -23,7 +23,7 @@
 // ============================================================
 
 import { appState }            from './state.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { incrementUsage, showLoadingModal, hideLoadingModal } from './storage.js';
 import { getTaskAnalysisContext, writeTaskAnalysisAI,
@@ -102,7 +102,7 @@ function _buildPrompt(ctx, wanted) {
 
   return `You are an occupational analysis specialist performing a DACUM TASK ANALYSIS for ONE task.
 
-OCCUPATION: ${occ || '(not specified)'}${job ? `\nJOB / ROLE (primary focus): ${job}` : ''}${scope ? `\nSCOPE OF WORK (boundary): ${scope}` : ''}${sector ? `\nSECTOR: ${sector}` : ''}${country ? `\nCOUNTRY / CONTEXT: ${country}` : ''}
+${jobFocusLines()}${scope ? `\nSCOPE OF WORK (boundary): ${scope}` : ''}${sector ? `\nSECTOR: ${sector}` : ''}${country ? `\nCOUNTRY / CONTEXT: ${country}` : ''}
 
 DUTY ${ctx.dutyLetter}: ${ctx.dutyTitle}
 TASK TO ANALYSE — ${ctx.taskCode}: ${ctx.taskText}
@@ -114,7 +114,7 @@ GENERATE ONLY THESE SECTIONS:
 ${req}
 
 RULES:
-- Describe THIS task only, within the job and scope above.
+- Describe THIS task only, as the holder of the job above performs it, within its scope.
 - Be concrete and practical; short items, no explanations or numbering.
 - NEVER invent standard numbers, regulation names, codes or clause references (no "ISO 9606", "OSHA 1910" etc.). If a specific standard would be needed, write it generically.
 - If there is genuinely no basis for a section, return an empty array (or empty string) rather than guessing.

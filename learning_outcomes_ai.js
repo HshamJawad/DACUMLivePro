@@ -49,7 +49,7 @@ import { renderPCSourceList, renderLearningOutcomes,
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -147,9 +147,6 @@ const _PATTERN_RULES = {
 
 function _buildPrompt(criteria, pattern) {
   const v = id => (document.getElementById(id)?.value || '').trim();
-  const occupation = v('occupationTitle');
-  const jobTitle   = v('jobTitle');
-
   const byCluster = {};
   criteria.forEach(c => {
     (byCluster[c.clusterName] ||= []).push(c);
@@ -162,8 +159,7 @@ function _buildPrompt(criteria, pattern) {
 
   return `You are a curriculum design engine specialized in competency-based training (CBT) derived from DACUM analysis.
 
-OCCUPATION: ${occupation || '(not specified)'}${jobTitle ? `
-JOB / ROLE: ${jobTitle}` : ''}
+${jobFocusLines()}
 
 PERFORMANCE CRITERIA (${criteria.length} total):
 ${list}

@@ -55,7 +55,7 @@ import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analys
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -82,13 +82,10 @@ const MAX_CRITERIA = 8;
 
 function _chartContext() {
   const v = id => (document.getElementById(id)?.value || '').trim();
-  const occupation = v('occupationTitle');
-  const jobTitle   = v('jobTitle');
   const scope      = v('scopeOfWork');
   const sector     = v('sector');
   const country    = v('context');
-  return `OCCUPATION: ${occupation || '(not specified)'}` +
-         (jobTitle ? `\nJOB / ROLE: ${jobTitle}` : '') +
+  return jobFocusLines() +
          (scope    ? `\nSCOPE OF WORK: ${scope}` : '') +
          (sector   ? `\nSECTOR: ${sector}` : '') +
          (country  ? `\nCOUNTRY / CONTEXT: ${country}` : '');
@@ -246,7 +243,7 @@ CLUSTER NAMING RULES:
 - Structure: Action Verb + Task/Activity (What) + Context (where relevant).
 - Keep the standard, leave out the purpose: write "according to
   manufacturer specifications", not "to ensure accurate results".
-- 3-9 words, specific to this occupation.
+- 3-9 words, specific to this job.
 
 OUTPUT FORMAT (STRICT — NO EXTRA TEXT, NO MARKDOWN):
 {

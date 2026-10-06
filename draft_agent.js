@@ -95,8 +95,12 @@ export const STAGES = [
     labelKey: 'dgStageCriteria',
     tab:      'clustering-tab',
     run:      () => generateRangeAndCriteriaAI(),
+    // 3.72.0: was c.criteria, a field that does not exist — the stage
+    // always read as empty, stopping every Full Draft here, and the
+    // overwrite warning never listed it.
     verify:   () => (appState.clusteringData?.clusters || [])
-                      .some(c => (c.criteria || []).length > 0),
+                      .some(c => (c.performanceCriteria || []).some(x => String(x || '').trim()) ||
+                                 String(c.range || '').trim()),
   },
   {
     id:       'outcomes',
@@ -189,6 +193,10 @@ export function missingPrerequisites() {
   const missing = [];
   if (!(document.getElementById('occupationTitle')?.value || '').trim()) {
     missing.push('occupationTitle');
+  }
+  // 3.72.0: DACUM analyses the job, so every stage needs it.
+  if (!(document.getElementById('jobTitle')?.value || '').trim()) {
+    missing.push('jobTitle');
   }
   return missing;
 }

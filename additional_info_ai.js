@@ -37,7 +37,7 @@ import { showStatus } from './renderer.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
-import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL, jobFocusLines } from './ai_client.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -172,8 +172,7 @@ Your task is to generate the SUPPORTING INFORMATION sections of a DACUM chart.
 The output will be injected directly into a DACUM chart UI.
 
 INPUT:
-Occupation Title (BASE CONTEXT): ${occupationTitle}${jobTitle ? `
-Job / Role (PRIMARY FOCUS): ${jobTitle}` : ''}${scopeOfWork ? `
+${jobFocusLines()}${scopeOfWork ? `
 Scope of Work (CRITICAL BOUNDARY): ${scopeOfWork}` : ''}${sector ? `
 Sector: ${sector}` : ''}${context ? `
 Country / Context: ${context}` : ''}
@@ -184,11 +183,11 @@ ${chartSummary}
 EMPLOYABILITY COMPETENCIES ALREADY COVERED (Skills Level Matrix — do NOT repeat):
 ${matrixComps.map(c => `- ${c}`).join('\n')}
 ` : ''}
-SCOPE INTERPRETATION RULE (VERY IMPORTANT):
-- If Scope of Work is provided → it DEFINES and LIMITS the analysis.
-- If Job Title is provided → generate for that specific job within the occupation.
-- If Job Title is NOT provided → assume a generic role within the occupation,
-  but STRICTLY guided by the Scope if available.
+UNIT OF ANALYSIS (DACUM — VERY IMPORTANT):
+- Everything you generate is for the JOB above — what its holders must
+  know, do and use. The occupation is context only; do NOT add items
+  that belong to other jobs in the same occupation.
+- If Scope of Work is provided → it further DEFINES and LIMITS the job.
 ${chartSummary ? `- The chart above lists the REAL WORK already agreed for this job.
   Every item you generate must be traceable to those duties and tasks.
   Do NOT introduce knowledge, skills or tools for work that is not in the chart.
@@ -221,7 +220,7 @@ ${matrix ? `   - OCCUPATION-SPECIFIC TECHNICAL SKILLS the work demands
 4. tools — Tools, Equipment, Supplies and Materials
    - MAIN CATEGORIES AND KEY ITEMS ONLY — this is a facilitator's draft,
      NOT a procurement inventory. A real workplace may use hundreds of
-     items; list only what is characteristic of this occupation.
+     items; list only what is characteristic of this job.
    - Group related consumables rather than listing them one by one
      (e.g. "Fasteners: screws, bolts, anchors" as ONE item, not three)
    - Prefer items that appear in, or are clearly implied by, the tasks
@@ -229,19 +228,19 @@ ${matrix ? `   - OCCUPATION-SPECIFIC TECHNICAL SKILLS the work demands
    - COUNT: minimum ${_range('tools').min}, maximum ${_range('tools').max} items
 
 5. trends — Future Trends and Concerns
-   - Realistic developments affecting this occupation in the next 3–7 years
+   - Realistic developments affecting this job (and its occupation) in the next 3–7 years
    - Technology, regulation, market, workforce, sustainability
    - Reflect the Country/Context and Sector when given
    - COUNT: minimum ${_range('trends').min}, maximum ${_range('trends').max} items
 
 6. acronyms — Acronyms
-   - Abbreviations that genuinely appear in this occupation
+   - Abbreviations that genuinely appear in the work of this job
    - STRICT FORMAT: "ABC - Full Expansion" (one per item)
    - Only include acronyms you are confident are real and in use
    - COUNT: minimum ${_range('acronyms').min}, maximum ${_range('acronyms').max} items
 
 7. careerPath — Career Path
-   - Realistic progression for this occupation, entry level upward
+   - Realistic progression into and beyond this job within its occupation, entry level upward
    - STRICT FORMAT: "Level: Role title" e.g. "Entry Level: Apprentice Technician"
    - Order from entry to most senior
    - COUNT: minimum ${_range('careerPath').min}, maximum ${_range('careerPath').max} items
@@ -250,7 +249,7 @@ GENERAL RULES:
 - COUNT LIMITS ARE MANDATORY, not suggestions. Never exceed a maximum.
   This output is a STARTING DRAFT for a DACUM facilitator to review with
   an expert panel — not an exhaustive reference. A shorter, sharper list
-  of the items that genuinely characterise the occupation is far more
+  of the items that genuinely characterise the job is far more
   useful than a long list padded with generic or marginal entries.
 - If you cannot reach a minimum with genuinely relevant items, return
   fewer rather than padding with filler.

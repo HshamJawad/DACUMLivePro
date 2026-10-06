@@ -30,6 +30,22 @@ const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
    occupation check); moving the server now means changing this line. */
 export const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 
+/* 3.72.0: the two prompt lines every AI card uses to say WHAT is being
+   analysed. In DACUM the unit of analysis is the JOB — the duties and
+   tasks of the people who hold it — and the occupation is only its
+   wider family. A project saved before the Job Title became required
+   may lack one; the model is then told to infer the job from the chart
+   rather than widen to the whole occupation. */
+export function jobFocusLines() {
+  const v = (id) => ((typeof document !== 'undefined' && document.getElementById(id)?.value) || '').trim();
+  const job = v('jobTitle'), occ = v('occupationTitle');
+  const same = job && occ && job.toLowerCase() === occ.toLowerCase();
+  return `JOB (the job this DACUM chart analyses — the focus): ${job ||
+      '(not specified — infer it from the chart; do not widen to the whole occupation)'}\n` +
+    `OCCUPATION (context only — the wider family the job belongs to): ${occ || '(not specified)'}` +
+    (same ? '\n(Here the job and the occupation are the same: treat it as ONE job.)' : '');
+}
+
 export class AIServiceError extends Error {
   constructor(kind, message, detail) {
     super(message || kind);
