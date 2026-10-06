@@ -18,6 +18,8 @@ import { getSupplementaryVerificationData } from './supplementary_verification.j
 // inside functions, after both modules have finished loading.
 import { getCurriculumModel } from './module_curriculum.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
+import { clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI,
+         aiMarkHTML, removeAIMark } from './ai_draft.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -1754,38 +1756,24 @@ export function updateClusterRange(clusterId, value) {
 // replaced in cluster._aiPrev[part]. The mark and the kept value go on
 // the user's first real edit of that part, or on restore.
 function _clAiBadge(cluster, part) {
-  if (!cluster || !cluster._aiDraft || !cluster._aiDraft[part]) return '';
-  const restore = (cluster._aiPrev && cluster._aiPrev[part] != null) ? `
-      <button type="button" class="cl-ai-restore" data-action="restore-cluster-ai"
-              data-cluster-id="${_esc(cluster.id)}" data-part="${part}"
-              title="${_esc(_t('taAiRestoreTip'))}">↶ ${_esc(_t('taAiRestore'))}</button>` : '';
-  return ` <span class="cl-ai-badge-wrap" data-cl-ai-badge="${_esc(cluster.id)}|${part}"><span class="cl-ai-badge">✨ ${_esc(_t('taAiBadge'))}</span>${restore}</span>`;
+  if (!isAIDraft(cluster, part)) return '';
+  return aiMarkHTML({ markId: 'cl|' + cluster.id + '|' + part, restore: canRestoreAI(cluster, part),
+                      action: 'restore-cluster-ai', data: { 'cluster-id': cluster.id, part } });
 }
 
 function _clearClusterAiPart(cluster, part) {
-  const had = !!(cluster._aiDraft && cluster._aiDraft[part]);
-  if (had) delete cluster._aiDraft[part];
-  if (cluster._aiPrev && part in cluster._aiPrev) {
-    delete cluster._aiPrev[part];
-    if (!Object.keys(cluster._aiPrev).length) delete cluster._aiPrev;
-  }
-  if (had) {
-    document.querySelectorAll('[data-cl-ai-badge]').forEach(el => {
-      if (el.getAttribute('data-cl-ai-badge') === cluster.id + '|' + part) el.remove();
-    });
-  }
+  if (clearAIDraft(cluster, part)) removeAIMark('cl|' + cluster.id + '|' + part);
 }
 
 /** "↶ Restore previous" on a cluster's Range or criteria. */
 export function restoreClusterAI(clusterId, part) {
   const cluster = (appState.clusteringData?.clusters || []).find(c => c.id === clusterId);
-  if (!cluster || !cluster._aiPrev || cluster._aiPrev[part] == null) return false;
-  const prev = JSON.parse(JSON.stringify(cluster._aiPrev[part]));
-  if (part === 'range') cluster.range = prev;
-  else cluster.performanceCriteria = Array.isArray(prev) ? prev : [];
-  if (cluster._aiDraft) delete cluster._aiDraft[part];
-  delete cluster._aiPrev[part];
-  if (!Object.keys(cluster._aiPrev).length) delete cluster._aiPrev;
+  if (!cluster) return false;
+  const ok = restoreAIDraft(cluster, part, (k, v) => {
+    if (k === 'range') cluster.range = v;
+    else cluster.performanceCriteria = Array.isArray(v) ? v : [];
+  });
+  if (!ok) return false;
   renderClusters();
   _persistClusters();
   showStatus(_t('taAiRestored') + ' ✓', 'success');

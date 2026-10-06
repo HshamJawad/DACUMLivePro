@@ -53,6 +53,7 @@ import { renderAvailableTasks, renderClusters, persistClustering,
          loText, initializeClusteringFromTasks, syncClusteringWithProfile,
          isClusterAddedTask } from './modules.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
+import { writeAIDraft, openAIPartsDialog } from './ai_draft.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
@@ -615,130 +616,48 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null, parts = n
    marks are cleared by the user's own edit (modules.js). */
 function _writeAIPart(cluster, part, value) {
   const field = part === 'range' ? 'range' : 'performanceCriteria';
-  const filled = part === 'range' ? _isFilledRange(cluster) : _isFilledCriteria(cluster);
-  if (!cluster._aiDraft || typeof cluster._aiDraft !== 'object') cluster._aiDraft = {};
-  if (!cluster._aiPrev || typeof cluster._aiPrev !== 'object' || Array.isArray(cluster._aiPrev)) cluster._aiPrev = {};
-  if (filled) {
-    if (!(cluster._aiDraft[part] && cluster._aiPrev[part] != null)) {
-      cluster._aiPrev[part] = JSON.parse(JSON.stringify(cluster[field]));
-    }
-  } else {
-    delete cluster._aiPrev[part];
-  }
-  cluster[field] = Array.isArray(value) ? value.slice() : value;
-  cluster._aiDraft[part] = true;
-  if (!Object.keys(cluster._aiPrev).length) delete cluster._aiPrev;
+  // 3.75.0: shared draft logic (ai_draft.js) — same _aiDraft/_aiPrev format.
+  writeAIDraft(cluster, part, value, {
+    get:    () => cluster[field],
+    set:    (k, v) => { cluster[field] = v; },
+    filled: () => part === 'range' ? _isFilledRange(cluster) : _isFilledCriteria(cluster),
+  });
 }
-
-const _escD = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** Regenerate one cluster only — used by the per-card ✨ button.
  *  3.71.0: asks first which parts to generate. Resolves true after a
  *  successful run, false when cancelled or failed. */
-export function generateForSingleCluster(clusterId) {
+export async function generateForSingleCluster(clusterId) {
   const cd = appState.clusteringData;
   const idx = (cd?.clusters || []).findIndex(c => c.id === clusterId);
-  if (idx === -1) return Promise.resolve(false);
+  if (idx === -1) return false;
   const cluster = cd.clusters[idx];
 
-  return new Promise(resolve => {
-    document.getElementById('clAiModal')?.remove();
-    const overlay = document.createElement('div');
-    overlay.id = 'clAiModal';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('dir', (window.i18n && window.i18n.isRTL()) ? 'rtl' : 'ltr');
-    overlay.style.cssText =
-      'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;' +
-      'justify-content:center;padding:16px;background:rgba(0,0,0,0.55);';
+  const down = _downstreamOf(new Set([cluster.id]));
+  const src = _taRangeSourcesOf(cluster);
+  const nTa = src.tools.length + src.conditions.length + src.safety.length + _taCriteriaOf(cluster).length;
 
-    const rows = [
-      { part: 'range',    label: _t('lblRange'),               filled: _isFilledRange(cluster) },
-      { part: 'criteria', label: _t('lblPerformanceCriteria'), filled: _isFilledCriteria(cluster) },
-    ].map(r => `
-      <label style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #f1f5f9;cursor:pointer;">
-        <input type="checkbox" data-cl-ai-part="${r.part}" ${r.filled ? '' : 'checked'}
-               style="width:18px;height:18px;flex-shrink:0;accent-color:#0284c7;">
-        <span style="flex:1;min-width:0;font-size:.92em;color:#334155;">${_escD(r.label)}</span>
-        ${r.filled ? `<span data-cl-ai-tag="${r.part}" style="font-size:.72em;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 8px;white-space:nowrap;">${_escD(_t('taAiFilled'))}</span>` : ''}
-      </label>`).join('');
-
-    const down = _downstreamOf(new Set([cluster.id]));
-    const src = _taRangeSourcesOf(cluster);
-    const nTa = src.tools.length + src.conditions.length + src.safety.length + _taCriteriaOf(cluster).length;
-
-    overlay.innerHTML = `
-      <div style="background:#fff;border-radius:16px;max-width:500px;width:100%;
-           box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;font-family:inherit;
-           max-height:88vh;display:flex;flex-direction:column;">
-        <div style="padding:16px 20px;display:flex;align-items:center;gap:10px;
-             background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-bottom:1px solid #bae6fd;flex-shrink:0;">
-          <span style="font-size:1.3em;line-height:1;">✨</span>
-          <div style="min-width:0;">
-            <p style="margin:0;font-size:.98em;font-weight:800;color:#075985;">${_escD(_t('clAiTitle'))}</p>
-            <p style="margin:2px 0 0;font-size:.8em;color:#0369a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-              <bdi>C${idx + 1}</bdi> — <span dir="auto">${_escD(cluster.name)}</span></p>
-          </div>
-        </div>
-        <div style="padding:14px 20px;overflow-y:auto;flex:1;">
-          <p style="margin:0 0 6px;font-size:.85em;color:#475569;line-height:1.6;">${_escD(_t('clAiIntro'))}</p>
-          <div>${rows}</div>
-          <p style="margin:12px 0 0;font-size:.8em;color:#475569;line-height:1.55;">🔬 ${_escD(
-            nTa ? _tf('clAiTaUsed', { n: nTa }) : _t('clAiTaNone'))}</p>
-          <p data-cl-ai-down style="display:none;margin:12px 0 0;font-size:.8em;color:#9a3412;background:#fff7ed;
-                    border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;line-height:1.55;">🔗 ${
-            _escD(loText('clConfirmDownstream', { lo: down.lo, mm: down.mm }))}</p>
-          <p data-cl-ai-restorenote style="display:none;margin:12px 0 0;font-size:.8em;color:#075985;background:#f0f9ff;
-                    border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;line-height:1.55;">↶ ${_escD(_t('taAiRestoreNote'))}</p>
-          <p style="margin:12px 0 0;font-size:.8em;color:#92400e;background:#fffbeb;border:1px solid #fde68a;
-                    border-radius:8px;padding:8px 10px;line-height:1.55;">⚠️ ${_escD(_t('clAiNote'))}</p>
-        </div>
-        <div style="padding:12px 20px;border-top:1px solid #eef0f4;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;flex-wrap:wrap;">
-          <button type="button" data-cl-ai-cancel style="padding:9px 18px;background:#f1f5f9;color:#334155;border:none;
-                  border-radius:8px;font-size:.88em;font-weight:600;cursor:pointer;font-family:inherit;">${_escD(_t('btnCancel'))}</button>
-          <button type="button" data-cl-ai-go style="padding:9px 20px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;
-                  border-radius:8px;font-size:.88em;font-weight:700;cursor:pointer;font-family:inherit;">${_escD(_t('taAiGenerate'))}</button>
-        </div>
-      </div>`;
-    document.body.appendChild(overlay);
-
-    let settled = false;
-    const close = (result) => {
-      overlay.remove(); document.removeEventListener('keydown', onKey);
-      if (result !== undefined && !settled) { settled = true; resolve(result); }
-    };
-    const onKey = (e) => { if (e.key === 'Escape') close(false); };
-    document.addEventListener('keydown', onKey);
-    overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
-    overlay.querySelector('[data-cl-ai-cancel]').addEventListener('click', () => close(false));
-
-    const boxes = [...overlay.querySelectorAll('input[data-cl-ai-part]')];
-    const isOn = p => !!boxes.find(b => b.getAttribute('data-cl-ai-part') === p && b.checked);
-    const sync = () => {
-      const crit = isOn('criteria'), rng = isOn('range');
-      const downEl = overlay.querySelector('[data-cl-ai-down]');
-      if (downEl) downEl.style.display = (crit && _isFilledCriteria(cluster) && down.lo > 0) ? '' : 'none';
-      const rn = overlay.querySelector('[data-cl-ai-restorenote]');
-      if (rn) rn.style.display = ((rng && _isFilledRange(cluster)) || (crit && _isFilledCriteria(cluster))) ? '' : 'none';
-      boxes.forEach(b => {
-        const tag = overlay.querySelector(`[data-cl-ai-tag="${b.getAttribute('data-cl-ai-part')}"]`);
-        if (!tag) return;
-        tag.textContent = _t(b.checked ? 'taAiWillReplace' : 'taAiFilled');
-        tag.style.color = b.checked ? '#b45309' : '#64748b';
-        tag.style.background = b.checked ? '#fef3c7' : '#f1f5f9';
-      });
-    };
-    boxes.forEach(b => b.addEventListener('change', sync));
-    sync();
-
-    overlay.querySelector('[data-cl-ai-go]').addEventListener('click', () => {
-      const parts = { range: isOn('range'), criteria: isOn('criteria') };
-      if (!parts.range && !parts.criteria) { showStatus(_t('taAiNoneSelected'), 'error'); return; }
-      close();
-      generateRangeAndCriteriaAI(clusterId, parts, { confirmed: true })
-        .then(ok => { settled = true; resolve(!!ok); })
-        .catch(() => { settled = true; resolve(false); });
-    });
+  // 3.75.0: the shared dialog (ai_draft.js). Same parts, same notes.
+  const keys = await openAIPartsDialog({
+    id:       'clAiModal',
+    title:    _t('clAiTitle'),
+    subtitle: `C${idx + 1} — ${cluster.name || ''}`,
+    intro:    _t('clAiIntro'),
+    parts: [
+      { key: 'range',    label: _t('lblRange'),               filled: _isFilledRange(cluster) },
+      { key: 'criteria', label: _t('lblPerformanceCriteria'), filled: _isFilledCriteria(cluster) },
+    ],
+    notes: [
+      { icon: '🔬', tone: 'info', text: nTa ? _tf('clAiTaUsed', { n: nTa }) : _t('clAiTaNone') },
+      { icon: '🔗', tone: 'link', text: loText('clConfirmDownstream', { lo: down.lo, mm: down.mm }),
+        when: (on) => on.has('criteria') && _isFilledCriteria(cluster) && down.lo > 0 },
+      { icon: '↶',  tone: 'restore', text: _t('taAiRestoreNote') },
+      { icon: '⚠️', tone: 'warn', text: _t('clAiNote') },
+    ],
   });
+  if (!keys || !keys.length) return false;
+  try {
+    return !!(await generateRangeAndCriteriaAI(clusterId,
+      { range: keys.includes('range'), criteria: keys.includes('criteria') }, { confirmed: true }));
+  } catch (_) { return false; }
 }

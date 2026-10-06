@@ -212,6 +212,7 @@ function _doClear() {
   appState.taskAnalysisData           = {};
   appState.taskAnalysisPriority       = {};
   appState.taskAnalysisCustomSections = [];
+  appState.additionalInfoAI           = {};
   appState.collectionMode       = 'workshop';
   appState.workflowMode         = 'standard';
   const modeWorkshop = document.getElementById('mode-workshop');

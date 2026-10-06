@@ -932,6 +932,7 @@ function _captureState() {
     taskAnalysisData:         appState.taskAnalysisData        || {},
     taskAnalysisPriority:     appState.taskAnalysisPriority    || {},
     taskAnalysisCustomSections: appState.taskAnalysisCustomSections || [],
+    additionalInfoAI:         appState.additionalInfoAI        || {},
     supplementaryVerification: appState.supplementaryVerification || null,
     collectionMode:           appState.collectionMode,
     workflowMode:             appState.workflowMode,
@@ -984,6 +985,7 @@ function _applyState(s) {
   appState.taskAnalysisData         = s.taskAnalysisData         || {};
   appState.taskAnalysisPriority     = s.taskAnalysisPriority     || {};
   appState.taskAnalysisCustomSections = Array.isArray(s.taskAnalysisCustomSections) ? s.taskAnalysisCustomSections : [];
+  appState.additionalInfoAI         = (s.additionalInfoAI && typeof s.additionalInfoAI === 'object') ? s.additionalInfoAI : {};
   // Older projects have no such key — the default is the feature OFF,
   // which is exactly how those projects behaved before.
   appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();

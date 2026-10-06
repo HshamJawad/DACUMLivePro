@@ -24,6 +24,8 @@ import { getDutyLetter }   from './codes.js';
 // Circular with modules.js (which imports from here); used only inside
 // render functions, after both modules have finished loading.
 import { getModulesUsingTask } from './modules.js';
+import { writeAIDraft, clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI,
+         aiMarkHTML, removeAIMark } from './ai_draft.js';
 import { syncAllFromDOM }  from './duties.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -360,21 +362,13 @@ export function getTaskAnalysisContext(taskKey) {
  *  as the user edits, clears or restores that section. */
 export function writeTaskAnalysisAI(taskKey, values) {
   const r = _ensureRecord(taskKey);
-  if (!r._aiDraft || typeof r._aiDraft !== 'object') r._aiDraft = {};
-  if (!r._aiPrev || typeof r._aiPrev !== 'object' || Array.isArray(r._aiPrev)) r._aiPrev = {};
-  Object.keys(values).forEach(k => {
-    if (_fieldFilled(r, k)) {
-      // A second run keeps the user's ORIGINAL text, not the first draft.
-      if (!(r._aiDraft[k] && r._aiPrev[k] != null)) {
-        r._aiPrev[k] = JSON.parse(JSON.stringify(_getField(r, k)));
-      }
-    } else {
-      delete r._aiPrev[k];
-    }
-    _setField(r, k, Array.isArray(values[k]) ? values[k].slice() : String(values[k]));
-    r._aiDraft[k] = true;
-  });
-  if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
+  // 3.75.0: shared draft logic (ai_draft.js) — same _aiDraft/_aiPrev format.
+  const io = {
+    get:    (k) => _getField(r, k),
+    set:    (k, v) => _setField(r, k, Array.isArray(v) ? v : String(v)),
+    filled: (k) => _fieldFilled(r, k),
+  };
+  Object.keys(values).forEach(k => writeAIDraft(r, k, values[k], io));
   if (taskKey === _selectedTaskKey) _renderFormPanel();
   _touchStatus(taskKey);
   try {
@@ -384,38 +378,19 @@ export function writeTaskAnalysisAI(taskKey, values) {
 
 function _aiBadge(key) {
   const r = _record(_selectedTaskKey);
-  if (!r || !r._aiDraft || !r._aiDraft[key]) return '';
-  const k = escapeHtml(key);
-  const restore = (r._aiPrev && r._aiPrev[key] != null) ? `
-      <button type="button" class="ta-ai-restore" data-action="ta-ai-restore" data-field="${k}"
-              title="${escapeHtml(_t('taAiRestoreTip'))}">↶ ${escapeHtml(_t('taAiRestore'))}</button>` : '';
-  return ` <span class="ta-ai-badge-wrap" data-ta-ai-badge="${k}"><span class="ta-ai-badge">✨ ${escapeHtml(_t('taAiBadge'))}</span>${restore}</span>`;
+  if (!isAIDraft(r, key)) return '';
+  return aiMarkHTML({ markId: 'ta|' + key, restore: canRestoreAI(r, key),
+                      action: 'ta-ai-restore', data: { field: key } });
 }
 
 function _clearAiDraft(key) {
-  const r = _record(_selectedTaskKey);
-  if (!r) return;
-  const had = !!(r._aiDraft && r._aiDraft[key]);
-  if (had) delete r._aiDraft[key];
-  if (r._aiPrev && key in r._aiPrev) {
-    delete r._aiPrev[key];
-    if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
-  }
-  if (had) {
-    document.querySelectorAll('[data-ta-ai-badge]').forEach(el => {
-      if (el.getAttribute('data-ta-ai-badge') === key) el.remove();
-    });
-  }
+  if (clearAIDraft(_record(_selectedTaskKey), key)) removeAIMark('ta|' + key);
 }
 
 /* 3.70.0: put back what a section held before the AI replaced it. */
 function _restoreAiPrevious(key) {
   const r = _record(_selectedTaskKey);
-  if (!r || !r._aiPrev || r._aiPrev[key] == null) return;
-  _setField(r, key, JSON.parse(JSON.stringify(r._aiPrev[key])));
-  if (r._aiDraft) delete r._aiDraft[key];
-  delete r._aiPrev[key];
-  if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
+  if (!restoreAIDraft(r, key, (k, v) => _setField(r, k, v))) return;
   _renderFormPanel();
   _touchStatus(_selectedTaskKey);
   _saveSoon();
@@ -728,11 +703,7 @@ function _customDelete(id) {
   appState.taskAnalysisCustomSections = list.filter(x => x.id !== id);
   Object.values(appState.taskAnalysisData || {}).forEach(r => {
     if (r && r.custom && typeof r.custom === 'object') delete r.custom[id];
-    if (r && r._aiDraft) delete r._aiDraft[CUSTOM_PREFIX + id];
-    if (r && r._aiPrev) {
-      delete r._aiPrev[CUSTOM_PREFIX + id];
-      if (!Object.keys(r._aiPrev).length) delete r._aiPrev;
-    }
+    if (r) clearAIDraft(r, CUSTOM_PREFIX + id);
   });
   _renderNav();
   _renderFormPanel();

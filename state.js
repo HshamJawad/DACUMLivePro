@@ -57,6 +57,9 @@ export const appState = {
   taskAnalysisPriority: {},
   // Sections the user adds to every task's analysis (3.46.0): [{ id, title }].
   taskAnalysisCustomSections: [],
+  // 3.75.0: AI-draft marks on the Additional Info sections —
+  // { _aiDraft:{key:true}, _aiPrev:{key:text}, _aiText:{key:text} }.
+  additionalInfoAI: {},
 
   // ── Supplementary Occupational Verification (optional) ─────
   // Occupation-level evidence (knowledge & skills, tools, behaviours,

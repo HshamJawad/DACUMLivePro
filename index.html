@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v185';
+      var EXPECTED_SW='v186';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.74.0';
+      var APP_VERSION = '3.75.0';
       var APP_RELEASED = '2026-10-06';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1705,16 +1705,8 @@
                 transition:background .15s,border-color .15s,box-shadow .15s;}
             .ta-ai-btn:hover{background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);
                 border-color:#0369a1;box-shadow:0 2px 8px rgba(14,165,233,.35);}
-            .ta-ai-btn:focus-visible,.ta-ai-restore:focus-visible{outline:2px solid #0369a1;outline-offset:2px;}
-            /* "AI draft — review" mark + "↶ Restore previous" on a section */
-            .ta-ai-badge-wrap{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;
-                margin-inline-start:8px;vertical-align:middle;}
-            .ta-ai-badge{font-size:.62em;font-weight:700;color:#0369a1;background:#f0f9ff;
-                border:1px solid #bae6fd;border-radius:999px;padding:2px 8px;white-space:nowrap;}
-            .ta-ai-restore{font-size:.62em;font-weight:700;font-family:inherit;color:#334155;
-                background:#fff;border:1px solid #cbd5e1;border-radius:999px;padding:2px 9px;
-                cursor:pointer;white-space:nowrap;}
-            .ta-ai-restore:hover{background:#f1f5f9;border-color:#94a3b8;}
+            .ta-ai-btn:focus-visible{outline:2px solid #0369a1;outline-offset:2px;}
+            /* AI-draft mark: shared .ai-draft-* in dacum-styles.css (3.75.0) */
             /* Field cards below this point reuse the app's own
                .section-container / .section-header-editable / .btn-format /
                .btn-clear-section classes (see dacum-components.css) so they

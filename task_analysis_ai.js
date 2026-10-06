@@ -26,6 +26,7 @@ import { appState }            from './state.js';
 import { showAIServiceError, jobFocusLines, callAI } from './ai_client.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { incrementUsage, showLoadingModal, hideLoadingModal } from './storage.js';
+import { openAIPartsDialog } from './ai_draft.js';
 import { getTaskAnalysisContext, writeTaskAnalysisAI,
          TA_FIELD_SPECS }      from './task_analysis.js';
 
@@ -180,113 +181,28 @@ function _linkedDownstream(taskKey) {
   return { lo: los.length, mm };
 }
 
-export function openTaskAnalysisAI(taskKey) {
+export async function openTaskAnalysisAI(taskKey) {
   const ctx = getTaskAnalysisContext(taskKey);
   if (!ctx) return;
-
-  document.getElementById('taAiModal')?.remove();
-  const overlay = document.createElement('div');
-  overlay.id = 'taAiModal';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('dir', (window.i18n && window.i18n.isRTL()) ? 'rtl' : 'ltr');
-  overlay.style.cssText =
-    'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;' +
-    'justify-content:center;padding:16px;background:rgba(0,0,0,0.55);';
-
-  const specs = _specs(ctx);
-  const rows = specs.map((f, i) => {
-    const filled = !!ctx.filled[f.key];
-    const k = escapeHtml(f.key);
-    const head = (f.custom && (i === 0 || !specs[i - 1].custom))
-      ? `<p style="margin:12px 0 2px;font-size:.74em;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#0369a1;">${escapeHtml(_t('taAiCustomHead'))}</p>` : '';
-    return `${head}
-      <label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #f1f5f9;cursor:pointer;">
-        <input type="checkbox" data-ta-ai-field="${k}" ${filled ? '' : 'checked'}
-               style="width:18px;height:18px;flex-shrink:0;accent-color:#0284c7;">
-        <span style="flex:1;min-width:0;font-size:.9em;color:#334155;overflow-wrap:anywhere;"><span dir="auto">${escapeHtml(f.label)}</span></span>
-        ${filled ? `<span data-ta-ai-tag="${k}" style="font-size:.72em;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 8px;white-space:nowrap;">${escapeHtml(_t('taAiFilled'))}</span>` : ''}
-      </label>`;
-  }).join('');
-
-  overlay.innerHTML = `
-    <div style="background:#fff;border-radius:16px;max-width:520px;width:100%;
-         box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;font-family:inherit;
-         max-height:88vh;display:flex;flex-direction:column;">
-      <div style="padding:16px 20px;display:flex;align-items:center;gap:10px;
-           background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-bottom:1px solid #bae6fd;flex-shrink:0;">
-        <span style="font-size:1.3em;line-height:1;">✨</span>
-        <div style="min-width:0;">
-          <p style="margin:0;font-size:.98em;font-weight:800;color:#075985;">${escapeHtml(_t('taAiTitle'))}</p>
-          <p style="margin:2px 0 0;font-size:.8em;color:#0369a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-            <bdi>${escapeHtml(ctx.taskCode)}</bdi>. ${escapeHtml(ctx.taskText)}</p>
-        </div>
-      </div>
-      <div style="padding:14px 20px;overflow-y:auto;flex:1;">
-        <p style="margin:0 0 8px;font-size:.85em;color:#475569;line-height:1.6;">${escapeHtml(_t('taAiIntro'))}</p>
-        <div>${rows}</div>
-        <p data-ta-ai-lolink style="display:none;margin:12px 0 0;font-size:.8em;color:#9a3412;background:#fff7ed;
-                  border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;line-height:1.55;">🔗 ${
-          escapeHtml(_tf('taAiLinkedWarn', _linkedDownstream(taskKey)))}</p>
-        <p data-ta-ai-restorenote style="display:none;margin:12px 0 0;font-size:.8em;color:#075985;background:#f0f9ff;
-                  border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;line-height:1.55;">↶ ${escapeHtml(_t('taAiRestoreNote'))}</p>
-        <p style="margin:12px 0 0;font-size:.8em;color:#92400e;background:#fffbeb;border:1px solid #fde68a;
-                  border-radius:8px;padding:8px 10px;line-height:1.55;">⚠️ ${escapeHtml(_t('taAiNote'))}</p>
-      </div>
-      <div style="padding:12px 20px;border-top:1px solid #eef0f4;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;flex-wrap:wrap;">
-        <button type="button" data-ta-ai-cancel style="padding:9px 18px;background:#f1f5f9;color:#334155;border:none;
-                border-radius:8px;font-size:.88em;font-weight:600;cursor:pointer;font-family:inherit;">${escapeHtml(_t('btnCancel'))}</button>
-        <button type="button" data-ta-ai-go style="padding:9px 20px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;
-                border-radius:8px;font-size:.88em;font-weight:700;cursor:pointer;font-family:inherit;">${escapeHtml(_t('taAiGenerate'))}</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-
-  const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
-  const onKey = (e) => { if (e.key === 'Escape') close(); };
-  document.addEventListener('keydown', onKey);
-  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-  overlay.querySelector('[data-ta-ai-cancel]').addEventListener('click', close);
-
-  // Ticking a filled "Performance Criteria" that Learning Outcomes use
-  // shows the downstream warning.
   const link = _linkedDownstream(taskKey);
-  const linkNote = overlay.querySelector('[data-ta-ai-lolink]');
-  const syncLinkNote = () => {
-    const cb = overlay.querySelector('input[data-ta-ai-field="performanceCriteria"]');
-    const on = !!(cb && cb.checked && ctx.filled.performanceCriteria && link.lo > 0);
-    if (linkNote) linkNote.style.display = on ? '' : 'none';
-  };
-  syncLinkNote();
 
-  // 3.70.0: when a filled section is ticked, say it can be restored.
-  const restoreNote = overlay.querySelector('[data-ta-ai-restorenote]');
-  const syncRestoreNote = () => {
-    const on = [...overlay.querySelectorAll('input[data-ta-ai-field]:checked')]
-      .some(cb => ctx.filled[cb.getAttribute('data-ta-ai-field')]);
-    if (restoreNote) restoreNote.style.display = on ? '' : 'none';
-  };
-  syncRestoreNote();
-
-  // A ticked FILLED section will be replaced — say so on its tag.
-  overlay.querySelectorAll('input[data-ta-ai-field]').forEach(cb => {
-    cb.addEventListener('change', () => {
-      syncLinkNote();
-      syncRestoreNote();
-      const tag = [...overlay.querySelectorAll('[data-ta-ai-tag]')]
-        .find(el => el.getAttribute('data-ta-ai-tag') === cb.getAttribute('data-ta-ai-field'));
-      if (!tag) return;
-      tag.textContent = _t(cb.checked ? 'taAiWillReplace' : 'taAiFilled');
-      tag.style.color = cb.checked ? '#b45309' : '#64748b';
-      tag.style.background = cb.checked ? '#fef3c7' : '#f1f5f9';
-    });
+  // 3.75.0: the shared dialog (ai_draft.js). Same parts, same notes.
+  const wanted = await openAIPartsDialog({
+    id:       'taAiModal',
+    title:    _t('taAiTitle'),
+    subtitle: `${ctx.taskCode}. ${ctx.taskText}`,
+    intro:    _t('taAiIntro'),
+    parts:    _specs(ctx).map(f => ({
+      key: f.key, label: f.label, filled: !!ctx.filled[f.key],
+      group: f.custom ? _t('taAiCustomHead') : undefined,
+    })),
+    notes: [
+      // Ticking a filled "Performance Criteria" that Learning Outcomes use.
+      { icon: '🔗', tone: 'link', text: _tf('taAiLinkedWarn', link),
+        when: (on) => on.has('performanceCriteria') && !!ctx.filled.performanceCriteria && link.lo > 0 },
+      { icon: '↶',  tone: 'restore', text: _t('taAiRestoreNote') },
+      { icon: '⚠️', tone: 'warn', text: _t('taAiNote') },
+    ],
   });
-
-  overlay.querySelector('[data-ta-ai-go]').addEventListener('click', () => {
-    const wanted = [...overlay.querySelectorAll('input[data-ta-ai-field]:checked')]
-      .map(cb => cb.getAttribute('data-ta-ai-field'));
-    if (!wanted.length) { showStatus(_t('taAiNoneSelected'), 'error'); return; }
-    close();
-    _generate(taskKey, wanted);
-  });
+  if (wanted && wanted.length) _generate(taskKey, wanted);
 }

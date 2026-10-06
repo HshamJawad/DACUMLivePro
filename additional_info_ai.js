@@ -38,6 +38,8 @@ import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
 import { showAIServiceError, jobFocusLines, callAI } from './ai_client.js';
+import { openAIPartsDialog, writeAIDraft, clearAIDraft, restoreAIDraft,
+         isAIDraft, canRestoreAI, aiMarkHTML } from './ai_draft.js';
 
 
 /* i18n access — resolved lazily; see duties.js for why. */
@@ -163,9 +165,22 @@ function _collectFilledFields() {
 
 // ── Prompt builder ────────────────────────────────────────────
 
-function _buildPrompt(inputs, chartSummary, matrixComps, hasLangDirective) {
+function _buildPrompt(inputs, chartSummary, matrixComps, hasLangDirective, onlyKeys = null) {
   const { occupationTitle, jobTitle, scopeOfWork, sector, context } = inputs;
   const matrix = (matrixComps || []).length > 0;
+
+  /* 3.75.0: generate only the ticked sections; filled sections that are
+     NOT being generated go in as agreed context, so the new ones fit
+     them and do not repeat them. */
+  const subset = Array.isArray(onlyKeys) && onlyKeys.length && onlyKeys.length < _FIELD_MAP.length;
+  const keepBlock = subset ? _FIELD_MAP
+    .filter(f => !onlyKeys.includes(f.key))
+    .map(f => {
+      const lines = (document.getElementById(f.inputId)?.value || '').split('\n')
+        .map(l => l.replace(/^[\s]*[•\-\*○●]\s*/, '').replace(/^[\s]*\d+[.)]\s*/, '').trim())
+        .filter(Boolean).slice(0, 20);
+      return lines.length ? `${f.key} (${f.label}) — already agreed:\n${lines.map(l => '  - ' + l).join('\n')}` : '';
+    }).filter(Boolean).join('\n\n') : '';
 
   return `You are an occupational analysis engine specialized in DACUM methodology.
 Your task is to generate the SUPPORTING INFORMATION sections of a DACUM chart.
@@ -193,7 +208,14 @@ ${chartSummary ? `- The chart above lists the REAL WORK already agreed for this 
   Do NOT introduce knowledge, skills or tools for work that is not in the chart.
 ` : ''}
 TASK:
-Generate the following seven sections.
+${subset ? `GENERATE ONLY THESE SECTIONS: ${onlyKeys.join(', ')}.
+For every other key return an EMPTY array — those sections are already
+done by the panel.${keepBlock ? `
+
+SECTIONS ALREADY AGREED (keep consistent with them; do NOT repeat their items):
+${keepBlock}` : ''}
+
+The rules for each section follow.` : 'Generate the following seven sections.'}
 
 1. knowledge — Knowledge Requirements
    - WHAT THE WORKER MUST KNOW (cognitive, theoretical, regulatory)
@@ -284,7 +306,15 @@ Generate the supporting information now in valid JSON format only.`;
  * Validates, prompts, calls the backend, and fills the seven
  * Additional Information textareas. Returns true on success.
  */
-export async function generateAdditionalInfoAI() {
+/**
+ * @param {string[]|null} onlyKeys  3.75.0: sections to generate (null = all)
+ * @param {{confirmed?:boolean}} opts  confirmed: the dialog already showed
+ *        what will be replaced, so the overwrite question is skipped
+ */
+export async function generateAdditionalInfoAI(onlyKeys = null, opts = {}) {
+  const wanted = Array.isArray(onlyKeys) && onlyKeys.length
+    ? _FIELD_MAP.filter(f => onlyKeys.includes(f.key)).map(f => f.key)
+    : _FIELD_MAP.map(f => f.key);
   // ── Usage limit (shared budget with the duties generator) ──
   const usageStatus = checkUsageLimit();
   if (!usageStatus.allowed) {
@@ -301,12 +331,12 @@ export async function generateAdditionalInfoAI() {
   }
 
   // ── Overwrite guard — name exactly which sections are at risk ──
-  const filled = _collectFilledFields();
+  const filled = _collectFilledFields().filter(f => wanted.includes(f.key));
   /* The Full Draft run asks about overwriting ONCE, up front, naming
      every tab at stake. Re-asking here would mean four or five
      dialogs during a run the user has already authorised — and each
      one silently stalls the pipeline until someone notices. */
-  if (!isBatchRun() && filled.length) {
+  if (!isBatchRun() && !opts.confirmed && filled.length) {
     const names = filled.map(f => `  • ${_sectionLabel(f)}`).join('\n');
     if (!confirm('\u26A0\uFE0F ' + _tf('confirmReplaceSections', { list: names }))) {
       showStatus(_t('msgCancelAddInfo'), 'error');
@@ -324,7 +354,8 @@ export async function generateAdditionalInfoAI() {
      is left out so the two can never contradict each other. */
   const langDir      = _aiDir();
   const matrixComps  = _matrixCompetencies();
-  const prompt = _buildPrompt(inputs, chartSummary, matrixComps, !!langDir);
+  const prompt = _buildPrompt(inputs, chartSummary, matrixComps, !!langDir,
+                              wanted.length < _FIELD_MAP.length ? wanted : null);
   const matrixKeys = new Set(matrixComps.map(c => c.toLowerCase()));
 
   try {
@@ -340,6 +371,7 @@ export async function generateAdditionalInfoAI() {
     let trimmedAny  = false;
 
     _FIELD_MAP.forEach(({ key, inputId, max }) => {
+      if (!wanted.includes(key)) return;   // 3.75.0: a section not ticked is never touched
       const items = info[key];
       if (!Array.isArray(items) || items.length === 0) return;
 
@@ -378,7 +410,9 @@ export async function generateAdditionalInfoAI() {
       const el = document.getElementById(inputId);
       if (!el) return;
 
-      el.value = lines.map(v => _BULLET + v).join('\n');
+      // 3.75.0: written as an AI draft — the old text is kept for
+      // "↶ Restore previous" until the user edits the section.
+      _writeInfoDraft(key, el, lines.map(v => _BULLET + v).join('\n'));
       filledCount++;
       itemCount += lines.length;
     });
@@ -389,6 +423,7 @@ export async function generateAdditionalInfoAI() {
 
     hideLoadingModal();
     incrementUsage();
+    renderAdditionalInfoMarks();
 
     const basis = _t(chartSummary ? 'aiInfoBasisChart' : 'aiInfoBasisOccupation');
     const trimNote = trimmedAny ? ' ' + _t('aiInfoTrimNote') : '';
@@ -407,3 +442,118 @@ export async function generateAdditionalInfoAI() {
     return false;
   }
 }
+
+// ── 3.75.0: AI-draft marks on the sections ─────────────────────
+// Stored in appState.additionalInfoAI (saved with the project):
+//   _aiDraft[key] = true · _aiPrev[key] = old text · _aiText[key] = text written
+// The sections are plain textareas that other code also rewrites
+// (Bullets / Numbering / Clear, snapshots, imports), so a mark is shown
+// only while the textarea still holds exactly what the AI wrote; any
+// other text means the user's own work now, and the mark is dropped.
+
+function _holder() {
+  if (!appState.additionalInfoAI || typeof appState.additionalInfoAI !== 'object') appState.additionalInfoAI = {};
+  return appState.additionalInfoAI;
+}
+
+function _writeInfoDraft(key, el, text) {
+  const h = _holder();
+  if (!h._aiText || typeof h._aiText !== 'object') h._aiText = {};
+  writeAIDraft(h, key, text, {
+    get:    () => el.value,
+    set:    (k, v) => { el.value = v; },
+    filled: () => !!el.value.trim(),
+  });
+  // Recorded BEFORE the input event below, so the listener recognises
+  // the AI's own write and keeps the mark and the restore value.
+  h._aiText[key] = text;
+  try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+}
+
+function _dropInfoDraft(key) {
+  const h = _holder();
+  clearAIDraft(h, key);
+  if (h._aiText) delete h._aiText[key];
+}
+
+/** Draw (or remove) the mark row above each section. */
+export function renderAdditionalInfoMarks() {
+  const h = _holder();
+  _FIELD_MAP.forEach(({ key, inputId }) => {
+    const el = document.getElementById(inputId);
+    document.querySelectorAll(`.ai-draft-row[data-info-key="${key}"]`).forEach(n => n.remove());
+    if (!el || !isAIDraft(h, key)) return;
+    if (el.value !== ((h._aiText || {})[key] || '')) { _dropInfoDraft(key); return; }
+    const row = document.createElement('div');
+    row.className = 'ai-draft-row';
+    row.setAttribute('data-info-key', key);
+    row.innerHTML = aiMarkHTML({ markId: 'info|' + key, restore: canRestoreAI(h, key),
+                                 action: 'restore-info-ai', data: { key } });
+    el.parentNode.insertBefore(row, el);
+  });
+}
+
+/** The ✨ button: choose the sections, then generate. */
+export async function openAdditionalInfoAI() {
+  const keys = await openAIPartsDialog({
+    id:    'infoAiModal',
+    title: _t('aiInfoDlgTitle'),
+    intro: _t('aiInfoDlgIntro'),
+    parts: _FIELD_MAP.map(f => ({
+      key: f.key, label: _sectionLabel(f),
+      filled: !!(document.getElementById(f.inputId)?.value || '').trim(),
+    })),
+    notes: [
+      { icon: '↶',  tone: 'restore', text: _t('taAiRestoreNote') },
+      { icon: '⚠️', tone: 'warn', text: _t('aiInfoDlgNote') },
+    ],
+  });
+  if (!keys || !keys.length) return false;
+  return generateAdditionalInfoAI(keys, { confirmed: true });
+}
+
+let _marksWired = false;
+function _wireInfoMarks() {
+  if (_marksWired || typeof document === 'undefined') return;
+  _marksWired = true;
+  const ids = new Map(_FIELD_MAP.map(f => [f.inputId, f.key]));
+
+  // Typing in a section makes it the user's own: drop the mark.
+  document.addEventListener('input', (e) => {
+    const key = e.target && ids.get(e.target.id);
+    if (!key || !isAIDraft(_holder(), key)) return;
+    if (e.target.value === ((_holder()._aiText || {})[key] || '')) return;   // our own write
+    _dropInfoDraft(key);
+    document.querySelectorAll(`.ai-draft-row[data-info-key="${key}"]`).forEach(n => n.remove());
+  }, true);
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest && e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.getAttribute('data-action');
+    if (action === 'restore-info-ai') {
+      const key = btn.getAttribute('data-key');
+      const f = _FIELD_MAP.find(x => x.key === key);
+      const el = f && document.getElementById(f.inputId);
+      if (!el) return;
+      const h = _holder();
+      if (!restoreAIDraft(h, key, (k, v) => { el.value = v; })) return;
+      if (h._aiText) delete h._aiText[key];
+      try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
+      renderAdditionalInfoMarks();
+      try { import('./dacum_projects.js').then(m => m.saveCurrentProject()).catch(() => {}); } catch (_) {}
+      showStatus(_t('taAiRestored') + ' ✓', 'success');
+      return;
+    }
+    // Bullets / Numbering / Clear rewrite the textarea without an input
+    // event; re-check the marks once they have run.
+    if ((action === 'format-list' || action === 'clear-section') && ids.has(btn.getAttribute('data-input-id'))) {
+      setTimeout(renderAdditionalInfoMarks, 0);
+    }
+  });
+
+  document.addEventListener('dacum:project-loaded', () => setTimeout(renderAdditionalInfoMarks, 0));
+  window.addEventListener('dacum:langchange', () => setTimeout(renderAdditionalInfoMarks, 0));
+  document.addEventListener('dacum:app-ready', () => setTimeout(renderAdditionalInfoMarks, 0));
+}
+_wireInfoMarks();

@@ -2525,14 +2525,17 @@ textarea {
     background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
 }
 
-.btn-ai-cluster:focus-visible,
-.cl-ai-restore:focus-visible {
+.btn-ai-cluster:focus-visible {
     outline: 2px solid #0369a1;
     outline-offset: 2px;
 }
 
-/* "AI draft — review" + "↶ Restore previous" beside Range / Criteria */
-.cl-ai-badge-wrap {
+/* 3.75.0: "✨ AI draft — review" + "↶ Restore previous" — ONE style for
+   every AI card (ai_draft.js aiMarkHTML). Replaces .ta-ai-badge* (inline
+   in index.html) and .cl-ai-* (here). rem, not em: the mark sits in an
+   h3 (Task Analysis), an h4 (Clusters) or its own row (Additional Info)
+   and must read the same size in all three. */
+.ai-draft-mark {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
@@ -2541,8 +2544,8 @@ textarea {
     vertical-align: middle;
 }
 
-.cl-ai-badge {
-    font-size: 0.72em;
+.ai-draft-badge {
+    font-size: 0.72rem;
     font-weight: 700;
     color: #0369a1;
     background: #f0f9ff;
@@ -2552,8 +2555,8 @@ textarea {
     white-space: nowrap;
 }
 
-.cl-ai-restore {
-    font-size: 0.72em;
+.ai-draft-restore {
+    font-size: 0.72rem;
     font-weight: 700;
     font-family: inherit;
     color: #334155;
@@ -2565,10 +2568,24 @@ textarea {
     white-space: nowrap;
 }
 
-.cl-ai-restore:hover {
+.ai-draft-restore:hover {
     background: #f1f5f9;
     border-color: #94a3b8;
     box-shadow: none;
+}
+
+.ai-draft-restore:focus-visible {
+    outline: 2px solid #0369a1;
+    outline-offset: 2px;
+}
+
+/* Additional Info: the mark has its own row between header and textarea */
+.ai-draft-row {
+    margin: -4px 0 6px;
+}
+
+.ai-draft-row .ai-draft-mark {
+    margin-inline-start: 0;
 }
 
 .cluster-tasks-list {

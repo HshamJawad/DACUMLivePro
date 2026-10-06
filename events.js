@@ -5,7 +5,7 @@
 // ============================================================
 
 import { appState }             from './state.js';
-import { generateAdditionalInfoAI } from './additional_info_ai.js';
+import { openAdditionalInfoAI } from './additional_info_ai.js';
 import { generateOneModulePerOutcome,
          generateModulesAI } from './module_mapping_ai.js';
 import { suggestClustersAI, generateRangeAndCriteriaAI,
@@ -274,8 +274,9 @@ export function setupEvents() {
   // duties/tasks only, so surfacing it after this run would be wrong.
   // The generated text lives in plain textareas that saveCurrentProject()
   // already reads straight from the DOM, so a save is all that's needed.
+  // 3.75.0: opens "choose the sections" first (ai_draft.js dialog).
   _on('aiGenerateInfoBtn', 'click', () => {
-    generateAdditionalInfoAI()
+    openAdditionalInfoAI()
       .then((ok) => {
         if (!ok) return;
         saveCurrentProject();

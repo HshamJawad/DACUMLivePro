@@ -7,6 +7,30 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.75.0 — 2026-10-06 — One AI-draft component; Additional Info gets it
+MINOR. ai_draft.js (new), task_analysis.js, task_analysis_ai.js,
+clustering_ai.js, modules.js, additional_info_ai.js, events.js, state.js,
+dacum_projects.js, projects.js, dacum-styles.css, translations.js,
+index.html, sw.js (v186).
+Changed ai_draft.js holds what Task Analysis (3.70) and Competency
+        Clusters (3.71) each carried a copy of: the "choose what to
+        generate" dialog, the AI-draft mark with "↶ Restore previous",
+        and the keep / clear / restore logic. Both now use it; their
+        behaviour and saved data (_aiDraft / _aiPrev) are unchanged.
+        One set of styles (.ai-draft-*) replaces .ta-ai-badge* and
+        .cl-ai-*.
+Added   Additional Info: the ✨ button asks which sections to generate.
+        Filled sections start unticked and are never touched unless
+        ticked; their content goes to the AI as agreed context (do not
+        repeat). Each generated section shows "✨ AI draft — review",
+        and "↶ Restore previous" where it replaced text; the mark goes
+        when the section is edited (typing, Numbering/Bullets, Clear).
+        Saved with the project (appState.additionalInfoAI). The Full
+        Draft still generates all sections.
+Note    Learning Outcomes and Training Modules are left as they are:
+        their tabs already lend the toolbar a full Undo (3.31.1).
+        EN/FR/AR.
+
 ── 3.74.0 — 2026-10-06 — One AI call path; the preflight check runs
 MINOR (internal). ai_client.js, projects.js, additional_info_ai.js,
 clustering_ai.js, learning_outcomes_ai.js, module_mapping_ai.js,
