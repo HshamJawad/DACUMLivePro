@@ -16,7 +16,7 @@ import { syncTaskAnalysisTab, clearAllTaskAnalysis, hasAnyTaskAnalysis,
          countTaskAnalysisRecords } from './task_analysis.js';
 import { isBatchRun } from './draft_mode.js';
 import { renderOccupationalStandard } from './occupational_standard.js';
-import { throwIfAIError, showAIServiceError } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
 import { renderModuleCurriculum, clearModuleCurriculum,
          isModuleCurriculumEmpty } from './module_curriculum.js';
 import { verifyOccupation, needsConfirmation, VERDICT,
@@ -33,7 +33,6 @@ const _aiDir = () => (window.i18n && window.i18n.aiDirective ? window.i18n.aiDir
 
 
 
-const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 
 // ── Tab Switching ─────────────────────────────────────────────
 
@@ -837,7 +836,7 @@ function _aiOverwriteMessage() {
   const countKeys = (obj, pred) => Object.keys(obj || {})
     .filter(k => tasks.has(k) && (!pred || pred(obj[k]))).length;
   const nonEmpty = (v) => v && typeof v === 'object' &&
-    Object.keys(v).some(k => k !== '_aiDraft' && v[k] != null && String(v[k]).trim() !== '' &&
+    Object.keys(v).some(k => k !== '_aiDraft' && k !== '_aiPrev' && v[k] != null && String(v[k]).trim() !== '' &&
                              !(Array.isArray(v[k]) && !v[k].some(x => String(x || '').trim())));
 
   const lines = [];

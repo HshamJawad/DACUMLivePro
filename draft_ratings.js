@@ -23,12 +23,11 @@ import { showStatus }                   from './renderer.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { getDutyLetter }                from './codes.js';
-import { throwIfAIError, showAIServiceError } from './ai_client.js';
+import { throwIfAIError, showAIServiceError, BACKEND_URL } from './ai_client.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 
-const BACKEND_URL = 'https://dacum-ai-backend-production.up.railway.app';
 
 /** Collect the duties and tasks currently on the chart. */
 function _readChart() {

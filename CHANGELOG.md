@@ -7,6 +7,31 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.70.0 — 2026-10-06 — Task Analysis AI: restore, added sections ──
+MINOR. task_analysis.js, task_analysis_ai.js, ai_client.js,
+additional_info_ai.js, clustering_ai.js, draft_ratings.js,
+learning_outcomes_ai.js, module_mapping_ai.js, occupation_check.js,
+projects.js, translations.js, index.html, sw.js (v180).
+Added   "↶ Restore previous" beside "✨ AI draft — review" on a section
+        whose content the AI replaced: puts the old content back. Kept
+        in record._aiPrev[key] until the user edits, clears or restores
+        the section (toolbar Undo covers Duties & Tasks only). A second
+        run keeps the user's original, not the first draft. Never sent
+        to the exports or to Module Builder. The dialog says so when a
+        filled section is ticked.
+Added   The sections the user added ("➕ Add section", 3.46.0) are now
+        offered in the AI dialog under "Your added sections", their
+        title standing in for the rule (2–8 items), and their filled
+        lines are sent as context like the standard sections. Deleting
+        a section drops its AI marks.
+Changed ✨ Generate with AI: the sky-blue of the AI cards (was the last
+        inline purple gradient), now a CSS class (.ta-ai-btn) with the
+        same geometry as 🗑️ Clear Analysis; the dialog header, ticks and
+        "Generate selected" and the AI-draft mark follow in blue.
+Changed One backend address: BACKEND_URL is exported from ai_client.js
+        and imported by the eight files that each repeated it.
+        EN/FR/AR, RTL.
+
 ── 3.69.0 — 2026-10-06 — Task Verification in the AI-card blue ─────
 MINOR. dacum-components.css, index.html, tasks.js, workshop.js,
 sw.js (v179).
