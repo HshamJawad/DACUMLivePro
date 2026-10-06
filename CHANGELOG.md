@@ -7,6 +7,22 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── Tests — 2026-10-06 — behaviour tests run on every push (app unchanged)
+No app change; APP_VERSION / CACHE_VERSION stay at 3.76.0 / v187.
+tests/ (new), .github/workflows/tests.yml (new).
+Added   17 browser tests (Playwright, Chromium) with the AI backend
+        replaced by a stand-in: start-up in EN/FR/AR and every tab; how
+        an AI reply is read; the Full Draft (all seven stages on a new
+        project; on a filled project with the AI down: confirm, snapshot,
+        stop at stage 1, nothing changed); Job Title rules; the Task
+        Analysis, cluster and Additional Info AI cards (only ticked parts
+        change, restore, marks saved); outcome Undo, coverage filter,
+        Module Builder handoff, Word export. Synthetic sample project in
+        tests/fixtures. Run by GitHub Actions → "Tests" on every push.
+Checked Putting back three bugs fixed in 3.72–3.74 (Full Draft criteria
+        check, cluster pool not refreshed, Job Title not required) makes
+        the matching test fail each time.
+
 ── 3.76.0 — 2026-10-06 — modules.js split into four files (no behaviour change)
 MINOR (internal). modules.js, modules_shared.js (new), clusters.js (new),
 learning_outcomes.js (new), module_mapping.js (new), sw.js (v187),
