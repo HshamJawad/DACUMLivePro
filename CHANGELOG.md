@@ -7,6 +7,30 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.66.0 — 2026-10-06 — Card colours ──────────────────────────────
+MINOR. card_colors.js (new), duties.js, export_settings.js,
+dacum-components.css, translations.js, index.html, sw.js (v176).
+Added   🎨 Colours on the Card View bar (next to 🖨 Print): a small
+        panel under the button with two rows, Duty cards / Task cards —
+        the default chip (blue / yellow) and eight colours (DACUM Lite
+        set: blue, teal, green, amber, orange, rose, purple, slate).
+        One click recolours the cards at once. The card becomes a LIGHT
+        tint of the pick (pale background, the colour on the border, a
+        dark shade for label and text), so text stays readable.
+        - From the bar the change is TEMPORARY: it lasts until the tool
+          is closed (sessionStorage dacum_card_colors_tmp), then the
+          saved colours — or the defaults — return.
+        - "⚙️ Keep these colours" opens Settings with the pick staged;
+          Save keeps it on this device (localStorage dacum_card_colors)
+          and clears the temporary pick.
+        - Settings (⚙️ Export Settings panel) has a "🃏 Card colours"
+          section (badge: Screen) with the same swatches and a preview;
+          it shares the panel's draft, Save, Cancel and Reset.
+        - Applies on screen, in the presentation (fullscreen) view and
+          in Card View print-outs. Word / PDF exports never read it.
+        - Click outside or Esc closes the panel (Esc then does not end a
+          presentation). EN / FR / AR, RTL, 360 px.
+
 ── 3.65.0 — 2026-10-06 — Wall View merged into Card View ───────────
 MINOR. duties.js, drag_drop.js, events.js, dacum-components.css,
 dacum-rtl.css, translations.js, index.html,

@@ -15,6 +15,8 @@
 import { appState }   from './state.js';
 import { showStatus } from './renderer.js';
 import { getDutyLetter, getTaskCode as _codesTaskCode } from './codes.js';
+import { getActiveCardColors, setTempCardColor, hasTempCardColors,
+         cardSwatchRow } from './card_colors.js';
 
 /* ── i18n access ──────────────────────────────────────────────────
    Resolved lazily on every call: window.i18n is installed by a plain
@@ -303,6 +305,66 @@ function _syncCardExitButton() {
   if (b) b.disabled = !_isPresenting() && _getCardZoom() === 1;
 }
 
+// ── Card colours popover (3.66.0) ────────────────────────────
+// 🎨 on the bar opens a small panel of swatches under the button. A
+// click recolours the cards at once, for this session only (see
+// card_colors.js). "Keep these colours" opens Settings with the pick
+// already staged, so one Save makes it permanent on this device.
+let _ccOpen = false;
+
+function _ccPopoverHtml() {
+  const c = getActiveCardColors();
+  return `
+    <div class="cc-pop" role="dialog" aria-label="${_t('ccTitle')}">
+      <div class="cc-pop-row"><div class="cc-pop-lbl">${_t('ccDuty')}</div>
+        <div class="cc-swatches">${cardSwatchRow('duty', c.duty, 'data-cc')}</div></div>
+      <div class="cc-pop-row"><div class="cc-pop-lbl">${_t('ccTask')}</div>
+        <div class="cc-swatches">${cardSwatchRow('task', c.task, 'data-cc')}</div></div>
+      <div class="cc-pop-foot">
+        <span class="cc-pop-note">${_t(hasTempCardColors() ? 'ccTempNote' : 'ccTempHint')}</span>
+        <button type="button" class="cc-keep" data-cv-action="colors-keep"${hasTempCardColors() ? '' : ' disabled'}>⚙️ ${_t('ccKeep')}</button>
+      </div>
+    </div>`;
+}
+
+function _ccRefresh() {
+  const bar = document.getElementById('cardViewToolbar');
+  if (!bar) return;
+  bar.innerHTML = _cardToolbarHtml();
+  _applyCardZoom();
+  if (!_ccOpen) return;
+  /* Keep the panel inside the screen (phones, RTL). */
+  const pop = bar.querySelector('.cc-pop');
+  if (pop) {
+    const r = pop.getBoundingClientRect(), vw = document.documentElement.clientWidth;
+    const dx = r.left < 8 ? 8 - r.left : (r.right > vw - 8 ? (vw - 8) - r.right : 0);
+    if (dx) pop.style.transform = `translateX(${Math.round(dx)}px)`;
+  }
+  bar.querySelector('.cc-pop .cc-on')?.focus({ preventScroll: true });
+}
+
+function _ccClose() {
+  if (!_ccOpen) return;
+  _ccOpen = false;
+  _ccRefresh();
+}
+
+if (typeof document !== 'undefined') {
+  /* Click outside the panel closes it. */
+  document.addEventListener('click', (e) => {
+    if (!_ccOpen) return;
+    /* composedPath() is fixed at dispatch, so it still holds the panel
+       even when the click has just rebuilt the bar under the target. */
+    const inside = e.composedPath().some(el => el && el.classList && el.classList.contains('cc-wrap'));
+    if (!inside) _ccClose();
+  });
+  /* Esc closes the panel first — and only the panel (capture phase,
+     so it does not also end a presentation). */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && _ccOpen) { e.stopImmediatePropagation(); _ccClose(); }
+  }, true);
+}
+
 function _cardToolbarHtml() {
   const fs = _isPresenting();
   const canExit = fs || _getCardZoom() !== 1;
@@ -317,6 +379,11 @@ function _cardToolbarHtml() {
       <button type="button" class="wv-btn" data-cv-action="zoom-reset" title="${_t('ttCvZoomReset')}">⟲ ${_t('wvReset')}</button>
     </div>
     <div class="wv-right">
+      <span class="cc-wrap">
+        <button type="button" class="wv-btn${_ccOpen ? ' is-on' : ''}" data-cv-action="colors" title="${_t('ttCcBtn')}"
+                aria-haspopup="dialog" aria-expanded="${_ccOpen}">🎨 ${_t('ccBtn')}</button>
+        ${_ccOpen ? _ccPopoverHtml() : ''}
+      </span>
       <button type="button" class="wv-btn" data-cv-action="print" title="${_t('ttCvPrint')}">🖨 ${_t('wvPrint')}</button>
       <button type="button" class="wv-btn${fs ? ' is-on' : ''}" data-cv-action="fullscreen" title="${_t('ttCvFullscreen')}" aria-pressed="${fs}">🖥 ${_t('wvFullscreen')}</button>
     </div>`;
@@ -325,6 +392,7 @@ function _cardToolbarHtml() {
 function _setCardToolbar(mode, container) {
   let bar = document.getElementById('cardViewToolbar');
   if (mode !== 'card') {
+    _ccOpen = false;
     if (bar) bar.style.display = 'none';
     if (container) container.style.removeProperty('--cv-zoom');
     if (_isPresenting()) _leavePresentation();
@@ -345,9 +413,22 @@ function _setCardToolbar(mode, container) {
 }
 
 function _onCardToolbarClick(e) {
+  const sw = e.target.closest('[data-cc-group]');
+  if (sw) {
+    setTempCardColor(sw.getAttribute('data-cc-group'), sw.getAttribute('data-cc-hex'));
+    _ccRefresh();
+    return;
+  }
   const btn = e.target.closest('[data-cv-action]');
   if (!btn || btn.disabled) return;
   switch (btn.getAttribute('data-cv-action')) {
+    case 'colors':      _ccOpen = !_ccOpen; _ccRefresh(); break;
+    case 'colors-keep':
+      _ccOpen = false; _ccRefresh();
+      import('./export_settings.js')
+        .then(m => m.openExportSettings({ cardColors: getActiveCardColors() }))
+        .catch(err => console.warn('[card-colors] settings unavailable:', err));
+      break;
     /* 5 points below 50 %, 10 above. */
     case 'zoom-in':    _setCardZoom(_zoomStep(_getCardZoom(), +1)); _applyCardZoom(); break;
     case 'zoom-out':   _setCardZoom(_zoomStep(_getCardZoom(), -1)); _applyCardZoom(); break;

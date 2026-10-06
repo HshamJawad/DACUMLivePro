@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v175';
+const CACHE_VERSION = 'v176';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -104,6 +104,7 @@ const PRECACHE_URLS = [
   // exporters, so an installed copy must carry it or a coloured
   // export would fail offline.
   BASE + 'export_settings.js',
+  BASE + 'card_colors.js',
   // Arabic PDF support: the shaper/BiDi module and the jsPDF mirror
   // layer built on top of it. Reachable only from exports_pdf.js.
   BASE + 'arabic-font.js',

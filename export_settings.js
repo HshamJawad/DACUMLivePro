@@ -51,6 +51,9 @@
 //                        output rather than adding to it.
 // ============================================================
 
+import { getSavedCardColors, saveCardColors, cardSwatchRow, cardTokens,
+         CARD_DEFAULT } from './card_colors.js';
+
 const LS_KEY = 'dacum_export_settings';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
@@ -216,7 +219,13 @@ const MODAL_ID = 'esModal';
    time, an unsaved draft cannot reach a document. */
 let _draft = null;
 
-const _stored = () => getSettings();
+/* 3.66.0: the panel also holds the CARD COLOURS (screen only — see
+   card_colors.js). They travel in the same draft so one Save / Cancel
+   / Reset covers the whole panel, but they are stored apart from the
+   export settings and no exporter ever reads them. */
+const _withCards = (s, c) => ({ ...s, cardDuty: c.duty, cardTask: c.task });
+const _stored = () => _withCards(getSettings(), getSavedCardColors());
+const _exportPart = (d) => ({ sizeOffset: d.sizeOffset, headingColor: d.headingColor, tableHeaderColor: d.tableHeaderColor });
 const _isDirty = () =>
   !!_draft && JSON.stringify(_draft) !== JSON.stringify(_stored());
 
@@ -267,10 +276,24 @@ function _previewHTML(s) {
     </div>`;
 }
 
+/* Small duty + task card drawn with the drafted colours. */
+function _cardPreviewHTML(s) {
+  const st = (hex, kind) => {
+    if (hex === CARD_DEFAULT) return '';
+    const t = cardTokens(hex, kind);
+    return `--cc-${kind}-bg1:${t.bg1};--cc-${kind}-bg2:${t.bg2};--cc-${kind}-border:${t.border};--cc-${kind}-label:${t.label};--cc-${kind}-text:${t.text};`;
+  };
+  return `
+    <div class="cc-prev-duty${s.cardDuty === CARD_DEFAULT ? '' : ' cc-set'}" style="${st(s.cardDuty, 'duty')}">
+      <b>${_t('ccPrevDuty')}</b><span>${_t('ccPrevDutyText')}</span></div>
+    <div class="cc-prev-task${s.cardTask === CARD_DEFAULT ? '' : ' cc-set'}" style="${st(s.cardTask, 'task')}">
+      <b>${_t('ccPrevTask')}</b><span>${_t('ccPrevTaskText')}</span></div>`;
+}
+
 function _render() {
   const box = document.getElementById('esModalBody');
   if (!box) return;
-  const s = _draft || (_draft = getSettings());
+  const s = _draft || (_draft = _stored());
 
   box.innerHTML = `
     <p class="es-intro">ℹ️ ${_t('esIntro')}</p>
@@ -307,6 +330,23 @@ function _render() {
     </section>
 
     <section class="es-section">
+      <div class="es-sec-head">
+        <span>🃏 ${_t('ccTitle')}</span>
+        <span class="es-badges"><i class="es-badge es-badge-screen">${_t('ccBadgeScreen')}</i></span>
+      </div>
+      <p class="es-note">${_t('ccSettingsNote')}</p>
+      <div class="es-field">
+        <label>${_t('ccDuty')}</label>
+        <div class="cc-swatches">${cardSwatchRow('duty', s.cardDuty, 'data-ccs')}</div>
+      </div>
+      <div class="es-field">
+        <label>${_t('ccTask')}</label>
+        <div class="cc-swatches">${cardSwatchRow('task', s.cardTask, 'data-ccs')}</div>
+      </div>
+      <div class="cc-prev" aria-hidden="true">${_cardPreviewHTML(s)}</div>
+    </section>
+
+    <section class="es-section">
       <div class="es-sec-head"><span>👁️ ${_t('esPreview')}</span></div>
       <div class="es-preview">${_previewHTML(s)}</div>
     </section>
@@ -318,6 +358,14 @@ function _render() {
   if (sel) sel.addEventListener('change', function () {
     _draft = { ..._draft, sizeOffset: Number(this.value) };
     _render();
+  });
+
+  box.querySelectorAll('[data-ccs-group]').forEach((b) => {
+    b.addEventListener('click', function () {
+      const g = this.getAttribute('data-ccs-group');
+      _draft = { ..._draft, [g === 'duty' ? 'cardDuty' : 'cardTask']: this.getAttribute('data-ccs-hex') };
+      _render();
+    });
   });
 
   box.querySelectorAll('.es-swatch').forEach((b) => {
@@ -380,8 +428,9 @@ function _ensureModal() {
 
   const commit = () => {
     if (!_draft) return;
-    saveSettings(_draft);
-    _draft = getSettings();
+    saveSettings(_exportPart(_draft));
+    saveCardColors({ duty: _draft.cardDuty, task: _draft.cardTask });
+    _draft = _stored();
     _render();
     const flag = document.getElementById('esDirtyFlag');
     if (flag) {
@@ -400,7 +449,7 @@ function _ensureModal() {
      press Save, so Reset behaves like every other control here and can
      be backed out of with Cancel. */
   m.querySelector('#esModalReset').addEventListener('click', () => {
-    _draft = { ...DEFAULTS };
+    _draft = { ...DEFAULTS, cardDuty: CARD_DEFAULT, cardTask: CARD_DEFAULT };
     _render();
   });
 
@@ -425,9 +474,13 @@ function _ensureModal() {
   return m;
 }
 
-export function openExportSettings() {
+/** opts.cardColors — stage these card colours in the draft (the
+    Card View "Keep these colours" link), so a single Save keeps them. */
+export function openExportSettings(opts) {
   const m = _ensureModal();
-  _draft = getSettings();
+  _draft = _stored();
+  const cc = opts && opts.cardColors;
+  if (cc) _draft = { ..._draft, cardDuty: cc.duty || CARD_DEFAULT, cardTask: cc.task || CARD_DEFAULT };
   _render();
   m.style.display = 'block';
 }
