@@ -7,6 +7,29 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.76.0 — 2026-10-06 — modules.js split into four files (no behaviour change)
+MINOR (internal). modules.js, modules_shared.js (new), clusters.js (new),
+learning_outcomes.js (new), module_mapping.js (new), sw.js (v187),
+index.html.
+Changed modules.js (4,544 lines) is split, code moved unchanged, into
+        modules_shared.js (helpers, criteria lookups, store writer,
+        LO / MM Undo-Redo, 832 lines), clusters.js (1,372),
+        learning_outcomes.js (1,153) and module_mapping.js (1,240).
+        modules.js now only re-exports the four, so every other file
+        still imports from it and none had to change.
+How     Done by script on the parsed source: all 192 top-level
+        statements present exactly once, comments kept; each file's
+        imports and exports computed from what it uses; ESLint no-undef
+        clean. Two edits only: _t / _tf became function declarations
+        (hoisted, safe across files), and the coverage "gaps only" flag
+        is set through setCoverageGapsOnly() instead of being assigned
+        from the clusters code.
+Tested  On a real project (41 outcomes, 16 modules): the rendered
+        Clusters, Learning Outcomes and Module Mapping tabs, the Module
+        Builder JSON and the Word export text are identical to 3.75.0;
+        LO delete → undo, coverage filter, Full Draft (7 stages), the
+        cluster, Task Analysis and Additional Info AI cards all pass.
+
 ── 3.75.0 — 2026-10-06 — One AI-draft component; Additional Info gets it
 MINOR. ai_draft.js (new), task_analysis.js, task_analysis_ai.js,
 clustering_ai.js, modules.js, additional_info_ai.js, events.js, state.js,
