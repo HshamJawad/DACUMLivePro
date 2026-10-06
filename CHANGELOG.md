@@ -7,6 +7,36 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.71.0 — 2026-10-06 — Competency Clusters: the card AI button ───
+MINOR. clustering_ai.js, modules.js, events.js, dacum-styles.css,
+translations.js, index.html, sw.js (v182).
+Added   The card button opens a dialog: Range and/or Performance
+        Criteria. A part that already has content starts unticked, so a
+        Range written with the panel is not replaced by asking for
+        criteria. The dialog names the Task Analysis lines it will use,
+        the learning outcomes linked to the criteria, and the restore.
+        The part not generated is sent as context for the other.
+Added   "↶ Restore previous" beside "✨ AI draft — review" on a generated
+        Range or criteria set: puts back what it replaced. Kept in
+        cluster._aiPrev until the user edits that part (a blur without a
+        change keeps it). Also after "Range & Criteria" and Full Draft.
+Changed Prompt: per cluster, the Task Analysis tools, conditions and
+        safety lines of its tasks (the source of a Range, deduplicated
+        and capped), sector and country; never invent standard numbers.
+Fixed   The reply was read from the first text block only and failed on
+        a line of prose around the JSON; now every block, with a {...}
+        fallback.
+Fixed   Cluster name, Range and criteria were written into the card
+        unescaped: a "<" or "&" could break the card. Now escaped.
+Changed The button: "✨ Generate with AI" in the sky-blue of the AI
+        cards (it shared the purple Rename class, with 🤖); the three
+        card buttons keep their text on one line and wrap as whole
+        buttons; the title wraps beside them.
+Fixed   Arabic: a long competency name, and a Task Analysis added-section
+        title (3.70.0), did not wrap and ran over the buttons — they were
+        in <bdi>, which dacum-rtl.css keeps on one line for codes (A1).
+        Now <span dir="auto">. EN/FR/AR, RTL.
+
 ── 3.70.1 — 2026-10-06 — Task Analysis: selected task on hover ─────
 PATCH. index.html, sw.js (v181).
 Fixed   Task Analysis navigator: hovering the selected task turned its

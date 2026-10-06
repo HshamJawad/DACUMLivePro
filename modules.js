@@ -376,10 +376,10 @@ export function renderClusters() {
     html += `
       <div class="cluster-item">
         <div class="cluster-header">
-          <div class="cluster-title">C${clusterNumber} — ${cluster.name}</div>
+          <div class="cluster-title"><bdi>C${clusterNumber}</bdi> — <span dir="auto">${_esc(cluster.name)}</span></div>
           <div class="cluster-actions">
-            <button class="btn-rename-cluster" data-action="regen-cluster-criteria" data-cluster-id="${cluster.id}"
-                    title="${_t('ttRegenCriteria')}">🤖 ${_t('btnAICriteria')}</button>
+            <button type="button" class="btn-ai-cluster" data-action="regen-cluster-criteria" data-cluster-id="${cluster.id}"
+                    title="${_esc(_t('ttRegenCriteria'))}">✨ ${_t('btnAICriteria')}</button>
             <button class="btn-rename-cluster" data-action="rename-cluster" data-cluster-id="${cluster.id}">✏️ ${_t('btnRename')}</button>
             <button class="btn-delete-cluster" data-action="delete-cluster" data-cluster-id="${cluster.id}">🗑️ ${_t('btnDelete')}</button>
           </div>
@@ -397,16 +397,16 @@ export function renderClusters() {
 
         <div class="cluster-section">
           <div class="cluster-section-header">
-            <h4>🎯 ${_t('lblRange')}</h4>
+            <h4>🎯 ${_t('lblRange')}${_clAiBadge(cluster, 'range')}</h4>
             <button type="button" class="tab-help-btn" data-action="show-pc-range-help" title="${_t('ttPCRangeHelp')}" aria-label="${_t('ttPCRangeHelp')}" aria-haspopup="dialog">?</button>
           </div>
           <div class="cluster-helper-text">${_t('hintRange')}</div>
-          <textarea id="range_${cluster.id}" data-action="update-cluster-range" data-cluster-id="${cluster.id}">${cluster.range || ''}</textarea>
+          <textarea id="range_${cluster.id}" data-action="update-cluster-range" data-cluster-id="${cluster.id}" dir="auto">${_esc(cluster.range || '')}</textarea>
         </div>
 
         <div class="cluster-section">
           <div class="cluster-section-header">
-            <h4>✅ ${_t('lblPerformanceCriteria')}</h4>
+            <h4>✅ ${_t('lblPerformanceCriteria')}${_clAiBadge(cluster, 'criteria')}</h4>
             <button type="button" class="tab-help-btn" data-action="show-pc-range-help" title="${_t('ttPCRangeHelp')}" aria-label="${_t('ttPCRangeHelp')}" aria-haspopup="dialog">?</button>
           </div>
           <div class="cluster-helper-text">${_t('hintCriteria')}</div>
@@ -429,7 +429,7 @@ export function renderClusters() {
               data-action-keydown="handle-criteria-keydown"
               data-action-blur="update-cluster-criteria-numbered"
               placeholder="${_t('phFirstCriterion')}"
-              style="min-height:100px;border:none;border-radius:0;box-shadow:none;display:block;width:100%;box-sizing:border-box;padding:10px 14px;">${displayValue}</textarea>
+              style="min-height:100px;border:none;border-radius:0;box-shadow:none;display:block;width:100%;box-sizing:border-box;padding:10px 14px;">${_esc(displayValue)}</textarea>
           </div>
           ${_renderCritDupNote(cluster, clusterNumber, taCriteria)}
         </div>
@@ -1743,7 +1743,53 @@ function _wireClusterTaskControls() {
 
 export function updateClusterRange(clusterId, value) {
   const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
-  if (cluster) cluster.range = value;
+  if (!cluster) return;
+  if (value !== (cluster.range || '')) _clearClusterAiPart(cluster, 'range');
+  cluster.range = value;
+}
+
+// ── AI draft marks on a cluster (3.71.0) ─────────────────────────
+// clustering_ai.js sets cluster._aiDraft[part] = true for a generated
+// Range ('range') or criteria set ('criteria'), and keeps what it
+// replaced in cluster._aiPrev[part]. The mark and the kept value go on
+// the user's first real edit of that part, or on restore.
+function _clAiBadge(cluster, part) {
+  if (!cluster || !cluster._aiDraft || !cluster._aiDraft[part]) return '';
+  const restore = (cluster._aiPrev && cluster._aiPrev[part] != null) ? `
+      <button type="button" class="cl-ai-restore" data-action="restore-cluster-ai"
+              data-cluster-id="${_esc(cluster.id)}" data-part="${part}"
+              title="${_esc(_t('taAiRestoreTip'))}">↶ ${_esc(_t('taAiRestore'))}</button>` : '';
+  return ` <span class="cl-ai-badge-wrap" data-cl-ai-badge="${_esc(cluster.id)}|${part}"><span class="cl-ai-badge">✨ ${_esc(_t('taAiBadge'))}</span>${restore}</span>`;
+}
+
+function _clearClusterAiPart(cluster, part) {
+  const had = !!(cluster._aiDraft && cluster._aiDraft[part]);
+  if (had) delete cluster._aiDraft[part];
+  if (cluster._aiPrev && part in cluster._aiPrev) {
+    delete cluster._aiPrev[part];
+    if (!Object.keys(cluster._aiPrev).length) delete cluster._aiPrev;
+  }
+  if (had) {
+    document.querySelectorAll('[data-cl-ai-badge]').forEach(el => {
+      if (el.getAttribute('data-cl-ai-badge') === cluster.id + '|' + part) el.remove();
+    });
+  }
+}
+
+/** "↶ Restore previous" on a cluster's Range or criteria. */
+export function restoreClusterAI(clusterId, part) {
+  const cluster = (appState.clusteringData?.clusters || []).find(c => c.id === clusterId);
+  if (!cluster || !cluster._aiPrev || cluster._aiPrev[part] == null) return false;
+  const prev = JSON.parse(JSON.stringify(cluster._aiPrev[part]));
+  if (part === 'range') cluster.range = prev;
+  else cluster.performanceCriteria = Array.isArray(prev) ? prev : [];
+  if (cluster._aiDraft) delete cluster._aiDraft[part];
+  delete cluster._aiPrev[part];
+  if (!Object.keys(cluster._aiPrev).length) delete cluster._aiPrev;
+  renderClusters();
+  _persistClusters();
+  showStatus(_t('taAiRestored') + ' ✓', 'success');
+  return true;
 }
 
 export function updateClusterCriteria(clusterId, value) {
@@ -1762,6 +1808,9 @@ export function updateClusterCriteriaFromNumbered(clusterId, value) {
     const match = line.match(/^\d+-\d+\s+(.*)$/);
     return match ? match[1].trim() : line.trim();
   }).filter(line => line);
+  // A blur without a change must not drop the AI mark (3.71.0).
+  const before = (cluster.performanceCriteria || []).map(x => String(x || '').trim()).filter(Boolean);
+  if (JSON.stringify(before) !== JSON.stringify(stripped)) _clearClusterAiPart(cluster, 'criteria');
   cluster.performanceCriteria = stripped;
   _refreshCritDupNote(cluster);
 }

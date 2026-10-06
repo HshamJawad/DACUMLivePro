@@ -217,7 +217,7 @@ export function openTaskAnalysisAI(taskKey) {
       <label style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #f1f5f9;cursor:pointer;">
         <input type="checkbox" data-ta-ai-field="${k}" ${filled ? '' : 'checked'}
                style="width:18px;height:18px;flex-shrink:0;accent-color:#0284c7;">
-        <span style="flex:1;min-width:0;font-size:.9em;color:#334155;overflow-wrap:anywhere;"><bdi dir="auto">${escapeHtml(f.label)}</bdi></span>
+        <span style="flex:1;min-width:0;font-size:.9em;color:#334155;overflow-wrap:anywhere;"><span dir="auto">${escapeHtml(f.label)}</span></span>
         ${filled ? `<span data-ta-ai-tag="${k}" style="font-size:.72em;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 8px;white-space:nowrap;">${escapeHtml(_t('taAiFilled'))}</span>` : ''}
       </label>`;
   }).join('');

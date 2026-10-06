@@ -34,7 +34,7 @@ import { bypassToClusteringTab, resetVerificationDecision, initializeClusteringF
   updateCreateModuleButton, createModule, renameModule, deleteModule,
   removeLoFromModule, addLoToModuleFromDropdown,
   openModuleBuilderFromMapping, exportModuleMappingJSON,
-  dismissCriteriaRenumberNote }  from './modules.js';
+  dismissCriteriaRenumberNote, restoreClusterAI }  from './modules.js';
 import { showStatus, escapeHtml,
   toggleSkillsLevelSection, addSkillsCategory, removeSkillsCategory,
   updateSkillsCategoryName, addSkillsCompetency, removeSkillsCompetency,
@@ -547,6 +547,11 @@ export function setupEvents() {
       else if (action === 'delete-cluster')     deleteCluster(target.getAttribute('data-cluster-id'));
       else if (action === 'show-pc-range-help') _showPCRangeHelp();
       else if (action === 'dismiss-crit-renumber') dismissCriteriaRenumberNote(target.getAttribute('data-cluster-id'));
+      else if (action === 'restore-cluster-ai') {
+        if (restoreClusterAI(target.getAttribute('data-cluster-id'), target.getAttribute('data-part'))) {
+          saveCurrentProject(); renderProjectsSidebar();
+        }
+      }
       else if (action === 'regen-cluster-criteria') {
         generateForSingleCluster(target.getAttribute('data-cluster-id'))
           .then((ok) => { if (ok) { saveCurrentProject(); renderProjectsSidebar(); } })

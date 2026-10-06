@@ -663,7 +663,7 @@ function _renderCustomField(sec, items) {
   return `
     <div class="section-container ta-custom-section" data-field-block="${escapeHtml(key)}">
       <div class="section-header-editable">
-        <h3><bdi dir="auto">${escapeHtml(sec.title)}</bdi>${_aiBadge(key)}</h3>
+        <h3><span dir="auto">${escapeHtml(sec.title)}</span>${_aiBadge(key)}</h3>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <button type="button" class="btn-format btn-icon" data-action="ta-custom-rename" data-section-id="${escapeHtml(sec.id)}"
                   title="${escapeHtml(_t('taCustomRename'))}" aria-label="${escapeHtml(_t('taCustomRename'))}">✏️</button>

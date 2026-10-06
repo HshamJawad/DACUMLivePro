@@ -20,6 +20,20 @@
 // A third entry point, generateForSingleCluster(), regenerates just one
 // cluster so accepted work is never collateral damage.
 //
+// 3.71.0:
+//   • The per-card button opens a dialog: Range and/or Performance
+//     Criteria. A part that already has content starts unticked, so a
+//     Range written with the panel is never replaced by asking for
+//     criteria.
+//   • A replaced part keeps its previous content (cluster._aiPrev) and
+//     is marked as an AI draft (cluster._aiDraft) until the user edits
+//     it — "↶ Restore previous" in the card brings it back (modules.js).
+//   • The prompt now carries, per cluster, the Task Analysis tools,
+//   conditions and safety lines of its tasks (the natural source of a
+//   Range), sector and country, and the no-invented-standards rule.
+//   • The reply is read from every text block and survives a line of
+//     prose around the JSON.
+//
 // Rules encoded in the prompts come from the guidance shown in the
 // tab's own help modals (Norton's DACUM Handbook conventions):
 //   • Cluster on common purpose, shared workflow, or shared knowledge
@@ -37,7 +51,7 @@ import { appState }   from './state.js';
 import { showStatus } from './renderer.js';
 import { renderAvailableTasks, renderClusters, persistClustering,
          loText } from './modules.js';
-import { getTaskPerformanceCriteria } from './task_analysis.js';
+import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
@@ -71,9 +85,13 @@ function _chartContext() {
   const occupation = v('occupationTitle');
   const jobTitle   = v('jobTitle');
   const scope      = v('scopeOfWork');
+  const sector     = v('sector');
+  const country    = v('context');
   return `OCCUPATION: ${occupation || '(not specified)'}` +
          (jobTitle ? `\nJOB / ROLE: ${jobTitle}` : '') +
-         (scope    ? `\nSCOPE OF WORK: ${scope}` : '');
+         (scope    ? `\nSCOPE OF WORK: ${scope}` : '') +
+         (sector   ? `\nSECTOR: ${sector}` : '') +
+         (country  ? `\nCOUNTRY / CONTEXT: ${country}` : '');
 }
 
 async function _callBackend(prompt) {
@@ -84,13 +102,23 @@ async function _callBackend(prompt) {
   });
   await throwIfAIError(response);
   const data = await response.json();
-  if (!data.content?.[0]?.text) {
+  // 3.71.0: every text block, not only the first.
+  const raw = (data.content || []).map(b => (b && b.type === 'text' ? b.text : '')).join('');
+  if (!raw.trim()) {
     throw new Error('Invalid response from backend - no content found');
   }
-  const jsonText = data.content[0].text.trim()
+  const jsonText = raw.trim()
     .replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   try { return JSON.parse(jsonText); }
-  catch (e) { throw new Error('Failed to parse AI response as JSON'); }
+  catch (_) {
+    // A line of prose before or after the object is common; take the
+    // outermost {...} before giving up.
+    const a = jsonText.indexOf('{'), b = jsonText.lastIndexOf('}');
+    if (a !== -1 && b > a) {
+      try { return JSON.parse(jsonText.slice(a, b + 1)); } catch (_) {}
+    }
+    throw new Error('Failed to parse AI response as JSON');
+  }
 }
 
 function _guardQuota() {
@@ -142,6 +170,33 @@ function _taCriteriaOf(cluster) {
   });
   return out;
 }
+
+/** 3.71.0: the Task Analysis lines a Range is made of — tools,
+ *  conditions and safety of the cluster's tasks — deduplicated and
+ *  capped so a large cluster cannot flood the prompt. */
+function _taRangeSourcesOf(cluster) {
+  const take = { tools: [], conditions: [], safety: [] };
+  const seen = { tools: new Set(), conditions: new Set(), safety: new Set() };
+  const add = (bucket, txt, cap) => {
+    const t = String(txt || '').replace(/^[\s]*[•\-*○●]\s*/, '').replace(/^[\s]*\d+[.)]\s*/, '').trim();
+    const k = _norm(t);
+    if (!k || seen[bucket].has(k) || take[bucket].length >= cap) return;
+    seen[bucket].add(k); take[bucket].push(t);
+  };
+  (cluster.tasks || []).forEach(t => {
+    if (!t || !t.id) return;
+    let r = null;
+    try { r = getTaskAnalysisRecord(t.id); } catch (_) { r = null; }
+    if (!r) return;
+    (r.toolsEquipmentMaterials || []).forEach(x => add('tools', x, 20));
+    if (r.conditionsWorkEnvironment) add('conditions', r.conditionsWorkEnvironment, 6);
+    (r.safetyOSH || []).forEach(x => add('safety', x, 12));
+  });
+  return take;
+}
+
+const _isFilledRange    = c => !!String(c.range || '').trim();
+const _isFilledCriteria = c => (c.performanceCriteria || []).some(x => String(x || '').trim());
 
 // ── 1 · Suggest clusters ──────────────────────────────────────
 
@@ -341,17 +396,34 @@ export async function suggestClustersAI() {
 
 // ── 2 · Range + Performance Criteria ──────────────────────────
 
-function _buildCriteriaPrompt(clusters) {
+function _buildCriteriaPrompt(clusters, parts = { range: true, criteria: true }) {
+  const list = (h, arr) => arr.length ? `\n    ${h}:\n${arr.map(x => `      · ${x}`).join('\n')}` : '';
   const blocks = clusters.map(c => {
     const tasks = (c.tasks || [])
       .map(t => `      · ${t.text}${t.dutyTitle ? ` [${t.dutyTitle}]` : ''}`)
       .join('\n');
     const ta = _taCriteriaOf(c);
-    const taBlock = ta.length
-      ? `\n    already written in Task Analysis (task level):\n${ta.map(x => `      · ${x}`).join('\n')}`
-      : '';
-    return `  - id: ${c.id}\n    competency: ${c.name}\n    tasks:\n${tasks}${taBlock}`;
+    const taBlock = list('already written in Task Analysis (task level)', ta);
+    const src = _taRangeSourcesOf(c);
+    const rangeSrc = list('tools, equipment & materials (Task Analysis)', src.tools) +
+                     list('conditions / work environment (Task Analysis)', src.conditions) +
+                     list('safety / OSH (Task Analysis)', src.safety);
+    // The part NOT being generated is context, so the new one fits it.
+    const keepRange = !parts.range && _isFilledRange(c)
+      ? `\n    current range (keep consistent with it): ${String(c.range).trim()}` : '';
+    const keepCrit = !parts.criteria && _isFilledCriteria(c)
+      ? list('current competency criteria (keep consistent with them)', c.performanceCriteria.filter(x => String(x || '').trim())) : '';
+    return `  - id: ${c.id}\n    competency: ${c.name}\n    tasks:\n${tasks}${taBlock}${rangeSrc}${keepRange}${keepCrit}`;
   }).join('\n');
+
+  const what = parts.range && parts.criteria ? 'a Range statement and a set of Performance Criteria'
+             : parts.range ? 'a Range statement ONLY (do not write criteria)'
+             : 'a set of Performance Criteria ONLY (do not write a range)';
+  const shape = [
+    `      "id": "cluster_1"`,
+    parts.range    ? `      "range": "Applies to ... across ... using ..."` : null,
+    parts.criteria ? `      "performanceCriteria": ["Equipment calibration is verified to be within manufacturer's tolerance ranges"]` : null,
+  ].filter(Boolean).join(',\n');
 
   return `You are a competency-based training (CBT) engine working from a DACUM analysis.
 
@@ -361,7 +433,17 @@ COMPETENCY CLUSTERS (${clusters.length}):
 ${blocks}
 
 TASK:
-For EACH cluster, write a Range statement and a set of Performance Criteria.
+For EACH cluster, write ${what}.
+
+GENERAL RULES:
+- Base everything on the tasks listed for that cluster and the Task
+  Analysis lines given with them; where tools, conditions or safety
+  lines are given, the Range should draw on them (select and generalise,
+  do not copy every item).
+- NEVER invent standard numbers, regulation names, codes or clause
+  references (no "ISO 9606", "OSHA 1910" etc.). Refer to them only
+  generically ("manufacturer's specifications", "applicable local
+  regulations").
 
 RANGE — defines the SCOPE AND CONTEXT in which the competency is applied.
 It must cover, where relevant:
@@ -406,9 +488,7 @@ OUTPUT FORMAT (STRICT — NO EXTRA TEXT, NO MARKDOWN):
 {
   "clusters": [
     {
-      "id": "cluster_1",
-      "range": "Applies to ... across ... using ...",
-      "performanceCriteria": ["Equipment calibration is verified to be within manufacturer's tolerance ranges"]
+${shape}
     }
   ]
 }
@@ -436,7 +516,9 @@ function _sanitiseCriteria(list) {
  * Generate Range + Criteria.
  * @param {string|null} onlyClusterId  regenerate a single cluster when given.
  */
-export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
+export async function generateRangeAndCriteriaAI(onlyClusterId = null, parts = null, opts = {}) {
+  parts = { range: true, criteria: true, ...(parts || {}) };
+  if (!parts.range && !parts.criteria) return false;
   const cd = appState.clusteringData;
   const all = cd?.clusters || [];
 
@@ -450,13 +532,14 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
   }
 
   const filled = targets.filter(
-    c => (c.range || '').trim() || (c.performanceCriteria || []).length
+    c => (parts.range && _isFilledRange(c)) || (parts.criteria && _isFilledCriteria(c))
   );
   /* The Full Draft run asks about overwriting ONCE, up front, naming
      every tab at stake. Re-asking here would mean four or five
      dialogs during a run the user has already authorised — and each
      one silently stalls the pipeline until someone notices. */
-  if (!isBatchRun() && filled.length && !confirm('\u26A0\uFE0F ' + _tf(
+  // The per-card dialog has already shown what will be replaced.
+  if (!isBatchRun() && !opts.confirmed && filled.length && !confirm('\u26A0\uFE0F ' + _tf(
     filled.length === 1 ? 'confirmReplaceCriteriaOne' : 'confirmReplaceCriteriaMany',
     { n: filled.length }
   ) + _downstreamLine(new Set(targets.map(c => c.id))))) {
@@ -470,7 +553,7 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
   await new Promise(r => setTimeout(r, 100));
 
   try {
-    const parsed = await _callBackend(_buildCriteriaPrompt(targets));
+    const parsed = await _callBackend(_buildCriteriaPrompt(targets, parts));
     if (!Array.isArray(parsed.clusters) || !parsed.clusters.length) {
       throw new Error('AI response contained no clusters');
     }
@@ -482,17 +565,18 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
       const cluster = targets.find(c => c.id === String(item.id || '').trim());
       if (!cluster) return;   // unknown id → ignore, never create a cluster here
 
-      const range    = String(item.range || '').trim();
+      const range    = parts.range ? String(item.range || '').trim() : '';
       // Task Analysis criteria of this cluster's tasks already appear in
       // the Learning Outcomes source list next to these — drop exact
       // repeats so the list does not carry the same criterion twice.
       const taKeys   = new Set(_taCriteriaOf(cluster).map(_norm));
-      const criteria = _sanitiseCriteria(item.performanceCriteria)
-        .filter(c => !taKeys.has(_norm(c)));
+      const criteria = parts.criteria
+        ? _sanitiseCriteria(item.performanceCriteria).filter(c => !taKeys.has(_norm(c)))
+        : [];
 
       if (!range && !criteria.length) return;
-      if (range)          cluster.range = range;
-      if (criteria.length) cluster.performanceCriteria = criteria;
+      if (range)           _writeAIPart(cluster, 'range', range);
+      if (criteria.length) _writeAIPart(cluster, 'criteria', criteria);
 
       updated++;
       criteriaCount += criteria.length;
@@ -510,7 +594,9 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
     ).length;
 
     showStatus(
-      '✓ ' + _tf('msgCriteriaGenerated', { criteria: criteriaCount, clusters: updated }) +
+      '✓ ' + (parts.criteria
+        ? _tf('msgCriteriaGenerated', { criteria: criteriaCount, clusters: updated })
+        : _tf('clAiRangeDone', { n: updated })) +
       (thin ? ' ' + _tf('msgThinClusters', { n: thin, min: MIN_CRITERIA }) : ''),
       'success'
     );
@@ -525,7 +611,135 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null) {
   }
 }
 
-/** Regenerate one cluster only — used by the per-card 🤖 button. */
+/* 3.71.0: write one generated part and remember what it replaced.
+   A second run keeps the user's ORIGINAL, not the first draft. The
+   marks are cleared by the user's own edit (modules.js). */
+function _writeAIPart(cluster, part, value) {
+  const field = part === 'range' ? 'range' : 'performanceCriteria';
+  const filled = part === 'range' ? _isFilledRange(cluster) : _isFilledCriteria(cluster);
+  if (!cluster._aiDraft || typeof cluster._aiDraft !== 'object') cluster._aiDraft = {};
+  if (!cluster._aiPrev || typeof cluster._aiPrev !== 'object' || Array.isArray(cluster._aiPrev)) cluster._aiPrev = {};
+  if (filled) {
+    if (!(cluster._aiDraft[part] && cluster._aiPrev[part] != null)) {
+      cluster._aiPrev[part] = JSON.parse(JSON.stringify(cluster[field]));
+    }
+  } else {
+    delete cluster._aiPrev[part];
+  }
+  cluster[field] = Array.isArray(value) ? value.slice() : value;
+  cluster._aiDraft[part] = true;
+  if (!Object.keys(cluster._aiPrev).length) delete cluster._aiPrev;
+}
+
+const _escD = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** Regenerate one cluster only — used by the per-card ✨ button.
+ *  3.71.0: asks first which parts to generate. Resolves true after a
+ *  successful run, false when cancelled or failed. */
 export function generateForSingleCluster(clusterId) {
-  return generateRangeAndCriteriaAI(clusterId);
+  const cd = appState.clusteringData;
+  const idx = (cd?.clusters || []).findIndex(c => c.id === clusterId);
+  if (idx === -1) return Promise.resolve(false);
+  const cluster = cd.clusters[idx];
+
+  return new Promise(resolve => {
+    document.getElementById('clAiModal')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'clAiModal';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('dir', (window.i18n && window.i18n.isRTL()) ? 'rtl' : 'ltr');
+    overlay.style.cssText =
+      'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;' +
+      'justify-content:center;padding:16px;background:rgba(0,0,0,0.55);';
+
+    const rows = [
+      { part: 'range',    label: _t('lblRange'),               filled: _isFilledRange(cluster) },
+      { part: 'criteria', label: _t('lblPerformanceCriteria'), filled: _isFilledCriteria(cluster) },
+    ].map(r => `
+      <label style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #f1f5f9;cursor:pointer;">
+        <input type="checkbox" data-cl-ai-part="${r.part}" ${r.filled ? '' : 'checked'}
+               style="width:18px;height:18px;flex-shrink:0;accent-color:#0284c7;">
+        <span style="flex:1;min-width:0;font-size:.92em;color:#334155;">${_escD(r.label)}</span>
+        ${r.filled ? `<span data-cl-ai-tag="${r.part}" style="font-size:.72em;font-weight:700;color:#64748b;background:#f1f5f9;border-radius:999px;padding:2px 8px;white-space:nowrap;">${_escD(_t('taAiFilled'))}</span>` : ''}
+      </label>`).join('');
+
+    const down = _downstreamOf(new Set([cluster.id]));
+    const src = _taRangeSourcesOf(cluster);
+    const nTa = src.tools.length + src.conditions.length + src.safety.length + _taCriteriaOf(cluster).length;
+
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;max-width:500px;width:100%;
+           box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;font-family:inherit;
+           max-height:88vh;display:flex;flex-direction:column;">
+        <div style="padding:16px 20px;display:flex;align-items:center;gap:10px;
+             background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border-bottom:1px solid #bae6fd;flex-shrink:0;">
+          <span style="font-size:1.3em;line-height:1;">✨</span>
+          <div style="min-width:0;">
+            <p style="margin:0;font-size:.98em;font-weight:800;color:#075985;">${_escD(_t('clAiTitle'))}</p>
+            <p style="margin:2px 0 0;font-size:.8em;color:#0369a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              <bdi>C${idx + 1}</bdi> — <span dir="auto">${_escD(cluster.name)}</span></p>
+          </div>
+        </div>
+        <div style="padding:14px 20px;overflow-y:auto;flex:1;">
+          <p style="margin:0 0 6px;font-size:.85em;color:#475569;line-height:1.6;">${_escD(_t('clAiIntro'))}</p>
+          <div>${rows}</div>
+          <p style="margin:12px 0 0;font-size:.8em;color:#475569;line-height:1.55;">🔬 ${_escD(
+            nTa ? _tf('clAiTaUsed', { n: nTa }) : _t('clAiTaNone'))}</p>
+          <p data-cl-ai-down style="display:none;margin:12px 0 0;font-size:.8em;color:#9a3412;background:#fff7ed;
+                    border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;line-height:1.55;">🔗 ${
+            _escD(loText('clConfirmDownstream', { lo: down.lo, mm: down.mm }))}</p>
+          <p data-cl-ai-restorenote style="display:none;margin:12px 0 0;font-size:.8em;color:#075985;background:#f0f9ff;
+                    border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;line-height:1.55;">↶ ${_escD(_t('taAiRestoreNote'))}</p>
+          <p style="margin:12px 0 0;font-size:.8em;color:#92400e;background:#fffbeb;border:1px solid #fde68a;
+                    border-radius:8px;padding:8px 10px;line-height:1.55;">⚠️ ${_escD(_t('clAiNote'))}</p>
+        </div>
+        <div style="padding:12px 20px;border-top:1px solid #eef0f4;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;flex-wrap:wrap;">
+          <button type="button" data-cl-ai-cancel style="padding:9px 18px;background:#f1f5f9;color:#334155;border:none;
+                  border-radius:8px;font-size:.88em;font-weight:600;cursor:pointer;font-family:inherit;">${_escD(_t('btnCancel'))}</button>
+          <button type="button" data-cl-ai-go style="padding:9px 20px;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;
+                  border-radius:8px;font-size:.88em;font-weight:700;cursor:pointer;font-family:inherit;">${_escD(_t('taAiGenerate'))}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    let settled = false;
+    const close = (result) => {
+      overlay.remove(); document.removeEventListener('keydown', onKey);
+      if (result !== undefined && !settled) { settled = true; resolve(result); }
+    };
+    const onKey = (e) => { if (e.key === 'Escape') close(false); };
+    document.addEventListener('keydown', onKey);
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
+    overlay.querySelector('[data-cl-ai-cancel]').addEventListener('click', () => close(false));
+
+    const boxes = [...overlay.querySelectorAll('input[data-cl-ai-part]')];
+    const isOn = p => !!boxes.find(b => b.getAttribute('data-cl-ai-part') === p && b.checked);
+    const sync = () => {
+      const crit = isOn('criteria'), rng = isOn('range');
+      const downEl = overlay.querySelector('[data-cl-ai-down]');
+      if (downEl) downEl.style.display = (crit && _isFilledCriteria(cluster) && down.lo > 0) ? '' : 'none';
+      const rn = overlay.querySelector('[data-cl-ai-restorenote]');
+      if (rn) rn.style.display = ((rng && _isFilledRange(cluster)) || (crit && _isFilledCriteria(cluster))) ? '' : 'none';
+      boxes.forEach(b => {
+        const tag = overlay.querySelector(`[data-cl-ai-tag="${b.getAttribute('data-cl-ai-part')}"]`);
+        if (!tag) return;
+        tag.textContent = _t(b.checked ? 'taAiWillReplace' : 'taAiFilled');
+        tag.style.color = b.checked ? '#b45309' : '#64748b';
+        tag.style.background = b.checked ? '#fef3c7' : '#f1f5f9';
+      });
+    };
+    boxes.forEach(b => b.addEventListener('change', sync));
+    sync();
+
+    overlay.querySelector('[data-cl-ai-go]').addEventListener('click', () => {
+      const parts = { range: isOn('range'), criteria: isOn('criteria') };
+      if (!parts.range && !parts.criteria) { showStatus(_t('taAiNoneSelected'), 'error'); return; }
+      close();
+      generateRangeAndCriteriaAI(clusterId, parts, { confirmed: true })
+        .then(ok => { settled = true; resolve(!!ok); })
+        .catch(() => { settled = true; resolve(false); });
+    });
+  });
 }
