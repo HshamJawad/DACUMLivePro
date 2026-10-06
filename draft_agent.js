@@ -64,13 +64,24 @@ const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 //             also require the content to have changed.
 //   replaces  (optional) the stage rebuilds Learning Outcomes / Module
 //             Mapping, so their tab-level Undo history is dropped after.
+//   onDone    (optional) runs once the stage is confirmed as produced.
+//
+// 3.73.0: EVERY stage now takes a snapshot and requires its content to
+// have changed. Only Learning Outcomes and Modules did before; on a
+// filled project with the AI service down, Duties, Clusters and
+// Range & Criteria failed silently, left the old work in place, and
+// "is there content?" read that as success — three green ticks for
+// nothing generated. verify(undefined) still answers "is there
+// content?" for the overwrite warning (stagesWithExistingContent).
+// A run() that returns false is a failure whatever the state says.
 export const STAGES = [
   {
     id:       'duties',
     labelKey: 'dgStageDuties',
     tab:      'duties-tab',
     run:      () => generateAIDacum(),
-    verify:   () => _countDuties() > 0,
+    snapshot: () => _dutiesSig(),
+    verify:   (before) => _countDuties() > 0 && _changed(before, _dutiesSig()),
   },
   {
     id:       'additional',
@@ -81,14 +92,17 @@ export const STAGES = [
     // Any one section filled counts: the model is told not to invent
     // content it has no basis for, so a sparse result is correct
     // behaviour rather than a failure.
-    verify:   () => _anySectionFilled(),
+    snapshot: () => _infoSig(),
+    verify:   (before) => _anySectionFilled() && _changed(before, _infoSig()),
   },
   {
     id:       'clusters',
     labelKey: 'dgStageClusters',
     tab:      'clustering-tab',
     run:      () => suggestClustersAI(),
-    verify:   () => (appState.clusteringData?.clusters?.length || 0) > 0,
+    snapshot: () => _clustersSig(),
+    verify:   (before) => (appState.clusteringData?.clusters?.length || 0) > 0 &&
+                          _changed(before, _clustersSig()),
   },
   {
     id:       'criteria',
@@ -98,9 +112,11 @@ export const STAGES = [
     // 3.72.0: was c.criteria, a field that does not exist — the stage
     // always read as empty, stopping every Full Draft here, and the
     // overwrite warning never listed it.
-    verify:   () => (appState.clusteringData?.clusters || [])
+    snapshot: () => _criteriaSig(),
+    verify:   (before) => (appState.clusteringData?.clusters || [])
                       .some(c => (c.performanceCriteria || []).some(x => String(x || '').trim()) ||
-                                 String(c.range || '').trim()),
+                                 String(c.range || '').trim()) &&
+                          _changed(before, _criteriaSig()),
   },
   {
     id:       'outcomes',
@@ -109,7 +125,7 @@ export const STAGES = [
     run:      () => generateLearningOutcomesAI('C'),
     snapshot: () => _sig(appState.learningOutcomesData?.outcomes),
     verify:   (before) => (appState.learningOutcomesData?.outcomes?.length || 0) > 0
-                          && (before === undefined || _sig(appState.learningOutcomesData?.outcomes) !== before),
+                          && _changed(before, _sig(appState.learningOutcomesData?.outcomes)),
     replaces: true,
   },
   /* OFF the chain and off by default. Nothing downstream consumes
@@ -120,8 +136,15 @@ export const STAGES = [
     labelKey: 'dgStageDraftTV',
     tab:      'verification-tab',
     optional: true,
-    run:      async () => { await generateDraftRatings(); markUnverified(); },
-    verify:   () => isUnverified(),
+    // 3.73.0: ratings are quarantined only once they really changed;
+    // marking them after a failed call flagged the panel's OWN ratings
+    // as unverified AI drafts.
+    run:      () => generateDraftRatings(),
+    snapshot: () => _sig(appState.verificationRatings),
+    verify:   (before) => before === undefined
+                          ? isUnverified()
+                          : _sig(appState.verificationRatings) !== before,
+    onDone:   () => markUnverified(),
   },
   {
     id:       'modules',
@@ -130,7 +153,7 @@ export const STAGES = [
     run:      () => generateModulesAI(),
     snapshot: () => _sig(appState.moduleMappingData?.modules),
     verify:   (before) => (appState.moduleMappingData?.modules?.length || 0) > 0
-                          && (before === undefined || _sig(appState.moduleMappingData?.modules) !== before),
+                          && _changed(before, _sig(appState.moduleMappingData?.modules)),
     replaces: true,
   },
 ];
@@ -161,6 +184,31 @@ function _emit(event) {
 /** Cheap content signature for "did this stage change anything?". */
 function _sig(v) {
   try { return JSON.stringify(v || []); } catch (_) { return String(Math.random()); }
+}
+
+/* "No snapshot" (the overwrite-warning call) means only presence is
+   asked; with a snapshot the content must differ from it. */
+const _changed = (before, now) => before === undefined || before !== now;
+
+function _dutiesSig() {
+  const dom = [...document.querySelectorAll('#dutiesContainer input, #dutiesContainer textarea')]
+    .map(el => el.value || '').join('\u0001');
+  return dom + '\u0002' + _sig(appState.dutiesData);
+}
+
+function _infoSig() {
+  return ['knowledge', 'skills', 'behaviors', 'tools', 'trends', 'acronyms', 'careerPath']
+    .map(id => document.getElementById(id + 'Input')?.value || '').join('\u0001');
+}
+
+function _clustersSig() {
+  return _sig((appState.clusteringData?.clusters || [])
+    .map(c => [c.name || '', (c.tasks || []).map(t => t && t.id)]));
+}
+
+function _criteriaSig() {
+  return _sig((appState.clusteringData?.clusters || [])
+    .map(c => [c.range || '', c.performanceCriteria || []]));
 }
 
 function _countDuties() {
@@ -312,8 +360,9 @@ async function _runStages(stages) {
     let before;
     try { before = stage.snapshot ? stage.snapshot() : undefined; } catch (_) { before = undefined; }
 
+    let ret;
     try {
-      await stage.run();
+      ret = await stage.run();
     } catch (err) {
       console.error('[draft] stage failed:', stage.id, err);
       appState.draftProgress.failed = stage.id;
@@ -324,12 +373,13 @@ async function _runStages(stages) {
     // Return values across the AI modules are inconsistent, so the
     // authoritative check is whether state actually changed.
     let produced = false;
-    try { produced = !!stage.verify(before); } catch (_) { produced = false; }
+    try { produced = ret !== false && !!stage.verify(before); } catch (_) { produced = false; }
 
     if (!produced) {
       // An optional stage that produced nothing is not a failure —
       // it may simply have had nothing to say. A required one is.
-      if (stage.optional) {
+      // 3.73.0: but a run that reported failure (false) is an error.
+      if (stage.optional && ret !== false) {
         _emit({ type: 'stage-skipped', id: stage.id, index: i });
         continue;
       }
@@ -338,6 +388,7 @@ async function _runStages(stages) {
       return { ok: false, reason: 'empty', at: stage.id };
     }
 
+    if (stage.onDone) { try { stage.onDone(); } catch (_) {} }
     if (stage.replaces) { try { dropLearningHistory(); } catch (_) {} }
 
     appState.draftProgress.done.push(stage.id);

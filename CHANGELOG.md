@@ -7,6 +7,30 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.73.0 — 2026-10-06 — Full Draft: real stage checks, confirm before replacing
+MINOR. draft_agent.js, draft_ui.js, dacum-draft.css, translations.js,
+index.html, sw.js (v184).
+Fixed   False green ticks: on a filled project with the AI service down,
+        Duties & Tasks, Competency Clusters and Range & Criteria failed
+        silently, kept the old work, and were marked done because their
+        check only asked "is there content?" (the run then stopped at
+        Learning Outcomes, the first stage that compared before/after).
+        Every stage now takes a snapshot and must have CHANGED its tab,
+        and a run that returns false is a failure — with the service
+        down the draft stops at the first stage. A failed optional stage
+        is an error, not "skipped".
+Fixed   Draft Task Verification marked the panel's own ratings as
+        unverified AI drafts even when its call failed; it now marks
+        them only after they really changed.
+Added   Confirm step on Start when the run would overwrite existing
+        work: the tabs at stake listed by name, with "📸 Save snapshot &
+        start" (recommended; the run does not start if the snapshot
+        cannot be saved), "Start without a snapshot" and "Back".
+Changed The "Existing content will be replaced" note moved to the top of
+        the setup view (it sat at the bottom, under five other blocks).
+Fixed   The tab list in that note used the Arabic comma in every
+        language. EN/FR/AR.
+
 ── 3.72.0 — 2026-10-06 — The Job Title is required: DACUM analyses the job
 MINOR. projects.js, draft_ui.js, draft_agent.js, occupation_check.js,
 ai_client.js, additional_info_ai.js, clustering_ai.js,

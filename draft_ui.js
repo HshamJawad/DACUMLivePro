@@ -19,6 +19,7 @@ import { verifyOccupation, needsConfirmation, VERDICT, describeCheck,
          markBypassed, wasBypassed,
          clearBypass }                       from './occupation_check.js';
 import { showStatus }                        from './renderer.js';
+import { saveSnapshot, getSnapshots }        from './workshop_snapshots.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -44,7 +45,7 @@ let _phase   = 'setup';
 /* Open/closed state of the "Occupation & job information" panel.
    null = decide automatically on first render (open when a key field is
    empty); after that the user's own choice is kept across re-renders. */
-let _jobInfoOpen = null;               // setup | running | done | error
+let _jobInfoOpen = null;               // setup | confirm | running | done | error
 
 /* Result of the occupation-title check, held only while this dialog is
    open. The check runs at Start, not on open: opening the dialog should
@@ -181,7 +182,8 @@ function _renderModalInner(overlay) {
           `<button type="button" class="dg-x" id="dgClose"
                    aria-label="${_esc(_t('dgBtnClose'))}">\u2715</button>`}
       </div>
-      <div class="dg-body">${_phase === 'setup' ? _setupBody() : _runBody()}</div>
+      <div class="dg-body">${_phase === 'setup' ? _setupBody()
+                             : _phase === 'confirm' ? _confirmBody() : _runBody()}</div>
       <div class="dg-foot">${_footButtons()}</div>
     </div>`;
 
@@ -198,19 +200,29 @@ function _renderModalInner(overlay) {
 
 // ── Setup view ───────────────────────────────────────────────
 
-function _setupBody() {
-  const missing = missingPrerequisites();
-  if (missing.length) return _prereqBody(missing);
-
-  const ids       = selectedIds();
-  const clashes   = stagesWithExistingContent(ids);
+/* Tabs whose current work the selected stages would overwrite.
+   3.73.0: shared by the note and the confirmation step; the list
+   separator follows the interface language (it was the Arabic comma
+   in every language). */
+function _clashInfo(ids) {
+  const clashes    = stagesWithExistingContent(ids);
   const clashNames = STAGES.filter(s => clashes.includes(s.id)).map(s => _t(s.labelKey));
   // Not a stage, but its work is tied to the modules being rebuilt.
   if (moduleCurriculumAtStake(ids)) {
     clashes.push('moduleCurriculum');
     clashNames.push(_t('tabModuleCurriculum'));
   }
-  const clashTabs = [...new Set(clashNames)].join('\u060C ');
+  const names = [...new Set(clashNames)];
+  const lang  = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'en';
+  return { clashes, names, tabs: names.join(lang === 'ar' ? '\u060C ' : ', ') };
+}
+
+function _setupBody() {
+  const missing = missingPrerequisites();
+  if (missing.length) return _prereqBody(missing);
+
+  const ids       = selectedIds();
+  const { clashes, tabs: clashTabs } = _clashInfo(ids);
   const leftBehind = modulesLeftBehind(ids);
 
   const _anyEmpty = JOB_FIELDS.slice(0, 3)
@@ -218,6 +230,13 @@ function _setupBody() {
 
   return `
     <p class="dg-intro">${_esc(_t('dgModalIntro'))}</p>
+
+    ${clashes.length ? `
+      <div class="dg-note dg-note-warn">
+        <strong>\u26A0\uFE0F ${_esc(_t('dgOverwriteTitle'))}</strong>
+        <p>${_esc(_tf('dgOverwriteBody', { tabs: clashTabs }))}</p>
+        ${clashes.includes('moduleCurriculum') ? `<p>${_esc(_t('dgCurriculumKeptNote'))}</p>` : ''}
+      </div>` : ''}
 
     ${_jobInfoBlock(_jobInfoOpen === null ? (_jobInfoOpen = _anyEmpty) : _jobInfoOpen)}
 
@@ -285,13 +304,6 @@ function _setupBody() {
       <div class="dg-note dg-note-warn" id="dgModulesLeftBehind">
         <strong>\u26A0\uFE0F ${_esc(_t('dgModulesBehindTitle'))}</strong>
         <p>${_esc(_t('dgModulesBehindBody'))}</p>
-      </div>` : ''}
-
-    ${clashes.length ? `
-      <div class="dg-note dg-note-warn">
-        <strong>\u26A0\uFE0F ${_esc(_t('dgOverwriteTitle'))}</strong>
-        <p>${_esc(_tf('dgOverwriteBody', { tabs: clashTabs }))}</p>
-        ${clashes.includes('moduleCurriculum') ? `<p>${_esc(_t('dgCurriculumKeptNote'))}</p>` : ''}
       </div>` : ''}
 
     ${_quotaBlock(ids)}`;
@@ -392,6 +404,26 @@ function _prereqBody(missing) {
     ${_jobFieldsHtml()}`;
 }
 
+// ── Confirm view (3.73.0) ────────────────────────────────────
+/* Shown on Start when the run would overwrite existing work. The note
+   in the setup view was easy to scroll past and Start began at once;
+   on a near-finished project that is several tabs of panel work. The
+   recommended path saves a snapshot first (📸 Saved Snapshots). */
+function _confirmBody() {
+  const { clashes, names } = _clashInfo(selectedIds());
+  return `
+    <div class="dg-note dg-note-warn">
+      <strong>\u26A0\uFE0F ${_esc(_t('dgConfirmTitle'))}</strong>
+      <p>${_esc(_t('dgConfirmBody'))}</p>
+      <ul class="dg-clash-list">${names.map(n => `<li>${_esc(n)}</li>`).join('')}</ul>
+      ${clashes.includes('moduleCurriculum') ? `<p>${_esc(_t('dgCurriculumKeptNote'))}</p>` : ''}
+    </div>
+    <div class="dg-note dg-note-info">
+      <strong>\u{1F4F8} ${_esc(_t('dgConfirmSnapTitle'))}</strong>
+      <p>${_esc(_t('dgConfirmSnapHint'))}</p>
+    </div>`;
+}
+
 // ── Running / done view ──────────────────────────────────────
 
 function _runBody() {
@@ -438,6 +470,11 @@ function _footButtons() {
          <button type="button" class="dg-btn dg-btn-go" id="dgStart"
                  ${quotaCheck(selectedIds()).ok ? '' : 'disabled'}>\u2728 ${_esc(_t('dgBtnStart'))}</button>`;
   }
+  if (_phase === 'confirm') {
+    return `<button type="button" class="dg-btn dg-btn-ghost" id="dgConfirmBack">${_esc(_t('dgBtnBack'))}</button>
+            <button type="button" class="dg-btn dg-btn-ghost" id="dgStartNoSnap">${_esc(_t('dgBtnStartNoSnap'))}</button>
+            <button type="button" class="dg-btn dg-btn-go" id="dgSnapStart">\u{1F4F8} ${_esc(_t('dgBtnSnapStart'))}</button>`;
+  }
   if (_phase === 'running') {
     return `<button type="button" class="dg-btn dg-btn-ghost" id="dgStop">${_esc(_t('dgBtnStop'))}</button>`;
   }
@@ -446,6 +483,20 @@ function _footButtons() {
             <button type="button" class="dg-btn dg-btn-go" id="dgRetry">${_esc(_t('dgBtnRetry'))}</button>`;
   }
   return `<button type="button" class="dg-btn dg-btn-go" id="dgReview">${_esc(_t('dgBtnReview'))}</button>`;
+}
+
+/** Starts the run (from Start, or from the confirm step). */
+async function _beginRun() {
+  _phase = 'running'; _current = 0; _doneIds = new Set(); _failed = null;
+  renderModal();
+  const res = await runDraft(selectedIds());
+  /* runDraft can refuse before emitting any progress event — quota,
+     or a run already in flight. Without this the dialog would sit on
+     "generating" forever with nothing happening behind it. */
+  if (res && !res.ok && (res.reason === 'quota' || res.reason === 'already-running')) {
+    _phase = 'setup';
+    renderModal();
+  }
 }
 
 // ── Wiring ───────────────────────────────────────────────────
@@ -631,16 +682,28 @@ function _wire() {
       _occCheck = null;
     }
 
-    _phase = 'running'; _current = 0; _doneIds = new Set(); _failed = null;
-    renderModal();
-    const res = await runDraft(selectedIds());
-    /* runDraft can refuse before emitting any progress event — quota,
-       or a run already in flight. Without this the dialog would sit on
-       "generating" forever with nothing happening behind it. */
-    if (res && !res.ok && (res.reason === 'quota' || res.reason === 'already-running')) {
-      _phase = 'setup';
+    // 3.73.0: existing work → confirm first (with a snapshot offer).
+    if (_clashInfo(selectedIds()).names.length) {
+      _phase = 'confirm';
       renderModal();
+      return;
     }
+    _beginRun();
+  });
+
+  q('#dgConfirmBack')?.addEventListener('click', () => { _phase = 'setup'; renderModal(); });
+  q('#dgStartNoSnap')?.addEventListener('click', () => _beginRun());
+  q('#dgSnapStart')?.addEventListener('click', () => {
+    const name = _tf('dgSnapName', { d: new Date().toLocaleString() });
+    const t0 = Date.now();
+    try { saveSnapshot(name); } catch (err) { console.error('[draft] snapshot failed', err); }
+    const top = (getSnapshots() || [])[0];
+    // Never start without the backup the user asked for.
+    if (!top || top.name !== name || (top.timestamp || 0) < t0 - 1000) {
+      showStatus(_t('dgSnapFailed'), 'error');
+      return;
+    }
+    _beginRun();
   });
 
   /* Apply the suggestion — the only path that writes to the field, and
