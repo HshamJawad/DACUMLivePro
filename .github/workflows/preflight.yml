@@ -1,0 +1,28 @@
+name: Preflight
+
+# 3.74.0: moved from the repository root, where GitHub never ran it —
+# workflows are read only from .github/workflows/. The script paths
+# also pointed at a tools/ folder that does not exist; both scripts
+# live in the root.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: CSS ownership
+        run: node css-ownership-audit.mjs . --max 0
+
+      - name: Service worker precache and version bump
+        run: node preflight.mjs .
