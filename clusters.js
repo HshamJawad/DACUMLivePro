@@ -321,7 +321,9 @@ export function renderClusters() {
   if (!container.__tselWired) {
     container.__tselWired = true;
     container.addEventListener('click', (e) => {
-      if (e.target.closest('[data-tsel-move-out]')) moveUnselectedOutOfClusters();
+      if (e.target.closest('[data-tsel-move-out]'))  moveUnselectedOutOfClusters();
+      if (e.target.closest('[data-tsel-move-undo]')) undoMoveUnselected();
+      if (e.target.closest('[data-tsel-move-dismiss]')) { _lastUnselMove = null; renderClusters(); }
     });
   }
   if (_taCountDirty) { _taCountDirty = false; _persistClusters(); }
@@ -340,10 +342,24 @@ function _unselInClusters() {
   return out;
 }
 
+// The last "move out" (3.83.0): where each task was, so it can be put
+// back exactly — same competency, same position. Session only; cleared
+// by Undo, by ✕ and when another project is loaded.
+let _lastUnselMove = null;
+
 function _unselBarHtml() {
   const n = _unselInClusters().length;
-  if (!n) return '';
-  return `
+  const undo = _lastUnselMove ? `
+    <div class="cl-unsel-bar cl-unsel-done" role="status">
+      <span>✓ ${_esc(_tf('clUnselUndoText', { n: _lastUnselMove.length }))}</span>
+      <span class="cl-unsel-done-actions">
+        <button type="button" class="cl-unsel-move" data-tsel-move-undo>↶ ${_esc(_t('clUnselUndoBtn'))}</button>
+        <button type="button" class="cl-unsel-x" data-tsel-move-dismiss
+                title="${_esc(_tx('ttDismissNotice'))}" aria-label="${_esc(_tx('ttDismissNotice'))}">✕</button>
+      </span>
+    </div>` : '';
+  if (!n) return undo;
+  return undo + `
     <div class="cl-unsel-bar" role="status">
       <span>⚠️ ${_esc(_tf('clUnselBarText', { n }))}</span>
       <button type="button" class="cl-unsel-move" data-tsel-move-out>${_esc(_tf('clUnselBarBtn', { n }))}</button>
@@ -360,7 +376,12 @@ export function moveUnselectedOutOfClusters() {
   if (!moving.length) return 0;
   if (!confirm(_tf('clUnselBarConfirm', { n: moving.length }))) return 0;
   const ids = new Set(moving.map(t => t.id));
+  const record = [];
+  cd.clusters.forEach(c => (c.tasks || []).forEach((t, i) => {
+    if (t && ids.has(t.id) && !isClusterAddedTask(t)) record.push({ taskId: t.id, clusterId: c.id, index: i });
+  }));
   cd.clusters.forEach(c => { c.tasks = (c.tasks || []).filter(t => !(t && ids.has(t.id) && !isClusterAddedTask(t))); });
+  _lastUnselMove = record;
   cd.availableTasks.push(...moving);
   if (cd.availableTasks.length > 0 && cd.availableTasks[0].priorityIndex !== null) {
     cd.availableTasks.sort((a, b) => b.priorityIndex - a.priorityIndex);
@@ -370,6 +391,31 @@ export function moveUnselectedOutOfClusters() {
   _persistClusters();
   showStatus('✓ ' + _tf('clUnselBarDone', { n: moving.length }), 'success');
   return moving.length;
+}
+
+/** Puts back the tasks of the last "move out": each into the competency
+ *  it came from, at the position it had. A task placed elsewhere since,
+ *  or whose competency was deleted, stays where it is now. */
+export function undoMoveUnselected() {
+  const cd = appState.clusteringData;
+  const rec = _lastUnselMove;
+  _lastUnselMove = null;
+  if (!rec || !rec.length) { renderClusters(); return 0; }
+  let back = 0;
+  // Ascending positions per competency, so each splice lands where it was.
+  rec.slice().sort((a, b) => a.index - b.index).forEach(r => {
+    const cluster = cd.clusters.find(c => c.id === r.clusterId);
+    const ai = cd.availableTasks.findIndex(t => t && t.id === r.taskId);
+    if (!cluster || ai === -1) return;
+    const [task] = cd.availableTasks.splice(ai, 1);
+    cluster.tasks.splice(Math.min(r.index, cluster.tasks.length), 0, task);
+    back++;
+  });
+  renderAvailableTasks();
+  renderClusters();
+  _persistClusters();
+  showStatus('✓ ' + _tf('clUnselUndone', { n: back }), 'success');
+  return back;
 }
 
 export function renameCluster(clusterId) {
@@ -1175,6 +1221,7 @@ function _wireClusterTaskControls() {
   document.addEventListener('dacum:project-loaded', () => {
     _syncNotice = null; _lastOrphanCount = 0; _loNotice = null;
     _addTaskOpenFor = null; _addTaskDraft = '';
+    _lastUnselMove = null;
   });
 
   document.addEventListener('click', (e) => {

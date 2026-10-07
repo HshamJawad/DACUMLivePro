@@ -2150,3 +2150,9 @@ html[data-content-mixed] .container input[type="text"] {
                        color: #0369a1; font-weight: 700; font-size: .95em; cursor: pointer; font-family: inherit; }
       .cl-unsel-move:hover { background: #f0f9ff; }
       .cl-unsel-move:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }
+      /* 3.83.0: "moved — Undo" bar after moving left-out tasks out. */
+      .cl-unsel-done { background: #f0fdf4; border-color: #86efac; color: #166534; }
+      .cl-unsel-done-actions { display: inline-flex; align-items: center; gap: 6px; }
+      .cl-unsel-x { width: auto; margin: 0; padding: 4px 9px; border: none; background: transparent; color: #166534;
+                    font-size: 1em; cursor: pointer; border-radius: 6px; font-family: inherit; }
+      .cl-unsel-x:hover { background: #dcfce7; }

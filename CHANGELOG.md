@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.83.0 — 2026-10-07 — ↶ Undo for "move left-out tasks out of the competencies"
+PATCH. clusters.js, translations.js, dacum-components.css, index.html,
+sw.js (v199), tests/specs/task-selection.spec.js.
+New     After "Move them out of the competencies", a green bar says
+        "N task(s) moved out of the competencies" with Undo and ✕.
+        Undo puts every task back into the competency it came from, at
+        the position it had. A task placed elsewhere since, or whose
+        competency was deleted, stays where it is. The bar lasts until
+        Undo, ✕ or another project is loaded (not saved with the
+        project). The toolbar Undo / Redo still does not cover the
+        Competency Clusters tab.
+
 ── 3.82.0 — 2026-10-07 — ✅ "Selected for training" column; move left-out tasks out of clusters
 MINOR. clusters.js, task_selection.js, exports_docx.js,
 exports_docx_sections.js, exports_pdf.js, exports_pdf_sections.js,
