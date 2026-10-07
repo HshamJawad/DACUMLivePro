@@ -10,7 +10,7 @@
 import { appState } from './state.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, _renderLoNotice, renumberLearningOutcomes, syncClusteringWithProfile } from './clusters.js';
 import { _esc, _findEffectiveCriterionById, _getClusterEffectiveCriteria, _injectModuleCardStyles, _persistClusters, _renderUndoBars, _t, _taskLabel, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
-import { MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName } from './module_mapping.js';
+import { getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName } from './module_mapping.js';
 
 // ── Learning Outcomes ─────────────────────────────────────────
 
@@ -1038,6 +1038,34 @@ function _ensureModulesLevelBar() {
   }
 }
 
+/* TVQF / NQF option (3.85.0): one line above the module list — a tick
+   box and, once ticked, the framework's name. Off by default; see
+   module_mapping.js getNqfSettings(). */
+function _ensureNqfBar() {
+  const cont = document.getElementById('modulesContainer');
+  if (!cont || !cont.parentNode) return;
+  let bar = document.getElementById('mmNqfBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'mmNqfBar';
+    bar.innerHTML = `
+      <label class="mm-nqf-toggle"><input type="checkbox" id="mmNqfEnable"> <span class="mm-nqf-enable-txt"></span></label>
+      <input type="text" id="mmNqfFramework" maxlength="120" dir="auto">
+      <p class="mm-nqf-hint"></p>`;
+  }
+  if (bar.nextSibling !== cont) cont.parentNode.insertBefore(bar, cont);
+  const n = getNqfSettings();
+  const cb = bar.querySelector('#mmNqfEnable');
+  const fw = bar.querySelector('#mmNqfFramework');
+  cb.checked = n.enabled;
+  fw.hidden = !n.enabled;
+  if (document.activeElement !== fw) fw.value = n.framework;
+  fw.placeholder = _tx('phNqfFramework');
+  fw.setAttribute('aria-label', _tx('phNqfFramework'));
+  bar.querySelector('.mm-nqf-enable-txt').textContent = _tx('lblNqfEnable');
+  bar.querySelector('.mm-nqf-hint').textContent = _tx('hintNqf');
+}
+
 export function renderModules() {
   const container = document.getElementById('modulesContainer');
   _refreshModuleOutcomes();
@@ -1046,6 +1074,7 @@ export function renderModules() {
   _renderUndoBars();
   _ensureGuideButtons();
   _ensureModulesLevelBar();
+  _ensureNqfBar();
   const mm = appState.moduleMappingData;
 
   if (mm.modules.length === 0) {
@@ -1055,6 +1084,7 @@ export function renderModules() {
   }
 
   const levelCount = getModuleLevelCount();
+  const nqf = getNqfSettings();
   const card = (module, moduleIndex) => {
     const { sourceTaskIds } = _collectModuleTaskAnalysis(module);
     const lvl = _moduleLevel(module);
@@ -1068,6 +1098,7 @@ export function renderModules() {
           <div class="module-title"><bdi class="mod-ref">${_esc(moduleRef(module) || `M${moduleIndex + 1}`)}</bdi> — ${module.title}
             ${lvl ? `<span class="mod-level-chip">${_esc(_txf('lblLevelShort', { n: lvl }))}</span>` : ''}
             ${module.track && !_refShowsTrack(module) ? `<span class="mod-track-chip">${_esc(module.track)}</span>` : ''}
+            ${getModuleNqfLevel(module) ? `<span class="mod-nqf-chip">${_esc(_tx('lblNqfChip'))}: <bdi>${_esc(getModuleNqfLevel(module))}</bdi></span>` : ''}
           </div>
           <div class="module-actions">
             <button class="btn-rename-module" data-action="build-module-in-builder" data-module-id="${module.id}"
@@ -1096,6 +1127,18 @@ export function renderModules() {
               value="${_esc(module.shortName || '')}" maxlength="30" placeholder="${_esc(suggestModuleShortName(module))}">
           </label>
         </div>
+        ${nqf.enabled ? `
+        <div class="mod-meta-row mod-nqf-row">
+          <label class="mod-meta-field"><span>${_esc(_tx('lblNqfLevel'))}</span>
+            <input type="text" class="mod-nqf-input" data-module-id="${_esc(module.id)}"
+              value="${_esc(module.nqfLevel || '')}" maxlength="60" placeholder="${_esc(_tx('phNqfLevel'))}">
+          </label>
+          <details class="mod-nqf-desc-box"${module.nqfDescriptor ? ' open' : ''}>
+            <summary>${_esc(_tx('lblNqfDescriptor'))}</summary>
+            <textarea class="mod-nqf-desc" data-module-id="${_esc(module.id)}" dir="auto" rows="3"
+              placeholder="${_esc(_tx('phNqfDescriptor'))}">${_esc(module.nqfDescriptor || '')}</textarea>
+          </details>
+        </div>` : ''}
         ${isModuleCodeDuplicate(module) ? `<div class="mod-code-dup">⚠ ${_esc(_tx('msgCodeDuplicate'))}</div>` : ''}
         ${sourceTaskIds.length ? `
         <div style="font-size:0.85em;color:#64748b;margin:-4px 0 10px;">

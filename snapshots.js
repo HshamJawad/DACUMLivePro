@@ -141,6 +141,11 @@ export function saveToJSON() {
     if (appState.moduleMappingData.labelMode) {
       data.moduleMapping.labelMode = appState.moduleMappingData.labelMode;
     }
+    // TVQF / NQF option and framework name — 3.85.0. The per-module
+    // level and descriptors travel inside modules[].
+    if (appState.moduleMappingData.nqf) {
+      data.moduleMapping.nqf = appState.moduleMappingData.nqf;
+    }
 
     // Module Curriculum (3.33.0) — its own top-level key. Read back by
     // importProjectFromData(); older files simply lack it.
@@ -509,6 +514,7 @@ export function loadFromJSONLegacy(event) {
           appState.moduleMappingData.moduleCounter = data.moduleMapping.moduleCounter || 0;
           if (data.moduleMapping.levelCount) appState.moduleMappingData.levelCount = data.moduleMapping.levelCount;
           if (data.moduleMapping.labelMode) appState.moduleMappingData.labelMode = data.moduleMapping.labelMode;
+          if (data.moduleMapping.nqf) appState.moduleMappingData.nqf = data.moduleMapping.nqf;
         } else {
           appState.moduleMappingData.modules = [];
           appState.moduleMappingData.moduleCounter = 0;

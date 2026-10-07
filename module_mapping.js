@@ -405,6 +405,58 @@ export function setModuleTrack(moduleId, track) {
   _persistClusters();
 }
 
+// ── TVQF / NQF (3.85.0) ────────────────────────────────────────
+// OPTIONAL and separate from module.level. module.level is the level
+// INSIDE the programme (1..N): it builds the module code (CMCN 1-1) and
+// groups the modules. A national / technical qualifications framework
+// level is another scale — a three-level programme may sit wholly at
+// TVQF/NQF level 3, or run from 2 to 4 — so it has its own fields:
+//
+//   moduleMappingData.nqf = { enabled, framework }   off by default
+//   module.nqfLevel        free text ("Level 3", "المستوى الثالث")
+//   module.nqfDescriptor   free text — the level's descriptors
+//
+// Free text on purpose: no country, no fixed number of levels (same
+// approach as Module Builder's TVQF card). A real link to a given
+// country's framework can be built on these fields later. Switching the
+// option off hides the fields and keeps what was typed.
+export function getNqfSettings() {
+  const n = (appState.moduleMappingData || {}).nqf || {};
+  return { enabled: !!n.enabled, framework: String(n.framework || '') };
+}
+export function isNqfEnabled() { return getNqfSettings().enabled; }
+export function setNqfEnabled(on) {
+  const mm = appState.moduleMappingData;
+  mm.nqf = { ...(mm.nqf || {}), enabled: !!on };
+  renderModules(); _persistClusters();
+}
+export function setNqfFramework(v) {
+  const mm = appState.moduleMappingData;
+  mm.nqf = { ...(mm.nqf || {}), framework: String(v || '').replace(/\s+/g, ' ').trim().slice(0, 120) };
+  _persistClusters();
+}
+export function setModuleNqfLevel(moduleId, v) {
+  const m = (appState.moduleMappingData.modules || []).find(x => x.id === moduleId);
+  if (!m) return;
+  const t = String(v || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (t) m.nqfLevel = t; else delete m.nqfLevel;
+  renderModules(); _persistClusters();
+}
+export function setModuleNqfDescriptor(moduleId, v) {
+  const m = (appState.moduleMappingData.modules || []).find(x => x.id === moduleId);
+  if (!m) return;
+  const t = String(v || '').trim();
+  if (t) m.nqfDescriptor = t; else delete m.nqfDescriptor;
+  _persistClusters();
+}
+/** The module's TVQF/NQF level when the option is on, else ''. */
+export function getModuleNqfLevel(m) {
+  return isNqfEnabled() && m && m.nqfLevel ? String(m.nqfLevel) : '';
+}
+export function getModuleNqfDescriptor(m) {
+  return isNqfEnabled() && m && m.nqfDescriptor ? String(m.nqfDescriptor) : '';
+}
+
 /** Per-criterion coverage: which modules (with level/track) teach it. */
 export function computeCoverage() {
   _reconcileLearningOutcomes();
@@ -497,7 +549,10 @@ function _levelsExportData() {
       (m.learningOutcomes || []).forEach(o => (o.linkedCriteria || []).forEach(pc => {
         if (!pc.stale && !crit.includes(pc.id)) crit.push(pc.id);
       }));
-      return { level: l ? _txf('lblLevelN', { n: l }) : _tx('lblNoLevelGroup'),
+      // 3.85.0: the TVQF/NQF level, when the option is on and filled,
+      // follows the programme level in the same cell.
+      const nq = getModuleNqfLevel(m);
+      return { level: (l ? _txf('lblLevelN', { n: l }) : _tx('lblNoLevelGroup')) + (nq ? ` · ${_tx('lblNqfChip')}: ${nq}` : ''),
                module: `${moduleRef(m)} — ${m.title}`, track: m.track || _tx('covCommon'),
                los: String((m.learningOutcomes || []).length), criteria: crit.join(', ') };
     });
@@ -1063,6 +1118,10 @@ function _buildModuleExport(module, moduleNumber) {
     // Programme level (1..N) and specialisation; null / '' when unset.
     level: _moduleLevel(module),
     track: module.track || '',
+    // 3.85.0: TVQF/NQF level and its descriptors — only when the option
+    // is on and the field is filled (see getNqfSettings()).
+    ...(getModuleNqfLevel(module) ? { nqfLevel: getModuleNqfLevel(module) } : {}),
+    ...(getModuleNqfDescriptor(module) ? { nqfDescriptor: getModuleNqfDescriptor(module) } : {}),
     learningOutcomes: module.learningOutcomes.map(o => ({
       // 3.44.0: DACUM's own outcome id, so Module Builder can update an
       // outcome it already holds instead of matching by position.
@@ -1164,7 +1223,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // 3.84.0: tasks left out of training in Task Verification, with their
     // reasons — documentation for Module Builder. Absent when every task
     // is selected (or the selection was never used).
-    ...(() => { const ts = getTaskSelectionHandoff(); return ts ? { taskSelection: ts } : {}; })()
+    ...(() => { const ts = getTaskSelectionHandoff(); return ts ? { taskSelection: ts } : {}; })(),
+    // 3.85.0: the qualifications framework's name, when the TVQF/NQF
+    // option is on and a name was given.
+    ...(() => { const n = getNqfSettings(); return n.enabled && n.framework ? { qualificationsFramework: n.framework } : {}; })()
   };
 
   try {
@@ -1191,7 +1253,9 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     dacumVersion: exportObject.dacumVersion,
                     contentLanguages: exportObject.contentLanguages,
                     taskSelection: exportObject.taskSelection,
+                    qualificationsFramework: exportObject.qualificationsFramework,
                     modules: [...others, ...exportObject.modules] };
+        if (!payload.qualificationsFramework) delete payload.qualificationsFramework;
         if (!payload.contentLanguages) delete payload.contentLanguages;
         if (!payload.taskSelection) delete payload.taskSelection;
       }

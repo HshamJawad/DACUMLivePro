@@ -7,6 +7,38 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.85.0 — 2026-10-07 — 🏛️ TVQF/NQF option; 💡 suggest credits
+MINOR. module_mapping.js, learning_outcomes.js, clusters.js,
+modules_shared.js, module_curriculum.js, module_curriculum_text.js,
+task_selection.js, snapshots.js, dacum_projects.js, dacum-curriculum.css,
+index.html, sw.js (v201), ROADMAP.md, tests/specs/nqf-credits.spec.js (new).
+New     Module Mapping: "Use a qualifications framework (TVQF/NQF)" —
+        off by default. When on: the framework's name, and in every
+        module card a "TVQF/NQF level" (free text) and its level
+        descriptor (folded). A chip shows the level on the card.
+        Separate from "Level", which stays the level inside the
+        programme and still builds the module code and the grouping.
+        Switching off hides the fields and keeps what was typed.
+        Shown in the programme structure table of the Word / PDF export
+        (after the programme level); the curriculum export's "NQF Level"
+        row uses it (it showed the programme level, and still does when
+        the field is empty). Saved in the project and in the JSON file.
+        Module Builder handoff: "qualificationsFramework", and
+        "nqfLevel" / "nqfDescriptor" per module — only when on and
+        filled.
+New     Module Curriculum: "💡 Suggest credits for all modules" next to
+        the credits field. Optional — typing credits is unchanged. The
+        user gives the programme's total credits and picks the basis:
+        training load (Σ Priority Index × difficulty of the module's
+        tasks; a task in several modules is shared, tasks left out of
+        training and unrated tasks count 0) or the number of
+        performance criteria. Half credits that add up exactly to the
+        total; a preview per module; nothing is written until "Apply to
+        all modules". Hours keep following credits × hours per credit.
+Docs    ROADMAP.md: Job Aids moved to Module Builder; live vote on task
+        selection dropped (selection is the curriculum developer's
+        decision); real framework presets added for later.
+
 ── 3.84.0 — 2026-10-07 — ↶ Undo / Redo on Competency Clusters; left-out tasks reach Module Builder
 MINOR. clusters.js, clustering_ai.js, history.js, events.js,
 module_mapping.js, task_selection.js, translations.js, index.html,

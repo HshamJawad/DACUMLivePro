@@ -102,6 +102,14 @@ export function taskSelectionSignature() {
   return Object.keys(_state().excluded).filter(k => live.has(k)).sort().join(',');
 }
 
+/** Importance / frequency / difficulty and Priority Index of one task,
+ *  from the verification data in use — null when it is not rated. Read
+ *  by the credit suggestion in Module Curriculum (3.85.0). */
+export function getTaskRatingMetrics(taskKey) {
+  const t = _allTasks().find(x => x.key === taskKey);
+  return t ? _metrics(t) : null;
+}
+
 /** True when the user has left at least one existing task out. */
 export function hasTaskSelection() {
   return taskSelectionSignature() !== '';

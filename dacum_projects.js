@@ -169,7 +169,9 @@ export function importProjectFromData(data, fileName) {
                                   moduleCounter: s.moduleMapping.moduleCounter || 0,
                                   // Absent in files exported before 3.33.0.
                                   ...(s.moduleMapping.levelCount ? { levelCount: s.moduleMapping.levelCount } : {}),
-                                  ...(s.moduleMapping.labelMode ? { labelMode: s.moduleMapping.labelMode } : {}) }
+                                  ...(s.moduleMapping.labelMode ? { labelMode: s.moduleMapping.labelMode } : {}),
+                                  // 3.85.0 — TVQF / NQF option.
+                                  ...(s.moduleMapping.nqf ? { nqf: s.moduleMapping.nqf } : {}) }
                               : { modules: [], moduleCounter: 0 },
     // Module Curriculum (3.33.0). Absent in older files — normalised to
     // the default when the project is opened (_applyState).

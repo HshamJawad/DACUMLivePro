@@ -31,7 +31,8 @@ import { getTaskCodeShort, isClusterAddedTaskId, getAddedTaskLabel } from './cod
 import { getTaskAnalysisRecord } from './task_analysis.js';
 import { exportOccupationalStandardWord } from './exports_os_docx.js';
 import { exportCurriculumDocx } from './exports_cur_docx.js';
-import { getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds } from './modules.js';
+import { isTaskSelected, getTaskRatingMetrics } from './task_selection.js';
+import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds } from './modules.js';
 import { _DIST_GUIDE, _GUIDE, _L, _S } from './module_curriculum_text.js';
 
 
@@ -380,6 +381,8 @@ function _timeCard(module) {
       <span>${_esc(_tx('curFxHpc'))}</span> <strong><bdi data-cur-fxt>${hrs ? hrs.total : '—'} ${_esc(_tx('hUnit'))}</bdi></strong>
     </div>
     <small class="cur-hint cur-fx-note">${_esc(_tx('curHpcAll'))}</small>
+    <div class="cur-csug-row"><button type="button" class="cur-mini-btn" data-cur-action="suggest-credits">💡 ${_esc(_tx('curCsBtn'))}</button>
+      <small class="cur-hint">${_esc(_tx('curCsHint'))}</small></div>
     <div class="cur-hours-empty" data-cur-needcredits ${hrs ? 'hidden' : ''}>${_esc(_tx('curTimeNeedCredits'))}</div>
     <div class="cur-pct-scope" role="radiogroup" aria-label="${_esc(_tx('curPctScope'))}">
       <span class="cur-pct-scope-l">${_esc(_tx('curPctScope'))}</span>
@@ -830,6 +833,92 @@ function _openTAPicker() {
      } }]);
 }
 
+// ── Suggest credits for every module (3.85.0) ──────────────────
+// OPTIONAL helper next to the credits field. Credits stay the one input
+// (hours = credits × hours per credit, as before): this only proposes a
+// value for each module from a programme total the user gives, and
+// writes nothing until "Apply". Two bases, the user chooses:
+//   • training load — Σ (Priority Index × difficulty) of the module's
+//     source tasks: the "Advanced" training load of the verification
+//     dashboard. A task used by several modules is shared equally;
+//     tasks left out of training and unrated tasks count 0.
+//   • performance criteria — how many the module teaches (the weight
+//     the hours of the learning outcomes are already shared by).
+// Half credits, largest remainder: the suggestions add up exactly to
+// the total.
+function _creditWeights(basis) {
+  const mods = _modules();
+  if (basis === 'criteria') {
+    return mods.map(m => {
+      const ids = new Set();
+      _liveLOs(m).forEach(o => _arr(o.linkedCriteria).forEach(pc => { if (pc && !pc.stale) ids.add(pc.id); }));
+      return ids.size;
+    });
+  }
+  const tasksOf = mods.map(m => _collectModuleTaskAnalysis(m).sourceTaskIds || []);
+  const uses = new Map();
+  tasksOf.forEach(ids => ids.forEach(id => uses.set(id, (uses.get(id) || 0) + 1)));
+  return tasksOf.map(ids => ids.reduce((sum, id) => {
+    if (!isTaskSelected(id)) return sum;
+    const r = getTaskRatingMetrics(id);
+    return r ? sum + (r.pi * r.d) / uses.get(id) : sum;
+  }, 0));
+}
+function _suggestCredits(total, basis) {
+  const w = _creditWeights(basis);
+  const T = Math.round((Number(total) || 0) * 2);          // half credits
+  if (!(T > 0) || !w.some(x => x > 0)) return w.map(() => null);
+  // distributeHours() floors every weight at 1 — scale fractional loads
+  // first so small differences survive; 0 stays (almost) 0.
+  const max = Math.max(...w);
+  const scaled = w.map(x => x > 0 ? Math.max(1, Math.round(x / max * 1e6)) : 0);
+  const parts = distributeHours(T, scaled.map(x => x || 1e-9));
+  return parts.map(p => p / 2);
+}
+function _openCreditSuggest() {
+  const mods = _modules();
+  if (!mods.length) return;
+  const cur = mods.map(m => Number((_modRec(m.id) || {}).credits) || 0);
+  const curSum = cur.reduce((a, b) => a + b, 0);
+  const hasLoad = _creditWeights('load').some(x => x > 0);
+  let basis = hasLoad ? 'load' : 'criteria';
+  const body = `
+    <p class="cur-hint" style="margin:0 0 10px;">${_esc(_tx('curCsIntro'))}</p>
+    <label class="cur-cs-total"><span>${_esc(_tx('curCsTotal'))}</span>
+      <input type="number" min="0.5" step="0.5" inputmode="decimal" class="cur-num" id="curCsTotal" value="${curSum > 0 ? _num(curSum) : ''}"></label>
+    <div class="cur-cs-basis" role="radiogroup" aria-label="${_esc(_tx('curCsBasis'))}">
+      <span>${_esc(_tx('curCsBasis'))}</span>
+      <label class="cur-check"><input type="radio" name="curCsBasis" value="load" ${basis === 'load' ? 'checked' : ''} ${hasLoad ? '' : 'disabled'}><span>${_esc(_tx('curCsLoad'))}</span></label>
+      <label class="cur-check"><input type="radio" name="curCsBasis" value="criteria" ${basis === 'criteria' ? 'checked' : ''}><span>${_esc(_tx('curCsCriteria'))}</span></label>
+      ${hasLoad ? '' : `<small class="cur-hint">${_esc(_tx('curCsNoLoad'))}</small>`}
+    </div>
+    <table class="cur-cs-table"><thead><tr><th>${_esc(_tx('curCsColModule'))}</th><th>${_esc(_tx('curCsColNow'))}</th><th>${_esc(_tx('curCsColNew'))}</th></tr></thead>
+      <tbody id="curCsBody"></tbody></table>
+    <small class="cur-hint">${_esc(_tx('curCsAfter'))}</small>`;
+  let sug = [];
+  const ov = _modal('curCreditSuggest', _tx('curCsTitle'), '💡', body, [
+    { label: _tx('curCancel'), cls: 'cur-btn-ghost', close: true },
+    { label: _tx('curCsApply'), cls: 'cur-btn-primary', onClick: () => {
+      if (!sug.some(v => v != null)) { showStatus(_tx('curCsNeedTotal'), 'error'); return; }
+      mods.forEach((m, i) => { if (sug[i] != null) _modRec(m.id, true).credits = sug[i]; });
+      _closeModal(ov);
+      renderModuleCurriculum();
+      _schedulePersist();
+      showStatus('✓ ' + _txf('curCsApplied', { n: mods.length }), 'success');
+    } }], { wide: true });
+  const refresh = () => {
+    const total = parseFloat(ov.querySelector('#curCsTotal').value);
+    sug = _suggestCredits(total, basis);
+    const w = _creditWeights(basis);
+    ov.querySelector('#curCsBody').innerHTML = mods.map((m, i) => `
+      <tr><td dir="auto">${_esc(_moduleLabel(m, i))}${basis === 'load' && !(w[i] > 0) ? ` <em class="cur-cs-none">${_esc(_tx('curCsNoRated'))}</em>` : ''}</td>
+        <td>${cur[i] ? _esc(_num(cur[i])) : '—'}</td><td><strong>${sug[i] != null ? _esc(_num(sug[i])) : '—'}</strong></td></tr>`).join('');
+  };
+  ov.addEventListener('input', e => { if (e.target.id === 'curCsTotal') refresh(); });
+  ov.addEventListener('change', e => { if (e.target.name === 'curCsBasis') { basis = e.target.value; refresh(); } });
+  refresh();
+}
+
 // ── Generic modal ────────────────────────────────────────────
 let _lastFocus = null;
 function _modal(id, title, icon, bodyHtml, buttons, opts = {}) {
@@ -1004,7 +1093,9 @@ export function getCurriculumModel(moduleId, opts = {}) {
   return {
     blank, rtl: _isRTL(), lang,
     code, title: _str(module.title).trim(), shortName: _moduleShortName(module),
-    level: lvl, levelLabel: lvl ? String(lvl) : '',
+    // 3.85.0: the "NQF Level" row shows the module's TVQF/NQF level when
+    // that option is on and filled; otherwise the programme level, as before.
+    level: lvl, levelLabel: getModuleNqfLevel(module) || (lvl ? String(lvl) : ''),
     credits: blank ? '' : (Number(rec.credits) > 0 ? rec.credits : ''),
     purpose: blank ? '' : _str(rec.purpose).trim(),
     prerequisites: blank ? [] : _arr(rec.prerequisites)
@@ -1281,6 +1372,8 @@ function _wire() {
       const r = _loRec(module.id, lo, true);
       const n = _addToList(r, 'assessMethods', [b.getAttribute('data-val')]);
       if (n) { renderModuleCurriculum(); _schedulePersist(); } else showStatus(_tx('curNothingNew'), 'info');
+    } else if (a === 'suggest-credits') {
+      _openCreditSuggest();
     } else if (a === 'distribute-hours') {
       _distributeLOHours();
     } else if (a === 'dist-help') {

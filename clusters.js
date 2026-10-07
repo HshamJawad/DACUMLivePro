@@ -15,7 +15,7 @@ import { lwExtractDutiesAndTasks } from './workshop.js';
 import { getTaskCode, CLUSTER_ADDED_TASK_PREFIX } from './codes.js';
 import { clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI, aiMarkHTML, removeAIMark } from './ai_draft.js';
 import { CLUSTER_TASK_SOURCE_ADDED, _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, isClusterAddedTask, switchTab } from './modules_shared.js';
-import { renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack } from './module_mapping.js';
+import { setNqfEnabled, setNqfFramework, setModuleNqfLevel, setModuleNqfDescriptor, renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack } from './module_mapping.js';
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
@@ -1281,6 +1281,19 @@ function _injectClusterTaskStyles() {
     .mod-level-chip { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
     .mod-track-chip { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
     .mod-meta-row { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: -4px 0 12px; }
+    /* TVQF / NQF (3.85.0) */
+    .mod-nqf-row { align-items: flex-start; padding: 8px 10px; margin-top: -6px; border: 1px dashed #c4b5fd; border-radius: 8px; background: rgba(255,255,255,.55); }
+    .mod-nqf-input { width: 160px; }
+    .mod-nqf-desc-box { flex: 1 1 280px; min-width: 0; font-size: .86em; color: #475569; }
+    .mod-nqf-desc-box > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+    .mod-nqf-desc { width: 100%; box-sizing: border-box; margin-top: 4px; font: inherit; padding: 6px 8px; border: 1px solid #c4b5fd; border-radius: 6px; resize: vertical; }
+    .mod-nqf-chip { display: inline-block; margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; background: #ecfeff; border: 1px solid #67e8f9; color: #0e7490; font-size: .6em; font-weight: 700; vertical-align: middle; }
+    #mmNqfBar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 0 0 14px; padding: 8px 12px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
+    #mmNqfBar .mm-nqf-toggle { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #334155; font-size: .9em; cursor: pointer; margin: 0; }
+    #mmNqfBar .mm-nqf-toggle input { width: 17px; height: 17px; margin: 0; accent-color: #0284c7; }
+    #mmNqfBar #mmNqfFramework { flex: 1 1 240px; min-width: 0; width: auto; margin: 0; padding: 6px 10px; font-size: .9em; border: 1px solid #cbd5e1; border-radius: 6px; }
+    #mmNqfBar #mmNqfFramework[hidden] { display: none; }
+    #mmNqfBar .mm-nqf-hint { flex-basis: 100%; margin: 0; font-size: .8em; color: #64748b; }
     .mod-meta-field { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86em; color: #475569; font-weight: 600; flex-wrap: wrap; }
     .mod-meta-field select, .mod-meta-field input {
       padding: 6px 10px; border: 1.5px solid #cbd5e1; border-radius: 6px;
@@ -1411,11 +1424,16 @@ function _wireClusterTaskControls() {
     else if (t.matches('#modulesContainer .mod-code-input'))  setModuleCode(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesContainer .mod-short-input')) setModuleShortName(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesLabelMode'))                  setModuleLabelMode(t.value);
+    // TVQF / NQF (3.85.0)
+    else if (t.matches('#mmNqfEnable'))                         setNqfEnabled(t.checked);
+    else if (t.matches('#mmNqfFramework'))                      setNqfFramework(t.value);
+    else if (t.matches('#modulesContainer .mod-nqf-input'))    setModuleNqfLevel(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesContainer .mod-nqf-desc'))     setModuleNqfDescriptor(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#coverageMatrixSection .cov-level-count')) setModuleLevelCount(t.value);
     else if (t.matches('#coverageMatrixSection .cov-gaps-only')) { setCoverageGapsOnly(t.checked); renderCoverageMatrix(); }
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('#modulesContainer .mod-track-input, #modulesContainer .mod-code-input, #modulesContainer .mod-short-input')) {
+    if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('#modulesContainer .mod-track-input, #modulesContainer .mod-code-input, #modulesContainer .mod-short-input, #modulesContainer .mod-nqf-input, #mmNqfFramework')) {
       e.preventDefault(); e.target.blur();
     }
   });
