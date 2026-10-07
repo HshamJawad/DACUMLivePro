@@ -73,6 +73,7 @@ async function mockAI(page, { messy = true, fail = false, overrides = {} } = {})
 function kindOf(p) {
   const out = p.split('OUTPUT FORMAT').pop();
   if (p.includes('validating a single input field')) return 'check';
+  if (p.includes('Translate each value of the SOURCE object')) return 'translate';
   if (p.includes('DATA-INFORMED DACUM DRAFT')) return 'duties';
   if (p.includes('SUPPORTING INFORMATION')) return 'info';
   if (p.includes('DACUM TASK ANALYSIS for ONE task')) return 'ta';
@@ -100,9 +101,19 @@ function answer(kind, p) {
     case 'modules': return { modules: [{ title: 'Implementing Core Work', rationale: 'Groups the core outcomes.', outcomeIds: ids(p) }] };
     case 'ratings': { const codes = [...new Set([...p.split('OUTPUT FORMAT')[0].matchAll(/\b([A-Z]\d{1,2})\b/g)].map(m => m[1]))];
       return { ratings: codes.map(code => ({ code, importance: 2, frequency: 2, difficulty: 1 })) }; }
+    case 'translate': return { t: fakeTranslate(p) };
     case 'ta': return { sections: { performanceSteps: ['Inspect the work area', 'Wear PPE'], safetyOSH: ['Slip hazards'] } };
     default: return {};
   }
+}
+
+/** The stand-in translator: "<tag> text" for every id of the batch,
+ *  where tag is AR / FR / EN after the target language. */
+const TAGS = { Arabic: 'ع', French: 'fr', English: 'en' };
+function fakeTranslate(p) {
+  const to = /into (\w+)\./.exec(p)[1];
+  const src = JSON.parse(p.split('\nSOURCE\n')[1].split('\n\nOUTPUT FORMAT')[0]);
+  return Object.fromEntries(Object.entries(src).map(([k, v]) => [k, `${TAGS[to]} ${v}`]));
 }
 
 /** Fill the Chart Info fields the AI cards need. */

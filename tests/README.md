@@ -13,6 +13,7 @@ part of the app: nothing in this folder is loaded or cached by it.
 | `specs/job-title.spec.js` | Job Title required; a job from another occupation is questioned; the prompt analyses the job. |
 | `specs/ai-cards.spec.js` | Task Analysis, cluster and Additional Info cards: only ticked parts change, restore works, marks are saved. |
 | `specs/curriculum.spec.js` | Outcome Undo, coverage filter, Module Builder handoff, chart Word and PDF exports (EN/AR), Module Curriculum tab and its Word export. |
+| `specs/content-languages.spec.js` | Settings → Languages: translate, switch without AI, back to an identical original (both ways back), copies and criterion links follow, ids/ratings untouched, edits and added items, only changed texts re-sent, exports and AI follow the shown content, JSON round trip. |
 
 `fixtures/sample-project.json` is a synthetic project (made with the
 app's own Full Draft against the stand-in), not real workshop data.
