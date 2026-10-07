@@ -29,6 +29,7 @@ import { renderAvailableTasks, renderClusters,
 import { renderAll }          from './workshop_snapshots.js';
 import { resetHistoryToCurrentState } from './history.js';
 import { renderModuleCurriculum } from './module_curriculum.js';
+import { versionStats as _clVersionStats } from './content_lang.js';
 
 /* i18n access — resolved lazily; see duties.js for why.
    _tp() picks the correct plural form: Arabic has six categories and
@@ -855,6 +856,7 @@ export function renderProjectsSidebar() {
             <span class="dps-stat-duties">📋 ${_tp('countDuty', dutyCount)}</span>
             <span class="dps-stat-tasks">✅ ${_tp('countTask', taskCount)}</span>
           </div>
+          ${_langBadge(p, isActive)}
         </div>
         <div class="dps-card-actions">
           <button class="dps-icon-btn dps-rename" data-action="rename-project" data-project-id="${p.id}" title="${_t('ttRenameProject')}">✏️</button>
@@ -874,7 +876,14 @@ export function renderProjectsSidebar() {
     const action = btn.getAttribute('data-action');
     const id     = btn.getAttribute('data-project-id');
 
-    if (action === 'load-project') {
+    if (action === 'project-languages') {
+      // 3.79.3: the 🌐 badge — open the project if needed, then
+      // Settings → Languages.
+      if (id !== _getActive()) loadProject(id);
+      import('./export_settings.js')
+        .then(m => m.openExportSettings({ tab: 'languages' }))
+        .catch(err => console.error('[languages] settings load failed:', err));
+    } else if (action === 'load-project') {
       loadProject(id);
     } else if (action === 'rename-project') {
       _startInlineRename(id);
@@ -891,6 +900,28 @@ export function renderProjectsSidebar() {
       if (confirmed) deleteProject(id);
     }
   };
+}
+
+/* 3.79.3: "🌐 EN · AR" on a card whose project has content languages —
+   the shown one in bold, a dot when a version still has untranslated
+   texts. Nothing for other projects, so their cards are unchanged. */
+function _langBadge(p, isActive) {
+  const cl = (isActive && appState.contentLanguages) || (p.state && p.state.contentLanguages);
+  if (!cl || !cl.original) return '';
+  const langs = [cl.original, ...Object.keys(cl.versions || {})];
+  let missing = 0;
+  try {
+    const st = { ...(p.state || {}), contentLanguages: cl };
+    Object.keys(cl.versions || {}).forEach(l => { missing += _clVersionStats(st, l).missing; });
+  } catch (e) { missing = 0; }
+  const label = langs.map(l => {
+    const code = _esc(String(l).toUpperCase());
+    return l === cl.active ? `<b>${code}</b>` : code;
+  }).join(' · ');
+  const title = _tf('lgBadgeTitle', { lang: String(cl.active || cl.original).toUpperCase() }) +
+    (missing ? ' ' + _tf('lgBadgeMissing', { n: missing }) : '');
+  return `<button type="button" class="dps-lang-badge" data-action="project-languages" data-project-id="${p.id}"
+            title="${_esc(title)}" aria-label="${_esc(title)}">🌐 <span>${label}</span>${missing ? '<i class="dps-lang-dot" aria-hidden="true"></i>' : ''}</button>`;
 }
 
 // ── State capture / apply (mirrors workshop_snapshots logic) ──
@@ -2234,6 +2265,23 @@ function _injectCSS() {
   margin-top: 4px;
   font-size: 0.72em;
   color: #6B7379;
+}
+
+/* 3.79.3 — content languages of the project (opens Settings → Languages) */
+.dps-lang-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 5px; padding: 1px 8px;
+  min-height: 0;              /* not stretched on touch screens */
+  font: inherit; font-size: 0.7em; line-height: 1.6;
+  color: #1e3a8a; background: #eef4ff;
+  border: 1px solid #bfd3fb; border-radius: 999px;
+  cursor: pointer; position: relative;
+}
+.dps-lang-badge:hover { background: #dbe7fe; }
+.dps-lang-badge b { font-weight: 800; }
+.dps-lang-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #f59e0b; display: inline-block;
 }
 
 /* ── Card action buttons — always visible, clearly colored ── */

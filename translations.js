@@ -1477,6 +1477,8 @@
       esDiscardConfirm: 'You have unsaved changes. Discard them?',
       // ── 3.79.0 Settings → Languages ──
       setTitle: "Settings",
+      lgBadgeTitle: "Content languages — shown: {lang}. Click to open Settings → Languages.",
+      lgBadgeMissing: "{n} texts not translated yet.",
       setTabExport: "Export",
       setTabLanguages: "Languages",
       lgIntro: "The language switcher in the top bar changes the screens only. Here you set the language this project’s content is written in, keep translations of it, and choose the version that is shown — the version every tab, export and AI card works with.",
@@ -3002,6 +3004,8 @@
       esDiscardConfirm: 'Vous avez des modifications non enregistrées. Les abandonner\u00a0?',
       // ── 3.79.0 Settings → Languages ──
       setTitle: "Paramètres",
+      lgBadgeTitle: "Langues du contenu — affichée : {lang}. Cliquer pour ouvrir Paramètres → Langues.",
+      lgBadgeMissing: "{n} textes pas encore traduits.",
       setTabExport: "Exportation",
       setTabLanguages: "Langues",
       lgIntro: "Le sélecteur de langue de la barre supérieure ne change que les écrans. Ici, vous indiquez la langue dans laquelle le contenu de ce projet est rédigé, conservez ses traductions et choisissez la version affichée — celle qu’utilisent tous les onglets, les exportations et les cartes IA.",
@@ -4504,6 +4508,8 @@
       esDiscardConfirm: 'لديك تغييرات غير محفوظة. هل تريد تجاهلها؟',
       // ── 3.79.0 Settings → Languages ──
       setTitle: "الإعدادات",
+      lgBadgeTitle: "لغات المحتوى — المعروضة: {lang}. انقر لفتح الإعدادات ← اللغات.",
+      lgBadgeMissing: "{n} نصاً لم يُترجم بعد.",
       setTabExport: "التصدير",
       setTabLanguages: "اللغات",
       lgIntro: "مبدّل اللغة في الشريط العلوي يغيّر لغة الشاشات فقط. هنا تحدد اللغة التي كُتب بها محتوى هذا المشروع، وتحتفظ بترجماته، وتختار النسخة المعروضة — وهي النسخة التي تعمل عليها جميع التبويبات وملفات التصدير وبطاقات الذكاء الاصطناعي.",

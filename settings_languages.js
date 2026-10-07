@@ -13,7 +13,7 @@
 
 import { appState } from './state.js';
 import { captureProjectState, applyProjectState, saveCurrentProject,
-         getActiveProjectId } from './dacum_projects.js';
+         getActiveProjectId, renderProjectsSidebar } from './dacum_projects.js';
 import * as CL from './content_lang.js';
 import { runTranslation, makeBatches, tidyTranslation } from './content_translate.js';
 import { showStatus } from './renderer.js';
@@ -26,6 +26,8 @@ const _esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const _name = (l) => CL.LANG_NAMES[l] || l;
 const _cl = () => appState.contentLanguages || null;
+/* Save, and refresh the 🌐 badge on the project card. */
+const _save = () => { saveCurrentProject(); try { renderProjectsSidebar(); } catch (e) {} };
 
 /* ── The content language the rest of the app follows ───────────── */
 function _registerProvider() {
@@ -58,7 +60,7 @@ function _applyAndRecord(s) {
     // back with nothing changed then restores the original exactly.
     const after = CL.stripCL(captureProjectState());
     cl.view.appliedHash = CL.hashText(JSON.stringify(after));
-    saveCurrentProject();
+    _save();
   }
   _syncDocument();
   renderLanguageBanner();
@@ -318,7 +320,7 @@ function _wireMain(box) {
     const cl = _cl();
     if (!cl || cl.view || Object.keys(cl.versions || {}).length) return;
     appState.contentLanguages = { ...cl, original: this.value, active: this.value };
-    saveCurrentProject(); _syncDocument(); _estimate = null; _rerender();
+    _save(); _syncDocument(); _estimate = null; _rerender();
   });
   const sel = () => ({
     from: (box.querySelector('#clFrom') || {}).value,
@@ -342,7 +344,7 @@ function _onClick(e) {
   if (act === 'init') {
     const v = (_box.querySelector('#clOriginalNew') || {}).value || 'en';
     appState.contentLanguages = CL.newCL(v);
-    saveCurrentProject(); _syncDocument(); _rerender();
+    _save(); _syncDocument(); _rerender();
   } else if (act === 'review') {
     _mode = 'review'; _reviewLang = lang; _reviewFilter = 'all'; _reviewQuery = ''; _reviewLimit = 150;
     _rerender();
@@ -354,7 +356,7 @@ function _onClick(e) {
     // still in the original and still need translating into it.
     const versions = { ...cl.versions }; delete versions[lang];
     appState.contentLanguages = { ...cl, versions };
-    saveCurrentProject(); _rerender();
+    _save(); _rerender();
   } else if (act === 'translate') {
     _onTranslate();
   } else if (act === 'stop') {
@@ -392,7 +394,7 @@ async function _runTranslate(est) {
   if (cl0.view && !switchContentLanguage(cl0.original, { quiet: true })) return;
   if (!_cl().versions[est.to]) {
     appState.contentLanguages = CL.storeTranslations(_cl(), est.to, []);
-    saveCurrentProject();
+    _save();
   }
   _busy = true; _cancel = false; _progress = { i: 0, n: est.calls };
   _rerender();
@@ -406,7 +408,7 @@ async function _runTranslate(est) {
       onBatch: (r) => {
         if (!sameProject() || !_cl()) return;
         appState.contentLanguages = CL.storeTranslations(_cl(), est.to, r);
-        saveCurrentProject();
+        _save();
       },
     });
   } finally {
@@ -415,7 +417,7 @@ async function _runTranslate(est) {
   if (!sameProject() || !_cl()) { _rerender(); return; }
   if (!_cl().view) {
     appState.contentLanguages = CL.tidyVersion(captureProjectState(), est.to);
-    saveCurrentProject();
+    _save();
   }
   if (res.failed && !res.translated) {
     showAIServiceError(res.lastError, {});
@@ -528,7 +530,7 @@ function _renderReview(box) {
     const c = _cl();
     const v = { ...(c.versions[lang] || {}), reviewed: this.checked, reviewedAt: this.checked ? Date.now() : null };
     appState.contentLanguages = { ...c, versions: { ...c.versions, [lang]: v } };
-    saveCurrentProject(); renderLanguageBanner();
+    _save(); renderLanguageBanner();
   });
   box.querySelector('[data-rv="back"]').addEventListener('click', () => {
     _collectPending();
@@ -575,11 +577,11 @@ function _saveReview(lang, srcOf) {
     // screen), store the corrections, and show the version again.
     if (!switchContentLanguage(cl.original, { quiet: true })) return;
     appState.contentLanguages = CL.editTranslations(_cl(), lang, edits);
-    saveCurrentProject();
+    _save();
     switchContentLanguage(lang, { quiet: true });
   } else {
     appState.contentLanguages = CL.editTranslations(cl, lang, edits);
-    saveCurrentProject();
+    _save();
   }
   _rerender();
 }

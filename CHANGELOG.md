@@ -7,6 +7,20 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.79.3 — 2026-10-07 — 🌐 language badge on project cards
+PATCH. dacum_projects.js, settings_languages.js, translations.js,
+sw.js (v193), index.html, tests/specs/content-languages.spec.js.
+New     A project with content languages shows "🌐 EN · AR" on its
+        sidebar card: the version shown in bold, an amber dot when a
+        version still has untranslated texts (the tooltip gives the
+        count). Clicking it opens the project if needed, then
+        Settings → Languages. Projects without content languages: the
+        card is unchanged. The badge refreshes whenever the languages
+        change.
+Tested  New test (badge absent → "EN · AR" with AR bold → opens the
+        Languages tab); EN and AR interface checked visually. Full
+        suite 30/30.
+
 ── 3.79.2 — 2026-10-07 — Translations travel to Module Builder
 PATCH. content_lang.js, module_mapping.js, sw.js (v192), index.html,
 tests/specs/content-languages.spec.js.
