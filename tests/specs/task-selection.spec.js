@@ -186,7 +186,7 @@ test('one click moves left-out tasks out of the competencies', async ({ page }) 
   await page.evaluate(() => window.switchTab('clustering-tab'));
   await expect(page.locator('.cl-unsel-bar')).toContainText('2 task(s) in the competencies below are not selected for training.');
   await page.click('.cl-unsel-move');                     // confirm() is accepted by openApp
-  await expect(page.locator('.cl-unsel-bar')).toHaveCount(0);
+  await expect(page.locator('[data-tsel-move-out]')).toHaveCount(0);   // only the Undo bar remains
   const cd = await state(page, 's => ({ avail: s.clusteringData.availableTasks.map(t => t.id).sort(), inC: s.clusteringData.clusters.flatMap(c => c.tasks.map(t => t.id)) })');
   expect(cd.avail).toEqual(['duty_1_3', 'duty_3_4']);
   expect(cd.inC).not.toContain('duty_1_3');
@@ -217,5 +217,26 @@ test('verification report: "Selected for training" column only when a task was l
   const [pdf] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }),
     page.evaluate(async () => (await import('./exports_pdf.js')).exportTaskVerificationPDF())]);
   expect(fs.readFileSync(await pdf.path()).slice(0, 5).toString()).toBe('%PDF-');
+  expect(errors).toEqual([]);
+});
+
+test('Undo after the move puts every task back in its competency, same position', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  const layout = () => state(page, 's => ({ c: s.clusteringData.clusters.map(c => c.tasks.map(t => t.id)), a: s.clusteringData.availableTasks.map(t => t.id) })');
+  await page.evaluate(async () => {
+    const S = await import('./task_selection.js');
+    ['duty_1_1', 'duty_1_3', 'duty_3_4'].forEach(k => S.setTaskSelected(k, false, ''));
+  });
+  await page.evaluate(() => window.switchTab('clustering-tab'));
+  const before = await layout();
+  await page.click('[data-tsel-move-out]');
+  await expect(page.locator('.cl-unsel-done')).toContainText('3 task(s) moved out of the competencies.');
+  expect((await layout()).a.sort()).toEqual(['duty_1_1', 'duty_1_3', 'duty_3_4']);
+  await page.click('[data-tsel-move-undo]');
+  await expect(page.locator('.cl-unsel-done')).toHaveCount(0);
+  expect(await layout()).toEqual(before);
+  // The move bar is back, since the tasks are in their competencies again.
+  await expect(page.locator('[data-tsel-move-out]')).toBeVisible();
   expect(errors).toEqual([]);
 });
