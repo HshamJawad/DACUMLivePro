@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.79.4 — 2026-10-07 — 🎨 AI-card blue for update bar, format switch, welcome backdrop
+PATCH. index.html, dacum_projects.js, sw.js (v194).
+Changed The "A new version is available" bar, the selected Workshop
+        format button (In person / Online / Hybrid) and the backdrop of
+        the "create a project" welcome overlay now use the AI-card blue
+        gradient #0ea5e9 → #0284c7 instead of indigo/purple. The update
+        bar's "Update now" text is #0369a1; unselected format buttons
+        get a light-blue hover.
+
 ── 3.79.3 — 2026-10-07 — 🌐 language badge on project cards
 PATCH. dacum_projects.js, settings_languages.js, translations.js,
 sw.js (v193), index.html, tests/specs/content-languages.spec.js.

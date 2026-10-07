@@ -441,7 +441,7 @@ export function showWelcomeOverlay() {
   overlay.id = 'dacumWelcomeOverlay';
   overlay.style.cssText =
     'position:fixed;inset:0;z-index:900;display:flex;align-items:center;' +
-    'justify-content:center;background:rgba(15,23,42,0.90);' +
+    'justify-content:center;background:linear-gradient(135deg,rgba(14,165,233,0.92) 0%,rgba(2,132,199,0.92) 100%);' +
     'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);' +
     'animation:dacumWelcomeFadeIn 0.25s ease;';
 
