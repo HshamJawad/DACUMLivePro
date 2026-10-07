@@ -14,7 +14,7 @@ part of the app: nothing in this folder is loaded or cached by it.
 | `specs/ai-cards.spec.js` | Task Analysis, cluster and Additional Info cards: only ticked parts change, restore works, marks are saved. |
 | `specs/curriculum.spec.js` | Outcome Undo, coverage filter, Module Builder handoff, chart Word and PDF exports (EN/AR), Module Curriculum tab and its Word export. |
 | `specs/content-languages.spec.js` | Settings → Languages: translate, switch without AI, back to an identical original (both ways back), copies and criterion links follow, ids/ratings untouched, edits and added items, only changed texts re-sent, exports and AI follow the shown content, JSON round trip. |
-| `specs/task-selection.spec.js` | Select Tasks for Training / Analysis: optional (all selected by default), both suggestion rules, reasons, Task Analysis follows the selection, JSON round trip, Clear This Tab, Arabic; drafted ratings reach the verification table. |
+| `specs/task-selection.spec.js` | Select Tasks for Training / Analysis: optional (all selected by default), both suggestion rules, reasons, Task Analysis follows the selection, JSON round trip, Clear This Tab, Arabic; drafted ratings reach the verification table; clusters, AI clustering, trace map and the Word export follow the selection. |
 
 `fixtures/sample-project.json` is a synthetic project (made with the
 app's own Full Draft against the stand-in), not real workshop data.
