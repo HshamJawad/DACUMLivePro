@@ -27,6 +27,8 @@ import { getModulesUsingTask } from './modules.js';
 import { writeAIDraft, clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI,
          aiMarkHTML, removeAIMark } from './ai_draft.js';
 import { syncAllFromDOM }  from './duties.js';
+import { isTaskSelected, setTaskSelected, getTaskExclusionReason,
+         taskSelectionSignature } from './task_selection.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -213,27 +215,11 @@ function _statusDot(status) {
   return '○';
 }
 
-// ── "Flagged for detailed analysis" (requirement: a simple way to
-// mark tasks that deserve detailed Task Analysis). Kept as its own
-// small flat dictionary — same key convention as taskAnalysisData —
-// and surfaced only here in the Task Analysis navigator rather than
-// inside the Task Verification table: that table has three different
-// column layouts (standard/workshop/extended) built in tasks.js, and
-// adding a column there risks breaking one of the three. A star
-// toggle the facilitator can set while going through this tab's own
-// task list gives the same simple flag with no risk to Verification.
-function _isFlagged(taskKey) {
-  return !!(appState.taskAnalysisPriority || {})[taskKey];
-}
-
-function _toggleFlag(taskKey) {
-  if (!appState.taskAnalysisPriority) appState.taskAnalysisPriority = {};
-  if (appState.taskAnalysisPriority[taskKey]) {
-    delete appState.taskAnalysisPriority[taskKey];
-  } else {
-    appState.taskAnalysisPriority[taskKey] = true;
-  }
-}
+// The ★ "flag for detailed analysis" toggle that used to sit here was
+// replaced in 3.80.0 by the selection in task_selection.js (☑ in the
+// navigator). appState.taskAnalysisPriority is still saved and loaded,
+// and the Task Verification section offers to turn the stars into a
+// selection, so nobody's marks are lost.
 
 /** Clean (marker-stripped, trimmed, non-blank) Performance Criteria for
  *  one task — the read API other tabs use to pull in Task-Analysis-
@@ -405,8 +391,13 @@ function _signature() {
   return (appState.dutiesData || []).map(d =>
     'D:' + d.id + '|' + (d.title || '').trim() + '|' +
     (d.tasks || []).map(t => t.inputId + '|' + (t.text || '').trim()).join(',')
-  ).join('\n');
+  ).join('\n') + '\nSEL:' + taskSelectionSignature();
 }
+
+// 3.80.0: Task Analysis lists the tasks selected in Task Verification
+// (task_selection.js). Unselected tasks stay one click away, greyed, so
+// an analysis written before a task was left out is never out of reach.
+let _showUnselected = false;
 
 function _allTasksFlat() {
   const out = [];
@@ -460,13 +451,33 @@ function _renderNav() {
     return;
   }
 
-  if (!_selectedTaskKey || !flat.some(f => f.taskKey === _selectedTaskKey)) {
-    _selectedTaskKey = flat[0].taskKey;
+  const nSel     = flat.filter(f => isTaskSelected(f.taskKey)).length;
+  const nUnsel   = flat.length - nSel;
+  const visible  = (nUnsel && !_showUnselected) ? flat.filter(f => isTaskSelected(f.taskKey)) : flat;
+
+  if (!_selectedTaskKey || !visible.some(f => f.taskKey === _selectedTaskKey)) {
+    _selectedTaskKey = visible.length ? visible[0].taskKey : null;
+  }
+
+  // Only shown once the user has left a task out — a project that never
+  // used the selection looks exactly as before.
+  const selBar = nUnsel ? `
+    <div class="ta-sel-bar">
+      <div class="ta-sel-summary">${escapeHtml(_tf('taSelSummary', { n: nSel, total: flat.length }))}</div>
+      <label class="ta-sel-show">
+        <input type="checkbox" data-action="ta-show-unselected" ${_showUnselected ? 'checked' : ''}>
+        ${escapeHtml(_tf('taShowUnselected', { n: nUnsel }))}
+      </label>
+    </div>` : '';
+
+  if (!visible.length) {
+    nav.innerHTML = selBar + `<div class="no-tasks-message ta-sel-empty">${escapeHtml(_t('taNoneSelected'))}</div>`;
+    return;
   }
 
   const byDuty = [];
   let current = null;
-  flat.forEach(f => {
+  visible.forEach(f => {
     if (!current || current.dutyId !== f.dutyId) {
       current = { dutyId: f.dutyId, dutyIndex: f.dutyIndex, dutyTitle: f.dutyTitle, items: [] };
       byDuty.push(current);
@@ -474,14 +485,15 @@ function _renderNav() {
     current.items.push(f);
   });
 
-  nav.innerHTML = byDuty.map(d => {
+  nav.innerHTML = selBar + byDuty.map(d => {
     const letter = getDutyLetter(d.dutyIndex);
     const rows = d.items.map(f => {
       const status = _status(f.taskKey);
       const active = f.taskKey === _selectedTaskKey ? ' ta-nav-task-active' : '';
-      const flagged = _isFlagged(f.taskKey);
+      const on = isTaskSelected(f.taskKey);
+      const selTip = escapeHtml(_t(on ? 'ttTaskSelectedOn' : 'ttTaskSelectedOff'));
       return `
-        <div class="ta-nav-row">
+        <div class="ta-nav-row${on ? '' : ' ta-nav-unselected'}">
           <button type="button" class="ta-nav-task${active} ta-status-${status}"
                   data-action="ta-select-task" data-task-key="${f.taskKey}"
                   title="${escapeHtml(f.task.text)}">
@@ -489,9 +501,10 @@ function _renderNav() {
             <span class="ta-nav-code">${_bdi(letter + f.taskNum)}</span>
             <span class="ta-nav-text">${escapeHtml(f.task.text)}</span>
           </button>
-          <button type="button" class="ta-nav-flag${flagged ? ' ta-nav-flag-on' : ''}"
-                  data-action="ta-toggle-priority" data-task-key="${f.taskKey}"
-                  title="${escapeHtml(_t('ttFlagForAnalysis'))}" aria-label="${escapeHtml(_t('ttFlagForAnalysis'))}">${flagged ? '★' : '☆'}</button>
+          <button type="button" class="ta-nav-sel${on ? ' ta-nav-sel-on' : ''}"
+                  data-action="ta-toggle-select" data-task-key="${f.taskKey}" role="checkbox"
+                  aria-checked="${on ? 'true' : 'false'}"
+                  title="${selTip}" aria-label="${selTip}">${on ? '☑' : '☐'}</button>
         </div>`;
     }).join('');
     return `
@@ -595,7 +608,14 @@ function _renderFormPanel() {
   const status = _status(entry.taskKey);
   const byField = Object.fromEntries(LIST_FIELDS.map(f => [f.key, f]));
 
-  panel.innerHTML = `
+  const reason = isTaskSelected(entry.taskKey) ? null : getTaskExclusionReason(entry.taskKey);
+  const excludedBanner = reason === null ? '' : `
+    <div class="ta-excluded-banner" role="note">
+      <span>⚠️ ${escapeHtml(_t('taExcludedBanner'))}${reason ? ' ' + escapeHtml(_tf('taExcludedReason', { r: reason })) : ''}</span>
+      <button type="button" class="ta-excluded-select" data-action="ta-toggle-select" data-task-key="${entry.taskKey}">☑ ${escapeHtml(_t('taBtnSelectTask'))}</button>
+    </div>`;
+
+  panel.innerHTML = excludedBanner + `
     <div class="ta-form-header">
       <div class="ta-form-header-row">
         <div>
@@ -865,12 +885,23 @@ export function setupTaskAnalysisEvents() {
       return;
     }
 
-    if (action === 'ta-toggle-priority') {
+    if (action === 'ta-toggle-select') {
       const taskKey = btn.getAttribute('data-task-key');
-      _toggleFlag(taskKey);
-      const flagged = _isFlagged(taskKey);
-      btn.textContent = flagged ? '★' : '☆';
-      btn.classList.toggle('ta-nav-flag-on', flagged);
+      setTaskSelected(taskKey, !isTaskSelected(taskKey));
+      // Leaving a task out while unselected tasks are hidden would make
+      // it vanish under the cursor; reveal them instead so the change
+      // stays visible and can be undone with a second click.
+      if (!isTaskSelected(taskKey)) _showUnselected = true;
+      _lastSignature = _signature();
+      _renderNav();
+      _renderFormPanel();
+      return;
+    }
+
+    if (action === 'ta-show-unselected') {
+      _showUnselected = !!btn.checked;
+      _renderNav();
+      _renderFormPanel();
       return;
     }
 

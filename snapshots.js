@@ -162,6 +162,15 @@ export function saveToJSON() {
     // feature existed, which is what makes old exports import cleanly.
     data.taskAnalysis = appState.taskAnalysisData || {};
     data.taskAnalysisPriority = appState.taskAnalysisPriority || {};
+    // 3.80.0: written only when the user changed something, so files of
+    // projects that never used the selection are unchanged.
+    {
+      const ts = appState.taskSelection;
+      if (ts && ((ts.excluded && Object.keys(ts.excluded).length) ||
+                 ts.rule !== 'impdiff' || +ts.impMin !== 2 || +ts.diffMin !== 2 || +ts.topN !== 10)) {
+        data.taskSelection = ts;
+      }
+    }
     // 3.46.0: written only when the user added sections, so files of
     // projects without them are unchanged.
     if (Array.isArray(appState.taskAnalysisCustomSections) && appState.taskAnalysisCustomSections.length) {

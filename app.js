@@ -24,6 +24,7 @@ import { clearAiGeneratedFlag } from './refine.js';
 import { initDragDrop }        from './drag_drop.js';
 import { initVerificationCharts } from './verification_charts.js';
 import { initSupplementaryVerification } from './supplementary_verification.js';
+import { initTaskSelection } from './task_selection.js';
 import { initI18nDefaults } from './i18n_defaults.js';
 import { initContentLanguages } from './settings_languages.js';
 import { renderDraftCard }        from './draft_ui.js';
@@ -169,6 +170,10 @@ document.addEventListener('DOMContentLoaded', async function () {
      foot of the Task Verification tab. Bound after the collection-mode
      init above because it renders counts or radios to match that mode. */
   initSupplementaryVerification();
+
+  /* Select Tasks for Training / Analysis (3.80.0) — optional section
+     after the supplementary block; Task Analysis follows it. */
+  initTaskSelection();
 
   /* Default seed content (Skills Matrix rows, Additional Info headings)
      follows the interface language; user-edited text is never touched. */

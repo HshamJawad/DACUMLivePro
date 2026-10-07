@@ -211,6 +211,7 @@ function _doClear() {
   // new project's tasks.
   appState.taskAnalysisData           = {};
   appState.taskAnalysisPriority       = {};
+  appState.taskSelection              = null;
   appState.taskAnalysisCustomSections = [];
   appState.additionalInfoAI           = {};
   appState.contentLanguages           = null;
@@ -398,6 +399,7 @@ function _isTabEmpty(tabId) {
       return !Object.keys(s.verificationRatings || {}).length &&
              !Object.keys(s.workshopCounts      || {}).length &&
              !Object.keys(s.workshopResults     || {}).length &&
+             !Object.keys(s.taskSelection?.excluded || {}).length &&
              !_hasSupplementaryResponses();
 
     case 'task-analysis-tab':
@@ -495,6 +497,10 @@ export function clearCurrentTab(tabId) {
     // Additional Info reappear automatically when it is re-enabled.
     appState.supplementaryVerification = defaultSupplementaryVerification();
     document.dispatchEvent(new CustomEvent('dacum:supplementary-changed'));
+    // 3.80.0: the task selection lives in this tab and is built on its
+    // ratings — clearing the tab returns every task to selected.
+    appState.taskSelection = null;
+    document.dispatchEvent(new CustomEvent('dacum:task-selection-changed'));
     // Repopulate rather than leave the tab blank. Emptying the container
     // was technically correct — the RATINGS are what "clear" means here —
     // but it looked like the duties themselves had been deleted, and the
@@ -824,6 +830,7 @@ function _maxDutyNumberInUse() {
     const obj = appState[k];
     if (obj && typeof obj === 'object') Object.keys(obj).forEach(see);
   });
+  Object.keys(appState.taskSelection?.excluded || {}).forEach(see);
   const cd = appState.clusteringData || {};
   (cd.availableTasks || []).forEach(t => t && see(t.id));
   (cd.clusters || []).forEach(c => (c.tasks || []).forEach(t => t && see(t.id)));

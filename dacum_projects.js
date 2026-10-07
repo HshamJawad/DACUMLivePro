@@ -139,6 +139,8 @@ export function importProjectFromData(data, fileName) {
     // Absent in files exported before this feature existed — {} then.
     taskAnalysisData:         s.taskAnalysis                 || {},
     taskAnalysisPriority:     s.taskAnalysisPriority          || {},
+    // 3.80.0 — absent in older files: every task selected.
+    taskSelection:            (s.taskSelection && typeof s.taskSelection === 'object') ? s.taskSelection : null,
     // 3.46.0 — absent in older files: no added sections.
     taskAnalysisCustomSections: Array.isArray(s.taskAnalysisCustomSections) ? s.taskAnalysisCustomSections : [],
     // Absent in files exported before Supplementary Verification existed.
@@ -985,6 +987,7 @@ function _captureState() {
     taskMetadata:             appState.taskMetadata            || {},
     taskAnalysisData:         appState.taskAnalysisData        || {},
     taskAnalysisPriority:     appState.taskAnalysisPriority    || {},
+    taskSelection:            appState.taskSelection           || null,
     taskAnalysisCustomSections: appState.taskAnalysisCustomSections || [],
     additionalInfoAI:         appState.additionalInfoAI        || {},
     contentLanguages:         appState.contentLanguages        || null,
@@ -1039,6 +1042,8 @@ function _applyState(s) {
   // key here — falling back to {} is what makes them load normally.
   appState.taskAnalysisData         = s.taskAnalysisData         || {};
   appState.taskAnalysisPriority     = s.taskAnalysisPriority     || {};
+  // 3.80.0 — absent in older projects: every task selected.
+  appState.taskSelection            = (s.taskSelection && typeof s.taskSelection === 'object') ? s.taskSelection : null;
   appState.taskAnalysisCustomSections = Array.isArray(s.taskAnalysisCustomSections) ? s.taskAnalysisCustomSections : [];
   appState.additionalInfoAI         = (s.additionalInfoAI && typeof s.additionalInfoAI === 'object') ? s.additionalInfoAI : {};
   // 3.79.0 — absent in older projects: no content languages set.

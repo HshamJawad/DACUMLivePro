@@ -186,6 +186,7 @@ function _findOrphanedRatings() {
 
 // Returns false if the user cancelled.
 function _confirmIfOrphansWouldBeLost() {
+  normalizeDraftRatingKeys();   // drafted ratings are not orphans — move them first
   const orphans = _findOrphanedRatings();
   if (!orphans.length) return true;
 
@@ -237,9 +238,39 @@ export function syncVerificationTab() {
   refreshVerificationTab();
 }
 
+// ── Ratings drafted before 3.80.0 ───────────────────────────
+// draft_ratings.js used to store the AI's ratings under
+// "<dutyId>_task_<index>", where the duty id came from the position of
+// the duty among the TITLED duties and the index counted only non-blank
+// tasks. Nothing reads that key, so those ratings never showed. This
+// replays the same positions to find each task's real inputId and moves
+// the rating there — only when that slot is still empty, so a rating
+// the user entered by hand always wins. Returns true if anything moved.
+export function normalizeDraftRatingKeys() {
+  const vr = appState.verificationRatings;
+  if (!vr || !Object.keys(vr).some(k => /_task_\d+$/.test(k))) return false;
+  const duties = appState.dutiesData || [];
+  const titled = duties.filter(d => (d.title || '').trim() &&
+                                    (d.tasks || []).some(t => (t.text || '').trim()));
+  let moved = false;
+  titled.forEach((d, fi) => {
+    const legacyDutyId = (duties[fi] || {}).id;
+    (d.tasks || []).filter(t => (t.text || '').trim()).forEach((t, ti) => {
+      const old = `${legacyDutyId}_task_${ti}`;
+      if (vr[old] && t.inputId && !vr[t.inputId]) {
+        vr[t.inputId] = vr[old];
+        delete vr[old];
+        moved = true;
+      }
+    });
+  });
+  return moved;
+}
+
 // ── Load Duties for Verification ─────────────────────────────
 
 export function loadDutiesForVerification() {
+  normalizeDraftRatingKeys();
   const container   = document.getElementById('verificationAccordionContainer');
   // Restrict to real text fields only — buttons in Card View also carry
   // data-duty-id (for remove-duty actions) and would throw on .value.trim()

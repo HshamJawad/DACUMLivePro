@@ -55,6 +55,10 @@ export const appState = {
   // starred as deserving detailed Task Analysis. Same key convention
   // as taskAnalysisData above.
   taskAnalysisPriority: {},
+  // 3.80.0: Select Tasks for Training / Analysis (task_selection.js).
+  // { excluded: { taskInputId: reasonCode }, rule, impMin, diffMin, topN }
+  // null = never touched = every task selected.
+  taskSelection: null,
   // Sections the user adds to every task's analysis (3.46.0): [{ id, title }].
   taskAnalysisCustomSections: [],
   // 3.75.0: AI-draft marks on the Additional Info sections —

@@ -7,6 +7,40 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.80.0 — 2026-10-07 — ✅ Select Tasks for Training / Analysis (SCID)
+MINOR. task_selection.js (new), task_analysis.js, tasks.js,
+draft_ratings.js, state.js, app.js, projects.js, dacum_projects.js,
+snapshots.js, translations.js, dacum-components.css, index.html,
+sw.js (v196), tests/specs/task-selection.spec.js (new).
+New     Optional SCID step at the foot of Task Verification: tick the
+        tasks that will be trained and analysed in detail. Every task
+        is selected until the user changes it, so skipping the step
+        changes nothing. "Suggest selection" applies the rule the user
+        picks: Importance ≥ x and Difficulty ≥ y (default 2 / 2), or
+        the top N tasks by Priority Index (ties at the cut-off are
+        kept). Unrated tasks are left as they are. Each task left out
+        can carry a reason (low priority, low importance, learned on
+        the job, rarely performed, already mastered, other); the rule
+        fills one in. Select all / Clear all, and a one-off button to
+        turn the old ★ marks into a selection.
+Changed Task Analysis lists the selected tasks only, with
+        "N of M selected" and "Show unselected" (greyed). An unselected
+        task shows a banner with its reason and a button to select it.
+        The ★ toggle in its list is replaced by ☑ (same state as the
+        Verification section); saved ★ marks are kept.
+        Phase 1: clusters, outcomes, modules, the DACUM chart and the
+        exports still include every task.
+Fixed   Ratings from the AI full draft were saved under
+        "<dutyId>_task_<index>", a key nothing reads: the verification
+        table, chart and exports showed them as unrated, and a Refresh
+        could call them orphans. They are now saved under the task id;
+        ratings of projects drafted earlier are moved on load (a rating
+        entered by hand always wins).
+Saved   appState.taskSelection { excluded: { taskId: reason }, rule,
+        impMin, diffMin, topN }. Written to JSON only when used; old
+        files load with every task selected. Clear This Tab on Task
+        Verification resets it.
+
 ── 3.79.5 — 2026-10-07 — 🎨 AI-card blue for the start-up splash
 PATCH. index.html, sw.js (v195).
 Changed The start-up splash screen behind the "DACUM Live Pro" card,

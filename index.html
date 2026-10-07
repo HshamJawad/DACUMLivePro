@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW='v195';
+      var EXPECTED_SW='v196';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.79.5';
+      var APP_VERSION = '3.80.0';
       var APP_RELEASED = '2026-10-07';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1573,6 +1573,12 @@
                  Priority Index or the duty/task order. -->
             <div id="supplementaryVerificationSection"></div>
 
+            <!-- ===== SELECT TASKS FOR TRAINING / ANALYSIS (3.80.0) =====
+                 Rendered by task_selection.js. Optional SCID step: every
+                 task is selected until the user changes it; Task
+                 Analysis lists only the selected tasks. -->
+            <div id="taskSelectionSection"></div>
+
             <!-- Task Verification Export
                  Previously two radio buttons. They were not export
                  options at all: selecting "Standalone" set
@@ -1634,11 +1640,25 @@
             .ta-nav-duty-tasks{display:flex;flex-direction:column;gap:3px;}
             .ta-nav-row{display:flex;align-items:center;gap:4px;}
             .ta-nav-row .ta-nav-task{flex:1;min-width:0;}
-            .ta-nav-flag{flex-shrink:0;width:24px;height:24px;border:none;background:none;
-                cursor:pointer;font-size:1em;color:#cbd5e1;line-height:1;border-radius:5px;}
-            .ta-nav-flag:hover{background:#f1f5f9;color:#94a3b8;}
-            .ta-nav-flag-on{color:#f59e0b;}
-            .ta-nav-flag-on:hover{background:#fffbeb;color:#d97706;}
+            /* 3.80.0: selection toggle (replaces the ★ flag). */
+            .ta-nav-sel{flex-shrink:0;width:26px;height:26px;border:none;background:none;
+                cursor:pointer;font-size:1.1em;color:#94a3b8;line-height:1;border-radius:5px;font-family:inherit;}
+            .ta-nav-sel:hover{background:#f1f5f9;color:#64748b;}
+            .ta-nav-sel:focus-visible{outline:2px solid #0369a1;outline-offset:1px;}
+            .ta-nav-sel-on{color:#0284c7;}
+            .ta-nav-sel-on:hover{background:#f0f9ff;color:#0369a1;}
+            .ta-nav-unselected .ta-nav-task{opacity:.55;border-style:dashed;}
+            .ta-nav-unselected .ta-nav-task.ta-nav-task-active{opacity:.8;}
+            .ta-sel-bar{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;margin-bottom:12px;font-size:.84em;}
+            .ta-sel-summary{font-weight:700;color:#0369a1;margin-bottom:4px;}
+            .ta-sel-show{display:flex;align-items:center;gap:6px;color:#334155;cursor:pointer;font-weight:500;margin:0;}
+            .ta-sel-show input{width:auto;margin:0;}
+            .ta-sel-empty{font-size:.88em;}
+            .ta-excluded-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+                background:#fffbeb;border:1px solid #fcd34d;color:#92400e;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:.9em;}
+            .ta-excluded-select{width:auto;margin:0;border:1px solid #0284c7;background:#fff;color:#0369a1;font-weight:700;
+                border-radius:7px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:.95em;}
+            .ta-excluded-select:hover{background:#f0f9ff;}
             .ta-nav-task{display:flex;align-items:center;gap:8px;width:100%;text-align:start;
                 background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:7px 9px;
                 font-size:0.85em;cursor:pointer;color:#334155;transition:background .15s,border-color .15s;

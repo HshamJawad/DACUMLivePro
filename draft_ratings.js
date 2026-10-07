@@ -36,11 +36,15 @@ function _readChart() {
 
   (appState.dutiesData || []).forEach((d, i) => {
     const title = (d.title || '').trim();
-    const tasks = (d.tasks || [])
-      .map(t => (typeof t === 'string' ? t : (t.text || '')).trim())
-      .filter(Boolean);
-    if (title && tasks.length) {
-      duties.push({ letter: getDutyLetter(i), title, tasks });
+    const kept = (d.tasks || [])
+      .map(t => ({ text: (typeof t === 'string' ? t : (t.text || '')).trim(),
+                   id:   typeof t === 'string' ? null : t.inputId }))
+      .filter(t => t.text);
+    if (title && kept.length) {
+      // ids travel with the texts (3.80.0): blank tasks and untitled
+      // duties are skipped here, so a position can no longer be used
+      // to find the task again in appState.dutiesData.
+      duties.push({ letter: getDutyLetter(i), title, tasks: kept.map(t => t.text), ids: kept.map(t => t.id) });
     }
   });
   return duties;
@@ -136,12 +140,17 @@ function _applyRatings(ratings, duties) {
 
   appState.verificationRatings = appState.verificationRatings || {};
 
-  duties.forEach((d, di) => {
-    const dutyId = (appState.dutiesData[di] || {}).id;
+  duties.forEach(d => {
     d.tasks.forEach((_, ti) => {
       const hit = byCode[(d.letter + (ti + 1)).toUpperCase()];
       if (!hit) return;
-      const key = `${dutyId}_task_${ti}`;
+      // 3.80.0: keyed by the task's inputId, the key the verification
+      // table, the chart and the exports read. Before this the key was
+      // "<dutyId>_task_<index>", which nothing reads, so drafted ratings
+      // never appeared. normalizeDraftRatingKeys() (tasks.js) moves the
+      // ratings of projects drafted before the fix.
+      const key = d.ids[ti];
+      if (!key) return;
       appState.verificationRatings[key] = {
         importance:  _clamp(hit.importance),
         frequency:   _clamp(hit.frequency),
