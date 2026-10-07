@@ -2247,6 +2247,7 @@ function _injectCSS() {
 .dps-icon-btn {
   width: 26px;
   height: 26px;
+  min-height: 26px;   /* keeps its square shape on touch screens (dacum-responsive.css) */
   display: flex;
   align-items: center;
   justify-content: center;

@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.79.1 — 2026-10-07 — Touch-screen button shapes; clearer label
+PATCH. dacum-components.css, renderer.js, dacum_projects.js,
+translations.js, sw.js (v191), index.html.
+Fixed   On touch screens (PWA, tablets, phones) every <button> gets
+        min-height 44px (dacum-responsive.css), which stretched small
+        square/round buttons into tall ovals: the card colour swatches
+        (Duties & Tasks → 🎨 Colours and Settings → Export), the level
+        "×" and row/category delete buttons of the Skills Level Matrix,
+        the project rename/delete icons in the sidebar and the Settings
+        close button. Each now declares its own min-height. A scan of
+        every tab at 390 px with touch emulation finds no stretched
+        button left.
+Changed Settings → Languages: the re-translate option now reads
+        "Re-translate all AI-translated texts (your manual edits are
+        kept)" (FR/AR likewise) — it re-sends texts already translated
+        by the AI; by default only new or changed texts are sent.
+
 ── 3.79.0 — 2026-10-07 — Content languages and AI translation
 MINOR. content_lang.js, content_translate.js, settings_languages.js (new),
 export_settings.js, translations.js, exports_docx.js, exports_pdf.js,

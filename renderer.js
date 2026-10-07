@@ -200,7 +200,7 @@ function _injectMatrixStyles() {
       white-space: normal; overflow-wrap: break-word; min-height: 24px; }
     #skillsLevelContainer .mx-lv-name:focus { outline: none; border-style: solid !important; border-color: currentColor !important;
       background: rgba(255,255,255,.18) !important; }
-    #skillsLevelContainer .mx-lv-x { margin: 3px auto 0; display: block; width: 22px; height: 22px; min-width: 0; padding: 0 !important;
+    #skillsLevelContainer .mx-lv-x { margin: 3px auto 0; display: block; width: 22px; height: 22px; min-width: 0; min-height: 0; padding: 0 !important;
       border: none; border-radius: 50%; background: rgba(127,127,127,.22); color: inherit; font-size: 14px; line-height: 22px; cursor: pointer; }
     #skillsLevelContainer .mx-lv-x:hover:not(:disabled) { background: #dc2626; color: #fff; }
     #skillsLevelContainer .mx-lv-x:disabled { opacity: .3; cursor: not-allowed; }
@@ -217,7 +217,7 @@ function _injectMatrixStyles() {
       background: #fff !important; outline: none; }
     #skillsLevelContainer .mx-mini { margin: 0; padding: 4px 10px !important; border-radius: 6px; border: 1px solid #a7f3d0;
       background: #ecfdf5; color: #047857; font: inherit; font-size: .78em; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-    #skillsLevelContainer .mx-mini.mx-del { border-color: #fecaca; background: #fff; color: #b91c1c; padding: 4px 9px !important; }
+    #skillsLevelContainer .mx-mini.mx-del { border-color: #fecaca; background: #fff; color: #b91c1c; padding: 4px 9px !important; min-width: 32px; min-height: 32px; }
     #skillsLevelContainer .mx-comp-cell { display: flex; align-items: flex-start; }
     #skillsLevelContainer .mx-num { color: #6366f1; font-weight: 700; font-size: .85em; padding: 9px 4px 0 10px; min-width: 30px; flex-shrink: 0; }
     #skillsLevelContainer .mx-comp-text { flex: 1 1 auto; min-width: 0; margin: 0 !important; padding: 6px 6px !important;
@@ -227,7 +227,7 @@ function _injectMatrixStyles() {
       background: #f8faff !important; outline: none; }
     #skillsLevelContainer td.mx-c-lv { text-align: center; }
     #skillsLevelContainer td.mx-c-lv input { width: 19px; height: 19px; margin: 6px; cursor: pointer; accent-color: #2563eb; }
-    #skillsLevelContainer .mx-row-x { margin: 0; padding: 4px 8px !important; border: none; background: transparent; color: #ef4444;
+    #skillsLevelContainer .mx-row-x { margin: 0; min-width: 32px; min-height: 32px; padding: 4px 8px !important; border: none; background: transparent; color: #ef4444;
       font-size: 15px; cursor: pointer; border-radius: 6px; min-width: 0; }
     #skillsLevelContainer .mx-row-x:hover { background: #fef2f2; }
     /* The competency column stays in view while the level columns scroll. */

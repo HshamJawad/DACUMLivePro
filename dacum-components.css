@@ -1527,7 +1527,7 @@
       .cc-swatch {
         display: inline-block !important;
         width: 26px !important; height: 26px !important;
-        min-width: 26px; padding: 0 !important; margin: 0;
+        min-width: 26px; min-height: 26px !important; padding: 0 !important; margin: 0;
         border-radius: 7px !important;
         border: 2px solid rgba(15, 23, 42, 0.10) !important;
         box-shadow: none !important; filter: none !important;
@@ -1841,6 +1841,7 @@
 }
 
 #esModalClose {
+  min-height: 0;
   background: transparent; border: none; cursor: pointer;
   color: #a6adc8; font-size: 1.05em; line-height: 1;
   padding: 4px 8px; border-radius: 6px;
@@ -1921,7 +1922,7 @@
 
 .es-swatches { display: flex; flex-wrap: wrap; gap: 7px; }
 .es-swatch {
-  width: 30px; height: 30px;
+  width: 30px; height: 30px; min-height: 30px;
   border-radius: 7px; cursor: pointer;
   border: 2px solid #45475a;
   font-size: 0.85em; font-weight: 700; line-height: 1;
