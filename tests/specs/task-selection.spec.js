@@ -105,3 +105,71 @@ test('renders in Arabic without errors', async ({ page }) => {
   await expect(page.locator('.ta-sel-empty')).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+// ── Phase 2 (3.81.0): the later tabs follow the selection ──────────
+const { mockAI } = require('../helpers');
+const { execFileSync } = require('child_process');
+
+test('clusters, clustering AI, trace map and exports follow the selection', async ({ page }) => {
+  const errors = await openApp(page);
+  let prompt = '';
+  await mockAI(page, { overrides: { clusters: (p) => {
+    prompt = p;
+    const t = [...p.split('OUTPUT FORMAT')[0].matchAll(/- id: (\S+)/g)].map(m => m[1]);
+    const h = Math.floor(t.length / 2);
+    return { clusters: [{ name: 'One', taskIds: t.slice(0, h) }, { name: 'Two', taskIds: t.slice(h) }] };
+  } } });
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(async () => {
+    const S = await import('./task_selection.js');
+    S.setTaskSelected('duty_1_3', false, 'rare');
+    const { appState } = await import('./state.js');
+    appState.taskAnalysisData.duty_1_3 = { performanceSteps: ['Step on a left-out task'] };
+  });
+
+  // Clustering AI: the left-out task is not sent, and it stays in the pool.
+  expect(await page.evaluate(async () => (await import('./clustering_ai.js')).suggestClustersAI())).toBe(true);
+  expect(prompt).toContain('duty_1_1');
+  expect(prompt).not.toContain('duty_1_3');
+  const cd = await state(page, 's => ({ avail: s.clusteringData.availableTasks.map(t => t.id), inC: s.clusteringData.clusters.flatMap(c => c.tasks.map(t => t.id)) })');
+  expect(cd.avail).toContain('duty_1_3');
+  expect(cd.inC).not.toContain('duty_1_3');
+
+  // Clusters tab: folded group for the left-out task; badge once placed by hand.
+  await page.evaluate(() => window.switchTab('clustering-tab'));
+  await expect(page.locator('#availableTasksList .cl-unsel-group .task-checkbox-item')).toHaveCount(1);
+  await expect(page.locator('#availableTasksList .cl-unsel-group summary')).toHaveText('Not selected for training (1)');
+  await page.evaluate(async () => {
+    const { appState } = await import('./state.js');
+    const cd = appState.clusteringData;
+    const i = cd.availableTasks.findIndex(t => t.id === 'duty_1_3');
+    cd.clusters[0].tasks.push(cd.availableTasks.splice(i, 1)[0]);
+    const m = await import('./clusters.js'); m.renderAvailableTasks(); m.renderClusters();
+  });
+  await expect(page.locator('.cluster-task-row[data-task-id="duty_1_3"] .cluster-unsel-badge')).toBeVisible();
+
+  // Trace map data: flagged, never counted as a gap.
+  const tg = await page.evaluate(async () => {
+    const g = (await import('./module_mapping.js')).getTraceGraph();
+    return g.duties.flatMap(d => d.tasks).filter(t => t.id === 'duty_1_3' || t.id === 'duty_1_1').map(t => [t.id, t.unselected]);
+  });
+  expect(tg).toEqual([['duty_1_1', false], ['duty_1_3', true]]);
+
+  // Task Analysis export: the left-out task's analysis is not exported,
+  // and the summary names it with its reason.
+  const ex = await page.evaluate(async () => ({
+    ta:  (await import('./task_analysis.js')).getTaskAnalysisExportData().map(e => e.taskCode),
+    sum: (await import('./task_selection.js')).getTaskSelectionExportSummary(),
+  }));
+  expect(ex.ta).not.toContain('A3');
+  expect(ex.sum).toEqual({ selected: 11, total: 12, excluded: [{ code: 'A3', text: 'Perform task A3', reason: 'Rarely performed' }] });
+
+  const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }),
+    page.evaluate(async () => (await import('./exports_docx.js')).exportToWord())]);
+  const xml = execFileSync('python3', ['-c',
+    'import sys,zipfile;print(zipfile.ZipFile(sys.argv[1]).read("word/document.xml").decode())', await dl.path()]).toString();
+  expect(xml).toContain('Tasks selected for training and analysis: 11 of 12');
+  expect(xml).toContain('A3 — Perform task A3 (Rarely performed)');
+  expect(xml).not.toContain('Step on a left-out task');
+  expect(errors).toEqual([]);
+});
