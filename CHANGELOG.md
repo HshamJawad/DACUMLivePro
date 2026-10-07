@@ -7,6 +7,25 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.79.2 — 2026-10-07 — Translations travel to Module Builder
+PATCH. content_lang.js, module_mapping.js, sw.js (v192), index.html,
+tests/specs/content-languages.spec.js.
+New     The Module Builder handoff (and the Module Mapping JSON download)
+        carries contentLanguages: for every other language of the
+        project, pairs [text as handed over, text in that language].
+        Module Builder 3.16+ shows and exports the handed-over texts
+        (outcomes, criteria, Task Analysis, curriculum…) in its content
+        and export languages. Absent when the project has no
+        translations, so other handoffs are unchanged.
+How     handoffTranslations() in content_lang.js; when a translation is
+        shown, the record is read after viewOriginal() on a copy, so
+        edits made on screen are included. Nothing on screen changes.
+Tested  New test: with Arabic shown, the handoff carries the texts in
+        Arabic and their English originals. With Module Builder 3.16.0,
+        both ways (English shown / Arabic shown): outcomes and criteria
+        on screen and the Arabic Word export in the right language.
+        Full suite 29/29.
+
 ── 3.79.1 — 2026-10-07 — Touch-screen button shapes; clearer label
 PATCH. dacum-components.css, renderer.js, dacum_projects.js,
 translations.js, sw.js (v191), index.html.

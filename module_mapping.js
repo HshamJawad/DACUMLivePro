@@ -18,6 +18,23 @@ import { getCurriculumModel } from './module_curriculum.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOutcomes } from './clusters.js';
 import { _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
 import { renderModules } from './learning_outcomes.js';
+import { captureProjectState } from './dacum_projects.js';
+import { viewOriginal, handoffTranslations } from './content_lang.js';
+
+/* 3.79.2: the project's other content languages, for Module Builder
+   (3.16+), which shows and exports the handed-over texts in them. */
+function _handoffLanguages() {
+  try {
+    const s = captureProjectState();
+    const cl = s.contentLanguages;
+    if (!cl) return null;
+    const base = cl.view ? viewOriginal(s).state : s;
+    return handoffTranslations(base, cl.active);
+  } catch (e) {
+    console.warn('[DACUM→ModuleBuilder] languages skipped:', e);
+    return null;
+  }
+}
 
 // ── Module Mapping ────────────────────────────────────────────
 
@@ -1134,7 +1151,9 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // present; { available:false } when the optional feature is off or
     // empty. Reference evidence only — Module Builder must not turn it
     // into learning outcomes automatically.
-    occupationalReference: getSupplementaryVerificationData()
+    occupationalReference: getSupplementaryVerificationData(),
+    // 3.79.2: translations of these texts (absent without translations).
+    ...(() => { const cl = _handoffLanguages(); return cl ? { contentLanguages: cl } : {}; })()
   };
 
   try {
@@ -1159,7 +1178,9 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     handoffVersion: exportObject.handoffVersion,
                     programId: exportObject.programId, programName: exportObject.programName,
                     dacumVersion: exportObject.dacumVersion,
+                    contentLanguages: exportObject.contentLanguages,
                     modules: [...others, ...exportObject.modules] };
+        if (!payload.contentLanguages) delete payload.contentLanguages;
       }
     }
     // Diagnostic only — confirms exactly what left this tab, so a report
@@ -1220,6 +1241,8 @@ export function exportModuleMappingJSON() {
         s + m.learningOutcomes.reduce((ls, o) => ls + o.linkedCriteria.length, 0), 0)
     }
   };
+  const _cl = _handoffLanguages();
+  if (_cl) exportData.contentLanguages = _cl;
 
   const dateStr = new Date().toISOString().split('T')[0];
   const filename = `module-mapping-export_${dateStr}.json`;

@@ -708,6 +708,38 @@ export function mergeRestoredCL(restored, current) {
     foreign: { ...(restored.foreign || {}), ...(current.foreign || {}) } };
 }
 
+/** What travels to Module Builder with a handoff (3.79.2): for every
+ *  other language, pairs [text as shown now, text in that language].
+ *  `s` must be the ORIGINAL view (pass viewOriginal(...).state when a
+ *  translation is shown, so edits made on screen are included); `shown`
+ *  is the language the handed-over texts are in. null when the project
+ *  has no translations. */
+export function handoffTranslations(s, shown) {
+  const cl = s && s.contentLanguages;
+  if (!cl || !cl.versions || !Object.keys(cl.versions).length) return null;
+  shown = shown || cl.active || cl.original;
+  const textIn = (L, o) => {
+    if (L === cl.original) return o;
+    const e = cl.versions[L] && cl.versions[L].tm && cl.versions[L].tm[hashText(o)];
+    return (e && e.t) || null;
+  };
+  const texts = originalTexts(s);
+  const tables = [cl.original, ...Object.keys(cl.versions)]
+    .filter(L => L !== shown)
+    .map(L => {
+      const pairs = [];
+      const seen = new Set();
+      texts.forEach(o => {
+        const from = textIn(shown, o) || o;
+        const to = textIn(L, o);
+        if (to && to !== from && !seen.has(from)) { seen.add(from); pairs.push([from, to]); }
+      });
+      return { lang: L, pairs };
+    })
+    .filter(t => t.pairs.length);
+  return tables.length ? { v: 1, original: cl.original, shown, tables } : null;
+}
+
 /** Translations edited in the review list: [{ h, t }]. */
 export function editTranslations(cl, lang, edits) {
   const ver = _ver(cl, lang);
