@@ -173,3 +173,49 @@ test('clusters, clustering AI, trace map and exports follow the selection', asyn
   expect(xml).not.toContain('Step on a left-out task');
   expect(errors).toEqual([]);
 });
+
+// ── 3.82.0: move left-out tasks out of clusters; "Selected" column ──
+test('one click moves left-out tasks out of the competencies', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(async () => {
+    const S = await import('./task_selection.js');
+    S.setTaskSelected('duty_1_3', false, 'rare');
+    S.setTaskSelected('duty_3_4', false, '');
+  });
+  await page.evaluate(() => window.switchTab('clustering-tab'));
+  await expect(page.locator('.cl-unsel-bar')).toContainText('2 task(s) in the competencies below are not selected for training.');
+  await page.click('.cl-unsel-move');                     // confirm() is accepted by openApp
+  await expect(page.locator('.cl-unsel-bar')).toHaveCount(0);
+  const cd = await state(page, 's => ({ avail: s.clusteringData.availableTasks.map(t => t.id).sort(), inC: s.clusteringData.clusters.flatMap(c => c.tasks.map(t => t.id)) })');
+  expect(cd.avail).toEqual(['duty_1_3', 'duty_3_4']);
+  expect(cd.inC).not.toContain('duty_1_3');
+  expect(cd.inC).toHaveLength(10);
+  await expect(page.locator('#availableTasksList .cl-unsel-group .task-checkbox-item')).toHaveCount(2);
+  expect(errors).toEqual([]);
+});
+
+test('verification report: "Selected for training" column only when a task was left out', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  const docXml = async () => {
+    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }),
+      page.evaluate(async () => (await import('./exports_docx.js')).exportTaskVerificationWord())]);
+    return execFileSync('python3', ['-c',
+      'import sys,zipfile;print(zipfile.ZipFile(sys.argv[1]).read("word/document.xml").decode())', await dl.path()]).toString();
+  };
+  expect(await docXml()).not.toContain('Selected for training');
+  await page.evaluate(async () => (await import('./task_selection.js')).setTaskSelected('duty_1_3', false, 'rare'));
+  const xml = await docXml();
+  expect(xml).toContain('Selected for training');
+  expect(xml).toContain('No — Rarely performed');
+  expect(xml).not.toContain('Unassigned');
+  expect(xml).toContain('across 3 duties');
+  expect((xml.match(/>Yes</g) || []).length).toBe(11);
+
+  // PDF report builds with the extra column.
+  const [pdf] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }),
+    page.evaluate(async () => (await import('./exports_pdf.js')).exportTaskVerificationPDF())]);
+  expect(fs.readFileSync(await pdf.path()).slice(0, 5).toString()).toBe('%PDF-');
+  expect(errors).toEqual([]);
+});
