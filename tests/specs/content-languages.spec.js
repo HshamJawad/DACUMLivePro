@@ -299,3 +299,22 @@ test('switching back keeps structural edits and never mis-pairs texts', async ({
   expect(r.keys).toEqual(['A', 'T']);
   expect(r.tidy).toEqual(['H1 H2', 'مطرقة', 'x\ny']);
 });
+
+test('the Module Builder handoff carries the other languages of its texts', async ({ page }) => {
+  const errors = await openApp(page);
+  await mockAI(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await translateToArabic(page);                        // Arabic is shown
+  await page.click('#esModalClose');
+  await page.evaluate(() => { window.open = () => null; });
+  await page.evaluate(async () => (await import('./modules.js')).openModuleBuilderFromMapping());
+  const payload = await page.evaluate(() => JSON.parse(localStorage.getItem('dacum_modules_export')));
+  const cl = payload.contentLanguages;
+  expect(cl.shown).toBe('ar');
+  const en = cl.tables.find(t => t.lang === 'en');
+  const map = new Map(en.pairs);
+  const lo = payload.modules[0].learningOutcomes[0];
+  expect(lo.statement.startsWith('ع ')).toBe(true);           // handed over as shown
+  expect(map.get(lo.statement)).toBe(lo.statement.slice(2));  // and its English original travels with it
+  expect(errors).toEqual([]);
+});
