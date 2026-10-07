@@ -9,7 +9,7 @@
 import { appState } from './state.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
-import { getTaskSelectionExportSummary } from './task_selection.js';
+import { getTaskSelectionExportSummary, exportSelectionCell } from './task_selection.js';
 import { moduleTitleWithLevel } from './modules.js';
 import { _rtl, _start, _t, _tblFill, _tf, _today } from './exports_docx.js';
 
@@ -687,6 +687,8 @@ export function _docxVerificationAppendix({ AlignmentType, PageBreak, Paragraph,
                             }
                             
                             sortedResults.push({
+                                key: taskKey,
+                            
                                 duty: dutyText,
                                 task: taskText,
                                 meanI: result.meanImportance,
@@ -697,6 +699,8 @@ export function _docxVerificationAppendix({ AlignmentType, PageBreak, Paragraph,
                         });
                         
                         sortedResults.sort((a, b) => b.priority - a.priority);
+                        
+                        const _tselCol = exportSelectionCell('') !== null;
                         
                         // Create table
                         const tableRows = [];
@@ -732,6 +736,11 @@ export function _docxVerificationAppendix({ AlignmentType, PageBreak, Paragraph,
                                     children: [new Paragraph({ children: [new TextRun({ __shaded: true, text: _t('expPriority'), bold: true })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })],
                                     shading: { fill: _tblFill(), type: ShadingType.CLEAR, color: 'auto' },
                                 }),
+                                // 3.82.0: "Selected for training" — only when a task was left out.
+                                ...(_tselCol ? [new TableCell({
+                                    children: [new Paragraph({ children: [new TextRun({ __shaded: true, text: _t('expTselCol'), bold: true })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })],
+                                    shading: { fill: _tblFill(), type: ShadingType.CLEAR, color: 'auto' },
+                                })] : []),
                             ],
                         }));
                         
@@ -746,6 +755,7 @@ export function _docxVerificationAppendix({ AlignmentType, PageBreak, Paragraph,
                                     new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.meanF !== null ? row.meanF.toFixed(2) : 'N/A' })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] }),
                                     new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.meanD !== null ? row.meanD.toFixed(2) : 'N/A' })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] }),
                                     new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.priority !== null ? row.priority.toFixed(2) : 'N/A' })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] }),
+                                    ...(_tselCol ? [new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: exportSelectionCell(row.key, { withReason: true }) })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] })] : []),
                                 ],
                             }));
                         });
@@ -938,7 +948,8 @@ export function _docxVerifiedResults({ PageBreak, Paragraph, Table, TableCell, T
                                     meanFrequency: task.meanFrequency,
                                     meanDifficulty: task.meanDifficulty,
                                     priorityIndex: task.priorityIndex,
-                                    rank: task.rank
+                                    rank: task.rank,
+                                    key: task.id
                                 });
                             }
                         });
@@ -956,7 +967,9 @@ export function _docxVerifiedResults({ PageBreak, Paragraph, Table, TableCell, T
                                 new TableCell({ children: [new Paragraph({ text: _t('expInitialI'), bold: true, bidirectional: _rtl() })], width: { size: 8, type: WidthType.PERCENTAGE } }),
                                 new TableCell({ children: [new Paragraph({ text: _t('expInitialF'), bold: true, bidirectional: _rtl() })], width: { size: 8, type: WidthType.PERCENTAGE } }),
                                 new TableCell({ children: [new Paragraph({ text: _t('expInitialD'), bold: true, bidirectional: _rtl() })], width: { size: 8, type: WidthType.PERCENTAGE } }),
-                                new TableCell({ children: [new Paragraph({ text: _t('expPI'), bold: true, bidirectional: _rtl() })], width: { size: 11, type: WidthType.PERCENTAGE } })
+                                new TableCell({ children: [new Paragraph({ text: _t('expPI'), bold: true, bidirectional: _rtl() })], width: { size: 11, type: WidthType.PERCENTAGE } }),
+                                // 3.82.0: only when a task was left out of training.
+                                ...(exportSelectionCell('') !== null ? [new TableCell({ children: [new Paragraph({ text: _t('expTselCol'), bold: true, bidirectional: _rtl() })], width: { size: 12, type: WidthType.PERCENTAGE } })] : [])
                             ]
                         })
                     ];
@@ -971,7 +984,8 @@ export function _docxVerifiedResults({ PageBreak, Paragraph, Table, TableCell, T
                                     new TableCell({ children: [new Paragraph({ text: task.meanImportance.toFixed(2), bidirectional: _rtl() })] }),
                                     new TableCell({ children: [new Paragraph({ text: task.meanFrequency.toFixed(2), bidirectional: _rtl() })] }),
                                     new TableCell({ children: [new Paragraph({ text: task.meanDifficulty.toFixed(2), bidirectional: _rtl() })] }),
-                                    new TableCell({ children: [new Paragraph({ text: task.priorityIndex.toFixed(2), bidirectional: _rtl() })] })
+                                    new TableCell({ children: [new Paragraph({ text: task.priorityIndex.toFixed(2), bidirectional: _rtl() })] }),
+                                    ...(exportSelectionCell('') !== null ? [new TableCell({ children: [new Paragraph({ text: exportSelectionCell(task.key, { withReason: true }), bidirectional: _rtl() })] })] : [])
                                 ]
                             })
                         );

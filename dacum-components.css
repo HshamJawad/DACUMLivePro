@@ -2143,3 +2143,10 @@ html[data-content-mixed] .container input[type="text"] {
       .task-checkbox-item.is-unselected { opacity: .7; }
       .cluster-unsel-badge { display: inline-block; margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px;
                              background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; font-size: .78em; font-weight: 600; white-space: nowrap; }
+      .cl-unsel-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+                      margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; background: #fffbeb; border: 1px solid #fcd34d;
+                      color: #92400e; font-size: .9em; font-weight: 600; }
+      .cl-unsel-move { width: auto; margin: 0; padding: 7px 14px; border-radius: 8px; border: 1px solid #0284c7; background: #fff;
+                       color: #0369a1; font-weight: 700; font-size: .95em; cursor: pointer; font-family: inherit; }
+      .cl-unsel-move:hover { background: #f0f9ff; }
+      .cl-unsel-move:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }

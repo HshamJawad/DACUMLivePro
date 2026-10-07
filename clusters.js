@@ -317,8 +317,59 @@ export function renderClusters() {
       </div>`;
   });
 
-  container.innerHTML = html;
+  container.innerHTML = _unselBarHtml() + html;
+  if (!container.__tselWired) {
+    container.__tselWired = true;
+    container.addEventListener('click', (e) => {
+      if (e.target.closest('[data-tsel-move-out]')) moveUnselectedOutOfClusters();
+    });
+  }
   if (_taCountDirty) { _taCountDirty = false; _persistClusters(); }
+}
+
+// ── Tasks left out of training, still inside a competency (3.82.0) ──
+// Typical case: the clusters were built first and the selection in Task
+// Verification came later. The badge on each row says so; this bar
+// offers to take them all out in one step. Profile tasks only — tasks
+// added during clustering are not part of the selection.
+function _unselInClusters() {
+  const out = [];
+  (appState.clusteringData.clusters || []).forEach(c => (c.tasks || []).forEach(t => {
+    if (t && !isClusterAddedTask(t) && getTaskCode(t.id) && !isTaskSelected(t.id)) out.push(t);
+  }));
+  return out;
+}
+
+function _unselBarHtml() {
+  const n = _unselInClusters().length;
+  if (!n) return '';
+  return `
+    <div class="cl-unsel-bar" role="status">
+      <span>⚠️ ${_esc(_tf('clUnselBarText', { n }))}</span>
+      <button type="button" class="cl-unsel-move" data-tsel-move-out>${_esc(_tf('clUnselBarBtn', { n }))}</button>
+    </div>`;
+}
+
+/** Moves every task left out of training from the competencies back to
+ *  the Available list (its "Not selected for training" group) — exactly
+ *  what removing each one by hand does. Nothing is deleted; a competency
+ *  left empty stays, for the expert to delete or refill. */
+export function moveUnselectedOutOfClusters() {
+  const cd = appState.clusteringData;
+  const moving = _unselInClusters();
+  if (!moving.length) return 0;
+  if (!confirm(_tf('clUnselBarConfirm', { n: moving.length }))) return 0;
+  const ids = new Set(moving.map(t => t.id));
+  cd.clusters.forEach(c => { c.tasks = (c.tasks || []).filter(t => !(t && ids.has(t.id) && !isClusterAddedTask(t))); });
+  cd.availableTasks.push(...moving);
+  if (cd.availableTasks.length > 0 && cd.availableTasks[0].priorityIndex !== null) {
+    cd.availableTasks.sort((a, b) => b.priorityIndex - a.priorityIndex);
+  }
+  renderAvailableTasks();
+  renderClusters();
+  _persistClusters();
+  showStatus('✓ ' + _tf('clUnselBarDone', { n: moving.length }), 'success');
+  return moving.length;
 }
 
 export function renameCluster(clusterId) {

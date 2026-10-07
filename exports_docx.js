@@ -11,6 +11,7 @@
 import { getSkillLevelColumns } from './skill_levels.js';
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
+import { exportSelectionCell } from './task_selection.js';
 import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange, formatVenueWithMode } from './exports_shared.js';
 import { noteExportExclusion } from './draft_unverified.js';
 import { getSupplementaryExportSections } from './supplementary_verification.js';
@@ -542,6 +543,8 @@ async function _exportTaskVerificationWordImpl() {
                     }
                     
                     sortedResults.push({
+                        key: taskKey,
+                    
                         duty: dutyText,
                         task: taskText,
                         meanI: result.meanImportance,
@@ -552,6 +555,8 @@ async function _exportTaskVerificationWordImpl() {
                 });
                 
                 sortedResults.sort((a, b) => b.priority - a.priority);
+                
+                const _tselCol = exportSelectionCell('') !== null;
                 
                 // Create table
                 const tableRows = [];
@@ -587,6 +592,11 @@ async function _exportTaskVerificationWordImpl() {
                             children: [new Paragraph({ children: [new TextRun({ __shaded: true, text: _t('expPriority'), bold: true })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })],
                             shading: { fill: _tblFill(), type: ShadingType.CLEAR, color: 'auto' },
                         }),
+                        // 3.82.0: "Selected for training" — only when a task was left out.
+                        ...(_tselCol ? [new TableCell({
+                            children: [new Paragraph({ children: [new TextRun({ __shaded: true, text: _t('expTselCol'), bold: true })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })],
+                            shading: { fill: _tblFill(), type: ShadingType.CLEAR, color: 'auto' },
+                        })] : []),
                     ],
                 }));
                 
@@ -601,6 +611,7 @@ async function _exportTaskVerificationWordImpl() {
                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.meanF !== null ? row.meanF.toFixed(2) : 'N/A' })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] }),
                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.meanD !== null ? row.meanD.toFixed(2) : 'N/A' })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] }),
                             new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: row.priority !== null ? row.priority.toFixed(2) : 'N/A' })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] }),
+                            ...(_tselCol ? [new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: exportSelectionCell(row.key, { withReason: true }) })], alignment: AlignmentType.CENTER, bidirectional: _rtl() })] })] : []),
                         ],
                     }));
                 });

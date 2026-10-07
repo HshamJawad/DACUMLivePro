@@ -7,6 +7,27 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.82.0 — 2026-10-07 — ✅ "Selected for training" column; move left-out tasks out of clusters
+MINOR. clusters.js, task_selection.js, exports_docx.js,
+exports_docx_sections.js, exports_pdf.js, exports_pdf_sections.js,
+exports_shared.js, translations.js, dacum-components.css, index.html,
+sw.js (v198), tests/specs/task-selection.spec.js.
+New     Competency Clusters: when competencies hold tasks left out of
+        training, a bar above them says how many and offers "Move them
+        out of the competencies (N)". After a confirmation they go back
+        to the Available list ("Not selected for training" group) —
+        the same as removing each by hand; nothing is deleted and an
+        emptied competency stays for the expert to decide.
+New     Verification results tables (standalone Word / PDF report, the
+        appendix of the main export, live-workshop results) get a
+        "Selected for training" column: Yes / No (Word adds the
+        reason). Printed only when at least one task was left out, so
+        reports of projects without a selection are unchanged.
+Fixed   Survey ratings with no task metadata (AI draft ratings) showed
+        every duty as "Unassigned" in the verification report and
+        counted each task as a duty of its own in the coverage line;
+        duty and task are now read from the profile.
+
 ── 3.81.0 — 2026-10-07 — ✅ Task selection, phase 2: the later tabs follow it
 MINOR. clusters.js, clustering_ai.js, module_mapping.js, trace_map.js,
 task_analysis.js, task_selection.js, exports_docx_sections.js,

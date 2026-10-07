@@ -107,6 +107,19 @@ export function hasTaskSelection() {
   return taskSelectionSignature() !== '';
 }
 
+/** "Selected for training" cell of the verification results tables in
+ *  the exports (3.82.0). Accepts the keys those tables use: the task id,
+ *  or "<dutyId>_task_<taskId>" for live-workshop results. Returns null
+ *  when no task was left out — the column is then not printed. */
+export function exportSelectionCell(resultKey, { withReason = false } = {}) {
+  if (!hasTaskSelection()) return null;
+  const m  = /_task_(.+)$/.exec(String(resultKey || ''));
+  const id = m && !/^\d+$/.test(m[1]) ? m[1] : resultKey;
+  if (isTaskSelected(id)) return _t('expTselYes');
+  const why = withReason ? getTaskExclusionReason(id) : '';
+  return _t('expTselNo') + (why ? ' — ' + why : '');
+}
+
 /** For the Word / PDF exports (3.81.0): null when no task was left
  *  out, else the counts and the tasks left out with their reasons. */
 export function getTaskSelectionExportSummary() {

@@ -12,6 +12,7 @@ import { getSkillLevelColumns } from './skill_levels.js';
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getDutyLetter } from './codes.js';
+import { exportSelectionCell } from './task_selection.js';
 import { buildVerificationDataset, getVerificationCoverage, formatDacumDateRange, formatVenueWithMode } from './exports_shared.js';
 import { noteExportExclusion } from './draft_unverified.js';
 import { lwExportVerifiedPDF } from './workshop.js';
@@ -431,6 +432,8 @@ function _exportTaskVerificationPDFImpl() {
             }
             
             sortedResults.push({
+                key: taskKey,
+            
                 duty: dutyText,
                 task: taskText,
                 meanI: result.meanImportance,
@@ -443,9 +446,13 @@ function _exportTaskVerificationPDFImpl() {
         sortedResults.sort((a, b) => b.priority - a.priority);
         
         // Table headers
-        const colWidths = [15, 50, 75, 25, 25, 25, 25];
+        // 3.82.0: "Selected for training" column only when a task was left out;
+        // the Task column gives it the room.
+        const _tselCol = exportSelectionCell('') !== null;
+        const colWidths = _tselCol ? [15, 50, 55, 25, 25, 25, 25, 25] : [15, 50, 75, 25, 25, 25, 25];
         const headers = [_t('expRank'), _t('expDutyLabel'), _t('expTaskLabel'),
-                         _t('expMeanI'), _t('expMeanF'), _t('expMeanD'), _t('expPriority')];
+                         _t('expMeanI'), _t('expMeanF'), _t('expMeanD'), _t('expPriority')]
+                         .concat(_tselCol ? [_t('expTselCol')] : []);
         
         pdf.setFontSize(10);
         pdf.setFont(undefined, 'bold');
@@ -472,7 +479,9 @@ function _exportTaskVerificationPDFImpl() {
             pdf.text(dutyTrunc, xPos, yPos);
             xPos += colWidths[1];
             
-            const taskTrunc = row.task.length > 40 ? row.task.substring(0, 37) + '...' : row.task;
+            const _tMax = _tselCol ? 30 : 40;
+            
+            const taskTrunc = row.task.length > _tMax ? row.task.substring(0, _tMax - 3) + '...' : row.task;
             pdf.text(taskTrunc, xPos, yPos);
             xPos += colWidths[2];
             
@@ -483,6 +492,7 @@ function _exportTaskVerificationPDFImpl() {
             pdf.text(row.meanD !== null ? row.meanD.toFixed(2) : 'N/A', xPos, yPos);
             xPos += colWidths[5];
             pdf.text(row.priority !== null ? row.priority.toFixed(2) : 'N/A', xPos, yPos);
+            if (_tselCol) { xPos += colWidths[6]; pdf.text(exportSelectionCell(row.key), xPos, yPos); }
             
             yPos += 5;
         });

@@ -19,6 +19,15 @@ import { appState } from './state.js';
 import { mayExportVerification } from './draft_unverified.js';
 
 
+/** { dutyId, dutyTitle, taskTitle } of a task id, from the profile. */
+function _profileMeta(taskKey) {
+  for (const d of appState.dutiesData || []) {
+    const t = (d.tasks || []).find(x => x && x.inputId === taskKey);
+    if (t) return { dutyId: d.id, dutyTitle: (d.title || '').trim(), taskTitle: (t.text || '').trim() };
+  }
+  return {};
+}
+
 // ── Verification dataset adapter ──────────────────────────────
 //
 // The standalone verification reports were written against the shape
@@ -66,7 +75,11 @@ export function buildVerificationDataset() {
         r.frequency  === null || r.frequency  === undefined ||
         r.difficulty === null || r.difficulty === undefined) return;
 
-    const meta = appState.taskMetadata[taskKey] || {};
+    // 3.82.0: ratings that never passed through the verification table
+    // (AI draft) have no taskMetadata — read duty and task from the
+    // profile instead, or every task reads "Unassigned" and counts as
+    // a duty of its own in the coverage line.
+    const meta = appState.taskMetadata[taskKey] || _profileMeta(taskKey);
     const mI = r.importance, mF = r.frequency, mD = r.difficulty;
 
     out[taskKey] = {

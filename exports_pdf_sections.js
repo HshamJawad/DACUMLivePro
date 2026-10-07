@@ -9,7 +9,7 @@
 import { appState } from './state.js';
 import { getTaskCode } from './codes.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
-import { getTaskSelectionExportSummary } from './task_selection.js';
+import { getTaskSelectionExportSummary, exportSelectionCell } from './task_selection.js';
 import { moduleTitleWithLevel } from './modules.js';
 import { drawTick } from './pdf_arabic.js';
 import { _t, _tf, _today } from './exports_pdf.js';
@@ -300,6 +300,8 @@ export function _pdfVerificationAppendix({ margin, pageHeight, pageWidth, pdf, y
                     }
                     
                     sortedResults.push({
+                        key: taskKey,
+                    
                         duty: dutyText,
                         task: taskText,
                         meanI: result.meanImportance,
@@ -313,9 +315,13 @@ export function _pdfVerificationAppendix({ margin, pageHeight, pageWidth, pdf, y
                 sortedResults.sort((a, b) => b.priority - a.priority);
                 
                 // Table headers
-                const colWidths = [15, 50, 75, 25, 25, 25, 25];
+                // 3.82.0: "Selected for training" column only when a task was left out;
+                // the Task column gives it the room.
+                const _tselCol = exportSelectionCell('') !== null;
+                const colWidths = _tselCol ? [15, 50, 55, 25, 25, 25, 25, 25] : [15, 50, 75, 25, 25, 25, 25];
                 const headers = [_t('expRank'), _t('expDutyLabel'), _t('expTaskLabel'),
-                                 _t('expMeanI'), _t('expMeanF'), _t('expMeanD'), _t('expPriority')];
+                                 _t('expMeanI'), _t('expMeanF'), _t('expMeanD'), _t('expPriority')]
+                                 .concat(_tselCol ? [_t('expTselCol')] : []);
                 
                 pdf.setFontSize(10);
                 pdf.setFont(undefined, 'bold');
@@ -343,7 +349,9 @@ export function _pdfVerificationAppendix({ margin, pageHeight, pageWidth, pdf, y
                     pdf.text(dutyTrunc, xPos, yPos);
                     xPos += colWidths[1];
                     
-                    const taskTrunc = row.task.length > 40 ? row.task.substring(0, 37) + '...' : row.task;
+                    const _tMax = _tselCol ? 30 : 40;
+                    
+                    const taskTrunc = row.task.length > _tMax ? row.task.substring(0, _tMax - 3) + '...' : row.task;
                     pdf.text(taskTrunc, xPos, yPos);
                     xPos += colWidths[2];
                     
@@ -354,6 +362,7 @@ export function _pdfVerificationAppendix({ margin, pageHeight, pageWidth, pdf, y
                     pdf.text(row.meanD !== null ? row.meanD.toFixed(2) : 'N/A', xPos, yPos);
                     xPos += colWidths[5];
                     pdf.text(row.priority !== null ? row.priority.toFixed(2) : 'N/A', xPos, yPos);
+                    if (_tselCol) { xPos += colWidths[6]; pdf.text(exportSelectionCell(row.key), xPos, yPos); }
                     
                     yPos += 5;
                 });
@@ -541,7 +550,8 @@ export function _pdfVerifiedResults({ hasVerifiedResults, margin, pageHeight, pa
                             meanFrequency: task.meanFrequency,
                             meanDifficulty: task.meanDifficulty,
                             priorityIndex: task.priorityIndex,
-                            rank: task.rank
+                            rank: task.rank,
+                            key: task.id
                         });
                     }
                 });
@@ -559,6 +569,8 @@ export function _pdfVerifiedResults({ hasVerifiedResults, margin, pageHeight, pa
             pdf.text(_t('expInitialF'),  margin + 150, yPos);
             pdf.text(_t('expInitialD'),  margin + 160, yPos);
             pdf.text(_t('expPI'),        margin + 170, yPos);
+            const _tselCol = exportSelectionCell('') !== null;   // 3.82.0
+            if (_tselCol) pdf.text(_t('expTselCol'), margin + 185, yPos);
             yPos += 5;
             pdf.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 3;
@@ -583,6 +595,7 @@ export function _pdfVerifiedResults({ hasVerifiedResults, margin, pageHeight, pa
                 pdf.text(task.meanFrequency.toFixed(2), margin + 150, yPos);
                 pdf.text(task.meanDifficulty.toFixed(2), margin + 160, yPos);
                 pdf.text(task.priorityIndex.toFixed(2), margin + 170, yPos);
+                if (_tselCol) pdf.text(exportSelectionCell(task.key), margin + 185, yPos);
                 yPos += 6;
             });
         }
