@@ -23,6 +23,14 @@ import { lwExportVerifiedDOCX } from './workshop.js';
 import { _docxAdditionalInfo, _docxClusters, _docxCustomSections, _docxDuties, _docxLearningOutcomes, _docxModules, _docxSkillsMatrix, _docxTaskAnalysis, _docxVerificationAppendix, _docxVerifiedResults } from './exports_docx_sections.js';
 
 
+
+/* 3.79.0: the document is written in the project's CONTENT language
+   (Settings → Languages) — labels, direction, plural forms — which may
+   differ from the interface language. Only the synchronous build runs
+   under it; see withLang() in translations.js. */
+const _inContentLang = (fn) =>
+  (window.i18n && window.i18n.withContentLang) ? window.i18n.withContentLang(fn) : fn();
+
 /* ── i18n + direction helpers ────────────────────────────────────────
    Every paragraph in this file used to carry `bidirectional: false`
    with the comment "Force LTR" — 152 of them. That was correct while
@@ -323,7 +331,8 @@ function _supplementaryDocxBlock(lib) {
     return out;
 }
 
-export async function exportTaskVerificationWord() {
+export function exportTaskVerificationWord() { return _inContentLang(() => _exportTaskVerificationWordImpl()); }
+async function _exportTaskVerificationWordImpl() {
     // Tell the user WHY the appendix is missing rather than
     // shipping a report that is quietly short a section.
     noteExportExclusion();
@@ -793,7 +802,8 @@ export async function exportTaskVerificationWord() {
             }
         }
 
-export async function exportToWord() {
+export function exportToWord() { return _inContentLang(() => _exportToWordImpl()); }
+async function _exportToWordImpl() {
     // Tell the user WHY the appendix is missing rather than
     // shipping a report that is quietly short a section.
     noteExportExclusion();

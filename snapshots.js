@@ -175,6 +175,12 @@ export function saveToJSON() {
       data.supplementaryVerification = appState.supplementaryVerification;
     }
 
+    // 3.79.0: content languages and their stored translations. Written
+    // only once the user has set them, so other files are unchanged.
+    if (appState.contentLanguages) {
+      data.contentLanguages = appState.contentLanguages;
+    }
+
     // Download
     const jsonString = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });

@@ -7,6 +7,63 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.79.0 — 2026-10-07 — Content languages and AI translation
+MINOR. content_lang.js, content_translate.js, settings_languages.js (new),
+export_settings.js, translations.js, exports_docx.js, exports_pdf.js,
+exports_os_docx.js, exports_cur_docx.js, workshop.js, module_curriculum.js,
+dacum_projects.js, snapshots.js, autosave.js, workshop_snapshots.js,
+projects.js, state.js, i18n_defaults.js, app.js, dacum-components.css,
+DACUM_Live_Pro_User_Guide.html, sw.js (v190), index.html,
+tests/specs/content-languages.spec.js (new), tests/helpers.js,
+tests/README.md.
+New     Settings (the sidebar ⚙️ entry, formerly Export Settings) has two
+        tabs: Export (unchanged) and Languages. Languages holds the
+        language of the project's CONTENT, separate from the interface
+        switcher: set the original language, translate with AI
+        (From → To), choose the version shown, review side by side,
+        mark Reviewed, delete a version.
+        The project keeps its original and every translation
+        (appState.contentLanguages, saved with the project and in the
+        JSON file). Switching versions makes no AI call.
+        Translation memory is keyed by the original text: a sentence is
+        sent once wherever it appears, and only texts with no
+        translation yet are sent — after a task changes, only that task.
+        Batches of at most 40 texts / 3,000 characters; built-in
+        DACUM/TVET glossary (EN/AR/FR, the app's own interface terms),
+        only the terms present in a batch go into its prompt.
+        Edits made while a translation is shown go into that
+        translation (marked edited, never overwritten by a re-run).
+        Texts added there are kept and listed, with "Translate them
+        into <original>". A text whose source changed after it was
+        edited by hand shows the earlier wording to the reviewer.
+        A banner over the tabs says which version is shown.
+Changed Exports (Word, PDF, Standard, Curriculum, verified results) and
+        the AI cards' output language follow the CONTENT language shown,
+        not the interface. A project with no content language set has
+        none, and everything follows the interface exactly as before.
+        Default seeded wording (Skills Matrix rows, untouched Additional
+        Info headings) follows the content language too.
+How     Switching captures the project, swaps its texts and applies it
+        through the same path that opens a project. Units are the places
+        a text is written (ids or list positions); every other string —
+        cluster task lists, outcome criteria, "pc|…|text" link keys,
+        verification titles — is mapped with them, so copies and links
+        always match. Ids, numbers, ratings, priorities and settings are
+        never touched. Going back restores the snapshot taken when the
+        translation was shown when nothing changed, otherwise maps each
+        text back (items moved, edited, added or deleted are paired by
+        place and text).
+Tested  Existing projects (no content language), EN and AR interface:
+        Word, PDF, Standard, Curriculum and Task Verification exports of
+        two projects — all 20 identical to 3.78.0.
+        Real project: 257 texts → 7 requests; back to the original
+        byte-identical by both paths, with edits made in Arabic kept in
+        the translation; no stale outcome links.
+        New spec (8 tests): identity round trip, copies/links, ids and
+        ratings untouched, edits/additions, only changed texts re-sent,
+        Word RTL + Arabic PDF font with an English interface, JSON
+        round trip, and the reviewer's pairing cases. Full suite 28/28.
+
 ── 3.78.0 — 2026-10-07 — PDF export broken up (no behaviour change)
 MINOR (internal). exports_pdf.js, exports_pdf_sections.js (new), sw.js
 (v189), index.html, tests/specs/curriculum.spec.js, tests/helpers.js,

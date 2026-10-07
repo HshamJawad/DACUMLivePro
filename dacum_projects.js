@@ -142,6 +142,8 @@ export function importProjectFromData(data, fileName) {
     taskAnalysisCustomSections: Array.isArray(s.taskAnalysisCustomSections) ? s.taskAnalysisCustomSections : [],
     // Absent in files exported before Supplementary Verification existed.
     supplementaryVerification: s.supplementaryVerification    || null,
+    // 3.79.0 — absent in older files.
+    contentLanguages:         (s.contentLanguages && typeof s.contentLanguages === 'object') ? s.contentLanguages : null,
     collectionMode:           s.verification?.collectionMode || 'workshop',
     workflowMode:             s.verification?.workflowMode   || 'standard',
     workshopParticipants:     s.verification?.workshopParticipants || 10,
@@ -315,6 +317,27 @@ export function loadProject(id) {
   } catch(e) {}
 
   showStatus('📂 ' + _tf('msgProjectLoaded', { name: project.name }), 'success');
+}
+
+/* ── 3.79.0: the live project as ONE state object ──────────────
+   Content-language switching (settings_languages.js) captures the
+   project, swaps its texts and applies it back — through exactly the
+   path that opens a project, so every tab re-renders from it. */
+export function captureProjectState() {
+  return _captureState();
+}
+
+export function applyProjectState(s, { onApplied } = {}) {
+  _applyState(s);
+  renderAll();
+  if (typeof onApplied === 'function') onApplied();
+  resetHistoryToCurrentState();
+  saveCurrentProject();
+  renderProjectsSidebar();
+  try {
+    document.dispatchEvent(new CustomEvent('dacum:project-loaded',
+      { detail: { projectId: _getActive(), reason: 'content-language' } }));
+  } catch (e) {}
 }
 
 export function saveCurrentProject() {
@@ -621,9 +644,9 @@ export function initProjectsSidebar() {
            cannot match this button and cannot clear the active tab.
            Its own click listener is bound directly to the element. -->
       <button class="dps-nav-item dps-nav-settings" id="dpsExportSettings"
-              type="button" data-tooltip="${_t('esTitle')}">
+              type="button" data-tooltip="${_t('setTitle')}">
         <span class="dps-nav-icon">⚙️</span>
-        <span class="dps-nav-text">${_t('esTitle')}</span>
+        <span class="dps-nav-text">${_t('setTitle')}</span>
       </button>
       <button class="dps-nav-item" data-target-tab="contact-tab" data-tooltip="${_t('tabHelp')}">
         <span class="dps-nav-icon">❓</span>
@@ -933,6 +956,7 @@ function _captureState() {
     taskAnalysisPriority:     appState.taskAnalysisPriority    || {},
     taskAnalysisCustomSections: appState.taskAnalysisCustomSections || [],
     additionalInfoAI:         appState.additionalInfoAI        || {},
+    contentLanguages:         appState.contentLanguages        || null,
     supplementaryVerification: appState.supplementaryVerification || null,
     collectionMode:           appState.collectionMode,
     workflowMode:             appState.workflowMode,
@@ -986,6 +1010,8 @@ function _applyState(s) {
   appState.taskAnalysisPriority     = s.taskAnalysisPriority     || {};
   appState.taskAnalysisCustomSections = Array.isArray(s.taskAnalysisCustomSections) ? s.taskAnalysisCustomSections : [];
   appState.additionalInfoAI         = (s.additionalInfoAI && typeof s.additionalInfoAI === 'object') ? s.additionalInfoAI : {};
+  // 3.79.0 — absent in older projects: no content languages set.
+  appState.contentLanguages         = (s.contentLanguages && typeof s.contentLanguages === 'object') ? s.contentLanguages : null;
   // Older projects have no such key — the default is the feature OFF,
   // which is exactly how those projects behaved before.
   appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();
@@ -2295,7 +2321,7 @@ window.addEventListener('dacum:langchange', () => {
      re-labelled explicitly rather than by the loop above. */
   const esBtn = document.getElementById('dpsExportSettings');
   if (esBtn) {
-    const esLabel = _t('esTitle');
+    const esLabel = _t('setTitle');
     const esTxt = esBtn.querySelector('.dps-nav-text');
     if (esTxt) esTxt.textContent = esLabel;
     esBtn.setAttribute('data-tooltip', esLabel);

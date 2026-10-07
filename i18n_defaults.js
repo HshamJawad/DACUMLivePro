@@ -28,7 +28,7 @@ function _retranslateHeadings() {
     if (!cur) return;
     const isDefault = langs.some(l => (I.tIn(key, l) || '').trim() === cur);
     if (!isDefault) return;
-    const now = I.t(key);
+    const now = I.tc ? I.tc(key) : I.t(key);   // 3.79.0: content language
     if (now && now !== key && now !== cur) { el.textContent = now; changed = true; }
   });
   return changed;

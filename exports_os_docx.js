@@ -59,6 +59,14 @@ import {
     _safeFilename,
 } from './exports_docx.js';
 
+
+/* 3.79.0: the document is written in the project's CONTENT language
+   (Settings → Languages) — labels, direction, plural forms — which may
+   differ from the interface language. Only the synchronous build runs
+   under it; see withLang() in translations.js. */
+const _inContentLang = (fn) =>
+  (window.i18n && window.i18n.withContentLang) ? window.i18n.withContentLang(fn) : fn();
+
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 
@@ -77,7 +85,8 @@ const LABEL_FILL  = 'F2F2F2';
    Occupational Standard tab shows, so the view and the file cannot
    drift apart. This file only decides HOW it is laid out in Word. */
 
-export async function exportOccupationalStandardWord() {
+export function exportOccupationalStandardWord() { return _inContentLang(() => _exportOccupationalStandardWordImpl()); }
+async function _exportOccupationalStandardWordImpl() {
     try {
         if (typeof window.docx === 'undefined') {
             showStatus(_t('msgDocxMissing') || 'docx library not loaded', 'error');

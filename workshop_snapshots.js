@@ -8,6 +8,7 @@
 // ============================================================
 
 import { appState, normalizeModuleCurriculumData } from './state.js';
+import { mergeRestoredCL }           from './content_lang.js';
 import { showStatus }                from './renderer.js';
 import { renderDutiesFromState, syncAllFromDOM } from './duties.js';
 import { renderSkillsLevel }         from './renderer.js';
@@ -215,6 +216,7 @@ function _captureFullState() {
     learningOutcomesData:    appState.learningOutcomesData,
     moduleMappingData:       appState.moduleMappingData,
     moduleCurriculumData:    appState.moduleCurriculumData    || null,
+    contentLanguages:        appState.contentLanguages        || null,
     verificationDecisionMade: appState.verificationDecisionMade,
     clusteringAllowed:       appState.clusteringAllowed,
     // DOM-sourced slices
@@ -250,6 +252,11 @@ function _applyFullState(s) {
   appState.moduleCurriculumData    = normalizeModuleCurriculumData(s.moduleCurriculumData);
   appState.verificationDecisionMade = s.verificationDecisionMade || false;
   appState.clusteringAllowed       = s.clusteringAllowed       || false;
+  // 3.79.0: a snapshot carries the content-language view it was taken
+  // in (one taken before 3.79.0 holds original-language text); the
+  // translations made since it was taken are kept — mergeRestoredCL().
+  appState.contentLanguages = mergeRestoredCL(s.contentLanguages, appState.contentLanguages);
+  try { document.dispatchEvent(new CustomEvent('dacum:content-languages-changed')); } catch (e) {}
 
   // Cache the DOM-sourced slices so renderAll() can use them
   appState._chartInfo      = s._chartInfo      || {};

@@ -213,6 +213,8 @@ function _doClear() {
   appState.taskAnalysisPriority       = {};
   appState.taskAnalysisCustomSections = [];
   appState.additionalInfoAI           = {};
+  appState.contentLanguages           = null;
+  try { document.dispatchEvent(new CustomEvent('dacum:content-languages-changed')); } catch (e) {}
   appState.collectionMode       = 'workshop';
   appState.workflowMode         = 'standard';
   const modeWorkshop = document.getElementById('mode-workshop');

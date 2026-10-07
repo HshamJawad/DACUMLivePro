@@ -1027,7 +1027,11 @@ export function getCurriculumModel(moduleId, opts = {}) {
 }
 
 export async function exportModuleCurriculumWord(moduleId, opts = {}) {
-  const model = getCurriculumModel(moduleId || (_selectedModule() || {}).id, opts);
+  // 3.79.0: the model carries some labels already resolved — build it in
+  // the project's content language, the same as the document itself.
+  const I = window.i18n;
+  const build = () => getCurriculumModel(moduleId || (_selectedModule() || {}).id, opts);
+  const model = (I && I.withContentLang) ? I.withContentLang(build) : build();
   if (!model) { showStatus(_tx('dlgNoModules'), 'error'); return false; }
   const ok = await exportCurriculumDocx(model);
   if (ok) showStatus('✓ ' + _txf('msgCurExported', { file: model.fileName }), 'success');

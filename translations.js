@@ -1475,6 +1475,69 @@
       esSaved: 'Saved',
       esUnsaved: 'Unsaved changes',
       esDiscardConfirm: 'You have unsaved changes. Discard them?',
+      // ── 3.79.0 Settings → Languages ──
+      setTitle: "Settings",
+      setTabExport: "Export",
+      setTabLanguages: "Languages",
+      lgIntro: "The language switcher in the top bar changes the screens only. Here you set the language this project’s content is written in, keep translations of it, and choose the version that is shown — the version every tab, export and AI card works with.",
+      lgNoProject: "Open or create a project first.",
+      lgSecVersions: "Content versions of this project",
+      lgOriginal: "Original language of the content",
+      lgOriginalHint: "The language the duties, tasks and the rest are written in. It can be changed until a translation exists.",
+      lgConfirmOriginal: "Confirm",
+      lgBadgeOriginal: "Original",
+      lgBadgeShown: "Shown",
+      lgStatusAI: "AI draft",
+      lgStatusReviewed: "Reviewed",
+      lgCount: "{done} of {total} texts translated",
+      lgEdited: "{n} edited",
+      lgFlagged: "{n} to recheck",
+      lgReview: "Review",
+      lgDelete: "Delete",
+      lgConfirmDelete: "Delete the {lang} translation of this project? The original is not affected.",
+      lgSecTranslate: "Translate content",
+      lgFrom: "From",
+      lgTo: "To",
+      lgAll: "Also re-translate texts already translated (your own edits are kept)",
+      lgFromNote: "Only texts without a translation are sent, each once. You can translate from the original or from a reviewed translation.",
+      lgEstimate: "{n} texts to translate — about {calls} AI requests. Press Translate again to start.",
+      lgNothing: "Nothing to translate — this version is up to date.",
+      lgNoSource: "{n} texts have no {lang} wording yet and were left out.",
+      lgTranslate: "Translate",
+      lgTranslateN: "Translate {n} texts",
+      lgStop: "Stop",
+      lgProgress: "Translating… request {i} of {n}",
+      lgDone: "Translated {n} texts.",
+      lgPartial: "{n} texts translated; {m} requests failed. Press Translate again to complete the rest.",
+      lgBusy: "A translation is running — wait for it to finish.",
+      lgSecForeign: "Added while a translation was shown",
+      lgForeign: "{n} texts were added while a translation was shown and are not yet in {lang}.",
+      lgTranslateBack: "Translate them into {lang}",
+      lgFooter: "Exports (Word, PDF, Standard, Curriculum) and the AI cards use the version that is shown. A translation stays an AI draft until you review it. IDs, ratings, priorities and links are never changed by a translation.",
+      lgReviewTitle: "Review — {lang}",
+      lgBack: "← Back",
+      lgFilterAll: "All",
+      lgFilterMissing: "Not translated",
+      lgFilterEdited: "Edited",
+      lgFilterFlagged: "Source changed",
+      lgSearch: "Search…",
+      lgMarkReviewed: "Mark this translation as reviewed",
+      lgSaveEdits: "Save changes",
+      lgSaved: "Saved",
+      lgWas: "Your earlier wording (its source has changed since): {t}",
+      lgShowMore: "Show more",
+      lgColOriginal: "original",
+      lgColTranslation: "translation",
+      lgChipAI: "AI",
+      lgChipEdited: "edited",
+      lgChipMissing: "not translated",
+      lgBanner: "Content shown in {lang} — a translation of the {orig} original. Edits made here go into this translation.",
+      lgBannerDraft: "AI draft — not reviewed",
+      lgBannerOriginal: "Show {lang} original",
+      lgBannerSettings: "Languages…",
+      lgSwitched: "Content shown in {lang}.",
+      lgSwitchedEdits: "{n} edited texts were saved to the {lang} translation.",
+      lgSwitchedAdded: "{n} texts added in {lang} were kept and are listed in Settings → Languages.",
     },
 
     fr: {
@@ -2937,6 +3000,69 @@
       esSaved: 'Enregistré',
       esUnsaved: 'Modifications non enregistrées',
       esDiscardConfirm: 'Vous avez des modifications non enregistrées. Les abandonner\u00a0?',
+      // ── 3.79.0 Settings → Languages ──
+      setTitle: "Paramètres",
+      setTabExport: "Exportation",
+      setTabLanguages: "Langues",
+      lgIntro: "Le sélecteur de langue de la barre supérieure ne change que les écrans. Ici, vous indiquez la langue dans laquelle le contenu de ce projet est rédigé, conservez ses traductions et choisissez la version affichée — celle qu’utilisent tous les onglets, les exportations et les cartes IA.",
+      lgNoProject: "Ouvrez ou créez d’abord un projet.",
+      lgSecVersions: "Versions du contenu de ce projet",
+      lgOriginal: "Langue d’origine du contenu",
+      lgOriginalHint: "La langue dans laquelle les activités, les tâches et le reste sont rédigés. Elle peut être modifiée tant qu’aucune traduction n’existe.",
+      lgConfirmOriginal: "Confirmer",
+      lgBadgeOriginal: "Original",
+      lgBadgeShown: "Affichée",
+      lgStatusAI: "Brouillon IA",
+      lgStatusReviewed: "Révisée",
+      lgCount: "{done} textes traduits sur {total}",
+      lgEdited: "{n} modifiés",
+      lgFlagged: "{n} à revérifier",
+      lgReview: "Réviser",
+      lgDelete: "Supprimer",
+      lgConfirmDelete: "Supprimer la traduction {lang} de ce projet ? L’original n’est pas touché.",
+      lgSecTranslate: "Traduire le contenu",
+      lgFrom: "De",
+      lgTo: "Vers",
+      lgAll: "Retraduire aussi les textes déjà traduits (vos propres modifications sont conservées)",
+      lgFromNote: "Seuls les textes sans traduction sont envoyés, chacun une seule fois. Vous pouvez traduire depuis l’original ou depuis une traduction révisée.",
+      lgEstimate: "{n} textes à traduire — environ {calls} requêtes IA. Appuyez de nouveau sur Traduire pour lancer.",
+      lgNothing: "Rien à traduire — cette version est à jour.",
+      lgNoSource: "{n} textes n’ont pas encore de formulation en {lang} et ont été laissés de côté.",
+      lgTranslate: "Traduire",
+      lgTranslateN: "Traduire {n} textes",
+      lgStop: "Arrêter",
+      lgProgress: "Traduction… requête {i} sur {n}",
+      lgDone: "{n} textes traduits.",
+      lgPartial: "{n} textes traduits ; {m} requêtes ont échoué. Appuyez de nouveau sur Traduire pour terminer.",
+      lgBusy: "Une traduction est en cours — attendez qu’elle se termine.",
+      lgSecForeign: "Ajoutés pendant l’affichage d’une traduction",
+      lgForeign: "{n} textes ont été ajoutés pendant l’affichage d’une traduction et ne sont pas encore en {lang}.",
+      lgTranslateBack: "Les traduire en {lang}",
+      lgFooter: "Les exportations (Word, PDF, Norme, Programme) et les cartes IA utilisent la version affichée. Une traduction reste un brouillon IA tant que vous ne l’avez pas révisée. Les identifiants, évaluations, priorités et liens ne sont jamais modifiés par une traduction.",
+      lgReviewTitle: "Révision — {lang}",
+      lgBack: "← Retour",
+      lgFilterAll: "Tous",
+      lgFilterMissing: "Non traduits",
+      lgFilterEdited: "Modifiés",
+      lgFilterFlagged: "Source modifiée",
+      lgSearch: "Rechercher…",
+      lgMarkReviewed: "Marquer cette traduction comme révisée",
+      lgSaveEdits: "Enregistrer les modifications",
+      lgSaved: "Enregistré",
+      lgWas: "Votre formulation précédente (sa source a changé depuis) : {t}",
+      lgShowMore: "Afficher plus",
+      lgColOriginal: "original",
+      lgColTranslation: "traduction",
+      lgChipAI: "IA",
+      lgChipEdited: "modifié",
+      lgChipMissing: "non traduit",
+      lgBanner: "Contenu affiché en {lang} — traduction de l’original en {orig}. Les modifications faites ici vont dans cette traduction.",
+      lgBannerDraft: "Brouillon IA — non révisé",
+      lgBannerOriginal: "Afficher l’original ({lang})",
+      lgBannerSettings: "Langues…",
+      lgSwitched: "Contenu affiché en {lang}.",
+      lgSwitchedEdits: "{n} textes modifiés ont été enregistrés dans la traduction {lang}.",
+      lgSwitchedAdded: "{n} textes ajoutés en {lang} ont été conservés et sont listés dans Paramètres → Langues.",
     },
 
     ar: {
@@ -4376,13 +4502,104 @@
       esSaved: 'تم الحفظ',
       esUnsaved: 'تغييرات غير محفوظة',
       esDiscardConfirm: 'لديك تغييرات غير محفوظة. هل تريد تجاهلها؟',
+      // ── 3.79.0 Settings → Languages ──
+      setTitle: "الإعدادات",
+      setTabExport: "التصدير",
+      setTabLanguages: "اللغات",
+      lgIntro: "مبدّل اللغة في الشريط العلوي يغيّر لغة الشاشات فقط. هنا تحدد اللغة التي كُتب بها محتوى هذا المشروع، وتحتفظ بترجماته، وتختار النسخة المعروضة — وهي النسخة التي تعمل عليها جميع التبويبات وملفات التصدير وبطاقات الذكاء الاصطناعي.",
+      lgNoProject: "افتح مشروعاً أو أنشئ مشروعاً أولاً.",
+      lgSecVersions: "نسخ محتوى هذا المشروع",
+      lgOriginal: "اللغة الأصلية للمحتوى",
+      lgOriginalHint: "اللغة التي كُتبت بها الواجبات والمهام وبقية المحتوى. يمكن تغييرها ما دامت لا توجد ترجمة.",
+      lgConfirmOriginal: "تأكيد",
+      lgBadgeOriginal: "الأصل",
+      lgBadgeShown: "معروضة",
+      lgStatusAI: "مسودة ذكاء اصطناعي",
+      lgStatusReviewed: "مُراجَعة",
+      lgCount: "تُرجم {done} من {total} نصاً",
+      lgEdited: "{n} معدّلة",
+      lgFlagged: "{n} تحتاج إعادة تدقيق",
+      lgReview: "مراجعة",
+      lgDelete: "حذف",
+      lgConfirmDelete: "هل تريد حذف الترجمة ({lang}) لهذا المشروع؟ لن يتأثر الأصل.",
+      lgSecTranslate: "ترجمة المحتوى",
+      lgFrom: "من",
+      lgTo: "إلى",
+      lgAll: "أعد ترجمة النصوص المترجمة أيضاً (تُحفظ تعديلاتك الخاصة)",
+      lgFromNote: "تُرسل النصوص غير المترجمة فقط، وكل نص مرة واحدة. يمكنك الترجمة من الأصل أو من ترجمة مُراجَعة.",
+      lgEstimate: "{n} نصاً للترجمة — نحو {calls} طلبات للذكاء الاصطناعي. اضغط «ترجمة» مرة أخرى للبدء.",
+      lgNothing: "لا يوجد ما يُترجم — هذه النسخة محدّثة.",
+      lgNoSource: "{n} نصاً ليس لها صياغة بـ{lang} بعد، فتُركت.",
+      lgTranslate: "ترجمة",
+      lgTranslateN: "ترجمة {n} نصاً",
+      lgStop: "إيقاف",
+      lgProgress: "جارٍ الترجمة… الطلب {i} من {n}",
+      lgDone: "تُرجم {n} نصاً.",
+      lgPartial: "تُرجم {n} نصاً؛ وأخفق {m} من الطلبات. اضغط «ترجمة» مرة أخرى لإكمال الباقي.",
+      lgBusy: "توجد ترجمة قيد التنفيذ — انتظر حتى تنتهي.",
+      lgSecForeign: "أُضيفت أثناء عرض ترجمة",
+      lgForeign: "{n} نصاً أُضيفت أثناء عرض ترجمة وليست بعدُ بـ{lang}.",
+      lgTranslateBack: "ترجمتها إلى {lang}",
+      lgFooter: "ملفات التصدير (Word وPDF والمعيار والمنهج) وبطاقات الذكاء الاصطناعي تستخدم النسخة المعروضة. تبقى الترجمة مسودة ذكاء اصطناعي حتى تراجعها. لا تغيّر الترجمة المعرّفات ولا التقديرات ولا الأولويات ولا الروابط أبداً.",
+      lgReviewTitle: "مراجعة — {lang}",
+      lgBack: "رجوع →",
+      lgFilterAll: "الكل",
+      lgFilterMissing: "غير مترجمة",
+      lgFilterEdited: "معدّلة",
+      lgFilterFlagged: "تغيّر أصلها",
+      lgSearch: "بحث…",
+      lgMarkReviewed: "وضع علامة «مُراجَعة» على هذه الترجمة",
+      lgSaveEdits: "حفظ التغييرات",
+      lgSaved: "تم الحفظ",
+      lgWas: "صياغتك السابقة (تغيّر أصلها بعد ذلك): {t}",
+      lgShowMore: "عرض المزيد",
+      lgColOriginal: "الأصل",
+      lgColTranslation: "الترجمة",
+      lgChipAI: "ذكاء اصطناعي",
+      lgChipEdited: "معدّلة",
+      lgChipMissing: "غير مترجمة",
+      lgBanner: "المحتوى معروض بـ{lang} — ترجمة للأصل المكتوب بـ{orig}. التعديلات التي تُجرى هنا تُحفظ في هذه الترجمة.",
+      lgBannerDraft: "مسودة ذكاء اصطناعي — غير مُراجَعة",
+      lgBannerOriginal: "عرض الأصل ({lang})",
+      lgBannerSettings: "اللغات…",
+      lgSwitched: "المحتوى معروض الآن بـ{lang}.",
+      lgSwitchedEdits: "حُفظ {n} من النصوص المعدّلة في ترجمة {lang}.",
+      lgSwitchedAdded: "احتُفظ بـ{n} من النصوص المضافة بـ{lang}، وهي مدرجة في الإعدادات ← اللغات.",
     },
   };
 
   var _current = localStorage.getItem('dacum_lang') || 'en';
 
+  /* 3.79.0 — CONTENT language vs INTERFACE language.
+     _current is the interface language (the switcher). A project may
+     also carry its own content language (Settings → Languages): the
+     language its duties, tasks and the rest are written in. Exported
+     documents and AI-generated text follow the CONTENT language; the
+     screen follows the interface. A project without a content language
+     has none (the provider returns null) and everything follows the
+     interface exactly as before.
+
+     _override is set only for the duration of the SYNCHRONOUS part of
+     an export (withLang), so labels, direction and plural forms of the
+     document come out in the content language. */
+  var _override = null;
+  var _contentProvider = null;
+  function _eff() { return _override || _current; }
+  function contentLang() {
+    var c = null;
+    try { c = _contentProvider ? _contentProvider() : null; } catch (e) { c = null; }
+    return (c && TRANSLATIONS[c]) ? c : _current;
+  }
+  function withLang(code, fn) {
+    if (!code || !TRANSLATIONS[code] || code === _eff()) return fn();
+    var prev = _override;
+    _override = code;
+    try { return fn(); }
+    finally { _override = prev; }
+  }
+
   function t(key) {
-    var lang = TRANSLATIONS[_current] || TRANSLATIONS.en;
+    var lang = TRANSLATIONS[_eff()] || TRANSLATIONS.en;
     if (lang[key] !== undefined)            return lang[key];
     if (TRANSLATIONS.en[key] !== undefined) return TRANSLATIONS.en[key];
     return key;
@@ -4519,7 +4736,7 @@
   };
 
   function aiDirective() {
-    return AI_DIRECTIVE[_current] || '';
+    return AI_DIRECTIVE[contentLang()] || '';
   }
 
 
@@ -4541,8 +4758,9 @@
      missing falls back to "_other", so a language only has to define
      the categories it actually uses. */
   function _pluralCategory(n) {
-    if (_current === 'fr') return (n === 0 || n === 1) ? 'one' : 'other';   // CLDR fr: 0 and 1 are singular
-    if (_current !== 'ar') return n === 1 ? 'one' : 'other';
+    var cur = _eff();
+    if (cur === 'fr') return (n === 0 || n === 1) ? 'one' : 'other';   // CLDR fr: 0 and 1 are singular
+    if (cur !== 'ar') return n === 1 ? 'one' : 'other';
     if (n === 0) return 'zero';
     if (n === 1) return 'one';
     if (n === 2) return 'two';
@@ -4554,7 +4772,7 @@
 
   function tp(base, n, vars) {
     var cat  = _pluralCategory(n);
-    var lang = TRANSLATIONS[_current] || TRANSLATIONS.en;
+    var lang = TRANSLATIONS[_eff()] || TRANSLATIONS.en;
     var key  = base + '_' + cat;
     if (lang[key] === undefined) key = base + '_other';
     var merged = { n: n };
@@ -4588,7 +4806,7 @@
     applyTranslations();
   }
 
-  function getLang() { return _current; }
+  function getLang() { return _eff(); }
 
   function _safeUpdate(el, val, attr) {
     /* data-i18n-attr accepts a COMMA-SEPARATED list, so one key can feed
@@ -4741,7 +4959,15 @@
       return (d && d[key] !== undefined) ? d[key] : undefined;
     },
     languages: function () { return Object.keys(TRANSLATIONS); },
-    isRTL: function () { return RTL_LANGS.indexOf(_current) !== -1; },
+    isRTL: function () { return RTL_LANGS.indexOf(_eff()) !== -1; },
+    /* 3.79.0 — content language (see _override above). */
+    uiLang: function () { return _current; },
+    contentLang: contentLang,
+    setContentLangProvider: function (fn) { _contentProvider = (typeof fn === 'function') ? fn : null; },
+    withLang: withLang,
+    withContentLang: function (fn) { return withLang(contentLang(), fn); },
+    tc: function (key) { return withLang(contentLang(), function () { return t(key); }); },
+    isContentRTL: function () { return RTL_LANGS.indexOf(contentLang()) !== -1; },
     has: function (key) { return TRANSLATIONS.en[key] !== undefined; },
     audit: audit,
     lockLang: lockLang,

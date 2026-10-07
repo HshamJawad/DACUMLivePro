@@ -23,6 +23,7 @@ import { saveCurrentProject,
          loadProject }         from './dacum_projects.js';
 import { renderAll }           from './workshop_snapshots.js';
 import { appState, defaultSupplementaryVerification } from './state.js';
+import { mergeRestoredCL }     from './content_lang.js';
 import { syncAllFromDOM }      from './duties.js';
 import { getImageSync }        from './image_store.js';
 import { readProjects }        from './project_store.js';
@@ -419,6 +420,7 @@ function _snapshotAppState() {
       verificationRatings:      appState.verificationRatings     || {},
       taskMetadata:             appState.taskMetadata            || {},
       supplementaryVerification: appState.supplementaryVerification || null,
+      contentLanguages:         appState.contentLanguages        || null,
       collectionMode:           appState.collectionMode,
       workflowMode:             appState.workflowMode,
       workshopParticipants:     appState.workshopParticipants,
@@ -455,6 +457,10 @@ function _applyBackupState(s) {
   appState.verificationRatings      = s.verificationRatings      || {};
   appState.taskMetadata             = s.taskMetadata             || {};
   appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();
+  // 3.79.0 — see mergeRestoredCL(): a backup from before 3.79.0 holds
+  // original-language text, whatever is shown now.
+  appState.contentLanguages = mergeRestoredCL(s.contentLanguages, appState.contentLanguages);
+  try { document.dispatchEvent(new CustomEvent('dacum:content-languages-changed')); } catch (e) {}
   appState.collectionMode           = s.collectionMode           || 'workshop';
   appState.workflowMode             = s.workflowMode             || 'standard';
   appState.workshopParticipants     = s.workshopParticipants     || 10;

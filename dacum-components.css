@@ -1962,3 +1962,127 @@
 /* Sidebar entry. Shape comes from .dps-nav-item; this only adds the
    hairline that separates the settings/help pair from the tab list. */
 .dps-nav-settings { margin-top: 6px; }
+
+/* ══════════════════════════════════════════════════════════════════
+   SETTINGS TABS + LANGUAGES TAB  (export_settings.js,
+   settings_languages.js — 3.79.0). Scoped under #esTabs / .cl-* /
+   #clBanner; logical properties only, so it mirrors in Arabic.
+   ══════════════════════════════════════════════════════════════════ */
+
+#esTabs {
+  display: flex; gap: 4px;
+  padding: 8px 14px 0;
+  background: #181825;
+  border-bottom: 1px solid #45475a;
+}
+#esTabs button {
+  cursor: pointer;
+  background: transparent; color: #a6adc8;
+  border: 1px solid transparent; border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 7px 14px; font-size: 0.9em; font-weight: 600;
+  margin-bottom: -1px;
+}
+#esTabs button:hover { color: #cdd6f4; background: #313244; }
+#esTabs button.es-tab-on {
+  background: #1e1e2e; color: #89b4fa;
+  border-color: #45475a; border-bottom: 1px solid #1e1e2e;
+}
+
+.cl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.cl-fromto label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88em; color: #bac2de; }
+.cl-arrow { color: #7f849c; }
+[dir="rtl"] .cl-arrow { display: inline-block; transform: scaleX(-1); }
+.cl-check { display: flex; align-items: flex-start; gap: 8px; font-size: 0.86em; color: #bac2de; margin: 8px 0 2px; }
+.cl-check input { margin-top: 3px; }
+
+.cl-btn {
+  cursor: pointer; border-radius: 8px; padding: 6px 12px;
+  font-size: 0.86em; font-weight: 600;
+  border: 1px solid #45475a; background: #313244; color: #cdd6f4;
+}
+.cl-btn:hover { background: #45475a; }
+.cl-btn:disabled { opacity: 0.45; cursor: default; }
+.cl-btn.cl-primary { background: #89b4fa; color: #11111b; border-color: #89b4fa; }
+.cl-btn.cl-primary:hover { filter: brightness(1.08); }
+.cl-btn.cl-danger { color: #f38ba8; }
+
+.cl-versions { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.cl-version {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding: 8px 10px; border: 1px solid #313244; border-radius: 8px;
+  background: #1e1e2e;
+}
+.cl-version.cl-shown { border-color: #89b4fa; box-shadow: 0 0 0 1px rgba(137, 180, 250, 0.25); }
+.cl-pick { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; min-width: 120px; }
+.cl-lname { font-weight: 700; color: #cdd6f4; font-size: 1em; }
+.cl-meta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1; font-size: 0.82em; color: #a6adc8; }
+.cl-actions { display: inline-flex; gap: 6px; }
+
+.cl-chip {
+  display: inline-block; font-size: 0.74em; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px;
+  background: #313244; color: #a6adc8; border: 1px solid #45475a;
+}
+.cl-chip.cl-orig { color: #cdd6f4; }
+.cl-chip.cl-ok { background: rgba(166, 227, 161, 0.15); color: #a6e3a1; border-color: rgba(166, 227, 161, 0.4); }
+.cl-chip.cl-draft, .cl-chip.cl-ai { background: rgba(249, 226, 175, 0.12); color: #f9e2af; border-color: rgba(249, 226, 175, 0.4); }
+.cl-chip.cl-edit { background: rgba(137, 180, 250, 0.14); color: #89b4fa; border-color: rgba(137, 180, 250, 0.4); }
+.cl-chip.cl-miss { background: rgba(243, 139, 168, 0.12); color: #f38ba8; border-color: rgba(243, 139, 168, 0.4); }
+.cl-chip.cl-shown-chip { background: #89b4fa; color: #11111b; border-color: #89b4fa; }
+
+.cl-progress { height: 8px; border-radius: 999px; background: #313244; overflow: hidden; margin: 8px 0 4px; }
+.cl-progress i { display: block; height: 100%; background: #89b4fa; transition: width 0.3s; }
+.cl-estimate { color: #f9e2af; }
+.cl-foreign { margin: 6px 0; padding-inline-start: 20px; font-size: 0.86em; color: #cdd6f4; }
+
+.cl-rev-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 8px; }
+.cl-rev-head b { flex: 1; }
+.cl-search { max-width: 220px; }
+.cl-rev-list { display: flex; flex-direction: column; gap: 6px; }
+.cl-rev-cols, .cl-rev-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.cl-rev-cols { font-size: 0.78em; font-weight: 700; color: #a6adc8; text-transform: uppercase; letter-spacing: 0.03em; }
+.cl-rev-row { padding: 6px 0; border-top: 1px solid #313244; }
+.cl-rev-src { font-size: 0.9em; line-height: 1.5; white-space: pre-wrap; color: #cdd6f4; }
+.cl-rev-dst { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.cl-rev-dst textarea {
+  width: 100%; box-sizing: border-box; resize: vertical;
+  background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 6px;
+  padding: 6px 8px; font: inherit; font-size: 0.9em; line-height: 1.5;
+  min-height: 2.4em; height: auto;
+}
+.cl-rev-row.cl-missing .cl-rev-dst textarea { border-color: rgba(243, 139, 168, 0.5); }
+.cl-was { margin: 0; color: #f9e2af; }
+.cl-rev-foot { justify-content: flex-end; position: sticky; bottom: -16px; background: #1e1e2e; padding: 8px 0; }
+@media (max-width: 600px) {
+  .cl-rev-cols, .cl-rev-row { grid-template-columns: minmax(0, 1fr); }
+  .cl-rev-cols span:last-child { display: none; }
+}
+
+/* Banner over the tabs while a translation is shown. */
+#clBanner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+  margin: 0 0 12px; padding: 8px 12px;
+  background: #eef4ff; color: #1e3a8a;
+  border: 1px solid #bfd3fb; border-radius: 10px;
+  font-size: 0.88em; line-height: 1.5;
+}
+#clBanner .cl-b-text { flex: 1 1 260px; }
+#clBanner .cl-b-chip { font-size: 0.82em; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+#clBanner .cl-b-chip.cl-draft { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+#clBanner .cl-b-chip.cl-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+#clBanner .cl-b-actions { display: inline-flex; gap: 6px; }
+#clBanner button {
+  cursor: pointer; font: inherit; font-size: 0.92em; font-weight: 600;
+  padding: 3px 10px; border-radius: 7px;
+  background: #fff; color: #1e3a8a; border: 1px solid #bfd3fb;
+}
+#clBanner button:hover { background: #dbe7fe; }
+
+/* Content in one direction, interface in the other: every field takes
+   the direction of its own text. */
+html[data-content-mixed] .container textarea,
+html[data-content-mixed] .container input[type="text"] {
+  unicode-bidi: plaintext;
+  text-align: start;
+}

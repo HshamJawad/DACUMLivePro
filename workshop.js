@@ -8,6 +8,14 @@ import { showStatus } from './renderer.js';
 import { getSupplementaryItemsForLiveSession,
          applyLiveSupplementaryResults } from './supplementary_verification.js';
 
+
+/* 3.79.0: the document is written in the project's CONTENT language
+   (Settings → Languages) — labels, direction, plural forms — which may
+   differ from the interface language. Only the synchronous build runs
+   under it; see withLang() in translations.js. */
+const _inContentLang = (fn) =>
+  (window.i18n && window.i18n.withContentLang) ? window.i18n.withContentLang(fn) : fn();
+
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -654,7 +662,8 @@ export function lwExportSnapshot() {
 
 // ── Export Verified PDF ───────────────────────────────────────
 
-export async function lwExportVerifiedPDF() {
+export function lwExportVerifiedPDF() { return _inContentLang(() => _lwExportVerifiedPDFImpl()); }
+async function _lwExportVerifiedPDFImpl() {
   if (!appState.lwFinalizedData || !appState.lwAggregatedResults) {
     showStatus(_t('lwNoVerified'), 'error'); return;
   }
@@ -723,7 +732,8 @@ export async function lwExportVerifiedPDF() {
 
 // ── Export Verified DOCX ──────────────────────────────────────
 
-export async function lwExportVerifiedDOCX() {
+export function lwExportVerifiedDOCX() { return _inContentLang(() => _lwExportVerifiedDOCXImpl()); }
+async function _lwExportVerifiedDOCXImpl() {
   if (!appState.lwFinalizedData || !appState.lwAggregatedResults) {
     showStatus(_t('lwNoVerified'), 'error'); return;
   }

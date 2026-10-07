@@ -22,6 +22,14 @@ import { ensureArabicFont, isArabicFontLoaded, installArabicRTL, suspendJsPdfAra
 import { _pdfClusters, _pdfKnowledgeSkills, _pdfLearningOutcomes, _pdfModules, _pdfSkillsMatrix, _pdfTaskAnalysis, _pdfToolsTrends, _pdfVerificationAppendix, _pdfVerifiedResults } from './exports_pdf_sections.js';
 
 
+
+/* 3.79.0: the document is written in the project's CONTENT language
+   (Settings → Languages) — labels, direction, plural forms — which may
+   differ from the interface language. Only the synchronous build runs
+   under it; see withLang() in translations.js. */
+const _inContentLang = (fn) =>
+  (window.i18n && window.i18n.withContentLang) ? window.i18n.withContentLang(fn) : fn();
+
 /* ── i18n + direction helpers ────────────────────────────────────────
    This file used to REFUSE outright in Arabic and point the user at
    the Word export. The reasoning was sound at the time — jsPDF's
@@ -292,7 +300,8 @@ function _writeSupplementaryPDF(pdf, margin) {
     });
 }
 
-export function exportTaskVerificationPDF() {
+export function exportTaskVerificationPDF() { return _inContentLang(() => _exportTaskVerificationPDFImpl()); }
+function _exportTaskVerificationPDFImpl() {
     // Tell the user WHY the appendix is missing rather than
     // shipping a report that is quietly short a section.
     noteExportExclusion();
@@ -656,7 +665,8 @@ function _imageFormat(dataUrl) {
   return /^data:image\/png/i.test(dataUrl || '') ? 'PNG' : 'JPEG';
 }
 
-export function exportToPDF() {
+export function exportToPDF() { return _inContentLang(() => _exportToPDFImpl()); }
+function _exportToPDFImpl() {
     // Tell the user WHY the appendix is missing rather than
     // shipping a report that is quietly short a section.
     noteExportExclusion();

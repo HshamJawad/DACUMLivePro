@@ -25,6 +25,7 @@ import { initDragDrop }        from './drag_drop.js';
 import { initVerificationCharts } from './verification_charts.js';
 import { initSupplementaryVerification } from './supplementary_verification.js';
 import { initI18nDefaults } from './i18n_defaults.js';
+import { initContentLanguages } from './settings_languages.js';
 import { renderDraftCard }        from './draft_ui.js';
 import { renderRegenButtons }     from './draft_regen.js';
 import { renderUnverifiedBanner } from './draft_unverified.js';
@@ -172,6 +173,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   /* Default seed content (Skills Matrix rows, Additional Info headings)
      follows the interface language; user-edited text is never touched. */
   initI18nDefaults();
+  // 3.79.0: content languages (Settings → Languages) — banner + the
+  // language exports and AI cards follow.
+  initContentLanguages();
 
   /* Full Draft card. Rendered rather than written into index.html
      because its labels come from the dictionary and it has to be

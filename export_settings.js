@@ -290,9 +290,34 @@ function _cardPreviewHTML(s) {
       <b>${_t('ccPrevTask')}</b><span>${_t('ccPrevTaskText')}</span></div>`;
 }
 
+/* 3.79.0: the panel is now SETTINGS with two tabs — Export (this
+   file) and Languages (settings_languages.js, the project's content
+   languages). The Languages tab acts at once on the open project, so
+   the Save / Cancel / Reset footer belongs to the Export tab only. */
+let _tab = 'export';
+
+function _syncTabs() {
+  const m = document.getElementById(MODAL_ID);
+  if (!m) return;
+  m.querySelectorAll('[data-es-tab]').forEach(b => {
+    const on = b.getAttribute('data-es-tab') === _tab;
+    b.classList.toggle('es-tab-on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const foot = document.getElementById('esModalFoot');
+  if (foot) foot.style.display = _tab === 'export' ? '' : 'none';
+}
+
 function _render() {
   const box = document.getElementById('esModalBody');
   if (!box) return;
+  _syncTabs();
+  if (_tab === 'languages') {
+    import('./settings_languages.js')
+      .then(m => { if (_tab === 'languages') m.renderLanguagesTab(box); })
+      .catch(err => console.error('[settings] languages tab failed:', err));
+    return;
+  }
   const s = _draft || (_draft = _stored());
 
   box.innerHTML = `
@@ -403,8 +428,12 @@ function _ensureModal() {
     <div id="esModalOverlay"></div>
     <div id="esModalBox" role="dialog" aria-modal="true" aria-labelledby="esModalTitle">
       <div id="esModalHeader">
-        <span id="esModalTitle">⚙️ ${_t('esTitle')}</span>
+        <span id="esModalTitle">⚙️ ${_t('setTitle')}</span>
         <button id="esModalClose" type="button" aria-label="${_t('esClose')}">✕</button>
+      </div>
+      <div id="esTabs" role="tablist">
+        <button type="button" role="tab" data-es-tab="export">🖨️ <span>${_t('setTabExport')}</span></button>
+        <button type="button" role="tab" data-es-tab="languages">🌐 <span>${_t('setTabLanguages')}</span></button>
       </div>
       <div id="esModalBody"></div>
       <div id="esModalFoot">
@@ -445,6 +474,15 @@ function _ensureModal() {
   m.querySelector('#esModalCancel').addEventListener('click', dismiss);
   m.querySelector('#esModalSave').addEventListener('click', commit);
 
+  /* Switching tabs keeps an unsaved Export draft: it is still there on
+     return, and leaving the panel still asks about it. */
+  m.querySelectorAll('[data-es-tab]').forEach(b => b.addEventListener('click', () => {
+    const t = b.getAttribute('data-es-tab');
+    if (t === _tab) return;
+    _tab = t;
+    _render();
+  }));
+
   /* Reset stages the defaults; it does not write. The user still has to
      press Save, so Reset behaves like every other control here and can
      be backed out of with Cancel. */
@@ -461,7 +499,11 @@ function _ensureModal() {
      block. The <aside> is not re-created, so no listener is lost. */
   window.addEventListener('dacum:langchange', () => {
     const title = m.querySelector('#esModalTitle');
-    if (title) title.textContent = '⚙️ ' + _t('esTitle');
+    if (title) title.textContent = '⚙️ ' + _t('setTitle');
+    m.querySelectorAll('[data-es-tab]').forEach(b => {
+      const sp = b.querySelector('span');
+      if (sp) sp.textContent = _t(b.getAttribute('data-es-tab') === 'export' ? 'setTabExport' : 'setTabLanguages');
+    });
     const reset = m.querySelector('#esModalReset');
     if (reset) reset.textContent = '↺ ' + _t('esReset');
     const cancel = m.querySelector('#esModalCancel');
@@ -479,6 +521,7 @@ function _ensureModal() {
 export function openExportSettings(opts) {
   const m = _ensureModal();
   _draft = _stored();
+  _tab = (opts && opts.tab === 'languages') ? 'languages' : 'export';
   const cc = opts && opts.cardColors;
   if (cc) _draft = { ..._draft, cardDuty: cc.duty || CARD_DEFAULT, cardTask: cc.task || CARD_DEFAULT };
   _render();

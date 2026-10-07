@@ -42,6 +42,14 @@ import {
     _applyDocDefaultsLang,
 } from './exports_docx.js';
 
+
+/* 3.79.0: the document is written in the project's CONTENT language
+   (Settings → Languages) — labels, direction, plural forms — which may
+   differ from the interface language. Only the synchronous build runs
+   under it; see withLang() in translations.js. */
+const _inContentLang = (fn) =>
+  (window.i18n && window.i18n.withContentLang) ? window.i18n.withContentLang(fn) : fn();
+
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 
@@ -56,7 +64,8 @@ const TABLE_W = PAGE_W - 2 * MARGIN;           // 9638
  * Builds and downloads the document. Returns true on success.
  * @param {object} m  model from getCurriculumModel()
  */
-export async function exportCurriculumDocx(m) {
+export function exportCurriculumDocx(m) { return _inContentLang(() => _exportCurriculumDocxImpl(m)); }
+async function _exportCurriculumDocxImpl(m) {
     try {
         if (typeof window.docx === 'undefined') {
             showStatus(_t('msgDocxMissing') || 'docx library not loaded', 'error');
