@@ -272,8 +272,10 @@ export function countTaskAnalysisRecords() {
  *  exports_pdf.js and exports_docx.js. */
 export function getTaskAnalysisExportData() {
   syncAllFromDOM();
+  // 3.81.0: only tasks selected for training (Task Verification →
+  // Select Tasks). With no selection made, every task is selected.
   return _allTasksFlat()
-    .filter(entry => !_isRecordEmpty(_record(entry.taskKey)))
+    .filter(entry => isTaskSelected(entry.taskKey) && !_isRecordEmpty(_record(entry.taskKey)))
     .map(entry => {
       const raw = _record(entry.taskKey);
       const record = { ...raw };

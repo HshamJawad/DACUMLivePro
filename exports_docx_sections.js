@@ -9,6 +9,7 @@
 import { appState } from './state.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
+import { getTaskSelectionExportSummary } from './task_selection.js';
 import { moduleTitleWithLevel } from './modules.js';
 import { _rtl, _start, _t, _tblFill, _tf, _today } from './exports_docx.js';
 
@@ -989,7 +990,8 @@ export function _docxVerifiedResults({ PageBreak, Paragraph, Table, TableCell, T
 export function _docxTaskAnalysis({ AlignmentType, PageBreak, Paragraph, TextRun, children }) {
   {
                     const taData = getTaskAnalysisExportData();
-                    if (taData.length > 0) {
+                    const tsel   = getTaskSelectionExportSummary();
+                    if (taData.length > 0 || tsel) {
                         children.push(new Paragraph({ children: [new PageBreak()], bidirectional: _rtl() }));
 
                         children.push(new Paragraph({
@@ -1000,6 +1002,31 @@ export function _docxTaskAnalysis({ AlignmentType, PageBreak, Paragraph, TextRun
                             alignment: AlignmentType.CENTER,
                             bidirectional: _rtl(),
                         }));
+
+                        // 3.81.0: which tasks were selected for training
+                        // and analysis (Task Verification), and why the
+                        // others were left out.
+                        if (tsel) {
+                            children.push(new Paragraph({
+                                children: [new TextRun({ text: _tf('expTselSummary', { n: tsel.selected, total: tsel.total }), bold: true, size: 22 })],
+                                spacing: { after: 80 },
+                                bidirectional: _rtl(),
+                            }));
+                            children.push(new Paragraph({
+                                children: [new TextRun({ text: _t('expTselExcluded'), bold: true, size: 20 })],
+                                spacing: { after: 60 },
+                                bidirectional: _rtl(),
+                            }));
+                            tsel.excluded.forEach(x => {
+                                children.push(new Paragraph({
+                                    children: [new TextRun({ text: `${x.code} — ${x.text}${x.reason ? ' (' + x.reason + ')' : ''}`, size: 20 })],
+                                    spacing: { after: 30 },
+                                    indent: { left: 360 },
+                                    bidirectional: _rtl(),
+                                }));
+                            });
+                            children.push(new Paragraph({ children: [new TextRun({ text: '', size: 4 })], spacing: { after: 300 }, bidirectional: _rtl() }));
+                        }
 
                         const _hasMarker = (s) => /^(\d+[.\)]|[•\-\*○●])\s+/.test(s);
 

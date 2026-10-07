@@ -53,6 +53,7 @@ import { renderAvailableTasks, renderClusters, persistClustering,
          loText, initializeClusteringFromTasks, syncClusteringWithProfile,
          isClusterAddedTask } from './modules.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
+import { isTaskSelected } from './task_selection.js';
 import { writeAIDraft, openAIPartsDialog } from './ai_draft.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
@@ -292,7 +293,12 @@ export async function suggestClustersAI() {
   // Work from the full task pool, not just what is left unassigned —
   // otherwise a partial manual clustering would produce a suggestion
   // built on the leftovers, which is worse than no suggestion.
-  const pool = [...available, ...existing.flatMap(c => c.tasks || [])].filter(current);
+  const all  = [...available, ...existing.flatMap(c => c.tasks || [])].filter(current);
+  // 3.81.0: only tasks selected for training are grouped. The others
+  // (left out in Task Verification → Select Tasks) are not sent; they
+  // go back to the Available list below, so nothing is lost.
+  const pool    = all.filter(t => isClusterAddedTask(t) || isTaskSelected(t.id));
+  const skipped = all.filter(t => !pool.includes(t));
 
   if (pool.length < MIN_TASKS_PER_CLUSTER * 2) {
     showStatus(_tf('msgNotEnoughTasks', { n: pool.length }), 'error');
@@ -357,7 +363,7 @@ export async function suggestClustersAI() {
 
     // Tasks the model skipped stay in the Available list rather than
     // disappearing — the facilitator can place them by hand.
-    const leftovers = pool.filter(t => !used.has(t.id));
+    const leftovers = pool.filter(t => !used.has(t.id)).concat(skipped);
 
     cd.clusters       = clusters;
     cd.clusterCounter = clusters.length;
@@ -372,7 +378,8 @@ export async function suggestClustersAI() {
     incrementUsage();
 
     const notes = [];
-    if (leftovers.length) notes.push(loText('clNoteLeftover', { n: leftovers.length }));
+    if (leftovers.length - skipped.length) notes.push(loText('clNoteLeftover', { n: leftovers.length - skipped.length }));
+    if (skipped.length) notes.push(_tf('clNoteUnselected', { n: skipped.length }));
     if (trimmed)          notes.push(loText('clNoteTrimmed', { n: trimmed }));
     const mirror = _dutyMirrorWarning(clusters);
     if (mirror) notes.push(mirror);

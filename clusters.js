@@ -17,6 +17,7 @@ import { clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI, aiMarkHTML, remo
 import { CLUSTER_TASK_SOURCE_ADDED, _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, isClusterAddedTask, switchTab } from './modules_shared.js';
 import { renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack } from './module_mapping.js';
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
+import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 
 // ── Clustering ────────────────────────────────────────────────
 
@@ -133,6 +134,8 @@ export function initializeClusteringFromTasks() {
   renderClusters();
 }
 
+let _unselOpen = false;
+
 export function renderAvailableTasks() {
   const cd = appState.clusteringData;
   const container = document.getElementById('availableTasksList');
@@ -148,15 +151,22 @@ export function renderAvailableTasks() {
     return;
   }
 
-  let html = '';
+  // 3.81.0: tasks left out in Task Verification → "Select Tasks for
+  // Training" are listed after the others, folded, under their own
+  // heading. They stay in the pool and can still be placed — the
+  // selection guides, it does not lock. Indexes stay those of
+  // cd.availableTasks, which every action here relies on.
+  const _unsel = (t) => !isClusterAddedTask(t) && !isTaskSelected(t.id);
+  let html = '', unselHtml = '', unselCount = 0;
   cd.availableTasks.forEach((task, index) => {
     let clusterOptions = `<option value="">${_t('optSelectCluster')}</option>`;
     cd.clusters.forEach((cluster, ci) => {
       clusterOptions += `<option value="${cluster.id}">C${ci + 1} — ${cluster.name}</option>`;
     });
 
-    html += `
-      <div class="task-checkbox-item">
+    const off = _unsel(task);
+    const row = `
+      <div class="task-checkbox-item${off ? ' is-unselected' : ''}">
         <input type="checkbox" id="task_${index}" data-action="update-cluster-button">
         <label for="task_${index}" class="task-checkbox-label">
           <strong>${_taskLabel(task.id)}:</strong> ${task.text}
@@ -171,9 +181,21 @@ export function renderAvailableTasks() {
           </select>
         </div>` : ''}
       </div>`;
+    if (off) { unselHtml += row; unselCount++; } else html += row;
   });
 
+  if (unselCount) {
+    html += `
+      <details class="cl-unsel-group"${_unselOpen ? ' open' : ''}>
+        <summary>${_esc(_tf('clUnselGroup', { n: unselCount }))}</summary>
+        <p class="cl-unsel-hint">${_esc(_t('clUnselHint'))}</p>
+        ${unselHtml}
+      </details>`;
+  }
+
   container.innerHTML = html;
+  const grp = container.querySelector('.cl-unsel-group');
+  if (grp) grp.addEventListener('toggle', () => { _unselOpen = grp.open; });
   updateCreateClusterButton();
 }
 
@@ -399,6 +421,11 @@ function _renderClusterTaskRow(cluster, task, taskIndex, lastIndex) {
           ? `<strong class="cluster-orphan-label">⚠ ${_esc(_tx('lblRemovedFromProfile'))}:</strong>`
           : `<strong>${_esc(_taskLabel(task.id))}:</strong>`} ${text}
         ${added ? `<span class="cluster-task-source">${_esc(_tx('lblAddedDuringClustering'))}</span>` : ''}
+        ${!added && !orphan && !isTaskSelected(task.id) ? (() => {
+            const why = getTaskExclusionReason(task.id);
+            const tip = _t('clUnselBadgeTip') + (why ? ' — ' + why : '');
+            return `<span class="cluster-unsel-badge" title="${_esc(tip)}">${_esc(_t('clUnselBadge'))}</span>`;
+          })() : ''}
       </div>
       <div class="cluster-task-actions">
         <button type="button" class="ctl-btn" data-action="move-cluster-task" data-dir="-1"

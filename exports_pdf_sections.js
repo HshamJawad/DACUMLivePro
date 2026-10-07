@@ -9,6 +9,7 @@
 import { appState } from './state.js';
 import { getTaskCode } from './codes.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
+import { getTaskSelectionExportSummary } from './task_selection.js';
 import { moduleTitleWithLevel } from './modules.js';
 import { drawTick } from './pdf_arabic.js';
 import { _t, _tf, _today } from './exports_pdf.js';
@@ -593,7 +594,8 @@ export function _pdfVerifiedResults({ hasVerifiedResults, margin, pageHeight, pa
 export function _pdfTaskAnalysis({ margin, pageHeight, pageWidth, pdf, yPos }) {
   {
             const taData = getTaskAnalysisExportData();
-            if (taData.length > 0) {
+            const tsel   = getTaskSelectionExportSummary();
+            if (taData.length > 0 || tsel) {
                 pdf.addPage();
                 yPos = margin + 5;
 
@@ -608,6 +610,24 @@ export function _pdfTaskAnalysis({ margin, pageHeight, pageWidth, pdf, yPos }) {
                         yPos = margin + 5;
                     }
                 };
+
+                // 3.81.0: tasks selected for training and analysis, and
+                // the ones left out with their reasons.
+                if (tsel) {
+                    pdf.setFontSize(11);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text(_tf('expTselSummary', { n: tsel.selected, total: tsel.total }), margin, yPos);
+                    yPos += 6;
+                    pdf.setFontSize(10);
+                    pdf.text(_t('expTselExcluded'), margin, yPos);
+                    yPos += 5.5;
+                    pdf.setFont(undefined, 'normal');
+                    tsel.excluded.forEach(x => {
+                        const lines = pdf.splitTextToSize(`${x.code} — ${x.text}${x.reason ? ' (' + x.reason + ')' : ''}`, pageWidth - 2 * margin - 10);
+                        lines.forEach(line => { _ensureRoom(5); pdf.text(line, margin + 6, yPos); yPos += 5; });
+                    });
+                    yPos += 8;
+                }
 
                 const _hasMarker = (s) => /^(\d+[.\)]|[•\-\*○●])\s+/.test(s);
 

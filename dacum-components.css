@@ -2135,3 +2135,11 @@ html[data-content-mixed] .container input[type="text"] {
       .tsel-off .tsel-text { color: #94a3b8; text-decoration: line-through; }
       .tsel-off .tsel-code { color: #94a3b8; }
       .tsel-foot { margin: 6px 18px 16px; font-size: .82em; color: #64748b; font-style: italic; }
+
+      /* Competency Clusters follow the task selection (3.81.0). */
+      .cl-unsel-group { margin-top: 12px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; padding: 6px 10px; }
+      .cl-unsel-group > summary { cursor: pointer; font-weight: 700; color: #475569; font-size: .9em; padding: 4px 0; }
+      .cl-unsel-hint { margin: 4px 0 8px; font-size: .82em; color: #64748b; }
+      .task-checkbox-item.is-unselected { opacity: .7; }
+      .cluster-unsel-badge { display: inline-block; margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px;
+                             background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; font-size: .78em; font-weight: 600; white-space: nowrap; }

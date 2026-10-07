@@ -7,6 +7,31 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.81.0 — 2026-10-07 — ✅ Task selection, phase 2: the later tabs follow it
+MINOR. clusters.js, clustering_ai.js, module_mapping.js, trace_map.js,
+task_analysis.js, task_selection.js, exports_docx_sections.js,
+exports_pdf_sections.js, translations.js, dacum-components.css,
+index.html, sw.js (v197), tests/specs/task-selection.spec.js.
+Changed Competency Clusters: tasks left out in Task Verification →
+        Select Tasks are listed after the others in a folded group "Not
+        selected for training (N)". They stay in the pool and can still
+        be placed by hand; a placed one carries a "Not selected for
+        training" badge (tooltip gives the reason).
+        AI clustering (and the Full Draft clusters stage) groups the
+        selected tasks only; the others go back to the Available list
+        and the status message says how many were left out.
+        Learning Outcomes and Modules are built from the clusters, so
+        they follow without changes of their own.
+        Traceability Map: a left-out task is greyed with "Not selected
+        for training" and is no longer counted as a gap.
+        Word / PDF: the Task Analysis section exports selected tasks
+        only and opens with "Tasks selected for training and analysis:
+        N of M" and the tasks left out with their reasons.
+Kept    DACUM chart, Occupational Standard and the verification results
+        still list every task: they describe the occupation.
+Note    The selection is only shown when at least one task was left out;
+        projects that never used it look and export exactly as before.
+
 ── 3.80.0 — 2026-10-07 — ✅ Select Tasks for Training / Analysis (SCID)
 MINOR. task_selection.js (new), task_analysis.js, tasks.js,
 draft_ratings.js, state.js, app.js, projects.js, dacum_projects.js,

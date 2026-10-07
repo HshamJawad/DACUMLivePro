@@ -35,6 +35,7 @@ const LIST_BREAK = 760;            // below this width: list mode
 const S = {
   en: {
     title: 'Traceability Map', badge: 'read-only', close: 'Close',
+    n_unsel: 'Not selected for training',
     sub: 'From the occupation to the modules — every line comes from what is already entered. Click any box to light up its chain.',
     duty: 'Duty', comp: 'Competency', mod: 'Module', all: 'All',
     col_task: 'Tasks', col_comp: 'Competencies', col_crit: 'Criteria', col_lo: 'Outcomes', col_mod: 'Modules',
@@ -52,6 +53,7 @@ const S = {
   },
   fr: {
     title: 'Carte de traçabilité', badge: 'lecture seule', close: 'Fermer',
+    n_unsel: 'Non retenue pour la formation',
     sub: 'Du métier aux modules — chaque lien vient de ce qui est déjà saisi. Cliquez sur une case pour éclairer sa chaîne.',
     duty: 'Fonction', comp: 'Compétence', mod: 'Module', all: 'Tout',
     col_task: 'Tâches', col_comp: 'Compétences', col_crit: 'Critères', col_lo: 'Résultats', col_mod: 'Modules',
@@ -69,6 +71,7 @@ const S = {
   },
   ar: {
     title: 'خريطة التتبع', badge: 'للقراءة فقط', close: 'إغلاق',
+    n_unsel: 'غير مختارة للتدريب',
     sub: 'من المهنة إلى الوحدات — كل رابط مأخوذ مما أُدخل من قبل. انقر أي مربع لتُضاء سلسلته.',
     duty: 'الواجب', comp: 'الكفاءة', mod: 'الوحدة', all: 'الكل',
     col_task: 'المهام', col_comp: 'الكفاءات', col_crit: 'المعايير', col_lo: 'المحصلات', col_mod: 'الوحدات',
@@ -125,6 +128,7 @@ function _index(g) {
 }
 
 const _get = (m, k) => m.get(k) || [];
+const _unsel = (id) => !!(X.task.get(id) || {}).unselected;
 
 /** Everything on the chain of one box, column by column. */
 function _chain(type, id) {
@@ -172,7 +176,9 @@ function _filterSet() {
 
 // ── Gaps ────────────────────────────────────────────────────────
 function _gapOf(type, id) {
-  if (type === 'task') return !_get(X.compsOfTask, id).length;
+  // 3.81.0: a task left out of training (Task Verification → Select
+  // Tasks) is meant to be in no competency — not a gap.
+  if (type === 'task') return !_unsel(id) && !_get(X.compsOfTask, id).length;
   if (type === 'comp') return !_get(X.critsOfComp, id).length;
   if (type === 'crit') return !_get(X.losOfCrit, id).length;
   if (type === 'lo')   return !_get(X.modsOfLo, id).length;
@@ -215,9 +221,11 @@ function _box(type, id, item) {
   const gap = _gapOf(type, id);
   const mark = type === 'crit' ? (item.source === 'ta' ? '🔬 ' : '') : '';
   const text = _text(type, item);
-  return `<button type="button" class="tm-n tm-${type}${gap ? ' tm-gap' : ''}" data-t="${type}" data-id="${_esc(id)}"
+  const unsel = type === 'task' && item.unselected;
+  return `<button type="button" class="tm-n tm-${type}${gap ? ' tm-gap' : ''}${unsel ? ' tm-unsel' : ''}" data-t="${type}" data-id="${_esc(id)}"
             title="${_esc(text)}"><span class="tm-row"><bdi class="tm-code">${_esc(_code(type, item))}</bdi> ${mark}<span class="tm-x" dir="auto">${_esc(text)}</span></span>${gap
-            ? `<span class="tm-gapnote">⚠ ${_esc(_s('n_' + type))}</span>` : ''}</button>`;
+            ? `<span class="tm-gapnote">⚠ ${_esc(_s('n_' + type))}</span>` : ''}${unsel
+            ? `<span class="tm-unselnote">${_esc(_s('n_unsel'))}</span>` : ''}</button>`;
 }
 
 // ── Desktop map ─────────────────────────────────────────────────
@@ -393,8 +401,9 @@ function _renderList(body) {
       return `<div class="tm-step"><div class="tm-stepl">${_esc(_s('h_' + type))}</div>${
         ids.length ? ids.map(id => pill(type, id)).join('') : `<div class="tm-none">${_esc(_s('none'))}</div>`}</div>`;
     }).join('');
-    return `<details class="tm-task-item${gap ? ' tm-gapitem' : ''}"><summary><bdi class="tm-code">${_esc(t.code || '')}</bdi> <span dir="auto">${_esc(t.text)}</span>${
-      gap ? `<span class="tm-gapnote">⚠ ${_esc(_s('n_task'))}</span>` : ''}</summary><div class="tm-chainlist">${steps}</div></details>`;
+    return `<details class="tm-task-item${gap ? ' tm-gapitem' : ''}${t.unselected ? ' tm-unsel' : ''}"><summary><bdi class="tm-code">${_esc(t.code || '')}</bdi> <span dir="auto">${_esc(t.text)}</span>${
+      gap ? `<span class="tm-gapnote">⚠ ${_esc(_s('n_task'))}</span>` : ''}${
+      t.unselected ? `<span class="tm-unselnote">${_esc(_s('n_unsel'))}</span>` : ''}</summary><div class="tm-chainlist">${steps}</div></details>`;
   };
   /* The other gaps have no task to hang from: listed once, folded. */
   const others = ['comp', 'crit', 'lo'].map(type => {
@@ -614,6 +623,8 @@ html.tm-lock, html.tm-lock body { overflow: hidden; }
 .tm-gap { border: 2px dashed #dc2626 !important; background: #fef2f2 !important; color: #1e293b !important; }
 .tm-gap .tm-code { color: #b91c1c !important; }
 .tm-gapnote { display: block; color: #dc2626; font-size: .9em; font-weight: 700; margin-top: 2px; }
+.tm-unsel { opacity: .6; border-style: dashed !important; }
+.tm-unselnote { display: block; color: #64748b; font-size: .85em; font-style: italic; margin-top: 2px; }
 .tm-stage.is-focus .tm-n:not(.is-on) { opacity: .25; }
 .tm-stage.is-gaps:not(.is-focus) .tm-n:not(.tm-gap) { opacity: .3; }
 .tm-n.is-on { box-shadow: 0 0 0 3px #f59e0b; opacity: 1; }

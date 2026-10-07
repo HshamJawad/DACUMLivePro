@@ -13,6 +13,7 @@ import { readProjects } from './project_store.js';
 import { showStatus } from './renderer.js';
 import { getTaskCodeShort, getDutyCode, isClusterAddedTaskId, getAddedTaskLabel } from './codes.js';
 import { getTaskAnalysisRecord } from './task_analysis.js';
+import { isTaskSelected } from './task_selection.js';
 import { getSupplementaryVerificationData } from './supplementary_verification.js';
 import { getCurriculumModel } from './module_curriculum.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOutcomes } from './clusters.js';
@@ -952,7 +953,8 @@ export function getTraceGraph() {
     title: String(d.title || '').trim(),
     tasks: (d.tasks || []).filter(t => t && t.inputId && String(t.text || '').trim()).map(t => {
       known.add(t.inputId);
-      return { id: t.inputId, code: getTaskCodeShort(t.inputId), text: String(t.text).trim() };
+      return { id: t.inputId, code: getTaskCodeShort(t.inputId), text: String(t.text).trim(),
+               unselected: !isTaskSelected(t.inputId) };
     })
   })).filter(d => d.tasks.length || d.title);
 

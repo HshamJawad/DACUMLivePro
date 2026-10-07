@@ -107,6 +107,16 @@ export function hasTaskSelection() {
   return taskSelectionSignature() !== '';
 }
 
+/** For the Word / PDF exports (3.81.0): null when no task was left
+ *  out, else the counts and the tasks left out with their reasons. */
+export function getTaskSelectionExportSummary() {
+  if (!hasTaskSelection()) return null;
+  const tasks = _allTasks();
+  const out = tasks.filter(t => !isTaskSelected(t.key))
+    .map(t => ({ code: t.code, text: t.text, reason: getTaskExclusionReason(t.key) || '' }));
+  return { selected: tasks.length - out.length, total: tasks.length, excluded: out };
+}
+
 // ── Data ─────────────────────────────────────────────────────────
 
 function _allTasks() {
