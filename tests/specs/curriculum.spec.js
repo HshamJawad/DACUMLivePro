@@ -59,3 +59,17 @@ test('Module Curriculum: the tab renders and its Word export builds', async ({ p
   expect(buf.slice(0, 2).toString()).toBe('PK');
   expect(errors).toEqual([]);
 });
+
+for (const lang of ['en', 'ar']) {
+  test(`PDF export builds a document (${lang})`, async ({ page }) => {
+    test.setTimeout(150_000);
+    const errors = await openApp(page, { lang });
+    await loadProject(page, fixture('sample-project.json'));
+    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 120_000 }),
+      page.evaluate(async () => (await import('./exports_pdf.js')).exportToPDF())]);
+    const buf = fs.readFileSync(await dl.path());
+    expect(buf.slice(0, 5).toString()).toBe('%PDF-');
+    expect(buf.length).toBeGreaterThan(10_000);
+    expect(errors).toEqual([]);
+  });
+}
