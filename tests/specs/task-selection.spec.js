@@ -240,3 +240,22 @@ test('Undo after the move puts every task back in its competency, same position'
   await expect(page.locator('[data-tsel-move-out]')).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('Module Builder handoff carries the tasks left out, with reasons', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  const send = () => page.evaluate(async () => {
+    window.open = () => null;
+    (await import('./module_mapping.js')).openModuleBuilderFromMapping();
+    return JSON.parse(localStorage.getItem('dacum_modules_export'));
+  });
+  expect((await send()).taskSelection).toBeUndefined();          // no selection → no field
+  await page.evaluate(async () => (await import('./task_selection.js')).setTaskSelected('duty_1_3', false, 'rare'));
+  const d = await send();
+  expect(d.taskSelection).toEqual({ selected: 11, total: 12, excluded: [
+    { taskId: 'duty_1_3', code: 'A3', text: 'Perform task A3', reasonCode: 'rare', reason: 'Rarely performed' }] });
+  const st = d.modules.flatMap(m => m.sourceTasks);
+  expect(st.find(t => t.id === 'duty_1_3').selected).toBe(false);
+  expect(st.find(t => t.id === 'duty_1_1').selected).toBeUndefined();
+  expect(errors).toEqual([]);
+});
