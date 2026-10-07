@@ -7,6 +7,29 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.78.0 — 2026-10-07 — PDF export broken up (no behaviour change)
+MINOR (internal). exports_pdf.js, exports_pdf_sections.js (new), sw.js
+(v189), index.html, tests/specs/curriculum.spec.js, tests/helpers.js,
+tests/README.md.
+Changed exportToPDF() was one 1,643-line function. Nine report sections
+        (knowledge and skills, tools and trends, skills matrix, two
+        verification appendices, Task Analysis, clusters, learning
+        outcomes, modules) are now functions in exports_pdf_sections.js.
+        Each receives the exportToPDF() locals it reads and returns the
+        new yPos (the page cursor), which exportToPDF() stores; the
+        section code itself is unchanged. exports_pdf.js 1,355 lines,
+        exports_pdf_sections.js 1,023.
+Kept    The duties chart section stays inside exportToPDF(): it calls
+        newChartPage(), a helper that moves exportToPDF()'s own cursor,
+        so moved out it would draw at the wrong place. The first attempt
+        did move it and the PDF comparison caught the difference; the
+        extraction now refuses any block that uses such a helper.
+        Re-checked against the 3.77.0 Word extraction: no section there
+        used one.
+Tested  PDF chart report and Task Verification report (two projects ×
+        EN/AR): all 8 identical to 3.77.0 apart from the creation date
+        and file ID. New behaviour tests: PDF export in EN and AR (20).
+
 ── 3.77.0 — 2026-10-06 — Word export and Module Curriculum broken up (no behaviour change)
 MINOR (internal). exports_docx.js, exports_docx_sections.js (new),
 module_curriculum.js, module_curriculum_text.js (new), sw.js (v188),

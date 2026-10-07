@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v188';
+const CACHE_VERSION = 'v189';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -93,6 +93,7 @@ const PRECACHE_URLS = [
   BASE + 'exports_docx.js',
   BASE + 'exports_docx_sections.js',
   BASE + 'exports_pdf.js',
+  BASE + 'exports_pdf_sections.js',
   // Second DOCX layout: Occupational Profile + Occupational Standard.
   // Reached only from events.js (the toolbar button), never from
   // exports_docx.js, so nothing else would pull it into the cache. A
