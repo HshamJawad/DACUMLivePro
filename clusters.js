@@ -18,6 +18,121 @@ import { CLUSTER_TASK_SOURCE_ADDED, _esc, _getClusterEffectiveCriteria, _persist
 import { renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack } from './module_mapping.js';
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
+import { registerHistoryScope, refreshHistoryButtons } from './history.js';
+
+// ── Undo / Redo for Competency Clusters (3.84.0) ──────────────
+// The toolbar Undo / Redo buttons (and Ctrl+Z / Ctrl+Y outside text
+// fields) work on this history while the Competency Clusters tab is on
+// screen — same arrangement as Learning Outcomes and Module Mapping.
+//
+// Snapshot-based, recorded at render time rather than wired into every
+// action: each change to the tab ends in renderAvailableTasks() or
+// renderClusters() (or, for the Range, a committed edit), so a step is
+// "what clusteringData looked like at the previous checkpoint → now".
+// That covers manual edits, AI suggestions and AI criteria alike.
+//
+//   • Changes made by syncClusteringWithProfile() (tasks added, renamed
+//     or removed in Duties & Tasks) are absorbed silently: they are not
+//     the user's step, and undoing them would only be redone by the next
+//     sync.
+//   • The history belongs to one project and one clusteringData object:
+//     a project load, Clear This Tab or an import starts a new one.
+//   • Learning Outcomes follow an undone change the same way they follow
+//     a manual one (reconciled on their next render).
+const _CL_UNDO_MAX = 40;
+const _clh = { undo: [], redo: [], last: null, ref: null, project: null, applying: false, label: null };
+
+function _clProject() { try { return localStorage.getItem('dacum_active_project'); } catch (_) { return null; } }
+function _clSnap()    { return JSON.stringify(appState.clusteringData || null); }
+
+function _clValid() {
+  if (_clh.ref !== appState.clusteringData || _clh.project !== _clProject()) {
+    _clh.undo = []; _clh.redo = []; _clh.label = null;
+    _clh.ref = appState.clusteringData; _clh.project = _clProject();
+    _clh.last = _clSnap();
+    return false;
+  }
+  return true;
+}
+
+/** Name of the next step (an i18n key) — optional; generic otherwise. */
+function _clStepLabel(key) { _clh.label = key; }
+export function setClusterStepLabel(key) { _clStepLabel(key); }
+
+function _clCheckpoint() {
+  if (_clh.applying) return;
+  if (!_clValid()) { _clRefresh(); return; }
+  const now = _clSnap();
+  if (now === _clh.last) { _clh.label = null; return; }
+  _clh.undo.push({ label: _clh.label || 'clHistGeneric', before: _clh.last, after: now });
+  if (_clh.undo.length > _CL_UNDO_MAX) _clh.undo.shift();
+  _clh.redo = [];
+  _clh.last = now;
+  _clh.label = null;
+  _clRefresh();
+}
+
+/** Accept the current state as the base without recording a step. */
+function _clRebase() {
+  if (_clh.applying) return;
+  _clValid();
+  _clh.last = _clSnap();
+}
+
+let _clScopeOn = false;
+function _clRefresh() {
+  if (!_clScopeOn) {
+    _clScopeOn = true;
+    try {
+      registerHistoryScope({
+        key:       'clusters',
+        isActive:  () => !!document.getElementById('clustering-tab')?.classList.contains('active'),
+        canUndo:   () => { _clValid(); return _clh.undo.length > 0; },
+        canRedo:   () => { _clValid(); return _clh.redo.length > 0; },
+        undoLabel: () => { const s = _clh.undo[_clh.undo.length - 1]; return s ? _t(s.label) : ''; },
+        redoLabel: () => { const s = _clh.redo[_clh.redo.length - 1]; return s ? _t(s.label) : ''; },
+        undo:      () => undoClusterStep(),
+        redo:      () => redoClusterStep(),
+      });
+    } catch (e) { console.warn('[clusters] undo scope not registered:', e); }
+  }
+  try { refreshHistoryButtons(); } catch (_) {}
+}
+
+function _clApply(json) {
+  const cd = appState.clusteringData;
+  const d = JSON.parse(json) || {};
+  // In place: the object stays the same, so the history stays valid.
+  Object.keys(cd).forEach(k => { delete cd[k]; });
+  Object.assign(cd, d);
+  _lastUnselMove = null;          // its record no longer describes the data
+  _clh.applying = true;
+  try { renderAvailableTasks(); renderClusters(); }
+  finally { _clh.applying = false; }
+  _clh.last = _clSnap();
+  _persistClusters();
+}
+
+export function undoClusterStep() {
+  _clCheckpoint();                // a change not yet recorded becomes its own step first
+  if (!_clValid() || !_clh.undo.length) { _clRefresh(); return false; }
+  const step = _clh.undo.pop();
+  _clh.redo.push(step);
+  _clApply(step.before);
+  _clRefresh();
+  showStatus('↶ ' + _txf('undoDone', { a: _t(step.label) }), 'success');
+  return true;
+}
+
+export function redoClusterStep() {
+  if (!_clValid() || !_clh.redo.length) { _clRefresh(); return false; }
+  const step = _clh.redo.pop();
+  _clh.undo.push(step);
+  _clApply(step.after);
+  _clRefresh();
+  showStatus('↷ ' + _txf('redoDone', { a: _t(step.label) }), 'success');
+  return true;
+}
 
 // ── Clustering ────────────────────────────────────────────────
 
@@ -142,7 +257,11 @@ export function renderAvailableTasks() {
 
   // Bring the pool in line with Duties & Tasks before drawing it — see
   // syncClusteringWithProfile(). Idempotent: a no-op when nothing changed.
+  // 3.84.0: the user's change is recorded first; what the sync then
+  // changes is absorbed without a step of its own.
+  _clCheckpoint();
   syncClusteringWithProfile();
+  _clRebase();
   _renderSyncNotice(container);
 
   if (cd.availableTasks.length === 0) {
@@ -209,8 +328,16 @@ export function createCluster() {
   const cd = appState.clusteringData;
   const checkboxes = document.querySelectorAll('#availableTasksList input[type="checkbox"]');
   const selectedIndices = [];
-  checkboxes.forEach((cb, index) => { if (cb.checked) selectedIndices.push(index); });
+  // 3.84.0: the index comes from the checkbox (id="task_<index>"), not
+  // from its position on screen — since 3.81.0 tasks left out of
+  // training are drawn after the others, so the two no longer match.
+  checkboxes.forEach(cb => {
+    if (!cb.checked) return;
+    const index = parseInt(String(cb.id).replace(/^task_/, ''), 10);
+    if (Number.isInteger(index) && cd.availableTasks[index]) selectedIndices.push(index);
+  });
   if (selectedIndices.length === 0) return;
+  _clStepLabel('clHistCreate');
 
   cd.clusterCounter++;
   const newCluster = {
@@ -318,6 +445,7 @@ export function renderClusters() {
   });
 
   container.innerHTML = _unselBarHtml() + html;
+  _clCheckpoint();
   if (!container.__tselWired) {
     container.__tselWired = true;
     container.addEventListener('click', (e) => {
@@ -375,6 +503,7 @@ export function moveUnselectedOutOfClusters() {
   const moving = _unselInClusters();
   if (!moving.length) return 0;
   if (!confirm(_tf('clUnselBarConfirm', { n: moving.length }))) return 0;
+  _clStepLabel('clHistMoveOut');
   const ids = new Set(moving.map(t => t.id));
   const record = [];
   cd.clusters.forEach(c => (c.tasks || []).forEach((t, i) => {
@@ -421,6 +550,7 @@ export function undoMoveUnselected() {
 export function renameCluster(clusterId) {
   const cluster = appState.clusteringData.clusters.find(c => c.id === clusterId);
   if (!cluster) return;
+  _clStepLabel('clHistRename');
   const newName = prompt(_t('promptRenameCluster'), cluster.name);
   if (newName && newName.trim()) {
     cluster.name = newName.trim();
@@ -433,6 +563,7 @@ export function deleteCluster(clusterId) {
   const idx = cd.clusters.findIndex(c => c.id === clusterId);
   if (idx === -1) return;
   const cluster = cd.clusters[idx];
+  _clStepLabel('clHistDelete');
   cd.availableTasks.push(...cluster.tasks);
   if (cd.availableTasks.length > 0 && cd.availableTasks[0].priorityIndex !== null) {
     cd.availableTasks.sort((a, b) => b.priorityIndex - a.priorityIndex);
@@ -448,6 +579,7 @@ export function removeTaskFromCluster(clusterId, taskIndex) {
   if (!cluster) return;
   const task = cluster.tasks[taskIndex];
   if (!task) return;
+  _clStepLabel('clHistRemoveTask');
 
   // A task the expert ADDED during clustering never came from the
   // Occupational Profile, so it has no place in the Available Tasks
@@ -478,6 +610,7 @@ export function addTaskToClusterFromDropdown(taskIndex, clusterId) {
   if (!cluster) return;
   const task = cd.availableTasks[taskIndex];
   if (!task) return;
+  _clStepLabel('clHistAddTask');
   delete task.newFromProfile;   // "New" badge ends once placed
   cluster.tasks.push(task);
   cd.availableTasks.splice(taskIndex, 1);
@@ -572,6 +705,7 @@ export function moveClusterTask(clusterId, taskIndex, delta) {
       taskIndex < 0 || taskIndex >= tasks.length || to < 0 || to >= tasks.length) return false;
 
   const moving = tasks[taskIndex];
+  _clStepLabel('clHistMoveTask');
   tasks[taskIndex] = tasks[to];
   tasks[to] = moving;
 
@@ -607,6 +741,7 @@ export function addTaskToCluster(clusterId, rawText) {
     addedAt:       new Date().toISOString()
   };
   if (!Array.isArray(cluster.tasks)) cluster.tasks = [];
+  _clStepLabel('clHistAddTask');
   cluster.tasks.push(task);
 
   _addTaskOpenFor = null;
@@ -1297,6 +1432,8 @@ export function updateClusterRange(clusterId, value) {
   if (!cluster) return;
   if (value !== (cluster.range || '')) _clearClusterAiPart(cluster, 'range');
   cluster.range = value;
+  _clStepLabel('clHistRange');
+  _clCheckpoint();
 }
 
 // ── AI draft marks on a cluster (3.71.0) ─────────────────────────
@@ -1350,6 +1487,8 @@ export function updateClusterCriteriaFromNumbered(clusterId, value) {
   if (JSON.stringify(before) !== JSON.stringify(stripped)) _clearClusterAiPart(cluster, 'criteria');
   cluster.performanceCriteria = stripped;
   _refreshCritDupNote(cluster);
+  _clStepLabel('clHistCriteria');
+  _clCheckpoint();
 }
 
 export function handleCriteriaKeydown(event, clusterId) {

@@ -7,6 +7,33 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.84.0 — 2026-10-07 — ↶ Undo / Redo on Competency Clusters; left-out tasks reach Module Builder
+MINOR. clusters.js, clustering_ai.js, history.js, events.js,
+module_mapping.js, task_selection.js, translations.js, index.html,
+sw.js (v200), ROADMAP.md (new), tests/specs/cluster-undo.spec.js (new),
+tests/specs/task-selection.spec.js.
+New     Competency Clusters has its own Undo / Redo history on the
+        toolbar buttons (and Ctrl+Z / Ctrl+Y outside text fields), like
+        Learning Outcomes and Module Mapping: create, rename, delete,
+        add / remove / move a task, Range and criteria edits, "move
+        left-out tasks out", AI clusters and AI Range & criteria. Each
+        step is named in the button tooltip. Changes made by keeping the
+        pool in step with Duties & Tasks are not steps. The history
+        starts again when another project is loaded. history.js now
+        holds one scope per key (Learning Outcomes / Modules, Clusters).
+New     Module Builder handoff: "taskSelection" { selected, total,
+        excluded: [{ taskId, code, text, reasonCode, reason }] } when a
+        task was left out, and "selected": false on a left-out task
+        still sent in a module's sourceTasks. Absent otherwise, so the
+        file is unchanged for projects without a selection. Also in the
+        Module Mapping JSON download. Module Builder 3.17.0 shows it.
+Fixed   Create Cluster took the tasks at the ticked positions on screen;
+        since 3.81.0 left-out tasks are drawn last, so with that group
+        present the wrong tasks could be grouped. It now uses each
+        checkbox's own task index.
+Docs    ROADMAP.md: agreed and proposed updates, and what each release
+        delivered.
+
 ── 3.83.0 — 2026-10-07 — ↶ Undo for "move left-out tasks out of the competencies"
 PATCH. clusters.js, translations.js, dacum-components.css, index.html,
 sw.js (v199), tests/specs/task-selection.spec.js.

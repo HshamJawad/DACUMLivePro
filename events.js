@@ -123,7 +123,9 @@ export function setupEvents() {
   document.addEventListener('keydown', function (e) {
     const _isActive = id => document.getElementById(id)?.classList.contains('active');
     const onDuties = _isActive('duties-tab');
-    const onLOMM   = _isActive('learning-outcomes-tab') || _isActive('module-mapping-tab');
+    // 3.84.0: Competency Clusters has its own history too (clusters.js);
+    // like the two tabs below, a text field keeps its own Ctrl+Z.
+    const onLOMM   = _isActive('learning-outcomes-tab') || _isActive('module-mapping-tab') || _isActive('clustering-tab');
     if (!onDuties && !onLOMM) return;
     if (onLOMM) {
       const el = e.target;

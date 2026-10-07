@@ -25,14 +25,20 @@ let _restoring       = false;   // re-entrancy guard
 // ── Context scope (added 3.31.1) ──────────────────────────────
 // Another part of the app can lend the toolbar Undo / Redo buttons its
 // own history while it is on screen — the Learning Outcomes and Module
-// Mapping tabs do (modules.js). When the registered scope reports
-// itself active, undo()/redo() and the button states go to it; on
-// every other tab they work on the Duties & Tasks history exactly as
-// before. One scope at a time; registering again replaces it.
-let _scope = null;
+// Mapping tabs do (modules.js), and Competency Clusters (clusters.js,
+// 3.84.0). When a registered scope reports itself active, undo()/redo()
+// and the button states go to it; on every other tab they work on the
+// Duties & Tasks history exactly as before. Scopes are kept by `key`
+// (registering the same key again replaces it); a scope without a key
+// replaces the other key-less one, as before 3.84.0.
+let _scopes = [];
 
 export function registerHistoryScope(scope) {
-  _scope = scope || null;
+  if (scope) {
+    const k = scope.key || '';
+    _scopes = _scopes.filter(s => (s.key || '') !== k);
+    _scopes.push(scope);
+  }
   _updateButtons();
 }
 
@@ -40,7 +46,10 @@ export function registerHistoryScope(scope) {
 export function refreshHistoryButtons() { _updateButtons(); }
 
 function _activeScope() {
-  try { return _scope && _scope.isActive() ? _scope : null; } catch (_) { return null; }
+  for (const sc of _scopes) {
+    try { if (sc.isActive()) return sc; } catch (_) { /* a broken scope never blocks the others */ }
+  }
+  return null;
 }
 
 const MAX_HISTORY = 100;

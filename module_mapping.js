@@ -13,7 +13,7 @@ import { readProjects } from './project_store.js';
 import { showStatus } from './renderer.js';
 import { getTaskCodeShort, getDutyCode, isClusterAddedTaskId, getAddedTaskLabel } from './codes.js';
 import { getTaskAnalysisRecord } from './task_analysis.js';
-import { isTaskSelected } from './task_selection.js';
+import { isTaskSelected, getTaskSelectionHandoff } from './task_selection.js';
 import { getSupplementaryVerificationData } from './supplementary_verification.js';
 import { getCurriculumModel } from './module_curriculum.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOutcomes } from './clusters.js';
@@ -916,7 +916,12 @@ export function _collectModuleTaskAnalysis(module) {
      showing its raw id. */
   const sourceTasks = [...taskIds].map(id => {
     const t = _clusterTask(id);
-    return { id, code: _taskLabel(id), text: (t && t.text) || '', dutyTitle: (t && t.dutyTitle) || '' };
+    const st = { id, code: _taskLabel(id), text: (t && t.text) || '', dutyTitle: (t && t.dutyTitle) || '' };
+    // 3.84.0: a task left out of training (Task Verification → Select
+    // Tasks) that still sits in a competency of this module is marked,
+    // so Module Builder can say so. Absent = selected.
+    if (!isClusterAddedTaskId(id) && !isTaskSelected(id)) st.selected = false;
+    return st;
   });
   return { sourceTaskIds: [...taskIds], taskAnalysis, sourceTasks };
 }
@@ -1155,7 +1160,11 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // into learning outcomes automatically.
     occupationalReference: getSupplementaryVerificationData(),
     // 3.79.2: translations of these texts (absent without translations).
-    ...(() => { const cl = _handoffLanguages(); return cl ? { contentLanguages: cl } : {}; })()
+    ...(() => { const cl = _handoffLanguages(); return cl ? { contentLanguages: cl } : {}; })(),
+    // 3.84.0: tasks left out of training in Task Verification, with their
+    // reasons — documentation for Module Builder. Absent when every task
+    // is selected (or the selection was never used).
+    ...(() => { const ts = getTaskSelectionHandoff(); return ts ? { taskSelection: ts } : {}; })()
   };
 
   try {
@@ -1181,8 +1190,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     programId: exportObject.programId, programName: exportObject.programName,
                     dacumVersion: exportObject.dacumVersion,
                     contentLanguages: exportObject.contentLanguages,
+                    taskSelection: exportObject.taskSelection,
                     modules: [...others, ...exportObject.modules] };
         if (!payload.contentLanguages) delete payload.contentLanguages;
+        if (!payload.taskSelection) delete payload.taskSelection;
       }
     }
     // Diagnostic only — confirms exactly what left this tab, so a report
@@ -1245,6 +1256,8 @@ export function exportModuleMappingJSON() {
   };
   const _cl = _handoffLanguages();
   if (_cl) exportData.contentLanguages = _cl;
+  const _ts = getTaskSelectionHandoff();
+  if (_ts) exportData.taskSelection = _ts;
 
   const dateStr = new Date().toISOString().split('T')[0];
   const filename = `module-mapping-export_${dateStr}.json`;

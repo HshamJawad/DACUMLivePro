@@ -120,6 +120,20 @@ export function exportSelectionCell(resultKey, { withReason = false } = {}) {
   return _t('expTselNo') + (why ? ' — ' + why : '');
 }
 
+/** For the Module Builder handoff (3.84.0): null when no task was left
+ *  out, else counts and every task left out with its reason (the code
+ *  for programs, the label in the interface language for people). */
+export function getTaskSelectionHandoff() {
+  if (!hasTaskSelection()) return null;
+  const tasks = _allTasks();
+  const ex = _state().excluded;
+  const out = tasks.filter(t => !isTaskSelected(t.key)).map(t => ({
+    taskId: t.key, code: t.code, text: t.text,
+    reasonCode: ex[t.key] || '', reason: getTaskExclusionReason(t.key) || ''
+  }));
+  return { selected: tasks.length - out.length, total: tasks.length, excluded: out };
+}
+
 /** For the Word / PDF exports (3.81.0): null when no task was left
  *  out, else the counts and the tasks left out with their reasons. */
 export function getTaskSelectionExportSummary() {

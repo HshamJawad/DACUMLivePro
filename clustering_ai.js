@@ -51,7 +51,7 @@ import { appState }   from './state.js';
 import { showStatus } from './renderer.js';
 import { renderAvailableTasks, renderClusters, persistClustering,
          loText, initializeClusteringFromTasks, syncClusteringWithProfile,
-         isClusterAddedTask } from './modules.js';
+         isClusterAddedTask, setClusterStepLabel } from './modules.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
 import { isTaskSelected } from './task_selection.js';
 import { writeAIDraft, openAIPartsDialog } from './ai_draft.js';
@@ -369,6 +369,7 @@ export async function suggestClustersAI() {
     cd.clusterCounter = clusters.length;
     cd.availableTasks = leftovers;
 
+    setClusterStepLabel('clHistAiClusters');   // one Undo step (3.84.0)
     renderAvailableTasks();
     renderClusters();
     // Save now, as the LO and module generators do since 3.29/3.30 —
@@ -591,6 +592,7 @@ export async function generateRangeAndCriteriaAI(onlyClusterId = null, parts = n
 
     if (!updated) throw new Error('AI response did not match any existing cluster');
 
+    setClusterStepLabel('clHistAiCriteria');   // one Undo step (3.84.0)
     renderClusters();
     persistClustering();
     hideLoadingModal();
