@@ -318,3 +318,19 @@ test('the Module Builder handoff carries the other languages of its texts', asyn
   expect(map.get(lo.statement)).toBe(lo.statement.slice(2));  // and its English original travels with it
   expect(errors).toEqual([]);
 });
+
+test('the project card shows its content languages and opens Settings → Languages', async ({ page }) => {
+  const errors = await openApp(page);
+  await mockAI(page);
+  await loadProject(page, fixture('sample-project.json'));
+  const card = page.locator('.dps-card.dps-active');
+  await expect(card.locator('.dps-lang-badge')).toHaveCount(0);          // no languages set: card unchanged
+  await translateToArabic(page);
+  await page.click('#esModalClose');
+  const badge = card.locator('.dps-lang-badge');
+  await expect(badge).toHaveText(/EN · AR/);
+  await expect(badge.locator('b')).toHaveText('AR');                     // the version shown
+  await badge.click();
+  await expect(page.locator('#esTabs [data-es-tab="languages"]')).toHaveClass(/es-tab-on/);
+  expect(errors).toEqual([]);
+});
