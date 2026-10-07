@@ -6,7 +6,10 @@ const path = require('path');
 async function openApp(page, { lang } = {}) {
   const errors = [];
   page.on('pageerror', e => errors.push(String(e && e.message || e)));
-  page.on('dialog', d => d.accept());          // confirm()/alert() → OK
+  if (!page.__dacumDialogs) {                   // once per page, even if opened twice
+    page.__dacumDialogs = true;
+    page.on('dialog', d => d.accept().catch(() => {}));   // confirm()/alert() → OK
+  }
   await page.goto('/index.html');
   await page.waitForFunction(() => !!window.i18n && typeof window.switchTab === 'function');
   await page.waitForTimeout(600);
