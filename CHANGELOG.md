@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.79.5 — 2026-10-07 — 🎨 AI-card blue for the start-up splash
+PATCH. index.html, sw.js (v195).
+Changed The start-up splash screen behind the "DACUM Live Pro" card,
+        its loading bar and its Reload button now use the AI-card blue
+        (#0ea5e9 → #0284c7) instead of the indigo/purple gradient.
+
 ── 3.79.4 — 2026-10-07 — 🎨 AI-card blue for update bar, format switch, welcome backdrop
 PATCH. index.html, dacum_projects.js, sw.js (v194).
 Changed The "A new version is available" bar, the selected Workshop
