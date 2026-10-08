@@ -108,14 +108,14 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v215';
+      var EXPECTED_SW = 'v216';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.93.0';
-      var APP_RELEASED = '2026-10-08';
+      var APP_VERSION = '3.94.0';
+      var APP_RELEASED = '2026-10-09';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
 
@@ -587,6 +587,7 @@
             <div class="tab" data-tab="duties-tab" data-i18n="tabDuties">✅ Duties & Tasks</div>
             <div class="tab" data-tab="additional-info-tab" data-i18n="tabAdditionalInfo">📚 Additional Info</div>
             <div class="tab" data-tab="verification-tab" data-i18n="tabVerification">🎯 Task Verification</div>
+            <div class="tab" data-tab="task-selection-tab" data-i18n="tabTaskSelection">☑️ Task Selection</div>
             <div class="tab" data-tab="task-analysis-tab" data-i18n="tabTaskAnalysis">🔬 Task Analysis</div>
             <div class="tab" data-tab="clustering-tab" data-i18n="tabClustering">🎯 Competency Clusters</div>
             <div class="tab" data-tab="occupational-standard-tab" data-i18n="tabOccStandard">Occupational Standard</div>
@@ -1594,11 +1595,8 @@
                  Priority Index or the duty/task order. -->
             <div id="supplementaryVerificationSection"></div>
 
-            <!-- ===== SELECT TASKS FOR TRAINING / ANALYSIS (3.80.0) =====
-                 Rendered by task_selection.js. Optional SCID step: every
-                 task is selected until the user changes it; Task
-                 Analysis lists only the selected tasks. -->
-            <div id="taskSelectionSection"></div>
+            <!-- 3.94.0: Select Tasks for Training moved to its own tab,
+                 "Task Selection" (SCID), right after this one. -->
 
             <!-- Task Verification Export
                  Previously two radio buttons. They were not export
@@ -1640,14 +1638,42 @@
                         data-i18n="ttBackAdditional" data-i18n-attr="title">
                     <span class="rtl-flip">←</span> <span data-i18n="btnBackAdditional">Back to Additional Info</span>
                 </button>
-                <button type="button" class="btn-next-step" data-nav-next="task-analysis-tab">
-                    <span data-i18n="btnProceedTaskAnalysis">Proceed to Task Analysis</span> <span class="rtl-flip">→</span>
+                <button type="button" class="btn-next-step" data-nav-next="task-selection-tab">
+                    <span data-i18n="btnProceedTaskSelection">Proceed to Task Selection</span> <span class="rtl-flip">→</span>
                 </button>
                 <button type="button" id="btnProceedToClustering" class="btn-next-step" style="background:#94a3b8;">
                     <span data-i18n="btnSkipToClustering">Skip to Competency Clustering</span> <span class="rtl-flip">→</span>
                 </button>
             </div>
 
+        </div>
+
+        <!-- ===== TASK SELECTION (3.94.0) =====
+             SCID: Needs Analysis → DACUM → Task Verification → TASK
+             SELECTION → Task Analysis. Rendered by task_selection.js
+             (3.80.0, formerly at the foot of Task Verification). Optional:
+             every task is selected until the user changes it; Task
+             Analysis lists only the selected tasks. -->
+        <div class="tab-content" id="task-selection-tab">
+            <div class="tab-header-row">
+                <h2>✅ <span data-i18n="tabTaskSelection">Task Selection</span></h2>
+                <button data-action="clear-tab" data-tab-id="task-selection-tab" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                    🗑️ <span data-i18n="btnClearTab">Clear This Tab</span>
+                </button>
+            </div>
+
+            <div id="taskSelectionSection"></div>
+
+            <div class="step-nav-row">
+                <button type="button" class="btn-back-step" data-nav-back="verification-tab"
+                        title="Return to Task Verification"
+                        data-i18n="ttBackVerificationFromTA" data-i18n-attr="title">
+                    <span class="rtl-flip">←</span> <span data-i18n="btnBackVerification">Back to Task Verification</span>
+                </button>
+                <button type="button" class="btn-next-step" data-nav-next="task-analysis-tab">
+                    <span data-i18n="btnProceedTaskAnalysis">Proceed to Task Analysis</span> <span class="rtl-flip">→</span>
+                </button>
+            </div>
         </div>
 
         <style id="taskAnalysisStyles">
@@ -1791,10 +1817,10 @@
             </div>
 
             <div class="step-nav-row">
-                <button type="button" class="btn-back-step" data-nav-back="verification-tab"
-                        title="Return to Task Verification"
-                        data-i18n="ttBackVerificationFromTA" data-i18n-attr="title">
-                    <span class="rtl-flip">←</span> <span data-i18n="btnBackVerification">Back to Task Verification</span>
+                <button type="button" class="btn-back-step" data-nav-back="task-selection-tab"
+                        title="Return to Task Selection"
+                        data-i18n="ttBackTaskSelection" data-i18n-attr="title">
+                    <span class="rtl-flip">←</span> <span data-i18n="btnBackTaskSelection">Back to Task Selection</span>
                 </button>
                 <button type="button" class="btn-next-step" id="btnTAProceedToClustering">
                     <span data-i18n="btnProceedClustering">Proceed to Competency Clustering</span> <span class="rtl-flip">→</span>

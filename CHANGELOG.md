@@ -7,6 +7,28 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.94.0 — 2026-10-09 — ☑️ Task Selection, a tab of its own (SCID)
+MINOR. index.html, dacum_projects.js, task_selection.js, projects.js,
+verified_chart.js, translations.js, sw.js (v216).
+Changed "Select Tasks for Training & Analysis" moved from the foot of Task
+        Verification to a new tab, "Task Selection" (FR: Sélection des
+        tâches, AR: اختيار المهام), between Task Verification and Task
+        Analysis — the order of the SCID process (Verification →
+        Selection → Analysis). Sidebar item ☑️; Task Verification
+        now proceeds to Task Selection, which proceeds to Task Analysis;
+        Task Analysis goes back to Task Selection.
+        Same data (taskSelection): projects, the JSON file, the exports
+        and the Module Builder handoff are unchanged.
+Changed Undo / Redo of the selection follow the new tab. "Not rated yet"
+        opens Task Verification at the task's row. The verified chart's
+        "Edit the selection" opens Task Selection. Texts that said
+        "above" / "Task Verification → Select Tasks" name the tab.
+Added   Clear This Tab on Task Selection (every task selected again,
+        performance rule off). Clearing Task Verification still resets
+        the selection too, since it is built on the ratings.
+Tests   tests/specs: task-selection, task-selection-perf, verified-chart
+        and smoke follow the new tab; README updated.
+
 ── 3.93.0 — 2026-10-08 — Task Verification: whole workshop table on screen; empty count boxes
 MINOR. tasks.js, supplementary_verification.js, dacum-components.css,
 index.html, sw.js (v215).

@@ -137,7 +137,7 @@ function _tsRefresh() {
     try {
       registerHistoryScope({
         key:       'taskSelection',
-        isActive:  () => !!document.getElementById('verification-tab')?.classList.contains('active'),
+        isActive:  () => !!document.getElementById('task-selection-tab')?.classList.contains('active'),
         canUndo:   () => { _tsValid(); return _tsh.undo.length > 0; },
         canRedo:   () => { _tsValid(); return _tsh.redo.length > 0; },
         undoLabel: () => { const x = _tsh.undo[_tsh.undo.length - 1]; return x ? _t(x.label) : ''; },
@@ -617,6 +617,12 @@ function _refreshPerfFlag(el) {
    table is opened (the accordion keeps one duty open), the row is
    scrolled into view, briefly highlighted, and its first field focused. */
 function _gotoRating(taskKey) {
+  /* 3.94.0: the rating row is in the Task Verification tab — go there first. */
+  if (!document.getElementById('verification-tab')?.classList.contains('active') && window.switchTab) {
+    window.switchTab('verification-tab');
+    setTimeout(() => _gotoRating(taskKey), 150);
+    return;
+  }
   const cont = document.getElementById('verificationAccordionContainer');
   const row = cont && cont.querySelector(`tr[data-task-key="${CSS.escape(taskKey)}"]`);
   if (!row) return;
@@ -677,7 +683,7 @@ export function initTaskSelection() {
   host.addEventListener('click',  _onClick);
 
   // Ratings, counts, the formula and the collection mode are all edited
-  // elsewhere in the same tab; follow them with a short debounce. Never
+  // in Task Verification; follow them with a short debounce. Never
   // re-render while focus is inside this section (it would steal it).
   const tab = document.getElementById('verification-tab');
   if (tab) {
@@ -693,13 +699,17 @@ export function initTaskSelection() {
     tab.addEventListener('input',  later);
     tab.addEventListener('click',  (e) => { if (e.target.closest && e.target.closest('#btnLoadDutiesForVerification, #btnLWFetchResults')) later(e); });
 
+  }
+  /* 3.94.0: the selection has its own tab — re-render on entering it. */
+  const own = document.getElementById('task-selection-tab');
+  if (own) {
     if ('MutationObserver' in window) {
-      let wasActive = tab.classList.contains('active');
+      let wasActive = own.classList.contains('active');
       new MutationObserver(() => {
-        const isActive = tab.classList.contains('active');
+        const isActive = own.classList.contains('active');
         if (isActive && !wasActive) setTimeout(renderTaskSelection, 0);
         wasActive = isActive;
-      }).observe(tab, { attributes: true, attributeFilter: ['class'] });
+      }).observe(own, { attributes: true, attributeFilter: ['class'] });
     }
   }
 

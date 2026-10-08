@@ -328,6 +328,7 @@ function _doClear() {
 const _DOWNSTREAM_OF = {
   'duties-tab':            ['verification', 'taskAnalysis', 'clustering', 'outcomes', 'modules'],
   'verification-tab':      ['taskAnalysis', 'clustering', 'outcomes', 'modules'],
+  'task-selection-tab':    [],
   'task-analysis-tab':     ['clustering', 'outcomes', 'modules'],
   'clustering-tab':        ['outcomes', 'modules'],
   'learning-outcomes-tab': ['modules'],
@@ -401,6 +402,12 @@ function _isTabEmpty(tabId) {
              !Object.keys(s.workshopResults     || {}).length &&
              !Object.keys(s.taskSelection?.excluded || {}).length &&
              !_hasSupplementaryResponses();
+
+    case 'task-selection-tab': {
+      const ts = s.taskSelection || {};
+      return !Object.keys(ts.excluded || {}).length && !Object.keys(ts.performed || {}).length &&
+             !Object.keys(ts.newTask || {}).length && !ts.perfRule;
+    }
 
     case 'task-analysis-tab':
       return !hasAnyTaskAnalysis();
@@ -497,8 +504,9 @@ export function clearCurrentTab(tabId) {
     // Additional Info reappear automatically when it is re-enabled.
     appState.supplementaryVerification = defaultSupplementaryVerification();
     document.dispatchEvent(new CustomEvent('dacum:supplementary-changed'));
-    // 3.80.0: the task selection lives in this tab and is built on its
-    // ratings — clearing the tab returns every task to selected.
+    // 3.80.0: the task selection is built on these ratings — clearing
+    // them returns every task to selected (since 3.94.0 the selection
+    // has its own tab, which can also be cleared on its own).
     appState.taskSelection = null;
     document.dispatchEvent(new CustomEvent('dacum:task-selection-changed'));
     // Repopulate rather than leave the tab blank. Emptying the container
@@ -525,6 +533,12 @@ export function clearCurrentTab(tabId) {
     if (btnBP) btnBP.disabled = false;
     if (btnRD) btnRD.style.display = 'none';
     showStatus(_tf('msgTabCleared', { v: _t('tabVerification') }), 'success');
+
+  } else if (tabId === 'task-selection-tab') {
+    // 3.94.0: back to "every task selected", rule off, no figures.
+    appState.taskSelection = null;
+    document.dispatchEvent(new CustomEvent('dacum:task-selection-changed'));
+    showStatus(_tf('msgTabCleared', { v: _t('tabTaskSelection') }), 'success');
 
   } else if (tabId === 'task-analysis-tab') {
     clearAllTaskAnalysis();

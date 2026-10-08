@@ -189,8 +189,7 @@ function _onClick(e) {
   closeVerifiedChart();
   if (act === 'edit-tasks' && window.switchTab) window.switchTab('duties-tab');
   if (act === 'edit-selection' && window.switchTab) {
-    window.switchTab('verification-tab');
-    setTimeout(() => document.getElementById('taskSelectionSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    window.switchTab('task-selection-tab');   // 3.94.0: its own tab
   }
 }
 function _onKey(e) { if (e.key === 'Escape') { e.preventDefault(); closeVerifiedChart(); } }

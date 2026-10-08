@@ -615,6 +615,10 @@ export function initProjectsSidebar() {
         <span class="dps-nav-icon">🎯</span>
         <span class="dps-nav-text">${_t('tabVerification')}</span>
       </button>
+      <button class="dps-nav-item" data-target-tab="task-selection-tab" data-tooltip="${_t('tabTaskSelection')}">
+        <span class="dps-nav-icon">☑️</span>
+        <span class="dps-nav-text">${_t('tabTaskSelection')}</span>
+      </button>
       <button class="dps-nav-item" data-target-tab="task-analysis-tab" data-tooltip="${_t('tabTaskAnalysis')}">
         <span class="dps-nav-icon">🔬</span>
         <span class="dps-nav-text">${_t('tabTaskAnalysis')}</span>
@@ -2355,6 +2359,7 @@ window.addEventListener('dacum:langchange', () => {
     'duties-tab':            'tabDuties',
     'additional-info-tab':   'tabAdditionalInfo',
     'verification-tab':      'tabVerification',
+    'task-selection-tab':    'tabTaskSelection',   // 3.94.0
     'task-analysis-tab':     'tabTaskAnalysis',
     'clustering-tab':        'tabClustering',
     'occupational-standard-tab': 'tabOccStandard',
