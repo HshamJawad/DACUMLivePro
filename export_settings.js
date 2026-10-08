@@ -342,6 +342,11 @@ function _render() {
     </section>
 
     <section class="es-section">
+      <div class="es-sec-head"><span>👁️ ${_t('esPreview')}</span></div>
+      <div class="es-preview">${_previewHTML(s)}</div>
+    </section>
+
+    <section class="es-section">
       <div class="es-sec-head">
         <span>🔤 ${_t('esSizes')}</span>
         <span class="es-badges"><i class="es-badge">Word</i></span>
@@ -352,11 +357,6 @@ function _render() {
         <select id="esSizeOffset" class="es-select">${_sizeOptions(s.sizeOffset)}</select>
       </div>
 
-    </section>
-
-    <section class="es-section">
-      <div class="es-sec-head"><span>👁️ ${_t('esPreview')}</span></div>
-      <div class="es-preview">${_previewHTML(s)}</div>
     </section>
 
     <section class="es-section">
