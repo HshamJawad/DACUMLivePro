@@ -699,10 +699,11 @@ input[type="date"]:focus {
     align-items: center;
     gap: 18px;
     padding: 28px 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* 3.86.4: AI-card blue (was the indigo/violet gradient). */
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
     border-radius: 16px;
     margin-bottom: 28px;
-    box-shadow: 0 6px 24px rgba(102,126,234,0.25);
+    box-shadow: 0 6px 24px rgba(2,132,199,0.25);
 }
 .hc-header-icon {
     font-size: 2.4em;
@@ -818,7 +819,7 @@ input[type="date"]:focus {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: linear-gradient(135deg,#667eea,#764ba2);
+    background: linear-gradient(135deg,#0ea5e9,#0284c7);
     color: #fff;
     font-size: 0.78em;
     font-weight: 800;
@@ -893,9 +894,9 @@ input[type="date"]:focus {
     cursor: pointer;
 }
 .hc-btn-primary {
-    background: linear-gradient(135deg,#667eea,#764ba2);
+    background: linear-gradient(135deg,#0ea5e9,#0284c7);
     color: #fff;
-    box-shadow: 0 3px 10px rgba(102,126,234,0.35);
+    box-shadow: 0 3px 10px rgba(2,132,199,0.35);
 }
 .hc-btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
 .hc-btn-secondary {
@@ -949,7 +950,7 @@ input[type="date"]:focus {
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background: linear-gradient(135deg,#faf5ff,#ede9fe);
+    background: linear-gradient(135deg,#f0f9ff,#e0f2fe);
     border-radius: 12px;
     margin-bottom: 18px;
 }
@@ -957,7 +958,7 @@ input[type="date"]:focus {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background: linear-gradient(135deg,#7c3aed,#a855f7);
+    background: linear-gradient(135deg,#0ea5e9,#0284c7);
     color: #fff;
     font-size: 1.1em;
     font-weight: 800;
@@ -966,8 +967,8 @@ input[type="date"]:focus {
     justify-content: center;
     flex-shrink: 0;
 }
-.hc-creator-name { margin: 0; font-size: 1em; font-weight: 800; color: #1e1b4b; }
-.hc-creator-role { margin: 2px 0 0; font-size: 0.82em; color: #7c3aed; font-weight: 600; }
+.hc-creator-name { margin: 0; font-size: 1em; font-weight: 800; color: #0c4a6e; }
+.hc-creator-role { margin: 2px 0 0; font-size: 0.82em; color: #0369a1; font-weight: 600; }
 .hc-creator-sub  { margin: 2px 0 0; font-size: 0.8em;  color: #64748b; }
 
 /* Contact links */

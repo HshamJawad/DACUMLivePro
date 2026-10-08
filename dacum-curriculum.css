@@ -64,9 +64,9 @@
 #module-curriculum-tab .cur-export-btn {
   margin: 0; padding: 8px 14px !important; border-radius: 8px; border: none; cursor: pointer;
   font: inherit; font-size: .88em; font-weight: 700; color: #fff; white-space: nowrap;
-  background: linear-gradient(135deg, #0f766e, #0d9488);
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);   /* 3.86.4: AI-card blue (was teal) */
 }
-#module-curriculum-tab .cur-export-btn:hover { filter: brightness(1.08); }
+#module-curriculum-tab .cur-export-btn:hover { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); filter: none; }
 
 /* ── Cards / sections ─────────────────────────────────────── */
 #module-curriculum-tab .cur-card {

@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.86.4 — 2026-10-08 — Help tab and Settings in the app's blue and grey
+PATCH. dacum-styles.css, dacum-curriculum.css, dacum-components.css,
+index.html, sw.js (v206).
+Changed The Help tab drops its purple: the header, the quick-start step
+        numbers, the primary button and the developer card use the same
+        sky blue as the AI cards (#0ea5e9 → #0284c7).
+Changed "Export this module (Word)" in Module Curriculum is blue instead
+        of teal, matching the other primary buttons.
+Changed The Settings window is light: the sidebar's grey background with
+        thin borders, white section cards and dark text, in place of the
+        dark theme. Tabs, chips, colour swatches and buttons follow.
+
 ── 3.86.3 — 2026-10-08 — Ratings show in "Select Tasks" at once
 PATCH. tasks.js, workshop.js, task_selection.js, verified_chart.js,
 index.html, sw.js (v205), tests/specs/task-selection.spec.js.
