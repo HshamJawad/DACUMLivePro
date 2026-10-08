@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.86.5 — 2026-10-08 — Settings: Preview sits under the export colours
+PATCH. export_settings.js, index.html, sw.js (v207).
+Changed In Settings → Export the Preview section now comes right after
+        Colors and Font sizes, which it previews, and Card colours moves
+        below it, so a heading colour and its effect are seen together.
+
 ── 3.86.4 — 2026-10-08 — Help tab and Settings in the app's blue and grey
 PATCH. dacum-styles.css, dacum-curriculum.css, dacum-components.css,
 index.html, sw.js (v206).

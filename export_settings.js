@@ -355,6 +355,11 @@ function _render() {
     </section>
 
     <section class="es-section">
+      <div class="es-sec-head"><span>👁️ ${_t('esPreview')}</span></div>
+      <div class="es-preview">${_previewHTML(s)}</div>
+    </section>
+
+    <section class="es-section">
       <div class="es-sec-head">
         <span>🃏 ${_t('ccTitle')}</span>
         <span class="es-badges"><i class="es-badge es-badge-screen">${_t('ccBadgeScreen')}</i></span>
@@ -369,11 +374,6 @@ function _render() {
         <div class="cc-swatches">${cardSwatchRow('task', s.cardTask, 'data-ccs')}</div>
       </div>
       <div class="cc-prev" aria-hidden="true">${_cardPreviewHTML(s)}</div>
-    </section>
-
-    <section class="es-section">
-      <div class="es-sec-head"><span>👁️ ${_t('esPreview')}</span></div>
-      <div class="es-preview">${_previewHTML(s)}</div>
     </section>
 
     <p class="es-note es-scope">ℹ️ ${_t('esScopeNote')}</p>
