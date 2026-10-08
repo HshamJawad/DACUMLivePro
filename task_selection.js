@@ -276,7 +276,7 @@ export function renderTaskSelection() {
 
   const metrics = (m) => m
     ? `<span class="tsel-metrics" dir="ltr">I ${_fmt(m.i)} · F ${_fmt(m.f)} · D ${_fmt(m.d)} · <b>PI ${_fmt(m.pi)}</b></span>`
-    : `<span class="tsel-metrics tsel-unrated">${escapeHtml(_t('tselUnrated'))}</span>`;
+    : '';
 
   const num = (field, val, min, max, step) =>
     `<input type="number" class="tsel-num" data-tsel-field="${field}" value="${escapeHtml(String(val))}"
@@ -325,7 +325,8 @@ export function renderTaskSelection() {
                   <span class="tsel-code">${_bdi(r.code)}</span>
                   <span class="tsel-text">${escapeHtml(r.text)}</span>
                 </label>
-                ${metrics(r.m)}
+                ${r.m ? metrics(r.m) : `<button type="button" class="tsel-unrated tsel-goto" data-tsel-goto="${escapeHtml(r.key)}"
+                    title="${escapeHtml(_t('tselGotoTip'))}">⚠ ${escapeHtml(_t('tselUnrated'))}</button>`}
                 ${reasonSelect(r)}
               </div>`).join('')}
           </div>`;
@@ -391,7 +392,28 @@ function _onChange(e) {
   }
 }
 
+/* 3.86.1: "Not rated yet" leads to the task's rating row — its duty's
+   table is opened (the accordion keeps one duty open), the row is
+   scrolled into view, briefly highlighted, and its first field focused. */
+function _gotoRating(taskKey) {
+  const cont = document.getElementById('verificationAccordionContainer');
+  const row = cont && cont.querySelector(`tr[data-task-key="${CSS.escape(taskKey)}"]`);
+  if (!row) return;
+  const acc = row.closest('.duty-accordion');
+  const head = acc && acc.querySelector('.duty-accordion-header');
+  if (head && !head.classList.contains('active')) head.click();
+  setTimeout(() => {
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.add('tsel-flash');
+    setTimeout(() => row.classList.remove('tsel-flash'), 2200);
+    const f = row.querySelector('input:not([type="hidden"]), select');
+    if (f) { try { f.focus({ preventScroll: true }); } catch (_) {} }
+  }, 60);
+}
+
 function _onClick(e) {
+  const go = e.target.closest('[data-tsel-goto]');
+  if (go) { _gotoRating(go.getAttribute('data-tsel-goto')); return; }
   const btn = e.target.closest('[data-tsel-action]');
   if (!btn) return;
   const action = btn.getAttribute('data-tsel-action');

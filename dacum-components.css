@@ -2129,6 +2129,12 @@ html[data-content-mixed] .container input[type="text"] {
       .tsel-metrics { font-size: .8em; color: #475569; white-space: nowrap; }
       .tsel-metrics b { color: #0369a1; }
       .tsel-unrated { color: #94a3b8; font-style: italic; }
+      /* 3.86.1: "Not rated yet" is a link to the task's rating row. */
+      .tsel-goto { width: auto; margin: 0; padding: 3px 9px; border-radius: 999px; border: 1px dashed #f59e0b; background: #fffbeb;
+                   color: #92400e; font: inherit; font-size: .8em; font-style: normal; font-weight: 600; cursor: pointer; white-space: nowrap; }
+      .tsel-goto:hover { background: #fef3c7; }
+      .tsel-goto:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }
+      #verificationAccordionContainer tr.tsel-flash > td { background: #fef9c3 !important; transition: background .3s; }
       .tsel-reason { width: auto !important; max-width: 240px; margin: 0 !important; padding: 4px 8px !important;
                      font-size: .82em !important; border: 1px solid #fcd34d !important; border-radius: 6px !important; background: #fffbeb; }
       .tsel-reason[hidden] { display: none !important; }

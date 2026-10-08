@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.86.1 — 2026-10-08 — "Not rated yet" says what and where
+PATCH. task_selection.js, translations.js, dacum-components.css,
+index.html, sw.js (v203), tests/specs/task-selection.spec.js.
+Changed Select Tasks for Training: an unrated task now reads "Not rated
+        yet (importance · frequency · difficulty) — rate it" instead of
+        "not rated", and the label is a link: it opens the task's duty
+        table in Task Verification, scrolls to its row, highlights it
+        and focuses its first field.
+Changed The note under "Suggest selection" when nothing is rated says
+        where ratings are entered (the duty tables above) or where they
+        come from (live workshop → Refresh Voting Results).
+
 ── 3.86.0 — 2026-10-08 — 📋 Verified DACUM chart
 MINOR. verified_chart.js (new), task_analysis.js, exports_docx.js, exports_docx_sections.js,
 exports_pdf.js, exports_pdf_sections.js, translations.js, app.js,
