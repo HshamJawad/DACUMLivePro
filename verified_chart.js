@@ -377,12 +377,15 @@ html.vc-lock, html.vc-lock body { overflow: hidden; }
 .vc-duty-code { font-size: .78em; font-weight: 700; opacity: .9; text-transform: uppercase; }
 .vc-duty-title { font-weight: 700; font-size: .92em; margin-top: 4px; overflow-wrap: anywhere; }
 .vc-tasks { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
-.vc-task { width: 168px; min-height: 96px; background: #fff; border: 1px solid #e2e8f0; border-top: 6px solid #cbd5e1; border-radius: 9px; padding: 7px 9px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; }
-.vc-task.vc-pri-high { border-top-color: #ea580c; }
-.vc-task.vc-pri-medium { border-top-color: #f59e0b; }
-.vc-task.vc-pri-low { border-top-color: #94a3b8; }
-.vc-task.vc-pri-none { border-top-style: dashed; border-top-color: #e2e8f0; }
-.vc-task.vc-off { background: #f8fafc; opacity: .62; }
+/* 3.86.2: cards stand out — darker frame, light shadow, and a faint
+   tint of their priority colour (they read as blank white before). */
+.vc-task { width: 168px; min-height: 96px; background: #fff; border: 1.5px solid #94a3b8; border-top: 6px solid #cbd5e1; border-radius: 9px; padding: 7px 9px;
+  display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; box-shadow: 0 1px 3px rgba(15,23,42,.10), 0 1px 2px rgba(15,23,42,.06); }
+.vc-task.vc-pri-high { border-color: #fdba74; border-top-color: #ea580c; background: #fff7ed; }
+.vc-task.vc-pri-medium { border-color: #fcd34d; border-top-color: #f59e0b; background: #fffbeb; }
+.vc-task.vc-pri-low { border-color: #94a3b8; border-top-color: #64748b; background: #f8fafc; }
+.vc-task.vc-pri-none { border-color: #94a3b8; border-top-style: dashed; border-top-color: #94a3b8; background: #fff; }
+.vc-task.vc-off { background: #f1f5f9; border-style: dashed; border-color: #94a3b8; box-shadow: none; opacity: .7; }
 .vc-task.vc-off .vc-text { text-decoration: line-through; color: #64748b; }
 .vc-task-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
 .vc-code { font-weight: 800; color: #0369a1; font-size: .86em; }
@@ -396,7 +399,7 @@ html.vc-lock, html.vc-lock body { overflow: hidden; }
 .vc-ta-completed { color: #16a34a; } .vc-ta-in-progress { color: #d97706; } .vc-ta-not-started { color: #94a3b8; }
 .vc-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 8px 18px; border-top: 1px solid #e2e8f0; font-size: .8em; color: #475569; }
 .vc-sw { display: inline-block; width: 18px; height: 6px; border-radius: 3px; margin-inline-end: 6px; vertical-align: middle; background: #cbd5e1; }
-.vc-sw.vc-pri-high { background: #ea580c; } .vc-sw.vc-pri-medium { background: #f59e0b; } .vc-sw.vc-pri-low { background: #94a3b8; }
+.vc-sw.vc-pri-high { background: #ea580c; } .vc-sw.vc-pri-medium { background: #f59e0b; } .vc-sw.vc-pri-low { background: #64748b; }
 .vc-sw.vc-pri-none { background: transparent; border: 1px dashed #94a3b8; height: 4px; }
 .vc-note { margin: 0 18px 12px; font-size: .78em; color: #64748b; font-style: italic; }
 .vc-empty { color: #64748b; text-align: center; padding: 40px 0; }

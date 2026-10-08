@@ -7,6 +7,14 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.86.2 — 2026-10-08 — Verified DACUM chart: cards stand out
+PATCH. verified_chart.js, index.html, sw.js (v204).
+Changed Task cards read as blank white: they now have a darker frame
+        (1.5 px), a light shadow and a faint tint of their priority
+        colour (orange / amber / grey); unrated cards stay white with the
+        dashed top band; tasks left out keep a dashed grey frame. The
+        "low priority" band is a darker grey so it reads in print.
+
 ── 3.86.1 — 2026-10-08 — "Not rated yet" says what and where
 PATCH. task_selection.js, translations.js, dacum-components.css,
 index.html, sw.js (v203), tests/specs/task-selection.spec.js.
