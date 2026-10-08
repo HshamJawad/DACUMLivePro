@@ -20,7 +20,7 @@ import { getSupplementaryExportSections } from './supplementary_verification.js'
 import * as ExportSettings from './export_settings.js';
 import { writeLevelsPdf } from './modules.js';
 import { ensureArabicFont, isArabicFontLoaded, installArabicRTL, suspendJsPdfArabicParser } from './pdf_arabic.js';
-import { _pdfClusters, _pdfKnowledgeSkills, _pdfLearningOutcomes, _pdfModules, _pdfSkillsMatrix, _pdfTaskAnalysis, _pdfToolsTrends, _pdfVerificationAppendix, _pdfVerifiedResults } from './exports_pdf_sections.js';
+import { _pdfVerifiedChart, _pdfClusters, _pdfKnowledgeSkills, _pdfLearningOutcomes, _pdfModules, _pdfSkillsMatrix, _pdfTaskAnalysis, _pdfToolsTrends, _pdfVerificationAppendix, _pdfVerifiedResults } from './exports_pdf_sections.js';
 
 
 
@@ -1204,6 +1204,9 @@ function _exportToPDFImpl() {
             yPos += DUTY_GAP;
         });
         
+        // 3.86.0: the verified DACUM chart, when there is verification data or a selection.
+        yPos = _pdfVerifiedChart({ margin, pageHeight, pageWidth, pdf, yPos });
+
         // ============ KNOWLEDGE, SKILLS, BEHAVIORS ============
         const knowledgeText = document.getElementById('knowledgeInput').value.trim();
         const skillsText = document.getElementById('skillsInput').value.trim();

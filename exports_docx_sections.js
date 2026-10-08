@@ -11,6 +11,7 @@ import { getTaskCode, getDutyLetter } from './codes.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getTaskSelectionExportSummary, exportSelectionCell } from './task_selection.js';
 import { moduleTitleWithLevel } from './modules.js';
+import { getVerifiedChartData } from './verified_chart.js';
 import { _rtl, _start, _t, _tblFill, _tf, _today } from './exports_docx.js';
 
 /* exportToWord() section, moved out unchanged (3.77.0). Receives the
@@ -1470,4 +1471,50 @@ export function _docxModules({ AlignmentType, PageBreak, Paragraph, TextRun, chi
                         });
                     });
                 }
+}
+
+/* Verified DACUM chart (3.86.0) — after the DACUM chart, only once there
+   is something to show (ratings or a task selection). One table per
+   duty: task, rank, priority band, selected for training (with the
+   reason when left out), Task Analysis status. Same data as the
+   on-screen chart (verified_chart.js). */
+export function _docxVerifiedChart({ AlignmentType, PageBreak, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, WidthType, children }) {
+  const { duties, status } = getVerifiedChartData();
+  if (!status.rated && !status.hasSelection) return;
+  const band = b => b === 'high' ? _t('vcHigh') : b === 'medium' ? _t('vcMedium') : b === 'low' ? _t('vcLow') : _t('vcUnrated');
+  const ta = s => s === 'completed' ? _t('taStatusCompleted') : s === 'in-progress' ? _t('taStatusInProgress') : _t('taStatusNotStarted');
+  const BAND_FILL = { high: 'FED7AA', medium: 'FEF3C7', low: 'E2E8F0' };
+  const W = [4300, 900, 1300, 1700, 1300];
+  const p = (text, o = {}) => new Paragraph({
+    children: [new TextRun({ text: String(text == null ? '' : text), bold: !!o.bold, size: o.size || 20, color: o.color, __shaded: !!o.shaded, italics: !!o.italics })],
+    ...(o.center ? { alignment: AlignmentType.CENTER } : {}),
+    spacing: o.spacing || { after: 0 }, bidirectional: _rtl(),
+  });
+  const cell = (text, w, o = {}) => new TableCell({ children: [p(text, o)], width: { size: w, type: WidthType.DXA },
+    ...(o.fill ? { shading: { fill: o.fill, type: ShadingType.CLEAR, color: 'auto' } } : {}) });
+
+  children.push(new Paragraph({ children: [new PageBreak()], bidirectional: _rtl() }));
+  children.push(p(_t('expVcTitle'), { bold: true, size: 32, center: true, spacing: { before: 200, after: 120 } }));
+  children.push(p(_t('expVcIntro'), { size: 18, italics: true, center: true, spacing: { after: 80 } }));
+  children.push(p([_tf('vcStatusVer', { n: status.rated, total: status.total }),
+                   _tf('vcStatusTA', { n: status.analysed, total: status.selected }),
+                   _tf('vcStatusSel', { n: status.selected, total: status.total })].join('   ·   '),
+                  { size: 18, bold: true, center: true, spacing: { after: 240 } }));
+  const head = [_t('expTaskLabel'), _t('expVcColRank'), _t('expVcColPriority'), _t('expVcColSelected'), _t('expVcColTA')];
+  duties.forEach(d => {
+    if (!d.tasks.length) return;
+    children.push(p(`${_tf('lblDuty', { code: d.letter })}: ${d.title}`, { bold: true, size: 22, spacing: { before: 200, after: 80 } }));
+    const rows = [new TableRow({ tableHeader: true, children: head.map((h, i) => cell(h, W[i], { bold: true, shaded: true, fill: _tblFill(), center: i > 0, size: 18 })) })];
+    d.tasks.forEach(r => {
+      const grey = r.selected ? undefined : '6B7280';
+      rows.push(new TableRow({ children: [
+        cell(`${r.code}  ${r.text}`, W[0], { color: grey }),
+        cell(r.rank ? `#${r.rank}` : '—', W[1], { center: true, color: grey }),
+        cell(band(r.band), W[2], { center: true, fill: r.band ? BAND_FILL[r.band] : undefined }),
+        cell(r.selected ? '✓ ' + _t('expTselYes') : '✗ ' + _t('expTselNo') + (r.reason ? ' — ' + r.reason : ''), W[3], { center: true, size: 18, color: grey }),
+        cell(r.selected ? ta(r.ta) : '—', W[4], { center: true, size: 18, color: grey }),
+      ] }));
+    });
+    children.push(new Table({ visuallyRightToLeft: _rtl(), width: { size: W.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths: W, layout: 'fixed', rows }));
+  });
 }

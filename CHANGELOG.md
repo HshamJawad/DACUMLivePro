@@ -7,6 +7,34 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.86.0 — 2026-10-08 — 📋 Verified DACUM chart
+MINOR. verified_chart.js (new), task_analysis.js, exports_docx.js, exports_docx_sections.js,
+exports_pdf.js, exports_pdf_sections.js, translations.js, app.js,
+index.html, sw.js (v202), ROADMAP.md, tests/specs/verified-chart.spec.js (new).
+New     "📋 Verified DACUM chart": the DACUM chart after verification and
+        Task Analysis, in the card layout of Duties & Tasks. Each task
+        shows a priority colour band (high: top 30% by Priority Index,
+        medium: next 40%, low: the rest; dashed when not rated) and its
+        rank (#1 = highest, equal scores share a rank); selected for
+        training ✓, or greyed with the reason; and its Task Analysis
+        status (✓ ◐ ○). Header: occupation, date, and how complete
+        verification and Task Analysis are. Filter: all tasks / selected
+        only. Legend. Print (landscape, chart only).
+        READ-ONLY and rebuilt from the project every time it opens, so
+        it never disagrees with Duties & Tasks, the ratings or the
+        selection. "Edit the tasks" and "Edit the selection" lead to
+        where those are changed.
+        Buttons: in Task Analysis (always active) and in Duties & Tasks —
+        highlighted once every task is rated and every selected task is
+        analysed; before that it is dimmed with what is missing, and a
+        click offers "Show the chart anyway" or "Go to …". Never locked.
+New     Word / PDF main export: a "Verified DACUM Chart" section after
+        the DACUM chart, one table per duty (task, rank, priority,
+        selected for training with the reason, Task Analysis status).
+        Only when there are ratings or a task selection.
+Later   ROADMAP: "Approve this version" (date, approver, warning when the
+        chart changed since).
+
 ── 3.85.0 — 2026-10-07 — 🏛️ TVQF/NQF option; 💡 suggest credits
 MINOR. module_mapping.js, learning_outcomes.js, clusters.js,
 modules_shared.js, module_curriculum.js, module_curriculum_text.js,

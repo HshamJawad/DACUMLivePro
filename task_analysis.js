@@ -187,6 +187,10 @@ function _status(taskKey) {
   return coreFilled ? 'completed' : 'in-progress';
 }
 
+/** 'not-started' | 'in-progress' | 'completed' — read by the verified
+ *  DACUM chart (verified_chart.js, 3.86.0). */
+export function getTaskAnalysisStatus(taskKey) { return _status(taskKey); }
+
 /* 3.45.0: which training modules this task's analysis will reach
    (they also receive it in Module Builder). Nothing while no module
    exists yet. */

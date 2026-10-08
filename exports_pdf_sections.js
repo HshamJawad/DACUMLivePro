@@ -12,6 +12,7 @@ import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getTaskSelectionExportSummary, exportSelectionCell } from './task_selection.js';
 import { moduleTitleWithLevel } from './modules.js';
 import { drawTick } from './pdf_arabic.js';
+import { getVerifiedChartData } from './verified_chart.js';
 import { _t, _tf, _today } from './exports_pdf.js';
 
 /* exportToPDF() section, moved out unchanged (3.78.0). Receives the
@@ -1052,5 +1053,66 @@ export function _pdfModules({ margin, pageHeight, pageWidth, pdf, yPos }) {
                 yPos += 5;
             });
         }
+  return yPos;
+}
+
+/* Verified DACUM chart (3.86.0) — PDF twin of _docxVerifiedChart. */
+export function _pdfVerifiedChart({ margin, pageHeight, pageWidth, pdf, yPos }) {
+  const { duties, status } = getVerifiedChartData();
+  if (!status.rated && !status.hasSelection) return yPos;
+  const band = b => b === 'high' ? _t('vcHigh') : b === 'medium' ? _t('vcMedium') : b === 'low' ? _t('vcLow') : _t('vcUnrated');
+  const ta = s => s === 'completed' ? _t('taStatusCompleted') : s === 'in-progress' ? _t('taStatusInProgress') : _t('taStatusNotStarted');
+  const BAND_RGB = { high: [254, 215, 170], medium: [254, 243, 199], low: [226, 232, 240] };
+  const W = pageWidth - 2 * margin;
+  const cols = [0.44, 0.08, 0.13, 0.22, 0.13].map(f => f * W);
+  const x0 = [margin]; cols.forEach((w, i) => x0.push(x0[i] + w));
+  const newPage = () => { pdf.addPage('a4', 'landscape'); yPos = margin + 5; };
+  const ensure = (h) => { if (yPos + h > pageHeight - margin) newPage(); };
+
+  newPage();
+  pdf.setFontSize(16); pdf.setFont(undefined, 'bold');
+  pdf.text(_t('expVcTitle'), pageWidth / 2, yPos, { align: 'center' }); yPos += 7;
+  pdf.setFontSize(9); pdf.setFont(undefined, 'normal');
+  pdf.splitTextToSize(_t('expVcIntro'), W).forEach(l => { pdf.text(l, pageWidth / 2, yPos, { align: 'center' }); yPos += 4.2; });
+  pdf.setFont(undefined, 'bold');
+  pdf.text([_tf('vcStatusVer', { n: status.rated, total: status.total }), _tf('vcStatusTA', { n: status.analysed, total: status.selected }),
+            _tf('vcStatusSel', { n: status.selected, total: status.total })].join('   ·   '), pageWidth / 2, yPos + 1, { align: 'center' });
+  yPos += 8;
+
+  const head = [_t('expTaskLabel'), _t('expVcColRank'), _t('expVcColPriority'), _t('expVcColSelected'), _t('expVcColTA')];
+  const drawHead = () => {
+    pdf.setFillColor(226, 232, 240); pdf.rect(margin, yPos, W, 6.5, 'F');
+    pdf.setFontSize(8.5); pdf.setFont(undefined, 'bold'); pdf.setTextColor(30, 41, 59);
+    head.forEach((h, i) => pdf.text(h, x0[i] + 2, yPos + 4.5));
+    yPos += 6.5;
+  };
+  duties.forEach(d => {
+    if (!d.tasks.length) return;
+    ensure(20);
+    pdf.setFontSize(11); pdf.setFont(undefined, 'bold'); pdf.setTextColor(3, 105, 161);
+    pdf.text(`${_tf('lblDuty', { code: d.letter })}: ${d.title}`, margin, yPos + 4); yPos += 7;
+    drawHead();
+    d.tasks.forEach(r => {
+      pdf.setFontSize(8.5); pdf.setFont(undefined, 'normal');
+      const lines = pdf.splitTextToSize(`${r.code}  ${r.text}`, cols[0] - 4);
+      const sel = r.selected ? _t('expTselYes') : _t('expTselNo') + (r.reason ? ' — ' + r.reason : '');
+      const selLines = pdf.splitTextToSize(sel, cols[3] - 4);
+      const h = Math.max(lines.length, selLines.length) * 4 + 2.5;
+      if (yPos + h > pageHeight - margin) { newPage(); drawHead(); }
+      if (r.band) { pdf.setFillColor(...BAND_RGB[r.band]); pdf.rect(x0[2], yPos, cols[2], h, 'F'); }
+      if (r.selected) pdf.setTextColor(30, 41, 59); else pdf.setTextColor(107, 114, 128);
+      lines.forEach((l, i) => pdf.text(l, x0[0] + 2, yPos + 4 + i * 4));
+      pdf.text(r.rank ? `#${r.rank}` : '—', x0[1] + 2, yPos + 4);
+      pdf.setTextColor(30, 41, 59);
+      pdf.text(band(r.band), x0[2] + 2, yPos + 4);
+      if (!r.selected) pdf.setTextColor(107, 114, 128);
+      selLines.forEach((l, i) => pdf.text(l, x0[3] + 2, yPos + 4 + i * 4));
+      pdf.text(r.selected ? ta(r.ta) : '—', x0[4] + 2, yPos + 4);
+      pdf.setTextColor(0, 0, 0);
+      pdf.setDrawColor(226, 232, 240); pdf.line(margin, yPos + h, margin + W, yPos + h);
+      yPos += h;
+    });
+    yPos += 5;
+  });
   return yPos;
 }

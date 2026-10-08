@@ -21,7 +21,7 @@ import { buildLevelsDocxBlock } from './modules.js';
 // 3.77.0: was called below without being imported (the standalone branch is
 // unreachable today — tvExportMode is forced to 'appendix' — but would throw).
 import { lwExportVerifiedDOCX } from './workshop.js';
-import { _docxAdditionalInfo, _docxClusters, _docxCustomSections, _docxDuties, _docxLearningOutcomes, _docxModules, _docxSkillsMatrix, _docxTaskAnalysis, _docxVerificationAppendix, _docxVerifiedResults } from './exports_docx_sections.js';
+import { _docxVerifiedChart, _docxAdditionalInfo, _docxClusters, _docxCustomSections, _docxDuties, _docxLearningOutcomes, _docxModules, _docxSkillsMatrix, _docxTaskAnalysis, _docxVerificationAppendix, _docxVerifiedResults } from './exports_docx_sections.js';
 
 
 
@@ -1242,6 +1242,9 @@ async function _exportToWordImpl() {
 
                 // Create a table for each duty
                 _docxDuties({ Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, WidthType, children, duties });
+
+                // 3.86.0: the verified DACUM chart, when there is verification data or a selection.
+                _docxVerifiedChart({ AlignmentType, PageBreak, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, WidthType, children });
 
                 // ============ ADDITIONAL INFORMATION (NEW PAGE) ============
                 children.push(new Paragraph({
