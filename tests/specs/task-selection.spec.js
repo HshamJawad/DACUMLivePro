@@ -280,3 +280,24 @@ test('"Not rated yet" opens the task\'s rating row', async ({ page }) => {
   await expect(page.locator('.duty-accordion-header[data-duty="duty_2"]')).toHaveClass(/active/);
   expect(errors).toEqual([]);
 });
+
+test('ratings typed in the verification table show in the selection at once', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(async () => {
+    const { appState } = await import('./state.js');
+    appState.collectionMode = 'workshop';
+    appState.verificationRatings = {}; appState.workshopCounts = {}; appState.workshopResults = {};
+  });
+  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(async () => (await import('./tasks.js')).loadDutiesForVerification());
+  await page.locator('.duty-accordion-header[data-duty="duty_2"]').click();
+  for (const dim of ['importance', 'frequency', 'difficulty']) {
+    const inp = page.locator(`#duty_2_1_${dim}_count_2`);
+    await inp.click(); await inp.fill('5');
+  }
+  // Focus is still in the count field; the row follows within 200 ms.
+  await expect(page.locator('[data-tsel-row="duty_2_1"] .tsel-metrics')).toContainText('PI 4', { timeout: 200 });
+  await expect(page.locator('[data-tsel-goto="duty_2_1"]')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
