@@ -481,6 +481,11 @@ export function initTaskSelection() {
 
   window.addEventListener('dacum:langchange', renderTaskSelection);
   document.addEventListener('dacum:project-loaded', () => setTimeout(renderTaskSelection, 0));
+  // 3.86.3: ratings typed in the verification tables (or fetched from a
+  // live workshop) show here at once — tasks.js announces each change.
+  document.addEventListener('dacum:ratings-changed', () => {
+    if (!host.contains(document.activeElement)) renderTaskSelection();
+  });
   // A tick in the Task Analysis list changes the same state.
   document.addEventListener('dacum:task-selection-changed', () => {
     if (!host.contains(document.activeElement)) renderTaskSelection();

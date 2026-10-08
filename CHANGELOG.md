@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.86.3 — 2026-10-08 — Ratings show in "Select Tasks" at once
+PATCH. tasks.js, workshop.js, task_selection.js, verified_chart.js,
+index.html, sw.js (v205), tests/specs/task-selection.spec.js.
+Fixed   A task rated in the verification tables could still read "Not
+        rated yet" in Select Tasks for Training until another field was
+        touched: the section followed typing in the tab indirectly, with
+        a half-second wait. tasks.js now announces every change to a
+        rating or a computed workshop result (and to the formula or the
+        collection mode) with one event, "dacum:ratings-changed", and
+        the section — and the verified DACUM chart's buttons — follow
+        at once, whatever way the value was entered. Results fetched
+        from a live workshop send the same event.
+
 ── 3.86.2 — 2026-10-08 — Verified DACUM chart: cards stand out
 PATCH. verified_chart.js, index.html, sw.js (v204).
 Changed Task cards read as blank white: they now have a darker frame

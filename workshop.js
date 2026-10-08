@@ -346,6 +346,8 @@ export function lwApplyVotingResultsToDataModel() {
   });
 
   lwUpdateDOMWithReorderedTasks();
+  // 3.86.3: same announcement as tasks.js notifyRatingsChanged().
+  try { document.dispatchEvent(new CustomEvent('dacum:ratings-changed')); } catch (_) {}
 }
 
 export function lwUpdateDOMWithReorderedTasks() {

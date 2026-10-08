@@ -328,7 +328,7 @@ export function initVerifiedChart() {
     else openVerifiedChart(b);
   });
   const refresh = () => setTimeout(() => { try { renderVerifiedChartButtons(); } catch (_) {} }, 0);
-  ['dacum:project-loaded', 'dacum:task-selection-changed'].forEach(ev => document.addEventListener(ev, refresh));
+  ['dacum:project-loaded', 'dacum:task-selection-changed', 'dacum:ratings-changed'].forEach(ev => document.addEventListener(ev, refresh));
   window.addEventListener('dacum:langchange', refresh);
   // Re-read the state whenever one of the two tabs comes on screen.
   ['duties-tab', 'task-analysis-tab'].forEach(id => {

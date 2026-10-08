@@ -45,6 +45,7 @@ export function updateCollectionMode() {
   }
   loadDutiesForVerification();
   showStatus(_tf('msgCollectionMode', { mode: _t(appState.collectionMode === 'workshop' ? 'modeWorkshop' : 'modeSurvey') }), 'success');
+  notifyRatingsChanged();
 }
 
 export function updateWorkflowMode() {
@@ -84,6 +85,7 @@ export function updatePriorityFormula() {
   validateAndComputeWorkshopResults();
   refreshDashboard();
   showStatus(_tf('msgPriorityFormula', { formula: appState.priorityFormula === 'if' ? 'I × F' : 'I × F × D' }), 'success');
+  notifyRatingsChanged();
 }
 
 export function updateTrainingLoadMethod() {
@@ -493,6 +495,20 @@ function createCountInputs(taskKey, dimension) {
 
 // ── Rating Update Handlers ────────────────────────────────────
 
+// ── "The ratings changed" (3.86.3) ───────────────────────────
+// One event, sent the moment a rating or a computed workshop result
+// changes, so what is built on the ratings (Select Tasks for Training,
+// the verified DACUM chart's buttons) follows at once — whatever way
+// the value was typed. Coalesced: a burst of changes sends one event.
+let _ratingsTimer = null;
+export function notifyRatingsChanged() {
+  if (_ratingsTimer) return;
+  _ratingsTimer = setTimeout(() => {
+    _ratingsTimer = null;
+    try { document.dispatchEvent(new CustomEvent('dacum:ratings-changed')); } catch (_) {}
+  }, 0);
+}
+
 export function updateRating(taskKey, dimension, value) {
   if (!appState.verificationRatings[taskKey]) {
     const meta = appState.taskMetadata[taskKey] || {};
@@ -504,6 +520,7 @@ export function updateRating(taskKey, dimension, value) {
   }
   appState.verificationRatings[taskKey][dimension] = parseInt(value);
   updateComputedValues(taskKey);
+  notifyRatingsChanged();
 }
 
 export function updatePerformsTask(taskKey, value) {
@@ -641,6 +658,7 @@ export function validateAndComputeTask(taskKey) {
   } else {
     if (appState.workshopResults[taskKey]) appState.workshopResults[taskKey].valid = false;
   }
+  notifyRatingsChanged();
 }
 
 // Exported so Supplementary Occupational Verification aggregates with
