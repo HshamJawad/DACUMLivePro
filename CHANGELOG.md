@@ -7,6 +7,34 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.94.1 — 2026-10-09 — User Guide brought up to 3.94
+PATCH (documentation). DACUM_Live_Pro_User_Guide.html, sw.js (v217),
+index.html.
+Changed The guide (EN / FR / AR) now covers 3.70–3.94:
+        • What's new: edition 3.94; eight new rows — Task Selection
+          (SCID), the verified DACUM chart, content languages and AI
+          translation, Worker Behaviours in Task Analysis, AI cards
+          that let you choose what changes, Job Title required and the
+          safer Full Draft, TVQF/NQF levels and suggested credits, wider
+          Undo / wording notes / new help.
+        • New section "Task Selection tab" (and its sidebar link):
+          suggest a selection, reasons, "Is the task performed?", Undo,
+          what follows the selection, and the verified DACUM chart.
+        • Quick Start and the complete path include Task Selection.
+        • Projects: the 🌐 language badge; translations go to Module
+          Builder. Toolbar: exports follow the content language; Undo
+          covers Task Selection and Competency Clusters.
+        • Full Draft (Job Title, confirmation and snapshot), AI cards
+          (ticks, AI draft, ↶ Restore previous, content language),
+          Task Verification (proceeds to Task Selection), Task Analysis
+          (selected tasks, Worker Behaviours), Competency Clusters
+          (one-task competency, Undo, wording notes), Learning Outcomes
+          (wording notes), Module Mapping (qualifications framework),
+          Module Curriculum (suggest credits), languages and Settings →
+          Export.
+Tested  Every data-k has its three translations; the guide renders in
+        EN, FR and AR with no script error.
+
 ── 3.94.0 — 2026-10-09 — ☑️ Task Selection, a tab of its own (SCID)
 MINOR. index.html, dacum_projects.js, task_selection.js, projects.js,
 verified_chart.js, translations.js, sw.js (v216).
