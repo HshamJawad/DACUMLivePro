@@ -19,6 +19,7 @@ import { setNqfEnabled, setNqfFramework, setModuleNqfLevel, setModuleNqfDescript
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
+import { competencyNameIssues, criterionIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 
 // ── Undo / Redo for Competency Clusters (3.84.0) ──────────────
 // The toolbar Undo / Redo buttons (and Ctrl+Z / Ctrl+Y outside text
@@ -392,6 +393,7 @@ export function renderClusters() {
             <button class="btn-delete-cluster" data-action="delete-cluster" data-cluster-id="${cluster.id}">🗑️ ${_t('btnDelete')}</button>
           </div>
         </div>
+        ${wordingNoteHtml('wname_' + cluster.id, competencyNameIssues(cd.clusters, clusterIndex))}
 
         <div class="cluster-section">
           <h4>📋 ${_t('lblRelatedTasks')}</h4>
@@ -440,6 +442,7 @@ export function renderClusters() {
               style="min-height:100px;border:none;border-radius:0;box-shadow:none;display:block;width:100%;box-sizing:border-box;padding:10px 14px;">${_esc(displayValue)}</textarea>
           </div>
           ${_renderCritDupNote(cluster, clusterNumber, taCriteria)}
+          ${wordingNoteHtml('wcrit_' + cluster.id, _criteriaWordingLines(cluster, clusterNumber, taCriteria.length))}
         </div>
       </div>`;
   });
@@ -1505,6 +1508,9 @@ export function updateClusterCriteriaFromNumbered(clusterId, value) {
   if (JSON.stringify(before) !== JSON.stringify(stripped)) _clearClusterAiPart(cluster, 'criteria');
   cluster.performanceCriteria = stripped;
   _refreshCritDupNote(cluster);
+  { const i = appState.clusteringData.clusters.indexOf(cluster);
+    const ta = Number(cluster.taCriteriaCount) || 0;
+    refreshWordingNote('wcrit_' + cluster.id, _criteriaWordingLines(cluster, i + 1, ta)); }
   _clStepLabel('clHistCriteria');
   _clCheckpoint();
 }
@@ -1577,6 +1583,16 @@ function _renderCritDupNote(cluster, clusterNumber, taCriteria) {
   const body = dups.map(d => `<div>⚠ ${_esc(_txf('critDupNote', {
       n: d.id, src: `${d.src.id} · ${_taskLabel(d.src.taskId)}` }))}</div>`).join('');
   return `<div class="crit-dup-note" id="critdup_${_esc(cluster.id)}" role="status"${dups.length ? '' : ' hidden'}>${body}</div>`;
+}
+
+/* 3.88.0: wording notes for the typed criteria — "2-3: …" per line.
+   Suggestions only (wording_check.js); nothing is blocked or changed. */
+function _criteriaWordingLines(cluster, clusterNumber, taCount) {
+  const out = [];
+  (cluster.performanceCriteria || []).forEach((c, i) => {
+    criterionIssues(c).forEach(msg => out.push(`${clusterNumber}-${taCount + i + 1}: ${msg}`));
+  });
+  return out;
 }
 
 function _refreshCritDupNote(cluster) {

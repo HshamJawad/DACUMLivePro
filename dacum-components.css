@@ -2163,3 +2163,24 @@ html[data-content-mixed] .container input[type="text"] {
       .cl-unsel-x { width: auto; margin: 0; padding: 4px 9px; border: none; background: transparent; color: #166534;
                     font-size: 1em; cursor: pointer; border-radius: 6px; font-family: inherit; }
       .cl-unsel-x:hover { background: #dcfce7; }
+
+/* ── 3.88.0: wording notes (wording_check.js) ─────────────────────
+   Soft suggestions under a competency name, its criteria and each
+   learning outcome. Calm blue, not warning amber: nothing is wrong
+   enough to block, the user may keep their text. */
+.wording-note {
+  margin: 6px 0 0;
+  padding: 7px 11px;
+  background: #f0f9ff;
+  border: 1px dashed #7dd3fc;
+  border-radius: 8px;
+  color: #075985;
+  font-size: 0.8em;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.wording-note[hidden] { display: none; }
+.wording-note-head { font-weight: 700; color: #0369a1; margin-bottom: 2px; }
+.cluster-item > .wording-note { margin: 0 0 10px; }
+@media print { .wording-note { display: none !important; } }

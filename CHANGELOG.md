@@ -7,6 +7,27 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.88.0 — 2026-10-08 — 💬 Wording notes for competencies, criteria, outcomes
+MINOR. wording_check.js (new), clusters.js, learning_outcomes.js,
+translations.js, events.js, dacum-components.css, index.html,
+sw.js (v210).
+Added   Soft wording notes — suggestions only: nothing is blocked,
+        changed or exported; the user may keep the text.
+        • Competency name: same wording as another competency; more
+          than 12 words. English content: does not start with an
+          action verb ("The…", "Installing…", "The learner will…",
+          understand/know/learn), or states a purpose ("to ensure").
+        • Performance criteria (typed box): English content — not
+          written as a result (no is/are), a cognitive verb, a purpose.
+          Shown per criterion number ("2-3: …").
+        • Learning outcome: English content — the same start checks,
+          a purpose, more than 20 words. Refreshed when the field is
+          left, not while typing.
+        Grammar checks follow the project's content language
+        (content_lang.js) and run on English only; the repeat and
+        length checks run in every language. Hidden in print.
+Removed The Norton source line under "The DACUM Team" help.
+
 ── 3.87.0 — 2026-10-08 — Help: the DACUM team, task traits, standards
 MINOR. events.js, index.html, translations.js, sw.js (v209).
 Added   Chart Info: a "?" beside Facilitators, Observers and Panel

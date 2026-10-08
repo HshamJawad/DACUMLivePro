@@ -1227,7 +1227,8 @@ function _showLearningOutcomesHelp() {
 }
 
 // 3.87.0: the DACUM team — facilitators, panel members, observers.
-// Roles and panel size follow Norton's DACUM Handbook; the stage-by-stage
+// Roles and panel size follow Norton's DACUM Handbook (not cited in the
+// modal, by request); the stage-by-stage
 // make-up (chart → standard → curriculum) is the three-step process the
 // app itself follows.
 function _showTeamHelp() {
@@ -1240,9 +1241,7 @@ function _showTeamHelp() {
     '<p style="' + P + 'font-weight:700;color:#1e293b;">' + _t('helpTeamCritLead') + '</p>' +
     list(['helpTeamCrit1', 'helpTeamCrit2', 'helpTeamCrit3', 'helpTeamCrit4', 'helpTeamCrit5']) +
     '<p style="' + P + 'font-weight:700;color:#1e293b;">' + _t('helpTeamStepsLead') + '</p>' +
-    list(['helpTeamStepA', 'helpTeamStepB', 'helpTeamStepC']) +
-    '<p style="margin:0 0 14px;font-size:0.78em;color:#94a3b8;line-height:1.6;">' +
-      _t('helpTeamSource') + '</p>';
+    list(['helpTeamStepA', 'helpTeamStepB', 'helpTeamStepC']);
 
   _showHelpModal({
     id:       'teamHelpModal',

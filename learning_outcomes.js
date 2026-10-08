@@ -8,6 +8,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { outcomeIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, _renderLoNotice, renumberLearningOutcomes, syncClusteringWithProfile } from './clusters.js';
 import { _esc, _findEffectiveCriterionById, _getClusterEffectiveCriteria, _injectModuleCardStyles, _persistClusters, _renderUndoBars, _t, _taskLabel, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
 import { getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName } from './module_mapping.js';
@@ -339,6 +340,7 @@ export function renderLearningOutcomes() {
               `<button type="button" class="lo-use-pc" data-lo-id="${outcome.id}">↳ ${_esc(_tx('loUsePC'))}</button>`}
             <span class="lo-key-hint">${_loKeyHintHtml()}</span>
           </div>
+          ${wordingNoteHtml('wlo_' + outcome.id, outcomeIssues(outcome.statement))}
         </div>
         <div class="lo-linked-criteria">
           <h5>📎 ${_t('lblMappedPC')}</h5>
@@ -495,6 +497,7 @@ function _wireInlineLOEditing(container) {
     if (clean !== ta.value) { ta.value = clean; _autoGrow(ta); }
     lo.statement = clean;
     delete lo.editing;
+    refreshWordingNote('wlo_' + lo.id, outcomeIssues(clean));   // 3.88.0
     _refreshLOCardState(ta);
     _renderLOStatementSummary(container);
     clearTimeout(_loPersistTimer); _loPersistTimer = null;
