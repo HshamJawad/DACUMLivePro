@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v208';
+      var EXPECTED_SW = 'v209';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.86.6';
+      var APP_VERSION = '3.87.0';
       var APP_RELEASED = '2026-10-08';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -871,17 +871,38 @@
                 </div>
                 
                 <div class="mb-10">
-                    <label for="facilitators">👥 <span data-i18n="labelFacilitators">Facilitators:</span></label>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <label for="facilitators" style="margin:0;">👥 <span data-i18n="labelFacilitators">Facilitators:</span></label>
+                        <button type="button" class="tab-help-btn" data-team-help
+                                title="The DACUM team: facilitators, panel members and observers"
+                                data-i18n="ttTeamHelp" data-i18n-attr="title,aria-label"
+                                aria-label="The DACUM team: facilitators, panel members and observers"
+                                aria-haspopup="dialog">?</button>
+                    </div>
                     <textarea id="facilitators" placeholder="Enter facilitator names (one per line)" data-i18n="phFacilitators" data-i18n-attr="placeholder" style="min-height: 80px; font-family: inherit; resize: vertical;"></textarea>
                 </div>
                 
                 <div class="mb-10">
-                    <label for="observers">👁️ <span data-i18n="labelObservers">Observers:</span></label>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <label for="observers" style="margin:0;">👁️ <span data-i18n="labelObservers">Observers:</span></label>
+                        <button type="button" class="tab-help-btn" data-team-help
+                                title="The DACUM team: facilitators, panel members and observers"
+                                data-i18n="ttTeamHelp" data-i18n-attr="title,aria-label"
+                                aria-label="The DACUM team: facilitators, panel members and observers"
+                                aria-haspopup="dialog">?</button>
+                    </div>
                     <textarea id="observers" placeholder="Enter observer names (one per line)" data-i18n="phObservers" data-i18n-attr="placeholder" style="min-height: 80px; font-family: inherit; resize: vertical;"></textarea>
                 </div>
                 
                 <div class="mb-10">
-                    <label for="panelMembers">🎯 <span data-i18n="labelPanelMembers">Panel Members:</span></label>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <label for="panelMembers" style="margin:0;">🎯 <span data-i18n="labelPanelMembers">Panel Members:</span></label>
+                        <button type="button" class="tab-help-btn" data-team-help
+                                title="The DACUM team: facilitators, panel members and observers"
+                                data-i18n="ttTeamHelp" data-i18n-attr="title,aria-label"
+                                aria-label="The DACUM team: facilitators, panel members and observers"
+                                aria-haspopup="dialog">?</button>
+                    </div>
                     <textarea id="panelMembers" placeholder="Enter panel member names (one per line)" data-i18n="phPanel" data-i18n-attr="placeholder" style="min-height: 80px; font-family: inherit; resize: vertical;"></textarea>
                 </div>
                 
@@ -1861,7 +1882,14 @@
              no stored data, so no "Clear This Tab". -->
         <div class="tab-content" id="occupational-standard-tab">
             <div class="tab-header-row">
-                <h2>📜 <span data-i18n="osTabHeading">Occupational Profile &amp; Standard</span></h2>
+                <div class="tab-title-with-help">
+                    <h2>📜 <span data-i18n="osTabHeading">Occupational Profile &amp; Standard</span></h2>
+                    <button type="button" id="osHelpBtn" class="tab-help-btn"
+                            title="What an occupational standard is used for"
+                            data-i18n="ttOSHelp" data-i18n-attr="title,aria-label"
+                            aria-label="What an occupational standard is used for"
+                            aria-haspopup="dialog">?</button>
+                </div>
             </div>
 
             <div id="osRoot"></div>

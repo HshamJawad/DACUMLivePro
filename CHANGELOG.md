@@ -7,6 +7,25 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.87.0 — 2026-10-08 — Help: the DACUM team, task traits, standards
+MINOR. events.js, index.html, translations.js, sw.js (v209).
+Added   Chart Info: a "?" beside Facilitators, Observers and Panel
+        Members opens "The DACUM Team" — each role, how to choose
+        panel members (8–12 expert workers) and who takes part at
+        each stage. Roles and panel size follow Norton's DACUM Handbook.
+Added   Occupational Profile & Standard: a "?" on the tab heading —
+        what the standard is and its seven uses.
+Added   Duties & Tasks help: the "hire someone for it" duty test, the
+        six characteristics of a task and the one-verb rule.
+Added   Competence statement help: the four qualities and head / hands
+        / heart.
+Added   Performance criteria help: "states how well", the "would I
+        know one if I saw one" test, range as the boundaries, and a
+        passive-voice example.
+Added   Learning outcomes help: definition, Verb + Content + Context,
+        verbs to avoid, assessment standards with an example.
+        Help text only — no behaviour, data or export changes.
+
 ── 3.86.6 — 2026-10-08 — Settings: Preview right under Colors
 PATCH. export_settings.js, index.html, sw.js (v208).
 Changed Settings → Export now reads Colors, Preview, Font sizes, Card

@@ -264,6 +264,12 @@ export function setupEvents() {
       .catch(() => {});
   });
   _on('clusterNamingHelpBtn', 'click', () => _showClusterNamingHelp());
+  /* 3.87.0: one "DACUM team" guide, opened from the "?" beside each of
+     the three participant fields on Chart Info. */
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('[data-team-help]')) _showTeamHelp();
+  });
+  _on('osHelpBtn', 'click', () => _showOccupationalStandardHelp());
   _on('jobTitleHelpBtn', 'click', () => _showHelpModal({
     id:    'jobTitleHelpModal',
     icon:  '\u{1F454}',
@@ -1009,6 +1015,8 @@ function _showClusterNamingHelp() {
     items: [
       ['\u{1F9E9}', _t('helpNamingK1'), _t('helpNamingV1')],
       ['\u{1F4AC}', _t('helpNamingK2'), _t('helpNamingV2')],
+      ['\u{1F48E}', _t('helpNamingK3'), _t('helpNamingV3')],   // 3.87.0
+      ['\u{1F9E0}', _t('helpNamingK4'), _t('helpNamingV4')],   // 3.87.0
     ],
     note: _t('helpNamingNote'),
   });
@@ -1048,7 +1056,9 @@ function _showPCRangeHelp() {
       '<li style="' + LI + '">' + _t('helpPCLi1') + '</li>' +
       '<li style="' + LI + '">' + _t('helpPCLi2') + '</li>' +
       '<li style="' + LI + '">' + _t('helpPCLi3') + '</li>' +
+      '<li style="' + LI + '">' + _t('helpPCLi4') + '</li>' +       // 3.87.0
     '</ol>' +
+    '<p style="' + P + 'margin-top:-8px;margin-bottom:16px;">\u{1F50E} ' + _t('helpPCTest') + '</p>' +
 
     '<p style="' + P + '">' + _t('helpPCRangeLead') + '</p>' +
     '<ul style="' + LIST + '">' +
@@ -1056,6 +1066,7 @@ function _showPCRangeHelp() {
       '<li style="' + LI + '">' + _t('helpPCRange2') + '</li>' +
       '<li style="' + LI + '">' + _t('helpPCRange3') + '</li>' +
     '</ul>' +
+    '<p style="' + P + 'margin-top:-8px;margin-bottom:16px;">\u{1F9ED} ' + _t('helpPCRangeDef') + '</p>' +
 
     '<p style="margin:0 0 10px;font-size:0.88em;font-weight:700;color:#1e293b;">' +
       _t('helpPCComponents') + '</p>' +
@@ -1079,6 +1090,8 @@ function _showPCRangeHelp() {
         '\u201D' +
       '</p>' +
     '</div>' +
+    '<p style="margin:10px 0 0;font-size:0.85em;color:#475569;line-height:1.6;">' +
+      _t('helpPCVoice') + '</p>' +                                   // 3.87.0
 
     /* 3.52.0: criteria from Task Analysis and from the box, one list. */
     '<p style="margin:14px 0 0;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;' +
@@ -1125,8 +1138,12 @@ function _showDutiesHelp() {
      Arabic the emphasised phrase frequently sits elsewhere in the
      sentence, so fragment-joining produces nonsense. */
   const LIS = ['helpDutiesLi1','helpDutiesLi2','helpDutiesLi3',
-               'helpDutiesLi4','helpDutiesLi5','helpDutiesLi6']
+               'helpDutiesLi4','helpDutiesLi5','helpDutiesLi6','helpDutiesLi7']
     .map(k => '<li style="' + LI + '">' + _t(k) + '</li>').join('');
+
+  /* 3.87.0: the characteristics of a task (Norton), under the task box. */
+  const TRAITS = [1, 2, 3, 4, 5, 6]
+    .map(n => '<li style="' + LI + '">' + _t('helpTaskTrait' + n) + '</li>').join('');
 
   const bodyHtml =
     '<p style="' + P + '">' + _t('helpDutiesLead') + '</p>' +
@@ -1137,6 +1154,10 @@ function _showDutiesHelp() {
 
     formatBox('#a16207', '#fffbeb', '\uD83D\uDCDD ' + _t('helpTaskFormatLabel'),
       _t('helpTaskFormula'), _t('helpTaskExample')) +
+
+    '<p style="' + P + 'margin-top:4px;">' + _t('helpTaskTraitsLead') + '</p>' +
+    '<ul style="margin:0 0 10px;padding-inline-start:20px;">' + TRAITS + '</ul>' +
+    '<p style="' + P + '">' + _t('helpTaskOneVerb') + '</p>' +
 
     '<p style="margin:12px 0 0;font-size:0.78em;color:#94a3b8;line-height:1.6;">' +
       _t('helpDutiesSource') + '</p>';
@@ -1171,7 +1192,26 @@ function _showLearningOutcomesHelp() {
       '</p>' +
     '</div>';
 
-  const bodyHtml =
+  /* 3.87.0: how to write an outcome and its assessment standards comes
+     first; the design patterns follow under their own lead-in. */
+  const write =
+    '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;' +
+    'padding:12px 14px;margin-bottom:16px;">' +
+      '<p style="margin:0 0 6px;font-size:0.88em;font-weight:800;color:#0369a1;">✍️ ' +
+        _t('helpLOWriteHead') + '</p>' +
+      '<p style="margin:0 0 8px;font-size:0.86em;color:#334155;line-height:1.6;">' + _t('helpLODef') + '</p>' +
+      '<div style="background:#fff;border-inline-start:3px solid #0284c7;border-radius:8px;' +
+      'padding:9px 12px;margin-bottom:8px;">' +
+        '<p style="margin:0 0 4px;font-size:0.85em;color:#334155;line-height:1.6;">' + _t('helpLOFormula') + '</p>' +
+        '<p style="margin:0;font-size:0.84em;color:#475569;font-style:italic;">\u{1F4A1} ' + _t('helpLOExample') + '</p>' +
+      '</div>' +
+      '<p style="margin:0 0 10px;font-size:0.85em;color:#475569;line-height:1.6;">' + _t('helpLOVerbRule') + '</p>' +
+      '<p style="margin:0 0 6px;font-size:0.86em;color:#334155;line-height:1.6;">' + _t('helpASDef') + '</p>' +
+      '<p style="margin:0;font-size:0.85em;color:#475569;line-height:1.6;">\u{1F4CF} ' + _t('helpASExample') + '</p>' +
+    '</div>' +
+    '<p style="margin:0 0 8px;font-size:0.88em;color:#475569;line-height:1.6;">' + _t('helpLOIntro') + '</p>';
+
+  const bodyHtml = write +
     pattern(_t('helpLOPatAName'), _t('helpLOPatARule'), _t('helpLOPatABest')) +
     pattern(_t('helpLOPatBName'), _t('helpLOPatBRule'), _t('helpLOPatBBest')) +
     pattern(_t('helpLOPatCName'), _t('helpLOPatCRule'), _t('helpLOPatCBest'));
@@ -1180,10 +1220,63 @@ function _showLearningOutcomesHelp() {
     id:       'loHelpModal',
     icon:     '\u{1F4DA}',
     title:    _t('helpLOTitle'),
-    intro:    _t('helpLOIntro'),
-    maxWidth: '540px',
+    maxWidth: '560px',
     bodyHtml,
     note: '\u{1F4A1} ' + _t('helpLONote'),
+  });
+}
+
+// 3.87.0: the DACUM team — facilitators, panel members, observers.
+// Roles and panel size follow Norton's DACUM Handbook; the stage-by-stage
+// make-up (chart → standard → curriculum) is the three-step process the
+// app itself follows.
+function _showTeamHelp() {
+  const P  = 'margin:0 0 8px;font-size:0.88em;color:#475569;line-height:1.6;';
+  const LI = 'font-size:0.87em;line-height:1.7;color:#334155;margin-bottom:4px;';
+  const list = (keys) => '<ul style="margin:0 0 16px;padding-inline-start:20px;">' +
+    keys.map(k => '<li style="' + LI + '">' + _t(k) + '</li>').join('') + '</ul>';
+
+  const bodyHtml =
+    '<p style="' + P + 'font-weight:700;color:#1e293b;">' + _t('helpTeamCritLead') + '</p>' +
+    list(['helpTeamCrit1', 'helpTeamCrit2', 'helpTeamCrit3', 'helpTeamCrit4', 'helpTeamCrit5']) +
+    '<p style="' + P + 'font-weight:700;color:#1e293b;">' + _t('helpTeamStepsLead') + '</p>' +
+    list(['helpTeamStepA', 'helpTeamStepB', 'helpTeamStepC']) +
+    '<p style="margin:0 0 14px;font-size:0.78em;color:#94a3b8;line-height:1.6;">' +
+      _t('helpTeamSource') + '</p>';
+
+  _showHelpModal({
+    id:       'teamHelpModal',
+    icon:     '\u{1F465}',
+    title:    _t('helpTeamTitle'),
+    maxWidth: '580px',
+    intro:    _t('helpTeamIntro'),
+    items: [
+      ['\u{1F9ED}', _t('helpTeamFacK'),   _t('helpTeamFacV')],
+      ['\u{1F3AF}', _t('helpTeamPanelK'), _t('helpTeamPanelV')],
+      ['\u{1F441}️', _t('helpTeamObsK'), _t('helpTeamObsV')],
+    ],
+    bodyHtml,
+  });
+}
+
+// 3.87.0: what the occupational standard is and what it is used for.
+function _showOccupationalStandardHelp() {
+  _showHelpModal({
+    id:       'osHelpModal',
+    icon:     '\u{1F4DC}',
+    title:    _t('helpOSTitle'),
+    maxWidth: '560px',
+    intro:    _t('helpOSIntro'),
+    items: [
+      ['\u{1F393}', _t('helpOSU1K'), _t('helpOSU1V')],
+      ['\u{1F4C4}', _t('helpOSU2K'), _t('helpOSU2V')],
+      ['\u{1F4CA}', _t('helpOSU3K'), _t('helpOSU3V')],
+      ['\u{1FA9E}', _t('helpOSU4K'), _t('helpOSU4V')],
+      ['\u{1F3C5}', _t('helpOSU5K'), _t('helpOSU5V')],
+      ['\u{1F3E2}', _t('helpOSU6K'), _t('helpOSU6V')],
+      ['\u{1F4D0}', _t('helpOSU7K'), _t('helpOSU7V')],
+    ],
+    note: _t('helpOSNote'),
   });
 }
 
