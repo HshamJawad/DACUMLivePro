@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.91.0 — 2026-10-08 — ↶ Undo / Redo for Select Tasks; 🆕 New brings a task back
+MINOR. task_selection.js, translations.js, index.html, sw.js (v213).
+Added   The toolbar Undo / Redo buttons work on the task selection while
+        the Task Verification tab is open (same pattern as Competency
+        Clusters, 3.84.0): Suggest selection, Select all, Clear all,
+        Starred tasks, ticks, reasons, the performance rule and its
+        figures — each one step, named in the status message. Ratings
+        are not part of it. Other tabs keep their own history.
+Changed Ticking 🆕 New on a task set aside only because few workers
+        perform it selects it again at once (no new suggestion needed).
+        A task left out for another reason stays out.
+Changed "% of workers" hint: the source name removed (en, fr, ar).
+
 ── 3.90.0 — 2026-10-08 — ✅ Select Tasks: "Is the task performed?" (Norton's 25% rule)
 MINOR. task_selection.js, translations.js, dacum-components.css,
 index.html, sw.js (v212).

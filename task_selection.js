@@ -39,6 +39,7 @@ import { appState }               from './state.js';
 import { showStatus, escapeHtml } from './renderer.js';
 import { getDutyLetter }          from './codes.js';
 import { normalizeDraftRatingKeys } from './tasks.js';
+import { registerHistoryScope, refreshHistoryButtons } from './history.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -85,7 +86,103 @@ function _state() {
 }
 
 function _changed() {
+  _tsCheckpoint();
   try { document.dispatchEvent(new CustomEvent('dacum:task-selection-changed')); } catch (e) {}
+}
+
+// ── Undo / Redo (3.91.0) ─────────────────────────────────────────
+// The toolbar Undo / Redo buttons work on the task selection while the
+// Task Verification tab is open — the same pattern as Competency
+// Clusters (clusters.js, 3.84.0). Every change made through _changed()
+// is one step: a suggestion, Select all / Clear all / starred, a tick,
+// a reason, the performance rule and its figures. The ratings
+// themselves are NOT part of it. A project load, Clear This Tab or a
+// new project (a different taskSelection object) starts a new history.
+const _TS_UNDO_MAX = 40;
+const _tsh = { undo: [], redo: [], last: null, ref: null, project: null, label: null, applying: false };
+let _tsScopeOn = false;
+
+function _tsProject() { try { return localStorage.getItem('dacum_active_project'); } catch (_) { return null; } }
+function _tsSnap()    { return JSON.stringify(appState.taskSelection || null); }
+
+function _tsValid() {
+  if (_tsh.ref !== appState.taskSelection || _tsh.project !== _tsProject()) {
+    _tsh.undo = []; _tsh.redo = []; _tsh.label = null;
+    _tsh.ref = appState.taskSelection; _tsh.project = _tsProject();
+    _tsh.last = _tsSnap();
+    return false;
+  }
+  return true;
+}
+
+/** Name the next step (an i18n key); generic otherwise. */
+function _tsLabel(key) { _tsh.label = key; }
+
+function _tsCheckpoint() {
+  if (_tsh.applying) return;
+  if (!_tsValid()) { _tsRefresh(); return; }
+  const now = _tsSnap();
+  if (now === _tsh.last) { _tsh.label = null; return; }
+  _tsh.undo.push({ label: _tsh.label || 'tselHistEdit', before: _tsh.last, after: now });
+  if (_tsh.undo.length > _TS_UNDO_MAX) _tsh.undo.shift();
+  _tsh.redo = [];
+  _tsh.last = now;
+  _tsh.label = null;
+  _tsRefresh();
+}
+
+function _tsRefresh() {
+  if (!_tsScopeOn) {
+    _tsScopeOn = true;
+    try {
+      registerHistoryScope({
+        key:       'taskSelection',
+        isActive:  () => !!document.getElementById('verification-tab')?.classList.contains('active'),
+        canUndo:   () => { _tsValid(); return _tsh.undo.length > 0; },
+        canRedo:   () => { _tsValid(); return _tsh.redo.length > 0; },
+        undoLabel: () => { const x = _tsh.undo[_tsh.undo.length - 1]; return x ? _t(x.label) : ''; },
+        redoLabel: () => { const x = _tsh.redo[_tsh.redo.length - 1]; return x ? _t(x.label) : ''; },
+        undo:      () => undoTaskSelectionStep(),
+        redo:      () => redoTaskSelectionStep(),
+      });
+    } catch (e) { console.warn('[task-selection] undo scope not registered:', e); }
+  }
+  try { refreshHistoryButtons(); } catch (_) {}
+}
+
+function _tsApply(json) {
+  const cur = appState.taskSelection;
+  const d = JSON.parse(json) || defaultTaskSelection();
+  // In place: the object stays the same, so the history stays valid.
+  Object.keys(cur).forEach(k => { delete cur[k]; });
+  Object.assign(cur, d);
+  _tsh.applying = true;
+  try {
+    try { document.dispatchEvent(new CustomEvent('dacum:task-selection-changed')); } catch (e) {}
+    renderTaskSelection();
+  } finally { _tsh.applying = false; }
+  _tsh.last = _tsSnap();
+}
+
+export function undoTaskSelectionStep() {
+  _tsCheckpoint();
+  if (!_tsValid() || !_tsh.undo.length) { _tsRefresh(); return false; }
+  const step = _tsh.undo.pop();
+  _tsh.redo.push(step);
+  _tsApply(step.before);
+  _tsRefresh();
+  showStatus('↶ ' + _tf('tselUndone', { a: _t(step.label) }), 'success');
+  return true;
+}
+
+export function redoTaskSelectionStep() {
+  if (!_tsValid() || !_tsh.redo.length) { _tsRefresh(); return false; }
+  const step = _tsh.redo.pop();
+  _tsh.undo.push(step);
+  _tsApply(step.after);
+  _tsRefresh();
+  showStatus('↷ ' + _tf('tselRedone', { a: _t(step.label) }), 'success');
+  return true;
 }
 
 // ── Public read API (used by task_analysis.js) ───────────────────
@@ -233,6 +330,7 @@ function _suggest() {
   if (!judged.length) { showStatus(_t('tselNoRatings'), 'error'); return; }
 
   if (taskSelectionSignature() && !confirm(_t('tselConfirmReplace'))) return;
+  _tsLabel('tselHistSuggest');
 
   const keep = new Set();
   const why  = {};
@@ -280,6 +378,7 @@ export function renderTaskSelection() {
   if (!host) return;
   normalizeDraftRatingKeys();
   const s     = _state();
+  if (!_tsh.applying) { _tsValid(); _tsRefresh(); }   // 3.91.0: history baseline
   const tasks = _allTasks();
 
   if (!tasks.length) { host.innerHTML = ''; return; }
@@ -420,6 +519,7 @@ function _onChange(e) {
 
   const key = t.getAttribute && t.getAttribute('data-tsel-key');
   if (key) {
+    _tsLabel('tselHistTick');
     setTaskSelected(key, t.checked);
     const row = t.closest('.tsel-row');
     if (row) {
@@ -464,8 +564,23 @@ function _onChange(e) {
   }
   const nk = t.getAttribute && t.getAttribute('data-tsel-new');
   if (nk) {
+    _tsLabel('tselHistNew');
     if (t.checked) s.newTask[nk] = true; else delete s.newTask[nk];
-    _changed(); _refreshPerfFlag(t); return;
+    /* 3.91.0: a task set aside only because few perform it comes back
+       at once when marked New — that is the exception's whole point. */
+    const back = t.checked && s.excluded[nk] === 'fewperf';
+    if (back) delete s.excluded[nk];
+    _changed(); _refreshPerfFlag(t);
+    if (back) {
+      const row = t.closest('.tsel-row');
+      if (row) {
+        row.classList.remove('tsel-off');
+        const box = row.querySelector('[data-tsel-key]'); if (box) box.checked = true;
+        const sel = row.querySelector('.tsel-reason'); if (sel) { sel.hidden = true; sel.value = ''; }
+      }
+      _refreshCounts();
+    }
+    return;
   }
 
   const field = t.getAttribute && t.getAttribute('data-tsel-field');
@@ -529,10 +644,13 @@ function _onClick(e) {
   if (action === 'suggest') { _suggest(); return; }
 
   if (action === 'all') {
+    _tsLabel('tselHistAll');
     tasks.forEach(t => delete s.excluded[t.key]);
   } else if (action === 'none') {
+    _tsLabel('tselHistNone');
     tasks.forEach(t => { if (!(t.key in s.excluded)) s.excluded[t.key] = ''; });
   } else if (action === 'stars') {
+    _tsLabel('tselHistStars');
     const star = appState.taskAnalysisPriority || {};
     tasks.forEach(t => {
       if (star[t.key]) delete s.excluded[t.key];
