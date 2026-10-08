@@ -950,6 +950,11 @@ function _showTaskVerificationHelp() {
       ['\u{1F465}',     _t('helpTVK4'), _t('helpTVV4')],
       ['\u2705',        _t('helpTVK5'), _t('helpTVV5')],
       ['\u{1F4CA}',     _t('helpTVK6'), _t('helpTVV6')],
+      /* 3.89.0 — from Norton, "CBE via the DACUM and SCID process". */
+      ['\u2753',        _t('helpTVK7'), _t('helpTVV7')],
+      ['\u{1F5F3}\uFE0F', _t('helpTVK8'), _t('helpTVV8')],
+      ['\u{1F91D}',     _t('helpTVK9'), _t('helpTVV9')],
+      ['\u2696\uFE0F',  _t('helpTVK10'), _t('helpTVV10')],
     ],
     bodyHtml: '<p style="' + P + '">' + _t('helpTVBody') + '</p>',
     note: _t('helpTVNote'),
@@ -1001,6 +1006,7 @@ function _showClusteringHelp() {
       ['\u{1F3AF}', '', _t('helpClusterV1')],
       ['\u{1F504}', '', _t('helpClusterV2')],
       ['\u{1F9E0}', '', _t('helpClusterV3')],
+      ['\u2B50',    '', _t('helpClusterV4')],   // 3.89.0
     ],
     note: _t('helpClusterNote'),
   });

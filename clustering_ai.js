@@ -53,7 +53,7 @@ import { renderAvailableTasks, renderClusters, persistClustering,
          loText, initializeClusteringFromTasks, syncClusteringWithProfile,
          isClusterAddedTask, setClusterStepLabel } from './modules.js';
 import { getTaskPerformanceCriteria, getTaskAnalysisRecord } from './task_analysis.js';
-import { isTaskSelected } from './task_selection.js';
+import { isTaskSelected, getTaskRatingMetrics } from './task_selection.js';
 import { writeAIDraft, openAIPartsDialog } from './ai_draft.js';
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
@@ -74,6 +74,12 @@ const _aiDir = () => (window.i18n ? window.i18n.aiDirective() : '');   // (callA
 
 // A cluster below ~4 tasks is rarely a competency in its own right;
 // above ~12 it stops being a coherent unit of assessment.
+// 3.89.0: the 4 is the USUAL size, not a floor. Norton (CBE via DACUM
+// and SCID): "some tasks are so significant that they deserve to be an
+// instructional competency all by themselves" — the prompt allows a
+// one-task competency for such a task. Nothing in code enforces a
+// minimum on the result (it never did); MIN is still used to require
+// a big enough task pool before asking the AI at all.
 const MIN_TASKS_PER_CLUSTER = 4;
 const MAX_TASKS_PER_CLUSTER = 12;
 
@@ -180,8 +186,18 @@ const _isFilledCriteria = c => (c.performanceCriteria || []).some(x => String(x 
 // ── 1 · Suggest clusters ──────────────────────────────────────
 
 function _buildClusterPrompt(tasks) {
+  /* 3.89.0: verification ratings, where they exist, so the model can
+     tell a significant task (a candidate for its own competency) from
+     a routine one. Absent ratings are simply left out. */
+  const rated = (id) => {
+    let m = null;
+    try { m = getTaskRatingMetrics(id); } catch (_) { m = null; }
+    if (!m) return '';
+    const r = (v) => Math.round(v * 10) / 10;
+    return `\n    verified: importance ${r(m.i)}/3, difficulty ${r(m.d)}/3, frequency ${r(m.f)}/3`;
+  };
   const list = tasks.map(t =>
-    `  - id: ${t.id}\n    task: ${t.text}\n    from duty: ${t.dutyTitle || '(unknown)'}`
+    `  - id: ${t.id}\n    task: ${t.text}\n    from duty: ${t.dutyTitle || '(unknown)'}${rated(t.id)}`
   ).join('\n');
 
   const target = Math.max(2, Math.round(tasks.length / 7));
@@ -200,7 +216,7 @@ CLUSTERING RULES (these are the defining rules — follow them strictly):
 - Group tasks that share ONE of:
     • a common purpose or industry objective
     • a similar workflow or process
-    • the same underpinning knowledge and skills
+    • the same underpinning knowledge, skills and worker behaviours
 - CRITICAL: Tasks from DIFFERENT duties SHOULD be grouped together when
   they are related by purpose, process, or required skills. Duties
   organise work by AREA; clusters organise it by COMPETENCE, so the two
@@ -215,7 +231,12 @@ CLUSTERING RULES (these are the defining rules — follow them strictly):
   the fact that they happen to share a duty heading. This is a
   legitimate outcome; just make sure it is a conclusion you reached,
   not a shortcut you took.
-- Each cluster must contain between ${MIN_TASKS_PER_CLUSTER} and ${MAX_TASKS_PER_CLUSTER} tasks.
+- A cluster normally contains between ${MIN_TASKS_PER_CLUSTER} and ${MAX_TASKS_PER_CLUSTER} tasks.
+- EXCEPTION (Norton): a task so large or significant that it deserves
+  to be a competency by itself — typically one verified as highly
+  important and difficult — MAY form a cluster on its own. Use this
+  sparingly and only for genuinely major tasks; never to avoid the
+  work of grouping.
 - Aim for roughly ${target} clusters, adjusting where the content justifies it.
 - EVERY task id above must appear in exactly ONE cluster.
 - Use ONLY the ids given. Do NOT invent, reword, split or merge tasks.

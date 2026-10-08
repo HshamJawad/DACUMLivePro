@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.89.0 — 2026-10-08 — SCID alignment: one-task competencies, behaviours, verification help
+MINOR. clustering_ai.js, events.js, translations.js, index.html,
+sw.js (v211). Source: Norton, "Competency-Based Education via the
+DACUM and SCID Process".
+Changed AI clustering: 4–12 tasks is the usual size, no longer a rule
+        without exception — a very significant task (e.g. verified as
+        highly important and difficult) may be a competency by itself.
+        The prompt now carries each task's verification ratings when
+        they exist. Manual clustering is unchanged.
+Changed Clustering basis (help and AI prompt): shared knowledge, skills
+        AND worker behaviours.
+Added   Competence Clusters help: the one-task competency note.
+Added   Task Verification help: "Is the task performed?" and the 25%
+        rule with its exception (new tasks); who rates and how many
+        (25+ respondents); who selects the tasks (a small team); why it
+        matters later (legally defensible basis, test weighting).
+
 ── 3.88.0 — 2026-10-08 — 💬 Wording notes for competencies, criteria, outcomes
 MINOR. wording_check.js (new), clusters.js, learning_outcomes.js,
 translations.js, events.js, dacum-components.css, index.html,
