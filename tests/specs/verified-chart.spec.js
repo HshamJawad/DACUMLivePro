@@ -57,9 +57,9 @@ test('Duties & Tasks button: pending until complete, never locked', async ({ pag
   await expect(page.locator('#vcPending')).toContainText('Task Analysis: 1/11');
   await page.locator('#vcPending [data-vc-anyway]').click();
   await expect(page.locator('.vc-overlay')).toBeVisible();
-  // "Edit the selection" leads to Task Verification.
+  // "Edit the selection" leads to the Task Selection tab (3.94.0).
   await page.locator('.vc-overlay [data-vc-act="edit-selection"]').click();
-  await expect(page.locator('#verification-tab')).toBeVisible();
+  await expect(page.locator('#task-selection-tab')).toBeVisible();
 
   // Mark every selected task's analysis complete → the button is ready.
   await page.evaluate(async () => {

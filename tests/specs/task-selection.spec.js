@@ -26,9 +26,10 @@ const sel = (page) => state(page, 's => Object.keys((s.taskSelection || {}).excl
 test('optional: every task selected until changed; Task Analysis unchanged', async ({ page }) => {
   const errors = await openApp(page);
   await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));   // own tab since 3.94.0
   await expect(page.locator('#taskSelectionSection .tsel-count')).toHaveText('12 of 12 tasks selected');
   // Drafted ratings (stored under the pre-3.80 key) now reach the table.
+  await page.evaluate(() => window.switchTab('verification-tab'));
   await expect(page.locator('#score_duty_1_1')).toHaveText('5');
   await page.evaluate(() => window.switchTab('task-analysis-tab'));
   await expect(page.locator('#taskAnalysisNav .ta-nav-task')).toHaveCount(12);
@@ -39,7 +40,7 @@ test('optional: every task selected until changed; Task Analysis unchanged', asy
 test('suggest by Importance and Difficulty, then Top N; Task Analysis follows', async ({ page }) => {
   const errors = await openApp(page);
   await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));
   await setRatings(page);
 
   // Default rule: Importance ≥ 2 and Difficulty ≥ 2 → A2 (D1) and A3 (I1) out.
@@ -91,14 +92,20 @@ test('suggest by Importance and Difficulty, then Top N; Task Analysis follows', 
   // Clearing the Verification tab returns every task to selected.
   await page.evaluate(async () => (await import('./projects.js')).clearCurrentTab('verification-tab'));
   expect(await sel(page)).toEqual([]);
+  // 3.94.0: so does clearing the Task Selection tab on its own.
+  await loadProject(page, data, 'Reimported2_2026-01-01_00-00.json');
+  expect(await sel(page)).toEqual(before);
+  await page.evaluate(async () => (await import('./projects.js')).clearCurrentTab('task-selection-tab'));
+  expect(await sel(page)).toEqual([]);
   expect(errors).toEqual([]);
 });
 
 test('renders in Arabic without errors', async ({ page }) => {
   const errors = await openApp(page, { lang: 'ar' });
   await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));
   await expect(page.locator('#taskSelectionSection h3')).toContainText('اختيار المهام للتدريب والتحليل');
+  await expect(page.locator('.dps-nav-item[data-target-tab="task-selection-tab"]')).toContainText('اختيار المهام');
   await setRatings(page);
   await page.click('[data-tsel-action="none"]');
   await page.evaluate(() => window.switchTab('task-analysis-tab'));
@@ -268,7 +275,7 @@ test('"Not rated yet" opens the task\'s rating row', async ({ page }) => {
     appState.collectionMode = 'survey';
     delete appState.verificationRatings.duty_2_3;
   });
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));
   await page.evaluate(async () => (await import('./task_selection.js')).renderTaskSelection());
   const link = page.locator('[data-tsel-goto="duty_2_3"]');
   await expect(link).toContainText('Not rated yet');

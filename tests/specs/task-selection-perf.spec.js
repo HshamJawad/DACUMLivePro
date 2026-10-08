@@ -31,7 +31,7 @@ async function setPerf(page, key, value) {
 test('off by default; when ticked: few performers set aside, New tasks kept', async ({ page }) => {
   const errors = await openApp(page);
   await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));
   await setRatings(page);
 
   expect(await state(page, 's => s.taskSelection.perfRule')).toBe(false);
@@ -77,7 +77,7 @@ test('off by default; when ticked: few performers set aside, New tasks kept', as
 test('ticking New brings back a task set aside for few performers — only that reason', async ({ page }) => {
   const errors = await openApp(page);
   await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));
   await setRatings(page);
   await page.check('[data-tsel-perfrule]');
   await setPerf(page, 'duty_1_1', 10);
@@ -96,7 +96,7 @@ test('ticking New brings back a task set aside for few performers — only that 
 test('Undo / Redo on the toolbar: suggestion, Select all; other tabs keep their own history', async ({ page }) => {
   const errors = await openApp(page);
   await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));
   await setRatings(page);
   await expect(page.locator('#btnUndo')).toBeDisabled();
 
@@ -126,7 +126,7 @@ test('Arabic, 360 px: rule and fields translated, no horizontal scroll', async (
   await page.setViewportSize({ width: 360, height: 780 });
   const errors = await openApp(page, { lang: 'ar' });
   await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(() => window.switchTab('task-selection-tab'));
   await setRatings(page);
   await expect(page.locator('#taskSelectionSection')).toContainText('هل تُؤدّى المهمة فعلاً');
   await page.check('[data-tsel-perfrule]');

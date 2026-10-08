@@ -14,7 +14,7 @@ for (const lang of ['en', 'fr', 'ar']) {
 test('every main tab renders with a project loaded', async ({ page }) => {
   const errors = await openApp(page);
   await loadProject(page, fixture('sample-project.json'));
-  const tabs = ['info-tab', 'duties-tab', 'additional-info-tab', 'verification-tab', 'task-analysis-tab',
+  const tabs = ['info-tab', 'duties-tab', 'additional-info-tab', 'verification-tab', 'task-selection-tab', 'task-analysis-tab',
                 'clustering-tab', 'occupational-standard-tab', 'learning-outcomes-tab', 'module-mapping-tab',
                 'module-curriculum-tab'];
   for (const t of tabs) {
