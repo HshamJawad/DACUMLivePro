@@ -2141,6 +2141,17 @@ html[data-content-mixed] .container input[type="text"] {
       .tsel-reason[hidden] { display: none !important; }
       .tsel-off .tsel-text { color: #94a3b8; text-decoration: line-through; }
       .tsel-off .tsel-code { color: #94a3b8; }
+      /* 3.90.0: "Is the task performed?" — Norton's 25% rule. */
+      .tsel-perf-opt { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; padding-top: 8px; border-top: 1px dashed #bae6fd;
+                       cursor: pointer; font-weight: 500; color: #334155; flex-wrap: wrap; }
+      .tsel-perf-opt > input[type="checkbox"] { width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: #0284c7; }
+      .tsel-perf-opt > span { flex: 1 1 220px; min-width: 0; line-height: 1.8; }
+      .tsel-perf { display: inline-flex; align-items: center; gap: 4px; font-size: .85em; color: #475569; white-space: nowrap; }
+      .tsel-perf .tsel-perf-in { width: 58px !important; }
+      .tsel-perf-low { color: #b45309; font-weight: 700; font-size: .95em; }
+      .tsel-new { display: inline-flex; align-items: center; gap: 5px; margin: 0; font-size: .82em; font-weight: 600; color: #0369a1;
+                  cursor: pointer; white-space: nowrap; }
+      .tsel-new input { width: 15px; height: 15px; margin: 0; accent-color: #0284c7; }
       .tsel-foot { margin: 6px 18px 16px; font-size: .82em; color: #64748b; font-style: italic; }
 
       /* Competency Clusters follow the task selection (3.81.0). */

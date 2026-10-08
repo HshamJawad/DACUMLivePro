@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.90.0 — 2026-10-08 — ✅ Select Tasks: "Is the task performed?" (Norton's 25% rule)
+MINOR. task_selection.js, translations.js, dacum-components.css,
+index.html, sw.js (v212).
+Added   Select Tasks for Training & Analysis: an optional tick "Also
+        apply 'Is the task performed?'". When ticked, each task shows
+        a "% of workers who perform it" field and a 🆕 New tick.
+        "Suggest selection" then also sets aside tasks performed by
+        fewer than the threshold (default 25%, editable) with the new
+        reason "Performed by few workers"; tasks marked New are kept
+        whatever their figures (Norton's exception). A task with a %
+        but no ratings is judged on the % alone; an empty % is ignored.
+        Unticked (the default, and every older project): the field and
+        the rule are off and the suggestion is exactly as before; the
+        figures entered are kept for later.
+        Saved with the project (taskSelection.perfRule / perfMin /
+        performed / newTask); older files load unchanged.
+
 ── 3.89.0 — 2026-10-08 — SCID alignment: one-task competencies, behaviours, verification help
 MINOR. clustering_ai.js, events.js, translations.js, index.html,
 sw.js (v211). Source: Norton, "Competency-Based Education via the

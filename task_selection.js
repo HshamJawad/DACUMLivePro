@@ -18,7 +18,13 @@
 //     excluded: { [taskInputId]: reasonCode },   // '' = no reason given
 //     rule:     'impdiff' | 'topn',              // suggestion rule
 //     impMin:   2, diffMin: 2,                   // impdiff thresholds
-//     topN:     10                               // topn count
+//     topN:     10,                              // topn count
+//     // 3.90.0 — Norton's first verification question, "Is the task
+//     // performed?", and his 25% rule (optional, off until ticked):
+//     perfRule:  false,                            // apply the rule
+//     perfMin:   25,                               // % threshold
+//     performed: { [taskInputId]: 0–100 },         // % of workers who do it
+//     newTask:   { [taskInputId]: true }           // exception: keep
 //   }
 //
 // Keyed by task inputId — the same key verificationRatings and
@@ -49,11 +55,13 @@ const REASONS = [
   { code: 'onjob',   key: 'tselReasonOnJob' },
   { code: 'rare',    key: 'tselReasonRare' },
   { code: 'prior',   key: 'tselReasonPrior' },
+  { code: 'fewperf', key: 'tselReasonFewPerf' },   // 3.90.0
   { code: 'other',   key: 'tselReasonOther' },
 ];
 
 export function defaultTaskSelection() {
-  return { excluded: {}, rule: 'impdiff', impMin: 2, diffMin: 2, topN: 10 };
+  return { excluded: {}, rule: 'impdiff', impMin: 2, diffMin: 2, topN: 10,
+           perfRule: false, perfMin: 25, performed: {}, newTask: {} };
 }
 
 function _state() {
@@ -68,6 +76,11 @@ function _state() {
   if (!Number.isFinite(+s.impMin))  s.impMin  = d.impMin;
   if (!Number.isFinite(+s.diffMin)) s.diffMin = d.diffMin;
   if (!Number.isFinite(+s.topN) || +s.topN < 1) s.topN = d.topN;
+  /* 3.90.0 — older projects have none of these; defaults change nothing. */
+  s.perfRule = s.perfRule === true;
+  if (!Number.isFinite(+s.perfMin) || +s.perfMin < 1 || +s.perfMin > 100) s.perfMin = d.perfMin;
+  if (!s.performed || typeof s.performed !== 'object') s.performed = {};
+  if (!s.newTask   || typeof s.newTask   !== 'object') s.newTask   = {};
   return s;
 }
 
@@ -199,21 +212,33 @@ function _metrics(t) {
 
 const _fmt = (v) => (Math.round(v * 100) / 100).toString();
 
+/** % of workers who perform the task (3.90.0), or null when not given. */
+function _perf(taskKey) {
+  const v = _state().performed[taskKey];
+  return Number.isFinite(+v) && v !== '' && v !== null ? +v : null;
+}
+
 // ── Suggestion ───────────────────────────────────────────────────
 
 /* Replaces the selection for every RATED task; unrated tasks keep their
    current state — with no data there is nothing to judge them on. */
 function _suggest() {
   const s     = _state();
-  const tasks = _allTasks().map(t => ({ ...t, m: _metrics(t) }));
+  const tasks = _allTasks().map(t => ({ ...t, m: _metrics(t), p: _perf(t.key) }));
   const rated = tasks.filter(t => t.m);
-  if (!rated.length) { showStatus(_t('tselNoRatings'), 'error'); return; }
+  /* 3.90.0: with the performance rule on, a task with a "% performing"
+     figure (or marked New) can be judged even when it is not rated. */
+  const usePerf = s.perfRule;
+  const judged  = tasks.filter(t => t.m || (usePerf && (t.p != null || s.newTask[t.key])));
+  if (!judged.length) { showStatus(_t('tselNoRatings'), 'error'); return; }
 
   if (taskSelectionSignature() && !confirm(_t('tselConfirmReplace'))) return;
 
   const keep = new Set();
   const why  = {};
-  if (s.rule === 'topn') {
+  if (!rated.length) {
+    /* nothing to rank — only the performance rule applies below */
+  } else if (s.rule === 'topn') {
     const n = Math.max(1, Math.floor(+s.topN));
     const sorted = rated.slice().sort((a, b) => b.m.pi - a.m.pi);
     // Ties at the cut-off are kept together: dropping one of two tasks
@@ -228,9 +253,20 @@ function _suggest() {
     });
   }
 
-  rated.forEach(t => {
+  /* 3.90.0 — Norton: a task performed by fewer than perfMin % of
+     workers is set aside, unless there is a compelling reason such as a
+     NEW task workers are not yet trained for. New tasks are kept. */
+  if (usePerf) {
+    judged.forEach(t => {
+      if (s.newTask[t.key]) { keep.add(t.key); delete why[t.key]; return; }
+      if (t.p != null && t.p < +s.perfMin) { keep.delete(t.key); why[t.key] = 'fewperf'; }
+      else if (!t.m && t.p != null) keep.add(t.key);   // unrated, performed widely
+    });
+  }
+
+  judged.forEach(t => {
     if (keep.has(t.key)) delete s.excluded[t.key];
-    else s.excluded[t.key] = why[t.key];
+    else if (why[t.key] !== undefined) s.excluded[t.key] = why[t.key];
   });
   _changed();
   renderTaskSelection();
@@ -252,6 +288,7 @@ export function renderTaskSelection() {
   const nOn      = rows.filter(r => r.on).length;
   const nRated   = rows.filter(r => r.m).length;
   const nUnrated = rows.length - nRated;
+  const nPerf    = s.perfRule ? rows.filter(r => _perf(r.key) != null || s.newTask[r.key]).length : 0;
   const piLabel  = appState.priorityFormula === 'ifd' ? 'I×F×D' : 'I×F';
 
   const stars = Object.keys(appState.taskAnalysisPriority || {})
@@ -272,6 +309,23 @@ export function renderTaskSelection() {
         <option value="">${escapeHtml(_t('tselReasonNone'))}</option>
         ${REASONS.map(x => `<option value="${x.code}"${x.code === cur ? ' selected' : ''}>${escapeHtml(_t(x.key))}</option>`).join('')}
       </select>`;
+  };
+
+  /* 3.90.0 — "% performing" and the New-task exception, shown only
+     while the performance rule is ticked. */
+  const perfFields = (r) => {
+    const p = _perf(r.key);
+    return `
+      <span class="tsel-perf">
+        <input type="number" class="tsel-num tsel-perf-in" data-tsel-perf="${escapeHtml(r.key)}"
+               value="${p == null ? '' : escapeHtml(String(p))}" min="0" max="100" step="1" dir="ltr"
+               placeholder="%" title="${escapeHtml(_t('tselPerfLabel'))}" aria-label="${escapeHtml(_t('tselPerfLabel'))}">%
+        ${p != null && p < +s.perfMin && !s.newTask[r.key] ? `<span class="tsel-perf-low">⚠ &lt; ${escapeHtml(String(s.perfMin))}%</span>` : ''}
+      </span>
+      <label class="tsel-new" title="${escapeHtml(_t('tselNewTip'))}">
+        <input type="checkbox" data-tsel-new="${escapeHtml(r.key)}" ${s.newTask[r.key] ? 'checked' : ''}>
+        🆕 ${escapeHtml(_t('tselNewLabel'))}
+      </label>`;
   };
 
   const metrics = (m) => m
@@ -300,8 +354,13 @@ export function renderTaskSelection() {
           <input type="radio" name="tselRule" value="topn" ${s.rule === 'topn' ? 'checked' : ''}>
           <span>${_tf('tselRuleTopN', { n: num('topN', s.topN, 1, 999, 1), pi: `<bdi>${piLabel}</bdi>` })}</span>
         </label>
+        <label class="tsel-perf-opt">
+          <input type="checkbox" data-tsel-perfrule ${s.perfRule ? 'checked' : ''}>
+          <span>${_tf('tselPerfRule', { pct: `<input type="number" class="tsel-num" data-tsel-perfmin value="${escapeHtml(String(s.perfMin))}" min="1" max="100" step="1" dir="ltr" aria-label="${escapeHtml(_t('tselPerfLabel'))}">` })}</span>
+        </label>
+        ${s.perfRule ? `<p class="tsel-note">${escapeHtml(_t('tselPerfHint'))}</p>` : ''}
         <div class="tsel-btns">
-          <button type="button" class="tsel-btn tsel-btn-primary" data-tsel-action="suggest" ${nRated ? '' : 'disabled'}>💡 ${escapeHtml(_t('tselBtnSuggest'))}</button>
+          <button type="button" class="tsel-btn tsel-btn-primary" data-tsel-action="suggest" ${nRated || nPerf ? '' : 'disabled'}>💡 ${escapeHtml(_t('tselBtnSuggest'))}</button>
           <button type="button" class="tsel-btn" data-tsel-action="all">${escapeHtml(_t('tselBtnAll'))}</button>
           <button type="button" class="tsel-btn" data-tsel-action="none">${escapeHtml(_t('tselBtnNone'))}</button>
           ${stars ? `<button type="button" class="tsel-btn" data-tsel-action="stars">★ ${escapeHtml(_tf('tselBtnStars', { n: stars }))}</button>` : ''}
@@ -327,6 +386,7 @@ export function renderTaskSelection() {
                 </label>
                 ${r.m ? metrics(r.m) : `<button type="button" class="tsel-unrated tsel-goto" data-tsel-goto="${escapeHtml(r.key)}"
                     title="${escapeHtml(_t('tselGotoTip'))}">⚠ ${escapeHtml(_t('tselUnrated'))}</button>`}
+                ${s.perfRule ? perfFields(r) : ''}
                 ${reasonSelect(r)}
               </div>`).join('')}
           </div>`;
@@ -379,6 +439,35 @@ function _onChange(e) {
 
   if (t.name === 'tselRule') { s.rule = t.value === 'topn' ? 'topn' : 'impdiff'; return; }
 
+  /* 3.90.0 — performance rule, threshold, % per task, New task. */
+  if (t.hasAttribute && t.hasAttribute('data-tsel-perfrule')) {
+    s.perfRule = !!t.checked; _changed(); renderTaskSelection(); return;
+  }
+  if (t.hasAttribute && t.hasAttribute('data-tsel-perfmin')) {
+    let v = Math.round(parseFloat(t.value));
+    if (!Number.isFinite(v)) v = 25;
+    s.perfMin = Math.min(100, Math.max(1, v));
+    t.value = String(s.perfMin);
+    if (!s.perfRule) { s.perfRule = true; }
+    _changed(); renderTaskSelection(); return;
+  }
+  const pk = t.getAttribute && t.getAttribute('data-tsel-perf');
+  if (pk) {
+    const raw = String(t.value).trim();
+    if (raw === '') delete s.performed[pk];
+    else {
+      let v = Math.round(parseFloat(raw));
+      if (!Number.isFinite(v)) { delete s.performed[pk]; t.value = ''; }
+      else { v = Math.min(100, Math.max(0, v)); s.performed[pk] = v; t.value = String(v); }
+    }
+    _changed(); _refreshPerfFlag(t); return;
+  }
+  const nk = t.getAttribute && t.getAttribute('data-tsel-new');
+  if (nk) {
+    if (t.checked) s.newTask[nk] = true; else delete s.newTask[nk];
+    _changed(); _refreshPerfFlag(t); return;
+  }
+
   const field = t.getAttribute && t.getAttribute('data-tsel-field');
   if (field) {
     let v = parseFloat(t.value);
@@ -390,6 +479,23 @@ function _onChange(e) {
     const radio = t.closest('.tsel-rule-opt')?.querySelector('input[type="radio"]');
     if (radio && !radio.checked) { radio.checked = true; s.rule = radio.value; }
   }
+}
+
+/* The "⚠ < 25%" flag of one row, updated in place (keeps focus). */
+function _refreshPerfFlag(el) {
+  const row = el.closest && el.closest('.tsel-row');
+  if (!row) return;
+  const key = row.getAttribute('data-tsel-row');
+  const s = _state();
+  const p = _perf(key);
+  const box = row.querySelector('.tsel-perf');
+  if (!box) return;
+  let flag = box.querySelector('.tsel-perf-low');
+  const low = p != null && p < +s.perfMin && !s.newTask[key];
+  if (low && !flag) {
+    flag = document.createElement('span'); flag.className = 'tsel-perf-low'; box.appendChild(flag);
+  }
+  if (flag) { if (low) flag.textContent = `⚠ < ${s.perfMin}%`; else flag.remove(); }
 }
 
 /* 3.86.1: "Not rated yet" leads to the task's rating row — its duty's
