@@ -259,3 +259,24 @@ test('Module Builder handoff carries the tasks left out, with reasons', async ({
   expect(st.find(t => t.id === 'duty_1_1').selected).toBeUndefined();
   expect(errors).toEqual([]);
 });
+
+test('"Not rated yet" opens the task\'s rating row', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(async () => {
+    const { appState } = await import('./state.js');
+    appState.collectionMode = 'survey';
+    delete appState.verificationRatings.duty_2_3;
+  });
+  await page.evaluate(() => window.switchTab('verification-tab'));
+  await page.evaluate(async () => (await import('./task_selection.js')).renderTaskSelection());
+  const link = page.locator('[data-tsel-goto="duty_2_3"]');
+  await expect(link).toContainText('Not rated yet');
+  await expect(page.locator('[data-tsel-goto]')).toHaveCount(1);
+  await link.click();
+  const row = page.locator('#verificationAccordionContainer tr[data-task-key="duty_2_3"]');
+  await expect(row).toBeVisible();
+  await expect(row).toHaveClass(/tsel-flash/);
+  await expect(page.locator('.duty-accordion-header[data-duty="duty_2"]')).toHaveClass(/active/);
+  expect(errors).toEqual([]);
+});
