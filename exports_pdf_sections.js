@@ -714,6 +714,7 @@ export function _pdfTaskAnalysis({ margin, pageHeight, pageWidth, pdf, yPos }) {
                     _writeList('taLblSteps',      r.performanceSteps);
                     _writeList('taLblKnowledge',  r.requiredKnowledge);
                     _writeList('taLblSkills',     r.requiredSkills);
+                    _writeList('taLblBehaviours', r.workerBehaviours);   // 3.92.0
                     _writeList('taLblCriteria',   r.performanceCriteria);
                     _writeText('taLblStandard',   r.performanceStandard);
                     _writeList('taLblTools',      r.toolsEquipmentMaterials);

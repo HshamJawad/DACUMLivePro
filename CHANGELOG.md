@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.92.0 — 2026-10-08 — 🧠 Task Analysis: Worker Behaviours section
+MINOR. task_analysis.js, task_analysis_ai.js, state.js,
+exports_docx_sections.js, exports_pdf_sections.js, translations.js,
+index.html, sw.js (v214). Needs Module Builder 3.19.0 to show the
+section there (older Module Builder ignores it, no error).
+Added   "Worker Behaviours" — an eleventh Task Analysis section, after
+        Required Skills (Norton/SCID: task analysis records the worker
+        behaviours relevant to the task). The Additional Info chart
+        keeps the occupation-wide list; the section's 📋 button picks
+        lines from it ("Worker Behaviors/Traits"), like Knowledge,
+        Skills and Tools.
+Added   AI drafting of the section (2–5 task-specific behaviours, reusing
+        the Additional Info wording where it fits).
+Added   The section in the Word and PDF Task Analysis exports, the JSON
+        file, content translation and the Module Builder handoff.
+Fixed   Records saved before a section existed get the empty section on
+        first write (no "push of undefined").
+
 ── 3.91.0 — 2026-10-08 — ↶ Undo / Redo for Select Tasks; 🆕 New brings a task back
 MINOR. task_selection.js, translations.js, index.html, sw.js (v213).
 Added   The toolbar Undo / Redo buttons work on the task selection while

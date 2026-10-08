@@ -45,6 +45,7 @@ export const appState = {
      of truth on field lists):
      {
        performanceSteps: [], requiredKnowledge: [], requiredSkills: [],
+       workerBehaviours: [],                       (3.92.0)
        toolsEquipmentMaterials: [], safetyOSH: [],
        conditionsWorkEnvironment: '', decisionsCriticalPoints: [],
        performanceCriteria: [], performanceStandard: '',

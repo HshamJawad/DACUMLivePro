@@ -1110,6 +1110,7 @@ export function _docxTaskAnalysis({ AlignmentType, PageBreak, Paragraph, TextRun
                             _pushList('taLblSteps',      r.performanceSteps);
                             _pushList('taLblKnowledge',  r.requiredKnowledge);
                             _pushList('taLblSkills',     r.requiredSkills);
+                            _pushList('taLblBehaviours', r.workerBehaviours);   // 3.92.0
                             _pushList('taLblCriteria',   r.performanceCriteria);
                             _pushText('taLblStandard',   r.performanceStandard);
                             _pushList('taLblTools',      r.toolsEquipmentMaterials);

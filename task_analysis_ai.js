@@ -41,6 +41,7 @@ const GUIDE = {
   performanceSteps:            { max: 12, rule: '5–12 sequential, observable steps in the order the worker performs them; each starts with one action verb.' },
   requiredKnowledge:           { max: 8,  rule: '3–8 items of underpinning knowledge THIS task needs (concepts, principles, specifications to know).' },
   requiredSkills:              { max: 8,  rule: '3–8 practical or cognitive skills THIS task needs.' },
+  workerBehaviours:            { max: 5,  rule: '2–5 worker behaviours or attitudes that matter for THIS task specifically (e.g. precision, patience with the customer, care with hazardous materials) — not generic traits that fit every task.' },
   toolsEquipmentMaterials:     { max: 10, rule: '3–10 tools, equipment, instruments, materials or consumables actually used in THIS task.' },
   safetyOSH:                   { max: 6,  rule: '2–6 task-specific hazards and precautions (including PPE only where it genuinely applies).' },
   conditionsWorkEnvironment:   { text: true, rule: '1–3 sentences: where and under what conditions the task is performed (setting, given resources, constraints).' },

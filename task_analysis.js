@@ -47,6 +47,10 @@ const LIST_FIELDS = [
   { key: 'performanceSteps',            labelKey: 'taLblSteps',      phKey: 'taPhSteps' },
   { key: 'requiredKnowledge',           labelKey: 'taLblKnowledge',  phKey: 'taPhKnowledge' },
   { key: 'requiredSkills',              labelKey: 'taLblSkills',     phKey: 'taPhSkills' },
+  /* 3.92.0 — Norton/SCID: task analysis records the worker behaviours
+     relevant to THIS task (picked from the occupation-wide list in
+     Additional Info). Older records have no such key: read as empty. */
+  { key: 'workerBehaviours',            labelKey: 'taLblBehaviours', phKey: 'taPhBehaviours' },
   { key: 'toolsEquipmentMaterials',     labelKey: 'taLblTools',      phKey: 'taPhTools' },
   { key: 'safetyOSH',                   labelKey: 'taLblSafety',     phKey: 'taPhSafety' },
   { key: 'decisionsCriticalPoints',     labelKey: 'taLblDecisions',  phKey: 'taPhDecisions' },
@@ -65,7 +69,7 @@ const TEXT_FIELDS = [
    worker does, knows and can do, how it is judged, then the supporting
    detail. */
 export const TA_FIELD_SPECS = [
-  'performanceSteps', 'requiredKnowledge', 'requiredSkills',
+  'performanceSteps', 'requiredKnowledge', 'requiredSkills', 'workerBehaviours',
   'performanceCriteria', 'performanceStandard',
   'toolsEquipmentMaterials', 'safetyOSH', 'decisionsCriticalPoints',
   'conditionsWorkEnvironment', 'commonErrorsTroubleshooting',
@@ -124,6 +128,7 @@ const ADDITIONAL_INFO_SOURCES = {
   requiredKnowledge:       { inputId: 'knowledgeInput', headingId: 'knowledgeHeading', titleKey: 'taLblKnowledge' },
   requiredSkills:          { inputId: 'skillsInput',    headingId: 'skillsHeading',    titleKey: 'taLblSkills' },
   toolsEquipmentMaterials: { inputId: 'toolsInput',     headingId: 'toolsHeading',     titleKey: 'taLblTools' },
+  workerBehaviours:        { inputId: 'behaviorsInput', headingId: 'behaviorsHeading', titleKey: 'taLblBehaviours' },   // 3.92.0
 };
 
 // Fields that must ALL have at least one entry/value for a task to be
@@ -137,7 +142,7 @@ const _CORE_COMPLETE_KEYS = [
 
 function _blankRecord() {
   return {
-    performanceSteps: [], requiredKnowledge: [], requiredSkills: [],
+    performanceSteps: [], requiredKnowledge: [], requiredSkills: [], workerBehaviours: [],
     toolsEquipmentMaterials: [], safetyOSH: [], conditionsWorkEnvironment: '',
     decisionsCriticalPoints: [], performanceCriteria: [], performanceStandard: '',
     commonErrorsTroubleshooting: []
@@ -159,7 +164,11 @@ function _view(taskKey) {
 function _ensureRecord(taskKey) {
   if (!appState.taskAnalysisData) appState.taskAnalysisData = {};
   if (!appState.taskAnalysisData[taskKey]) appState.taskAnalysisData[taskKey] = _blankRecord();
-  return appState.taskAnalysisData[taskKey];
+  const r = appState.taskAnalysisData[taskKey];
+  /* 3.92.0: a record saved before a section existed (workerBehaviours)
+     lacks its key — give it an empty one before anything writes to it. */
+  LIST_FIELDS.forEach(f => { if (!Array.isArray(r[f.key])) r[f.key] = []; });
+  return r;
 }
 
 // A raw list-field array may contain blank-string entries — either
