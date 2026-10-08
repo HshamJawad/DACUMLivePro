@@ -358,7 +358,8 @@ function _countInputs(cat, item) {
     const id = `sv_${item.id}_c${v}`;
     return `<div class="count-input-item">
       <label for="${id}">${v}</label>
-      <input type="number" id="${id}" min="0" max="${max}" value="${parseInt(item.counts?.[v]) || 0}"
+      <input type="number" id="${id}" min="0" max="${max}" value="${parseInt(item.counts?.[v]) || ''}"
+             placeholder="0" inputmode="numeric" onfocus="this.select()"
              data-sv="count" data-cat="${cat.id}" data-item="${item.id}" data-scale="${v}">
     </div>`;
   }).join('')}</div>

@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.93.0 — 2026-10-08 — Task Verification: whole workshop table on screen; empty count boxes
+MINOR. tasks.js, supplementary_verification.js, dacum-components.css,
+index.html, sw.js (v215).
+Changed Workshop mode: the four count boxes of each dimension sit in a
+        2 × 2 grid (0 1 / 2 3) with smaller boxes. The whole table —
+        the three means and the Priority Index included — now fits
+        beside the open sidebar (it was ~250 px too wide at 1366 px and
+        its scrollbar sat under the last task). The scale reads 0 → 3
+        left to right in every language, like the 0–3 radio scale.
+        Narrower screens: the table scrolls sideways and the task
+        column stays in place.
+Changed Count boxes (tasks and the supplementary lists): a zero shows as
+        an empty box with a faint 0, and an empty box counts as 0.
+        Clicking a box selects its content, so a typed number replaces
+        it; arrows and the phone number pad work. Before, the 0 was
+        rewritten the moment it was deleted.
+
 ── 3.92.0 — 2026-10-08 — 🧠 Task Analysis: Worker Behaviours section
 MINOR. task_analysis.js, task_analysis_ai.js, state.js,
 exports_docx_sections.js, exports_pdf_sections.js, translations.js,

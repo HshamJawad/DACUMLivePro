@@ -2195,3 +2195,51 @@ html[data-content-mixed] .container input[type="text"] {
 .wording-note-head { font-weight: 700; color: #0369a1; margin-bottom: 2px; }
 .cluster-item > .wording-note { margin: 0 0 10px; }
 @media print { .wording-note { display: none !important; } }
+
+/* ── 3.93.0: Task Verification, workshop counts ───────────────────
+   The four count boxes of each dimension sit in a 2 × 2 grid (0 1 /
+   2 3) instead of one row, with smaller boxes, so the whole table —
+   means and Priority Index included — fits beside an open sidebar.
+   The scale reads 0 → 3 left to right in every language, like the
+   0–3 radio scale (dacum-rtl.css keeps scales LTR for the same
+   reason). Where the screen is still too narrow, the table scrolls
+   sideways and the task column stays in place. */
+#verificationAccordionContainer .count-input-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, auto);
+  gap: 6px 14px !important;
+  justify-content: center;
+  align-items: center;
+  direction: ltr;
+  flex-wrap: nowrap;
+}
+#verificationAccordionContainer .count-input-item {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 4px !important;
+}
+#verificationAccordionContainer .count-input-item label {
+  font-size: .85em;
+  min-width: 9px;
+  text-align: center;
+  margin: 0;
+}
+#verificationAccordionContainer .count-input-item input {
+  width: 42px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  font-size: 1em !important;
+  text-align: center !important;
+}
+#verificationAccordionContainer .count-input-item input::placeholder { color: #cbd5e1; font-weight: 400; opacity: 1; }
+#verificationAccordionContainer .verification-table td,
+#verificationAccordionContainer .verification-table th { padding-inline: 8px; }
+#verificationAccordionContainer .verification-table td:first-child,
+#verificationAccordionContainer .verification-table th:first-child {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+}
+#verificationAccordionContainer .verification-table td:first-child { background: #fff; }
+#verificationAccordionContainer .verification-table tr:hover td:first-child { background: #f9fafb; }
+#verification-tab .sv-table .count-input-item input::placeholder { color: #cbd5e1; opacity: 1; }

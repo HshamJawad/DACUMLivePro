@@ -481,12 +481,19 @@ function createCountInputs(taskKey, dimension) {
     ${[0,1,2,3].map(value => {
       const inputId = `${taskKey}_${dimension}_count_${value}`;
       const cur     = dimCounts[value] || 0;
+      /* 3.93.0: a zero count shows as an EMPTY box with a faint "0"
+         placeholder, and an empty box counts as 0. Before, the 0 was
+         real text that the clamp below rewrote at once, so it could
+         not be deleted — the user had to select it to type over it.
+         Focus selects the content, so a typed digit replaces it. */
       return `<div class="count-input-item">
         <label for="${inputId}">${value}</label>
         <input type="number" id="${inputId}" min="0" max="${appState.workshopParticipants}"
-               value="${cur}" data-action="update-workshop-count"
+               value="${cur ? cur : ''}" placeholder="0" inputmode="numeric"
+               data-action="update-workshop-count"
                data-task-key="${taskKey}" data-dimension="${dimension}" data-scale="${value}"
-               oninput="this.value=Math.max(0,Math.min(${appState.workshopParticipants},parseInt(this.value)||0))">
+               onfocus="this.select()"
+               oninput="if(this.value!==''){this.value=Math.max(0,Math.min(${appState.workshopParticipants},parseInt(this.value)||0))}">
       </div>`;
     }).join('')}
   </div>
