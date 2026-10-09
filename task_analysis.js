@@ -883,6 +883,19 @@ function _openAdditionalInfoPicker(fieldKey) {
 // ── Event wiring ─────────────────────────────────────────────
 // Scoped to the tab's own container, same delegation pattern events.js
 // uses for every other tab (see e.g. the dutiesCont listener there).
+/* 3.97.0: open one task's analysis — used when Module Builder sends the
+   user here ("open in DACUM", mb_link.js). A task left out of training
+   is shown too (the "show unselected" tick is turned on for it). */
+export function openTaskAnalysisFor(taskKey) {
+  if (!_allTasksFlat().some(f => f.taskKey === taskKey)) return false;
+  if (!isTaskSelected(taskKey)) _showUnselected = true;
+  _selectedTaskKey = taskKey;
+  renderTaskAnalysisTab();
+  const el = document.querySelector(`#taskAnalysisNav [data-task-key="${CSS.escape(taskKey)}"]`);
+  if (el) el.scrollIntoView({ block: 'nearest' });
+  return true;
+}
+
 export function setupTaskAnalysisEvents() {
   const root = document.getElementById('task-analysis-tab');
   if (!root || root.__taWired) return;

@@ -26,6 +26,7 @@ import { initVerificationCharts } from './verification_charts.js';
 import { initSupplementaryVerification } from './supplementary_verification.js';
 import { initTaskSelection } from './task_selection.js';
 import { initVerifiedChart } from './verified_chart.js';
+import { initMbLink } from './mb_link.js';
 import { initI18nDefaults } from './i18n_defaults.js';
 import { initContentLanguages } from './settings_languages.js';
 import { renderDraftCard }        from './draft_ui.js';
@@ -179,6 +180,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   /* Verified DACUM chart (3.86.0) — buttons in Task Analysis and in
      Duties & Tasks; read-only, rebuilt on every opening. */
   initVerifiedChart();
+
+  /* 3.97.0: arriving from Module Builder ("open in DACUM") and the
+     "↩ Back to Module Builder" bar. After the project has been restored. */
+  setTimeout(initMbLink, 300);
 
   /* Default seed content (Skills Matrix rows, Additional Info headings)
      follows the interface language; user-edited text is never touched. */

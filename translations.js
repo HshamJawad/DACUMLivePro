@@ -23,6 +23,12 @@
       ttTaskAnalysisHelp: 'What does Task Analysis add?',
       taskAnalysisDesc: 'For each verified task, break down what the worker must know, do, use, watch for and be judged against — the bridge between Task Verification and Competency Clusters.',
       taskAnalysisOptionalNote: 'Optional: if the panel writes the performance criteria in Competency Clusters instead, you may proceed — they still reach the Module Builder. Tasks can be analysed here later and the module sent again.',  // 3.96.0
+      mbReturnText: 'Opened from Module Builder',  // 3.97.0
+      mbReturnBtn: 'Back to Module Builder',  // 3.97.0
+      mbReturnClose: 'Close',  // 3.97.0
+      mbReturnNoModule: 'This module no longer exists in Module Mapping — send it from there.',  // 3.97.0
+      mbReturnNoProject: 'The project Module Builder asked for is not in this browser. Open or import it, then try again.',  // 3.97.0
+      mbReturnNoTask: 'That task was not found in this project.',  // 3.97.0
       msgNoDutiesFoundTitleTA: 'No Tasks Found',
       msgNoDutiesForAnalysis: 'Please go to "Duties & Tasks" and create duties with tasks first — they will appear here automatically.',
       msgSelectTaskForAnalysis: 'Select a task from the list on the left to begin its analysis.',
@@ -1763,6 +1769,12 @@
       ttTaskAnalysisHelp: "Que apporte l'analyse des tâches ?",
       taskAnalysisDesc: "Pour chaque tâche vérifiée, précisez ce que le travailleur doit savoir, faire, utiliser, surveiller et respecter — le lien entre la vérification des tâches et les regroupements de compétences.",
       taskAnalysisOptionalNote: 'Facultatif : si le panel rédige les critères de performance dans les groupes de compétences, vous pouvez continuer — ils parviennent quand même à Module Builder. Les tâches peuvent être analysées ici plus tard et le module renvoyé.',  // 3.96.0
+      mbReturnText: 'Ouvert depuis Module Builder',  // 3.97.0
+      mbReturnBtn: 'Retour à Module Builder',  // 3.97.0
+      mbReturnClose: 'Fermer',  // 3.97.0
+      mbReturnNoModule: 'Ce module n\'existe plus dans la cartographie des modules — envoyez-le depuis celle-ci.',  // 3.97.0
+      mbReturnNoProject: 'Le projet demandé par Module Builder n\'est pas dans ce navigateur. Ouvrez-le ou importez-le, puis réessayez.',  // 3.97.0
+      mbReturnNoTask: 'Cette tâche est introuvable dans ce projet.',  // 3.97.0
       msgNoDutiesFoundTitleTA: 'Aucune tâche trouvée',
       msgNoDutiesForAnalysis: "Veuillez d'abord créer des fonctions et des tâches dans l'onglet « Fonctions et tâches » — elles apparaîtront ici automatiquement.",
       msgSelectTaskForAnalysis: 'Sélectionnez une tâche dans la liste de gauche pour commencer son analyse.',
@@ -3507,6 +3519,12 @@
       ttTaskAnalysisHelp: 'ما الذي يضيفه تحليل المهمة؟',
       taskAnalysisDesc: 'لكل مهمة تم التحقق منها، حدد ما يجب أن يعرفه العامل وينفذه ويستخدمه ويراعيه ويُقيَّم بموجبه — وهي حلقة الوصل بين التحقق من المهام وتجمعات الكفاءات.',
       taskAnalysisOptionalNote: 'اختياري: إن كتب الفريق معايير الأداء في «تجمعات الكفاءات» يمكنك المتابعة، وستصل إلى Module Builder. ويمكن تحليل المهام هنا لاحقًا ثم إعادة إرسال الوحدة.',  // 3.96.0
+      mbReturnText: 'فُتح من Module Builder',  // 3.97.0
+      mbReturnBtn: 'العودة إلى Module Builder',  // 3.97.0
+      mbReturnClose: 'إغلاق',  // 3.97.0
+      mbReturnNoModule: 'هذه الوحدة لم تعد موجودة في مواءمة الوحدات — أرسلها من هناك.',  // 3.97.0
+      mbReturnNoProject: 'المشروع الذي طلبه Module Builder غير موجود في هذا المتصفح. افتحه أو استورده ثم أعد المحاولة.',  // 3.97.0
+      mbReturnNoTask: 'لم يُعثر على هذه المهمة في هذا المشروع.',  // 3.97.0
       msgNoDutiesFoundTitleTA: 'لم يتم العثور على مهام',
       msgNoDutiesForAnalysis: 'يرجى إنشاء الواجبات والمهام أولاً في تبويب "الواجبات والمهام" — وستظهر هنا تلقائياً.',
       msgSelectTaskForAnalysis: 'اختر مهمة من القائمة على اليسار لبدء تحليلها.',

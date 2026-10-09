@@ -2257,3 +2257,13 @@ html[data-content-mixed] .container input[type="text"] {
 /* 3.96.0: Task Analysis is optional — a guidance line under the tab text. */
 .ta-optional-note { margin: -12px 0 18px; padding: 8px 12px; border-inline-start: 3px solid #38bdf8; background: #f0f9ff;
                     border-radius: 6px; color: #075985; font-size: .88em; line-height: 1.6; }
+
+/* 3.97.0: "↩ Back to Module Builder" — shown after arriving from Module Builder. */
+.mb-return-bar { position: fixed; z-index: 9000; inset-inline: 0; bottom: 16px; margin: 0 auto; width: max-content; max-width: calc(100% - 32px);
+                 display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px 8px 14px; border-radius: 12px;
+                 background: #0c4a6e; color: #e0f2fe; box-shadow: 0 6px 20px rgba(2,6,23,.3); font-size: .9em; }
+.mb-return-bar b { color: #fff; }
+.mb-return-btn { width: auto; margin: 0; padding: 7px 14px; border: none; border-radius: 8px; background: linear-gradient(135deg,#0ea5e9,#0284c7);
+                 color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.mb-return-btn:hover { background: linear-gradient(135deg,#0284c7,#0369a1); }
+.mb-return-close { width: auto; margin: 0; padding: 4px 8px; border: none; background: transparent; color: #bae6fd; font-size: 1em; cursor: pointer; }

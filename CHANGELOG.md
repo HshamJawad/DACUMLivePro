@@ -7,6 +7,28 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.97.0 — 2026-10-09 — From Module Builder to a task's analysis, and back
+MINOR. mb_link.js (new), task_analysis.js, module_mapping.js, app.js,
+translations.js, dacum-components.css, index.html, sw.js (v223).
+Pairs with Module Builder 3.24.0.
+Added   Module Builder's "Not analysed yet" tasks open here: the same
+        project (loaded when another is on screen), the Task Analysis
+        tab and that task (#mb-ta=…&project=…&module=…). A task left out
+        of training is shown too.
+Added   A bar "🔗 Opened from Module Builder — <module>  ↩ Back to Module
+        Builder  ✕": sends that module again and returns to the Module
+        Builder tab, which imports it at once (no reload, sheets kept).
+        Kept for the tab's session until used or closed.
+Changed Sending to Module Builder reuses its tab when one is open (tab
+        names "module-builder" / "dacum-live-pro") instead of opening a
+        new tab each time. The handoff carries dacumUrl (this page's
+        address) so Module Builder knows where to send the user.
+Needs   Both tools on the same site, as the handoff itself already does.
+Tested  Pilot: Module Builder → A2 opens here in Task Analysis with the
+        bar; after analysing A2, "Back" updates Module Builder in place
+        (A2 leaves "Not analysed yet"); still two tabs. 65 behaviour
+        tests pass.
+
 ── 3.96.0 — 2026-10-09 — Task Analysis: "optional" guidance line
 MINOR. index.html, translations.js, dacum-components.css, sw.js (v222).
 Pairs with Module Builder 3.20.0 / 3.21.0.
