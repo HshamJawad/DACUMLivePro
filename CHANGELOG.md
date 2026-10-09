@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.95.2 — 2026-10-09 — User Guide: DACUM Lite and DACUM Live Pro
+PATCH (documentation). DACUM_Live_Pro_User_Guide.html, sw.js (v220),
+index.html.
+Changed The guide (EN / FR / AR) explains how the two tools fit
+        together, in general terms that will not date: a note in the
+        overview (DACUM Lite builds the chart; a chart started there
+        opens here and carries on from Task Verification), and in
+        Importing projects a "Projects from DACUM Lite" card — export
+        from Lite, import here, what comes across, what stays in Lite.
+        "What's new" is unchanged.
+        DACUM Lite's own guides (EN / FR / AR) gained the matching
+        section, "Continue in DACUM Live Pro", and the Sector and
+        Country / Context fields.
+        The Arabic DACUM Lite guide now reads right to left: its
+        contents list sits on the right and the top bar starts with
+        Overview on the right.
+
 ── 3.95.1 — 2026-10-09 — Lite projects bring Sector and Country / Context
 PATCH. lite_import.js, index.html, sw.js (v219),
 tests/specs/lite-import.spec.js, tests/fixtures/lite-project.json.
