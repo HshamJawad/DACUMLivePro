@@ -1,5 +1,5 @@
 // 3.95.0 — DACUM Lite project files open in DACUM Live Pro.
-// fixtures/lite-project.json is a real export from DACUM Lite 4.13.3
+// fixtures/lite-project.json is a real export from DACUM Lite 4.14.0
 // ("Export Project"), Arabic content, Lite interface in English.
 const { test, expect } = require('@playwright/test');
 const path = require('path');
@@ -31,6 +31,8 @@ test('a DACUM Lite export opens as a Pro project', async ({ page }) => {
   expect(await v('dacumDateEnd')).toBe('2026-09-22');
   expect(await v('workshopFormat')).toBe('hybrid');
   expect(await v('venue')).toBe('بغداد');
+  expect(await v('sector')).toBe('الصناعات المعدنية');   // Lite 4.14.0
+  expect(await v('context')).toBe('العراق');
   expect(await v('producedFor')).toBe('وزارة العمل');
   expect(await v('facilitators')).toBe('هشام جواد\nميسّر ثانٍ');
   expect(await v('panelMembers')).toBe('خبير 1\nخبير 2\nخبير 3');
