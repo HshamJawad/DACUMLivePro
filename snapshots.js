@@ -13,6 +13,7 @@ import { loadDutiesForVerification } from './tasks.js';
 import { importProjectFromData, loadProject, renderProjectsSidebar } from './dacum_projects.js';
 import { reportError } from './error-handler.js';
 import { readProjects } from './project_store.js';
+import { adaptImportedFile } from './lite_import.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -248,13 +249,14 @@ export function loadFromJSON(event) {
       const reader = new FileReader();
       reader.onload = function (e) {
         try {
-          const data = JSON.parse(e.target.result);
+          // DACUM Lite files are turned into Pro's shape first (3.95.0).
+          const { data, fileName } = adaptImportedFile(JSON.parse(e.target.result), file.name);
           if (!_isValidDacumFile(data)) {
             const err = new Error('Not a valid DACUM project file: ' + file.name);
             err.name = 'InvalidDacumFile';
             throw err;
           }
-          const { id, label } = importProjectFromData(data, file.name);
+          const { id, label } = importProjectFromData(data, fileName);
           imported++;
           resolve({ id, label });
         } catch(err) {
@@ -289,13 +291,14 @@ export function loadFromJSON(event) {
     const reader = new FileReader();
     reader.onload = function (e) {
       try {
-        const data = JSON.parse(e.target.result);
+        // DACUM Lite files are turned into Pro's shape first (3.95.0).
+        const { data, fileName, fromLite } = adaptImportedFile(JSON.parse(e.target.result), file.name);
 
         // ── Validate structure before touching the sidebar ──
         if (!_isValidDacumFile(data)) {
           const err = new Error(
             'This file is not a valid DACUM project file.\n\n' +
-            'Expected a .json file exported from DACUM Live Pro.\n' +
+            'Expected a .json file exported from DACUM Live Pro or DACUM Lite.\n' +
             'The selected file does not contain duties, tasks, or chart info.'
           );
           err.name = 'InvalidDacumFile';
@@ -305,7 +308,7 @@ export function loadFromJSON(event) {
         // Create a new project from the imported file
         let id, label;
         try {
-          const result = importProjectFromData(data, file.name);
+          const result = importProjectFromData(data, fileName);
           id    = result.id;
           label = result.label;
         } catch (importErr) {
@@ -316,7 +319,7 @@ export function loadFromJSON(event) {
 
         // Load the newly created project (applies state + renders UI)
         loadProject(id);
-        showStatus('✅ ' + _tf('msgImportedAsNew', { name: label }), 'success');
+        showStatus('✅ ' + _tf(fromLite ? 'msgImportedFromLite' : 'msgImportedAsNew', { name: label }), 'success');
 
       } catch (parseErr) {
         console.error('Import error:', parseErr);

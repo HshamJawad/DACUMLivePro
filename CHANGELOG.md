@@ -7,6 +7,30 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.95.0 — 2026-10-09 — 📥 Open DACUM Lite projects
+MINOR. lite_import.js (new), snapshots.js, workshop_snapshots.js,
+translations.js, index.html, sw.js (v218), tests/specs/lite-import.spec.js,
+tests/fixtures/lite-project.json.
+Added   A facilitator who starts in DACUM Lite carries on in Pro: the
+        ordinary Load / Import button now opens Lite's "Export Project"
+        files. Chart info (dates, a multi-day end date, workshop format
+        and venue, the commissioning and producing bodies, both logos,
+        the facilitators, panel members and observers), duties and tasks
+        in their order, and the seven Additional Info sections with any
+        custom sections all come across; Pro then continues from Task
+        Verification. A heading renamed in Lite is kept; one left at
+        Lite's default gives way to Pro's heading in the current
+        language. The project takes the occupation's name when Lite's
+        was still "Untitled Project". Lite's snapshots stay in Lite.
+        The message reads "Imported from DACUM Lite: … Continue with
+        Task Verification."
+Fixed   Older Lite "Save JSON" files kept their duties but lost their
+        Additional Info texts and custom sections; both now come across.
+Fixed   Importing any project file put the facilitators, panel members
+        and observers on one line, joined by commas, so the Word and PDF
+        exports listed the whole team as a single name. One name per
+        line again.
+
 ── 3.94.1 — 2026-10-09 — User Guide brought up to 3.94
 PATCH (documentation). DACUM_Live_Pro_User_Guide.html, sw.js (v217),
 index.html.

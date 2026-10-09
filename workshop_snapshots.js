@@ -387,7 +387,9 @@ function _save(snaps) {
 
 function _val(id)        { const el = document.getElementById(id); return el ? el.value : ''; }
 function _text(id)       { const el = document.getElementById(id); return el ? el.textContent : ''; }
-function _setVal(id, v)  { const el = document.getElementById(id); if (el) el.value = v || ''; }
+// Team lists are saved as arrays: one name per line in the box (3.95.0;
+// a plain assignment joined them with commas into one name).
+function _setVal(id, v)  { const el = document.getElementById(id); if (el) el.value = Array.isArray(v) ? v.join('\n') : (v || ''); }
 function _setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v || ''; }
 function _cap(s)         { return s.charAt(0).toUpperCase() + s.slice(1); }
 function _esc(str) {
