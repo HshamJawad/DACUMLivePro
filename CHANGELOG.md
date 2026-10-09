@@ -7,6 +7,13 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.95.1 — 2026-10-09 — Lite projects bring Sector and Country / Context
+PATCH. lite_import.js, index.html, sw.js (v219),
+tests/specs/lite-import.spec.js, tests/fixtures/lite-project.json.
+Added   DACUM Lite 4.14.0 has the same optional Sector and Country /
+        Context fields as Pro; a Lite project opened here now fills them.
+        Older Lite files simply leave them empty.
+
 ── 3.95.0 — 2026-10-09 — 📥 Open DACUM Lite projects
 MINOR. lite_import.js (new), snapshots.js, workshop_snapshots.js,
 translations.js, index.html, sw.js (v218), tests/specs/lite-import.spec.js,

@@ -74,6 +74,9 @@ function _chartInfo(ci, images) {
     occupationTitle: _str(ci.occupationTitle),
     scopeOfWork:     _str(ci.scopeOfWork),
     jobTitle:        _str(ci.jobTitle),
+    // Lite 4.14.0 and later; empty for older Lite files.
+    sector:          _str(ci.sector),
+    context:         _str(ci.context),
     facilitators:    _lines(ci.facilitators),
     observers:       _lines(ci.observers),
     panelMembers:    _lines(ci.panelMembers),
