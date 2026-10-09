@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.96.0 — 2026-10-09 — Task Analysis: "optional" guidance line
+MINOR. index.html, translations.js, dacum-components.css, sw.js (v222).
+Pairs with Module Builder 3.20.0 / 3.21.0.
+Added   Under the Task Analysis intro (EN / FR / AR): Task Analysis is
+        optional; when the panel writes the performance criteria in
+        Competency Clusters, Proceed is enough — those criteria still
+        reach Module Builder. Tasks can be analysed here later and the
+        module sent again. No "skip" button: Proceed already does it.
+
 ── 3.95.3 — 2026-10-09 — Task Selection on phones: "Not rated yet" stays inside the card
 PATCH. dacum-components.css, index.html, sw.js (v221).
 Fixed   On a phone (Android PWA) the "⚠ Not rated yet (importance ·
