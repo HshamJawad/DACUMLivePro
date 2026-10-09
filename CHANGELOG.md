@@ -7,6 +7,13 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.95.3 — 2026-10-09 — Task Selection on phones: "Not rated yet" stays inside the card
+PATCH. dacum-components.css, index.html, sw.js (v221).
+Fixed   On a phone (Android PWA) the "⚠ Not rated yet (importance ·
+        frequency · difficulty)" pill did not wrap and ran past the
+        card's right edge. Under 600 px it now wraps inside the card;
+        the ratings line and the reason list do the same.
+
 ── 3.95.2 — 2026-10-09 — User Guide: DACUM Lite and DACUM Live Pro
 PATCH (documentation). DACUM_Live_Pro_User_Guide.html, sw.js (v220),
 index.html.
