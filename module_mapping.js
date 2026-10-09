@@ -1178,6 +1178,18 @@ function _handoffProgramme(occupation) {
  * source tasks and their Task Analysis content (see _buildModuleExport),
  * not just Learning Outcomes and Performance Criteria text.
  */
+/* 3.97.0: open `url` in the tab called `name`, reusing it when it is
+   open. A tab of another site is navigated; a blank one is filled. */
+export function openNamedWindow(url, name) {
+  let w = null;
+  try { w = window.open('', name); } catch (_) { w = null; }
+  if (!w) { window.open(url, '_blank'); return; }
+  let blank = true;
+  try { const h = String(w.location.href || ''); blank = !h || h === 'about:blank'; } catch (_) { blank = false; }
+  if (blank) w.location.href = url;
+  try { w.focus(); } catch (_) { /* ignore */ }
+}
+
 export function openModuleBuilderFromMapping(moduleId = null) {
   const occupationTitle = document.getElementById('occupationTitle')?.value || '';
   const jobTitle = document.getElementById('jobTitle')?.value || '';
@@ -1203,6 +1215,8 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // side: an older payload without it still imports.
     handoffVersion: 2,
     programId: programme.id,
+    // 3.97.0: where this DACUM runs — Module Builder's "open in DACUM".
+    dacumUrl: location.href.split('#')[0],
     programName: programme.name,
     dacumVersion: (window.DACUM_BUILD && window.DACUM_BUILD.version) || '',
     occupation,
@@ -1250,6 +1264,7 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     occupationalReference: exportObject.occupationalReference,
                     handoffVersion: exportObject.handoffVersion,
                     programId: exportObject.programId, programName: exportObject.programName,
+                    dacumUrl: exportObject.dacumUrl,
                     dacumVersion: exportObject.dacumVersion,
                     contentLanguages: exportObject.contentLanguages,
                     taskSelection: exportObject.taskSelection,
@@ -1272,7 +1287,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // ever worked if it happened to sit next to index.html on the same
     // host. Pointing at the live tool directly is what actually works
     // regardless of where DACUM Live Pro itself is hosted.
-    window.open('https://hshamjawad.github.io/Module-Builder/', '_blank');
+    // 3.97.0: reuse the Module Builder tab when one is open (it names
+    // itself "module-builder" and imports the handoff at once, without a
+    // reload); otherwise open it.
+    openNamedWindow('https://hshamjawad.github.io/Module-Builder/', 'module-builder');
     showStatus(_t('msgMBExported'), 'success');
   } catch (error) {
     console.error('Error exporting to Module Builder:', error);
