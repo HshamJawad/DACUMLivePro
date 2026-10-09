@@ -2135,6 +2135,16 @@ html[data-content-mixed] .container input[type="text"] {
                    color: #92400e; font: inherit; font-size: .8em; font-style: normal; font-weight: 600; cursor: pointer; white-space: nowrap; }
       .tsel-goto:hover { background: #fef3c7; }
       .tsel-goto:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }
+      /* 3.95.3: on a phone the pill (and the ratings line) must wrap inside
+         the card instead of running past its edge. */
+      .tsel-goto, .tsel-metrics { max-width: 100%; min-width: 0; box-sizing: border-box; }
+      @media (max-width: 600px) {
+        .tsel-goto { white-space: normal !important; text-align: start; line-height: 1.4; height: auto !important;
+                     min-height: 0 !important; padding: 6px 12px !important; border-radius: 14px; overflow-wrap: anywhere; }
+        .tsel-metrics { white-space: normal; overflow-wrap: anywhere; }
+        .tsel-reason { max-width: 100%; }
+        .tsel-list { padding: 0 10px; }
+      }
       #verificationAccordionContainer tr.tsel-flash > td { background: #fef9c3 !important; transition: background .3s; }
       .tsel-reason { width: auto !important; max-width: 240px; margin: 0 !important; padding: 4px 8px !important;
                      font-size: .82em !important; border: 1px solid #fcd34d !important; border-radius: 6px !important; background: #fffbeb; }
