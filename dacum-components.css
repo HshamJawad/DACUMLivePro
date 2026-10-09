@@ -2267,3 +2267,56 @@ html[data-content-mixed] .container input[type="text"] {
                  color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .mb-return-btn:hover { background: linear-gradient(135deg,#0284c7,#0369a1); }
 .mb-return-close { width: auto; margin: 0; padding: 4px 8px; border: none; background: transparent; color: #bae6fd; font-size: 1em; cursor: pointer; }
+
+/* ── 3.98.0: "Replace with Task Analysis criteria" (clusters.js) ──
+   The note on a competency card that has both kinds of criteria, and
+   the preview dialog. Logical properties only, so it mirrors in RTL. */
+.crit-mix-note {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
+  margin-top: 8px; padding: 8px 12px;
+  background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;
+  color: #075985; font-size: 0.84em; line-height: 1.5;
+}
+.crit-mix-btn {
+  width: auto; margin: 0; padding: 6px 12px; border-radius: 8px;
+  border: 1px solid #0284c7; background: #fff; color: #0369a1;
+  font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.crit-mix-btn:hover { background: #e0f2fe; }
+.crit-mix-btn:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }
+
+.crr-overlay { position: fixed; inset: 0; z-index: 100001; background: rgba(15, 23, 42, 0.5);
+               display: flex; align-items: center; justify-content: center; padding: 16px; }
+.crr-box { width: min(820px, 100%); max-height: 92vh; display: flex; flex-direction: column;
+           background: #fff; border-radius: 12px; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3); overflow: hidden; }
+.crr-head { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.crr-head h3 { margin: 0; font-size: 1.02em; color: #0f172a; }
+.crr-x { width: auto; min-height: 0; margin: 0; padding: 4px 9px; border: none; background: transparent;
+         font-size: 1.05em; cursor: pointer; border-radius: 6px; color: #475569; }
+.crr-x:hover { background: #e2e8f0; }
+.crr-body { padding: 14px 16px; overflow-y: auto; font-size: 0.9em; color: #1e293b; }
+.crr-body h4 { margin: 14px 0 8px; font-size: 0.95em; }
+.crr-count { margin: 0 0 8px; font-weight: 700; }
+.crr-warn { padding: 8px 12px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; color: #92400e; }
+.crr-nolo, .crr-nomatch { margin: 4px 0; color: #64748b; font-style: italic; }
+.crr-lo { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.crr-lo-head { margin-bottom: 8px; }
+.crr-cols { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.4fr); gap: 10px; align-items: start; }
+.crr-arrow { color: #94a3b8; padding-top: 18px; }
+[dir="rtl"] .crr-arrow { transform: scaleX(-1); }
+.crr-lbl { font-size: 0.78em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #64748b; margin-bottom: 4px; }
+.crr-before ul { margin: 0; padding-inline-start: 18px; color: #b45309; }
+.crr-task { margin-bottom: 6px; }
+.crr-task-name { font-weight: 600; font-size: 0.92em; color: #334155; margin-bottom: 2px; }
+.crr-crit { display: flex; align-items: flex-start; gap: 6px; font-size: 0.92em; line-height: 1.45; margin: 2px 0; cursor: pointer; }
+.crr-crit input { margin-top: 3px; min-height: 0; }
+.crr-more summary { cursor: pointer; color: #0369a1; font-size: 0.9em; margin: 4px 0; }
+.crr-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 16px; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+.crr-cancel, .crr-ok { width: auto; margin: 0; padding: 8px 16px; border-radius: 8px; font: inherit; font-weight: 700; cursor: pointer; }
+.crr-cancel { border: 1px solid #cbd5e1; background: #fff; color: #334155; }
+.crr-ok { border: 1px solid #0284c7; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; }
+@media (max-width: 640px) {
+  .crr-cols { grid-template-columns: minmax(0, 1fr); }
+  .crr-arrow { display: none; }
+}

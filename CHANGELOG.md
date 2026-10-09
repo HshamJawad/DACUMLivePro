@@ -7,6 +7,45 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.98.0 — 2026-10-09 — Replace typed criteria with Task Analysis criteria
+MINOR. clusters.js, translations.js, dacum-components.css, index.html,
+sw.js (v224), tests/specs/replace-criteria.spec.js (new).
+Added   Competency Clusters: a competency that holds both typed criteria
+        and criteria from Task Analysis (typical when the criteria were
+        typed first and the tasks analysed later) shows a note — make
+        sure they do not repeat each other — with "🔁 Replace with Task
+        Analysis criteria". It completes the 3.52.0 duplicate note.
+Added   The button opens a preview; nothing changes before "Replace":
+        how many typed criteria go and how many Task Analysis criteria
+        stay; a warning that the typed criteria are deleted and that
+        Undo brings them back; and every learning outcome linked to a
+        typed criterion, "before → after". The suggestion for each link
+        is the Task Analysis criteria of the competency's task whose
+        wording is closest (word matching, common words such as
+        according / procedures / the left out, no AI); no clear match
+        (or a tie) suggests nothing. Each outcome's ticks can be changed.
+        An outcome left with nothing ticked keeps its old link, which
+        the usual reconciliation marks ⚠ for review.
+Changed On "Replace": the competency's typed criteria are deleted, the
+        outcomes' links are rewritten to the chosen ta|… keys, numbering
+        is reconciled, and Learning Outcomes, Module Mapping, the
+        exports and the Module Builder handoff follow (they read
+        linkedCriteria).
+Changed Undo / Redo on Competency Clusters: a step may now carry the
+        learning outcomes too. The replacement is one step ("Replace
+        with Task Analysis criteria") that restores both the competency
+        and the outcome links; every other step stores clusteringData
+        only, as before. Outcomes are restored in place, so the Learning
+        Outcomes history keeps its object.
+Kept    Competencies without both kinds of criteria look and behave as
+        before.
+Tested  New spec (3 tests): note and button only on the competency with
+        both kinds; preview counts, suggestions (closest task; none for
+        an unmatched criterion) and editing them; replacement and the
+        outcome links; Undo / Redo of the whole step; an outcome without
+        a choice keeps its link ⚠; a project without both kinds shows
+        nothing. EN and AR checked visually. 68 behaviour tests pass.
+
 ── 3.97.0 — 2026-10-09 — From Module Builder to a task's analysis, and back
 MINOR. mb_link.js (new), task_analysis.js, module_mapping.js, app.js,
 translations.js, dacum-components.css, index.html, sw.js (v223).

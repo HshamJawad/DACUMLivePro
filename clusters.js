@@ -41,7 +41,23 @@ import { competencyNameIssues, criterionIssues, wordingNoteHtml, refreshWordingN
 //   • Learning Outcomes follow an undone change the same way they follow
 //     a manual one (reconciled on their next render).
 const _CL_UNDO_MAX = 40;
-const _clh = { undo: [], redo: [], last: null, ref: null, project: null, applying: false, label: null };
+const _clh = { undo: [], redo: [], last: null, ref: null, project: null, applying: false, label: null,
+                pendingLo: null };
+
+/* 3.98.0: a step that also changes Learning Outcomes ("Replace with
+   Task Analysis criteria" rewrites their links). Its caller sets
+   _clh.pendingLo to the outcomes as they were; the next checkpoint
+   stores both before / after with the step, and Undo / Redo restore
+   both. Every other step carries clusteringData only, as before. */
+function _loSnap() { return JSON.stringify(appState.learningOutcomesData || null); }
+function _loApply(json) {
+  const lo = appState.learningOutcomesData;
+  const d = JSON.parse(json) || {};
+  // In place, like _clApply: the Learning Outcomes history keeps its object.
+  Object.keys(lo).forEach(k => { delete lo[k]; });
+  Object.assign(lo, d);
+  _refreshModuleOutcomes();
+}
 
 function _clProject() { try { return localStorage.getItem('dacum_active_project'); } catch (_) { return null; } }
 function _clSnap()    { return JSON.stringify(appState.clusteringData || null); }
@@ -64,8 +80,10 @@ function _clCheckpoint() {
   if (_clh.applying) return;
   if (!_clValid()) { _clRefresh(); return; }
   const now = _clSnap();
-  if (now === _clh.last) { _clh.label = null; return; }
-  _clh.undo.push({ label: _clh.label || 'clHistGeneric', before: _clh.last, after: now });
+  if (now === _clh.last) { _clh.label = null; _clh.pendingLo = null; return; }
+  const step = { label: _clh.label || 'clHistGeneric', before: _clh.last, after: now };
+  if (_clh.pendingLo !== null) { step.lo = { before: _clh.pendingLo, after: _loSnap() }; _clh.pendingLo = null; }
+  _clh.undo.push(step);
   if (_clh.undo.length > _CL_UNDO_MAX) _clh.undo.shift();
   _clh.redo = [];
   _clh.last = now;
@@ -100,7 +118,8 @@ function _clRefresh() {
   try { refreshHistoryButtons(); } catch (_) {}
 }
 
-function _clApply(json) {
+function _clApply(json, loJson) {
+  if (loJson) _loApply(loJson);
   const cd = appState.clusteringData;
   const d = JSON.parse(json) || {};
   // In place: the object stays the same, so the history stays valid.
@@ -111,6 +130,7 @@ function _clApply(json) {
   try { renderAvailableTasks(); renderClusters(); }
   finally { _clh.applying = false; }
   _clh.last = _clSnap();
+  if (loJson) { renderPCSourceList(); renderLearningOutcomes(); renderModuleLoList(); renderModules(); }
   _persistClusters();
 }
 
@@ -119,7 +139,7 @@ export function undoClusterStep() {
   if (!_clValid() || !_clh.undo.length) { _clRefresh(); return false; }
   const step = _clh.undo.pop();
   _clh.redo.push(step);
-  _clApply(step.before);
+  _clApply(step.before, step.lo && step.lo.before);
   _clRefresh();
   showStatus('↶ ' + _txf('undoDone', { a: _t(step.label) }), 'success');
   return true;
@@ -129,7 +149,7 @@ export function redoClusterStep() {
   if (!_clValid() || !_clh.redo.length) { _clRefresh(); return false; }
   const step = _clh.redo.pop();
   _clh.undo.push(step);
-  _clApply(step.after);
+  _clApply(step.after, step.lo && step.lo.after);
   _clRefresh();
   showStatus('↷ ' + _txf('redoDone', { a: _t(step.label) }), 'success');
   return true;
@@ -442,6 +462,7 @@ export function renderClusters() {
               style="min-height:100px;border:none;border-radius:0;box-shadow:none;display:block;width:100%;box-sizing:border-box;padding:10px 14px;">${_esc(displayValue)}</textarea>
           </div>
           ${_renderCritDupNote(cluster, clusterNumber, taCriteria)}
+          ${_renderCritMixNote(cluster, taCriteria)}
           ${wordingNoteHtml('wcrit_' + cluster.id, _criteriaWordingLines(cluster, clusterNumber, taCriteria.length))}
         </div>
       </div>`;
@@ -455,6 +476,8 @@ export function renderClusters() {
       if (e.target.closest('[data-tsel-move-out]'))  moveUnselectedOutOfClusters();
       if (e.target.closest('[data-tsel-move-undo]')) undoMoveUnselected();
       if (e.target.closest('[data-tsel-move-dismiss]')) { _lastUnselMove = null; renderClusters(); }
+      const rb = e.target.closest('[data-crit-replace]');
+      if (rb) openReplaceCriteriaDialog(rb.getAttribute('data-crit-replace'));
     });
   }
   if (_taCountDirty) { _taCountDirty = false; _persistClusters(); }
@@ -1641,6 +1664,215 @@ function _renderCritRenumberNote(cluster) {
 export function dismissCriteriaRenumberNote(clusterId) {
   _critRenumber.delete(clusterId);
   renderClusters();
+}
+
+
+// ── Replace typed criteria with Task Analysis criteria (3.98.0) ────
+// Typical case: a project whose criteria were typed in the competency
+// (no Task Analysis yet); later the tasks were analysed and their
+// criteria joined the same list. The card then says so, and offers to
+// keep the Task Analysis criteria only. Nothing happens before the
+// preview is confirmed:
+//   • the typed criteria of the competency are deleted;
+//   • every learning outcome linked to one of them gets, instead, the
+//     Task Analysis criteria chosen for it in the preview — suggested
+//     from the task whose wording is closest (plain word matching, no
+//     AI). With nothing chosen the old link stays, and the usual
+//     reconciliation marks it ⚠ for the user to review;
+//   • the whole replacement is ONE step of the Competency Clusters
+//     history, Learning Outcomes included (see _clh.pendingLo).
+// Competencies without both kinds of criteria are not affected.
+
+function _renderCritMixNote(cluster, taCriteria) {
+  if (!taCriteria.length || !(cluster.performanceCriteria || []).length) return '';
+  return `<div class="crit-mix-note" role="status">
+      <span>ℹ️ ${_esc(_t('crrMixNote'))}</span>
+      <button type="button" class="crit-mix-btn" data-crit-replace="${_esc(cluster.id)}">🔁 ${_esc(_t('crrBtn'))}</button>
+    </div>`;
+}
+
+/* Words that say nothing about WHICH task a criterion belongs to. */
+const _CRR_STOP = new Set((
+  'the a an and or of to in on for with by from at as is are be been was were it its this that these those ' +
+  'according accordance procedure procedures procedural practice practices best requirement requirements ' +
+  'specification specifications manufacturer manufacturers standard standards guideline guidelines policy policies ' +
+  'correctly properly required as per using use used all any each other such into within ' +
+  'le la les des du de et ou un une en au aux pour par sur avec selon conformément procédure procédures ' +
+  'exigences normes est sont être ' +
+  'في من على إلى عن مع وفق وفقا حسب طبقا الى التي الذي هذه هذا ذلك أو و ثم كما يتم تتم')
+  .split(/\s+/).filter(Boolean));
+
+function _crrTokens(text) {
+  const out = new Set();
+  String(text || '').toLowerCase().split(/[^\p{L}\p{N}]+/u).forEach(w => {
+    if (w.length < 3 || _CRR_STOP.has(w)) return;
+    // crude English endings, so "assembled" meets "assembly" / "assemble"
+    let t = w;
+    if (/^[a-z]+$/.test(t) && t.length > 5) t = t.replace(/(ings|ing|ed|es|s|ly|ment|ments|ion|ions)$/, '');
+    if (t.length >= 3) out.add(t);
+  });
+  return out;
+}
+
+/** The task of `cluster` whose wording (statement + its Task Analysis
+ *  criteria) is clearly closest to `text`; null when none is. */
+function _crrClosestTask(text, cluster, taCriteria) {
+  const a = _crrTokens(text);
+  if (!a.size) return null;
+  const scores = [];
+  (cluster.tasks || []).forEach(t => {
+    if (!t) return;
+    const own = taCriteria.filter(c => c.taskId === t.id);
+    if (!own.length) return;
+    const b = _crrTokens([t.text || '', ...own.map(c => c.text)].join(' '));
+    let shared = 0;
+    a.forEach(w => { if (b.has(w)) shared++; });
+    scores.push({ taskId: t.id, shared, ratio: shared / a.size });
+  });
+  scores.sort((x, y) => (y.ratio - x.ratio) || (y.shared - x.shared));
+  const best = scores[0];
+  if (!best || best.shared < Math.min(2, a.size) || best.ratio < 0.3) return null;
+  if (scores[1] && scores[1].ratio === best.ratio && scores[1].shared === best.shared) return null;   // a tie is not clear
+  return best.taskId;
+}
+
+/** What the replacement would do (nothing is changed). */
+function _crrPlan(clusterId) {
+  const cd = appState.clusteringData;
+  const idx = (cd.clusters || []).findIndex(c => c.id === clusterId);
+  if (idx < 0) return null;
+  const cluster = cd.clusters[idx];
+  const eff = _getClusterEffectiveCriteria(cluster, idx + 1);
+  const ta = eff.filter(c => c.source === 'ta');
+  const typed = eff.filter(c => c.source === 'manual');
+  if (!ta.length || !typed.length) return null;
+  const typedKeys = new Set(typed.map(c => c.key));
+  const los = [];
+  ((appState.learningOutcomesData && appState.learningOutcomesData.outcomes) || []).forEach(o => {
+    const old = (o.linkedCriteria || []).filter(pc => pc && typedKeys.has(pc.key));
+    if (!old.length) return;
+    const suggest = new Set();
+    old.forEach(pc => {
+      const tid = _crrClosestTask(pc.text, cluster, ta);
+      if (tid) ta.filter(c => c.taskId === tid).forEach(c => suggest.add(c.key));
+    });
+    los.push({ id: o.id, number: o.number, statement: o.statement || '', old, suggest: [...suggest] });
+  });
+  return { cluster, clusterNumber: idx + 1, ta, typed, los };
+}
+
+export function openReplaceCriteriaDialog(clusterId) {
+  // Commit an edit still sitting in the criteria box.
+  const box = document.getElementById('criteria_' + clusterId);
+  if (box && document.activeElement === box) box.blur();
+  _reconcileLearningOutcomes();
+  const plan = _crrPlan(clusterId);
+  if (!plan) return;
+  document.getElementById('critReplaceModal')?.remove();
+
+  const byTask = new Map();
+  plan.ta.forEach(c => { if (!byTask.has(c.taskId)) byTask.set(c.taskId, []); byTask.get(c.taskId).push(c); });
+  const taskText = (tid) => ((plan.cluster.tasks || []).find(t => t && t.id === tid) || {}).text || '';
+  const critBox = (lo, c) => `<label class="crr-crit"><input type="checkbox" data-crr-lo="${_esc(lo.id)}" data-crr-key="${_esc(c.key)}"${lo.suggest.includes(c.key) ? ' checked' : ''}>
+      <span dir="auto"><bdi>${_esc(c.id)}</bdi> ${_esc(c.text)}</span></label>`;
+  const taskGroup = (lo, tid) => `<div class="crr-task"><div class="crr-task-name" dir="auto">[${_esc(_taskLabel(tid))}] ${_esc(taskText(tid))}</div>
+      ${byTask.get(tid).map(c => critBox(lo, c)).join('')}</div>`;
+
+  const loHtml = plan.los.map(lo => {
+    const sugTasks = [...byTask.keys()].filter(tid => byTask.get(tid).some(c => lo.suggest.includes(c.key)));
+    const others = [...byTask.keys()].filter(tid => !sugTasks.includes(tid));
+    return `<div class="crr-lo">
+        <div class="crr-lo-head" dir="auto"><b>${_esc(lo.number || '')}</b> ${_esc(lo.statement)}</div>
+        <div class="crr-cols">
+          <div class="crr-before"><div class="crr-lbl">${_esc(_t('crrBefore'))}</div>
+            <ul>${lo.old.map(pc => `<li dir="auto"><bdi>${_esc(pc.id)}</bdi> ${_esc(pc.text)}</li>`).join('')}</ul></div>
+          <div class="crr-arrow" aria-hidden="true">→</div>
+          <div class="crr-after"><div class="crr-lbl">${_esc(_t('crrAfter'))}</div>
+            ${sugTasks.map(tid => taskGroup(lo, tid)).join('')}
+            ${sugTasks.length ? '' : `<p class="crr-nomatch">${_esc(_t('crrNoMatch'))}</p>`}
+            ${others.length ? `<details class="crr-more"${sugTasks.length ? '' : ' open'}><summary>${_esc(_t('crrOther'))}</summary>
+              ${others.map(tid => taskGroup(lo, tid)).join('')}</details>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const m = document.createElement('div');
+  m.id = 'critReplaceModal';
+  m.className = 'crr-overlay';
+  m.innerHTML = `
+    <div class="crr-box" role="dialog" aria-modal="true" aria-labelledby="crrTitle">
+      <div class="crr-head">
+        <h3 id="crrTitle" dir="auto">🔁 ${_esc(_tf('crrTitle', { c: 'C' + plan.clusterNumber + ' — ' + (plan.cluster.name || '') }))}</h3>
+        <button type="button" class="crr-x" data-crr="cancel" aria-label="${_esc(_t('crrCancel'))}">✕</button>
+      </div>
+      <div class="crr-body">
+        <p class="crr-count">${_esc(_tf('crrCount', { n: plan.typed.length, m: plan.ta.length }))}</p>
+        <div class="crr-warn">⚠️ ${_esc(_t('crrWarn'))}</div>
+        <h4>${_esc(_tf('crrLoTitle', { n: plan.los.length }))}</h4>
+        ${plan.los.length ? loHtml : `<p class="crr-nolo">${_esc(_t('crrNoLo'))}</p>`}
+      </div>
+      <div class="crr-foot">
+        <button type="button" class="crr-cancel" data-crr="cancel">${_esc(_t('crrCancel'))}</button>
+        <button type="button" class="crr-ok" data-crr="ok">🔁 ${_esc(_t('crrConfirm'))}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  const close = () => { m.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  m.addEventListener('click', (e) => {
+    if (e.target === m) { close(); return; }
+    const b = e.target.closest('[data-crr]');
+    if (!b) return;
+    if (b.getAttribute('data-crr') === 'cancel') { close(); return; }
+    const choice = {};
+    m.querySelectorAll('input[data-crr-lo]:checked').forEach(cb => {
+      const id = cb.getAttribute('data-crr-lo');
+      (choice[id] = choice[id] || []).push(cb.getAttribute('data-crr-key'));
+    });
+    close();
+    replaceWithTaskAnalysisCriteria(clusterId, choice);
+  });
+  m.querySelector('.crr-ok')?.focus();
+}
+
+/** Does the replacement. choice: { [outcomeId]: [Task Analysis criterion keys] }.
+ *  An outcome with no choice keeps its old links (they turn ⚠). */
+export function replaceWithTaskAnalysisCriteria(clusterId, choice = {}) {
+  _reconcileLearningOutcomes();
+  const plan = _crrPlan(clusterId);
+  if (!plan) return false;
+  _clCheckpoint();                       // anything not yet recorded is its own step
+  const loBefore = _loSnap();
+  const typedKeys = new Set(plan.typed.map(c => c.key));
+  const taByKey = new Map(plan.ta.map(c => [c.key, c]));
+  let updated = 0;
+  ((appState.learningOutcomesData && appState.learningOutcomesData.outcomes) || []).forEach(o => {
+    const keys = (choice[o.id] || []).filter(k => taByKey.has(k));
+    if (!keys.length || !Array.isArray(o.linkedCriteria)) return;
+    if (!o.linkedCriteria.some(pc => pc && typedKeys.has(pc.key))) return;
+    const kept = o.linkedCriteria.filter(pc => pc && !typedKeys.has(pc.key));
+    keys.forEach(k => {
+      if (kept.some(pc => pc.key === k)) return;
+      const c = taByKey.get(k);
+      kept.push({ id: c.id, text: c.text, clusterNumber: c.clusterNumber,
+                  taskId: c.taskId || null, clusterId: c.clusterId, key: c.key });
+    });
+    o.linkedCriteria = kept;
+    updated++;
+  });
+  _clearClusterAiPart(plan.cluster, 'criteria');
+  plan.cluster.performanceCriteria = [];
+  _critRenumber.delete(plan.cluster.id);
+  _reconcileLearningOutcomes();          // numbers, and ⚠ on the links left to the user
+  _clh.pendingLo = loBefore;
+  _clStepLabel('clHistReplaceCrit');
+  renderClusters();                      // records the step (clusters + outcomes)
+  renderPCSourceList(); renderLearningOutcomes(); renderModuleLoList(); renderModules();
+  _persistClusters();
+  showStatus('✓ ' + _tf('crrDone', { n: plan.typed.length, k: updated }), 'success');
+  return true;
 }
 
 
