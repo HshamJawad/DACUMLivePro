@@ -1,0 +1,124 @@
+{
+  "app": "DACUM Professional Tool",
+  "version": "1.0.0",
+  "schemaVersion": "1.0.0",
+  "exportedAt": "2026-10-09T09:28:49.155Z",
+  "project": {
+    "id": "proj_1791538126602_le4k1",
+    "name": "Untitled Project",
+    "createdAt": "2026-10-09T09:28:46.602Z",
+    "updatedAt": "2026-10-09T09:28:49.154Z",
+    "state": {
+      "duties": [
+        {
+          "id": "duty_1",
+          "title": "تخطيط العمل",
+          "tasks": [
+            {
+              "id": "task_duty_1_1",
+              "text": "قراءة المخططات"
+            },
+            {
+              "id": "task_duty_1_2",
+              "text": "تحديد المواد"
+            },
+            {
+              "id": "task_duty_1_3",
+              "text": ""
+            }
+          ]
+        },
+        {
+          "id": "duty_2",
+          "title": "تنفيذ اللحام",
+          "tasks": [
+            {
+              "id": "task_duty_2_1",
+              "text": "تجهيز ماكينة اللحام"
+            },
+            {
+              "id": "task_duty_2_2",
+              "text": "لحام الوصلات التناكبية"
+            }
+          ]
+        }
+      ],
+      "taskCounts": {
+        "duty_1": 3,
+        "duty_2": 2
+      },
+      "dutyCount": 2,
+      "isCardView": true,
+      "snapshots": [],
+      "chartImages": {
+        "producedFor": null,
+        "producedBy": null
+      }
+    },
+    "snapshots": [],
+    "chartInfo": {
+      "dacumDate": "2026-09-20",
+      "producedFor": "وزارة العمل",
+      "producedBy": "مركز التدريب المهني",
+      "occupationTitle": "لحّام",
+      "jobTitle": "لحّام قوس كهربائي",
+      "scopeOfWork": "لحام الهياكل الفولاذية",
+      "facilitators": "هشام جواد\nميسّر ثانٍ",
+      "observers": "مراقب",
+      "panelMembers": "خبير 1\nخبير 2\nخبير 3",
+      "producedForImage": null,
+      "producedByImage": null,
+      "multiDay": true,
+      "dacumDateTo": "2026-09-22",
+      "workshopMode": "hybrid",
+      "venue": "بغداد"
+    },
+    "additionalInfo": {
+      "fixed": [
+        {
+          "inputId": "knowledgeInput",
+          "headingId": "knowledgeHeading",
+          "content": "قراءة الرسم الهندسي\nأنواع الأقطاب",
+          "heading": "Knowledge Requirements"
+        },
+        {
+          "inputId": "skillsInput",
+          "headingId": "skillsHeading",
+          "content": "",
+          "heading": "المهارات الفنية"
+        },
+        {
+          "inputId": "behaviorsInput",
+          "headingId": "behaviorsHeading",
+          "content": "",
+          "heading": "Worker Behaviors/Traits"
+        },
+        {
+          "inputId": "toolsInput",
+          "headingId": "toolsHeading",
+          "content": "ماكينة لحام\nقناع واقٍ",
+          "heading": "Tools, Equipment, Supplies and Materials"
+        },
+        {
+          "inputId": "trendsInput",
+          "headingId": "trendsHeading",
+          "content": "",
+          "heading": "Future Trends and Concerns"
+        },
+        {
+          "inputId": "acronymsInput",
+          "headingId": "acronymsHeading",
+          "content": "",
+          "heading": "Acronyms"
+        },
+        {
+          "inputId": "careerPathInput",
+          "headingId": "careerPathHeading",
+          "content": "مساعد لحام ← لحام ← مشرف",
+          "heading": "Career Path"
+        }
+      ],
+      "custom": []
+    }
+  }
+}
