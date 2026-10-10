@@ -197,6 +197,11 @@ html[dir="rtl"] #dacumTopToolbar .dtb-icon {
   margin-inline-end: 5px;
   margin-inline-start: 0;
 }
+/* Icon-only pills (labels hidden at ≤1100px, dacum-responsive.css): the
+   label spacing above pushed the icon 2.5px off-centre. */
+@media (max-width: 1100px) {
+  html[dir="rtl"] #dacumTopToolbar .dtb-btn .dtb-icon { margin-inline-end: 0; }
+}
 
 
 /* ── Sidebar ───────────────────────────────────────────────────

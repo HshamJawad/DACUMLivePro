@@ -7,6 +7,22 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.98.1 — 2026-10-10 — Guide without a "What's new"; toolbar icons centred (RTL)
+PATCH. DACUM_Live_Pro_User_Guide.html, dacum-rtl.css, sw.js (v225),
+index.html.
+Changed User Guide (EN / FR / AR): the "What's new in this edition"
+        section and its sidebar link are removed — the guide describes
+        the tool as it is, not one version, so it does not go stale with
+        each release. The "New" tags on headings are removed for the
+        same reason, and the header reads "Kept up to date with the
+        tool" instead of a date and version. The note on the version
+        badge in the toolbar moves to "Offline use and updates".
+Fixed   Top toolbar, Arabic: with the labels hidden (≤1100 px, phones,
+        tablets, the installed app) each icon sat 2.5 px off the centre
+        of its pill — the RTL spacing meant for the label was still
+        applied. Removed in icon-only mode; every toolbar button now
+        measures 0 px off-centre in EN and AR at 390, 800 and 1000 px.
+
 ── 3.98.0 — 2026-10-09 — Replace typed criteria with Task Analysis criteria
 MINOR. clusters.js, translations.js, dacum-components.css, index.html,
 sw.js (v224), tests/specs/replace-criteria.spec.js (new).
