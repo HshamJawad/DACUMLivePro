@@ -7,6 +7,21 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.99.4 — 2026-10-12 — Language dropdown; AI message wording; toolbar edges
+PATCH. translations.js, dacum-rtl.css, dacum-components.css, index.html,
+sw.js (v230).
+Changed Language switcher: a compact dropdown, as in DACUM Lite — one
+        button with the active language (full name on wide screens, EN /
+        FR / AR below 1320 px) and a menu with a check on the active
+        language. Keyboard: ↑ ↓, Esc. The three pills it replaces were
+        ~145 px wide on a phone and hid the end of the toolbar behind
+        them, worst in French. The lock during a Full Draft run is kept.
+Changed AI-unavailable message: no server name. The duties/tasks note now
+        says nothing was changed and the work can continue by hand
+        (EN / FR / AR); "Backend server unreachable" reworded.
+Fixed   Toolbar: the scrolling row has 6 px at each end, so the first and
+        last buttons no longer sit flush against the edge in LTR.
+
 ── 3.99.3 — 2026-10-12 — Helper chip on every launch
 PATCH. helper_wizard.js, translations.js, index.html, sw.js (v229).
 Fixed   The floating Helper chip appeared only after "Go to this tab", so

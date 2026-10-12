@@ -785,6 +785,11 @@
            back-navigation gesture once the row hits its end. */
         overscroll-behavior-x: contain;
         scroll-padding-inline: 8px;
+        /* 3.99.4: breathing room at both ends of the scrolling row, so
+           the first and last pills never sit flush against the clip
+           edge (or the language button) in either direction. */
+        padding-inline: 6px !important;
+        box-sizing: border-box;
       }
 
       @media (hover: none) and (pointer: coarse) {

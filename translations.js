@@ -1698,8 +1698,8 @@
       dgScopeSaved: 'Scope of Work saved to Chart Info.',
       /* ── AI error modals ── */
       aiErrOfflineTitle: 'AI Service Unavailable',
-      aiErrOfflineSub: 'Backend server unreachable',
-      aiErrOfflineBody: 'The AI backend server is currently offline or unreachable.',
+      aiErrOfflineSub: 'Could not connect to the AI service',
+      aiErrOfflineBody: 'The AI service is offline or cannot be reached at the moment.',
       aiErrFailedSub: 'Check connection and try again',
       aiErrOccurred: 'An error occurred:',
       aiErrWhatInstead: 'What you can do instead:',
@@ -1709,7 +1709,7 @@
       aiErrInfoTitle: 'Supporting Info Generation Failed',
       aiErrLOTitle: 'Learning Outcomes Generation Failed',
       aiErrModulesTitle: 'Module Generation Failed',
-      aiErrSafeDuties: 'The AI generation service requires an active Railway backend. You can still use the tool manually to add duties and tasks.',
+      aiErrSafeDuties: 'Your duties and tasks have not been changed. You can keep working — add them by hand, and try the AI generation again later.',
       aiErrSafeClusters: 'Your clusters, tasks and criteria have not been changed.',
       aiErrSafeInfo: 'You can still fill in the supporting information manually. Nothing you had already entered has been changed.',
       aiErrSafeLO: 'Your criteria and existing Learning Outcomes have not been changed.',
@@ -3521,7 +3521,7 @@
       dgScopeSaved: 'Champ d’activité enregistré dans la fiche DACUM.',
       /* ── AI error modals ── */
       aiErrOfflineTitle: 'Service IA indisponible',
-      aiErrOfflineSub: 'Serveur principal injoignable',
+      aiErrOfflineSub: 'Connexion au service IA impossible',
       aiErrOfflineBody: 'Le serveur IA est actuellement hors ligne ou injoignable.',
       aiErrFailedSub: 'Vérifiez la connexion et réessayez',
       aiErrOccurred: 'Une erreur est survenue :',
@@ -3532,7 +3532,7 @@
       aiErrInfoTitle: 'Échec de la génération des informations',
       aiErrLOTitle: 'Échec de la génération des résultats',
       aiErrModulesTitle: 'Échec de la génération des modules',
-      aiErrSafeDuties: 'Le service de génération IA nécessite un backend Railway actif. Vous pouvez toujours ajouter les activités et tâches manuellement.',
+      aiErrSafeDuties: 'Vos activités et tâches n’ont pas été modifiées. Vous pouvez continuer : ajoutez-les manuellement et relancez la génération IA plus tard.',
       aiErrSafeClusters: 'Vos grappes, tâches et critères n’ont pas été modifiés.',
       aiErrSafeInfo: 'Vous pouvez saisir les informations d’appui manuellement. Rien de ce que vous aviez déjà saisi n’a changé.',
       aiErrSafeLO: 'Vos critères et résultats d’apprentissage existants n’ont pas été modifiés.',
@@ -5332,7 +5332,7 @@
       aiErrInfoTitle: 'فشل توليد المعلومات الداعمة',
       aiErrLOTitle: 'فشل توليد محصلات التعلم',
       aiErrModulesTitle: 'فشل توليد الوحدات',
-      aiErrSafeDuties: 'تتطلب خدمة التوليد خادم Railway نشطاً. ويمكنك الاستمرار في استخدام الأداة يدوياً لإضافة الواجبات والمهام.',
+      aiErrSafeDuties: 'لم يتغيّر شيء في الواجبات والمهام. يمكنك متابعة العمل بإضافتها يدوياً، ثم إعادة محاولة التوليد بالذكاء الاصطناعي لاحقاً.',
       aiErrSafeClusters: 'لم تتغيّر تجمعاتك ولا مهامك ولا معاييرك.',
       aiErrSafeInfo: 'يمكنك تعبئة المعلومات الداعمة يدوياً. ولم يتغيّر شيء ممّا أدخلته سابقاً.',
       aiErrSafeLO: 'لم تتغيّر معاييرك ولا محصلات التعلم الموجودة.',
@@ -5797,49 +5797,123 @@
     { code: 'ar', label: 'AR', title: '\u0627\u0644\u0639\u0631\u0628\u064a\u0629' }
   ];
 
-  /* Highlight whichever pill matches the active language. Split out of
-     applyTranslations because the pills are also re-synced when the
-     toolbar is rebuilt by other modules. */
+  /* 3.99.4 — the switcher is a compact dropdown (as in DACUM Lite):
+     one button showing the active language, a menu with the three
+     languages and a check on the active one. The three-pill group it
+     replaces was ~145 px wide on a phone and hid the end of the
+     scrolling toolbar behind it, worst with the longer French labels.
+     The menu items keep class .dacum-lang-btn and data-lang, so the
+     lock logic below is unchanged. */
+  var _GLOBE = '<svg class="dacum-lang-globe" viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">' +
+    '<circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/>' +
+    '<path d="M2.5 10h15M10 2.5c2.2 2.2 3.2 4.7 3.2 7.5s-1 5.3-3.2 7.5c-2.2-2.2-3.2-4.7-3.2-7.5s1-5.3 3.2-7.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  var _CHEV = '<svg class="dacum-lang-chev" viewBox="0 0 12 12" width="11" height="11" fill="none" aria-hidden="true">' +
+    '<path d="M3 7.5l3-3 3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var _CHECK = '<svg class="dacum-lang-check" viewBox="0 0 14 14" width="13" height="13" fill="none" aria-hidden="true">' +
+    '<path d="M2.5 7.5l3 3 6-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function _langMeta(code) {
+    for (var i = 0; i < LANGS.length; i++) if (LANGS[i].code === code) return LANGS[i];
+    return LANGS[0];
+  }
+
   function _syncSelector() {
     var wrap = document.getElementById('dacumLangWrap');
     if (!wrap) return;
+    var meta = _langMeta(_current);
+    var trig = wrap.querySelector('.dacum-lang-trigger');
+    if (trig) {
+      var full = trig.querySelector('.dacum-lang-name');
+      var code = trig.querySelector('.dacum-lang-code');
+      if (full) { full.textContent = meta.title; full.setAttribute('lang', meta.code); }
+      if (code) code.textContent = meta.label;
+      trig.title = _langLocked ? t('dgLangLocked') : 'Language / Langue / اللغة';
+    }
     wrap.querySelectorAll('.dacum-lang-btn').forEach(function (b) {
       var on = b.getAttribute('data-lang') === _current;
       b.classList.toggle('is-active', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
       b.disabled = _langLocked && !on;
-      b.title = _langLocked ? t('dgLangLocked') : (b.getAttribute('data-title') || b.title);
+      b.title = _langLocked ? t('dgLangLocked') : (b.getAttribute('data-title') || '');
     });
     wrap.classList.toggle('is-locked', _langLocked);
   }
 
-  /* A three-way <select> costs two taps (open, choose) and hides the
-     current language behind a closed control. Three pills cost one tap
-     and keep the active language visible at all times \u2014 which matters
-     on a bar a facilitator is operating in front of a room. */
+  function _setMenuOpen(wrap, open) {
+    var trig = wrap.querySelector('.dacum-lang-trigger');
+    wrap.classList.toggle('is-open', open);
+    if (trig) trig.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      var cur = wrap.querySelector('.dacum-lang-btn.is-active') || wrap.querySelector('.dacum-lang-btn');
+      if (cur) { try { cur.focus({ preventScroll: true }); } catch (e) { cur.focus(); } }
+    }
+  }
+
   function _injectSelector() {
     if (document.getElementById('dacumLangWrap')) return;
 
     var wrap = document.createElement('div');
     wrap.id = 'dacumLangWrap';
-    wrap.setAttribute('role', 'group');
-    wrap.setAttribute('aria-label', 'Language / \u0627\u0644\u0644\u063a\u0629');
 
+    var trig = document.createElement('button');
+    trig.type = 'button';
+    trig.className = 'dacum-lang-trigger';
+    trig.setAttribute('aria-haspopup', 'menu');
+    trig.setAttribute('aria-expanded', 'false');
+    trig.setAttribute('aria-controls', 'dacumLangMenu');
+    trig.setAttribute('aria-label', 'Language / Langue / اللغة');
+    trig.innerHTML = _GLOBE + '<span class="dacum-lang-name"></span><span class="dacum-lang-code"></span>' + _CHEV;
+    wrap.appendChild(trig);
+
+    var menu = document.createElement('div');
+    menu.id = 'dacumLangMenu';
+    menu.className = 'dacum-lang-menu';
+    menu.setAttribute('role', 'menu');
     LANGS.forEach(function (L) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'dacum-lang-btn';
+      b.setAttribute('role', 'menuitemradio');
       b.setAttribute('data-lang', L.code);
-      b.textContent = L.label;
-      b.title = L.title;
       b.setAttribute('data-title', L.title);
-      b.addEventListener('click', function () { setLang(L.code); });
-      wrap.appendChild(b);
+      b.innerHTML = '<span class="dacum-lang-item-name" dir="auto"></span>' + _CHECK;
+      var nm = b.querySelector('.dacum-lang-item-name');
+      nm.textContent = L.title;
+      nm.setAttribute('lang', L.code);
+      b.addEventListener('click', function () {
+        _setMenuOpen(wrap, false);
+        if (L.code !== _current) setLang(L.code);
+        try { trig.focus({ preventScroll: true }); } catch (e) {}
+      });
+      menu.appendChild(b);
     });
+    wrap.appendChild(menu);
+
+    trig.addEventListener('click', function (e) {
+      e.stopPropagation();
+      _setMenuOpen(wrap, !wrap.classList.contains('is-open'));
+    });
+    document.addEventListener('click', function (e) {
+      if (wrap.classList.contains('is-open') && !wrap.contains(e.target)) _setMenuOpen(wrap, false);
+    });
+    wrap.addEventListener('keydown', function (e) {
+      if (!wrap.classList.contains('is-open')) {
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && e.target === trig) { e.preventDefault(); _setMenuOpen(wrap, true); }
+        return;
+      }
+      var items = Array.prototype.slice.call(menu.querySelectorAll('.dacum-lang-btn:not(:disabled)'));
+      var i = items.indexOf(document.activeElement);
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); _setMenuOpen(wrap, false); trig.focus(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); (items[(i + 1) % items.length] || items[0]).focus(); }
+      else if (e.key === 'ArrowUp')   { e.preventDefault(); (items[(i - 1 + items.length) % items.length] || items[0]).focus(); }
+      else if (e.key === 'Tab') { _setMenuOpen(wrap, false); }
+    });
+    window.addEventListener('resize', function () { _setMenuOpen(wrap, false); });
 
     var right = document.querySelector('.dtb-right');
     if (right) right.insertBefore(wrap, right.firstChild);
     else { var tb = document.getElementById('dacumTopToolbar'); if (tb) tb.appendChild(wrap); }
+    _syncSelector();
   }
 
   window.i18n = {
