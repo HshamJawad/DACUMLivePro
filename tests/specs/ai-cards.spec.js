@@ -73,6 +73,8 @@ test.describe('Additional Info card', () => {
     await page.evaluate(() => window.switchTab('additional-info-tab'));
     await page.fill('#knowledgeInput', '• My own knowledge item');
     await page.fill('#toolsInput', '• My screwdriver set');
+    // 3.102.0: a filled tab starts with its AI card folded
+    await page.click('[data-ai-toggle="additional-info-tab"]');
     await page.click('#aiGenerateInfoBtn');
     const dlg = page.locator('#infoAiModal');
     // the sample project has every section filled → all start unticked

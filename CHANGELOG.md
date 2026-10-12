@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.102.0 — 2026-10-13 — AI cards fold behind a "✨ AI" button
+MINOR. ai_card_toggle.js (new), index.html, dacum-components.css,
+translations.js, helper_wizard.js, app.js, sw.js (v240),
+tests/specs/ai-card-toggle.spec.js (new), tests/specs/ai-cards.spec.js.
+Added   A small "✨ AI" button beside the "?" in the header of Duties &
+        Tasks, Additional Information, Competency Clusters, Learning
+        Outcomes and Module Mapping shows or hides the tab's large AI card.
+        Filled while the card is open, outlined while it is folded;
+        fixed size on touch screens, translated (EN / FR / AR).
+Changed The card is open while the tab is empty and folded once the tab
+        has content (checked on start-up, on entering the tab, after
+        Clear This Tab and when a project is loaded). Opening or closing
+        it by hand is remembered for that tab. Smooth fold with no jump;
+        none when the system asks for reduced motion. Task Analysis keeps
+        its own small AI button.
+Changed Helper → "Go to this tab" opens a folded card before it
+        highlights the button inside it.
+
 ── 3.101.2 — 2026-10-12 — CBC: each learning outcome on a new page
 PATCH. exports_cbc_docx.js, index.html, sw.js (v239), tests/specs/cbc-export.spec.js.
 Changed CBC export: the detail of every learning outcome ("LO 1. …" with

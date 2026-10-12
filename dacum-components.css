@@ -234,7 +234,7 @@
         flex: 1 1 auto;
         min-width: 0;
       }
-      .tab-title-with-help h2 { margin: 0; }
+      .tab-title-with-help h2 { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
       /* The vertical-ellipse bug on Android: the touch-target block in
          dacum-responsive.css sets `min-height: 44px` on every <button>
@@ -299,6 +299,93 @@
           height: 44px;
           transform: translate(-50%, -50%);
         }
+      }
+
+      /* ── "✨ AI" toggle beside the "?" (3.102.0) ─────────────────
+         Folds the tab's large AI card (ai_card_toggle.js). Every axis
+         is pinned like .tab-help-btn: the touch block gives each
+         <button> min-height 44px, which would stretch the pill. The
+         44px tap area comes back through a transparent ::after.
+         Filled = card open; outline = card folded. */
+      .tab-ai-toggle {
+        flex: 0 0 auto;
+        box-sizing: border-box;
+        height: 26px;
+        min-height: 26px;
+        max-height: 26px;
+        padding: 0 10px 0 8px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        align-self: center;
+        border-radius: 999px;
+        border: 1.5px solid #0284c7;
+        background: transparent;
+        color: #0284c7;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        cursor: pointer;
+        position: relative;
+        -webkit-appearance: none;
+                appearance: none;
+        transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+      }
+      .tab-ai-toggle.is-open {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        border-color: #0284c7;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+      }
+      .tab-ai-toggle:hover { border-color: #0369a1; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18); }
+      .tab-ai-toggle:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }
+      .tab-ai-toggle-icon { display: block; flex: none; margin: 0 !important; }
+      html[dir="rtl"] .tab-ai-toggle { padding: 0 8px 0 10px !important; }
+      @media (hover: none) and (pointer: coarse) {
+        .tab-ai-toggle::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 100%;
+          min-width: 44px;
+          height: 44px;
+          transform: translate(-50%, -50%);
+        }
+      }
+
+      /* Fold: grid rows 1fr → 0fr animates to the content's real height,
+         so nothing below jumps. Overflow is clipped only while folded or
+         moving, so the open card keeps its shadow. */
+      .ai-card-collapse {
+        display: grid;
+        grid-template-rows: 1fr;
+        opacity: 1;
+        visibility: visible;
+        transition: grid-template-rows 0.3s ease, opacity 0.22s ease, visibility 0s linear 0s;
+      }
+      .ai-card-collapse > .ai-card-collapse-inner { min-height: 0; min-width: 0; }
+      .ai-card-collapse.is-collapsed > .ai-card-collapse-inner,
+      .ai-card-collapse.is-animating > .ai-card-collapse-inner { overflow: hidden; }
+      .ai-card-collapse.is-collapsed {
+        grid-template-rows: 0fr;
+        opacity: 0;
+        visibility: hidden;
+        transition: grid-template-rows 0.3s ease, opacity 0.22s ease, visibility 0s linear 0.3s;
+      }
+      .ai-card-collapse.no-anim { transition: none !important; }
+      @media (prefers-reduced-motion: reduce) {
+        .ai-card-collapse,
+        .ai-card-collapse.is-collapsed,
+        .tab-ai-toggle { transition: none !important; }
+      }
+      /* Narrow screens: the card's buttons wrap inside the width. */
+      @media (max-width: 600px) {
+        .ai-card-collapse .ai-gen-card { padding: 16px !important; }
+        .ai-card-collapse .ai-gen-card button { max-width: 100%; white-space: normal; }
       }
 
       /* Section-level (h3) header row — same title-left / action-right
@@ -1602,6 +1689,7 @@
       body.card-view-fullscreen #dpsMobileBackdrop,
       body.card-view-fullscreen #duties-tab > .tab-header-row,
       body.card-view-fullscreen #duties-tab > .ai-gen-card,
+      body.card-view-fullscreen #duties-tab > .ai-card-collapse,
       body.card-view-fullscreen #scopeMissingWarning,
       body.card-view-fullscreen #refineResultsSection,
       body.card-view-fullscreen #duties-tab > .step-nav-row {

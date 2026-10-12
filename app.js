@@ -26,6 +26,7 @@ import { initVerificationCharts } from './verification_charts.js';
 import { initSupplementaryVerification } from './supplementary_verification.js';
 import { initTaskSelection } from './task_selection.js';
 import { initHelperWizard } from './helper_wizard.js';
+import { initAICardToggle } from './ai_card_toggle.js';
 import { initVerifiedChart } from './verified_chart.js';
 import { initMbLink } from './mb_link.js';
 import { initI18nDefaults } from './i18n_defaults.js';
@@ -178,6 +179,7 @@ document.addEventListener('DOMContentLoaded', async function () {
      after the supplementary block; Task Analysis follows it. */
   initTaskSelection();
   initHelperWizard();   // 3.99.0 — Help Center "Helper" wizard
+  initAICardToggle();   // 3.102.0 — "✨ AI" fold for the large AI cards
 
   /* Verified DACUM chart (3.86.0) — buttons in Task Analysis and in
      Duties & Tasks; read-only, rebuilt on every opening. */

@@ -21,6 +21,7 @@ import { getCurriculumGuide,
          isModuleCurriculumEmpty } from './module_curriculum.js';
 import { hasTaskSelection }       from './task_selection.js';
 import { countTaskAnalysisRecords } from './task_analysis.js';
+import { revealAICardFor }       from './ai_card_toggle.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k) : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -598,6 +599,7 @@ function _onClick(e) {
   if (t.hasAttribute('data-hw-click')) {
     const btn = document.getElementById(t.getAttribute('data-hw-click'));
     closeHelperWizard({ restoreFocus: false });
+    try { revealAICardFor(btn); } catch (_) {}
     if (btn) btn.click();
     _showChip(true);
   }
@@ -625,6 +627,11 @@ function _goToTab(step) {
   if (tid) target = document.getElementById(tid);
   if (!target && pane) target = pane.querySelector('.tab-title-with-help, .tab-header-row, h2');
 
+  /* 3.102.0: a target inside a folded AI card (e.g. aiGenerateBtn) opens
+     the card first, and the spotlight waits for the fold to finish. */
+  let opened = false;
+  try { opened = revealAICardFor(target); } catch (_) {}
+
   setTimeout(() => {
     if (target && target.offsetParent !== null) {
       try { target.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {}
@@ -635,7 +642,7 @@ function _goToTab(step) {
     } else if (pane) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, 120);
+  }, opened ? 360 : 120);
 
   _showChip(true);
 }
