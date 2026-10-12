@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.101.1 — 2026-10-12 — CBC: one file per module
+PATCH. module_curriculum.js, exports_cbc_docx.js, translations.js,
+index.html, sw.js (v238), tests/specs/cbc-export.spec.js.
+Changed Standard menu → CBC opens an export dialog like CUR's: the modules
+        are listed (current first, with code and category), each with its
+        own Download button — one Word file per module
+        (CBC_<code>_<title>.docx). The file holds a cover (sector,
+        qualification, produced by, module, category), the module of
+        instruction (competency, title, descriptor, duration, level,
+        prerequisite, outcomes and, per outcome, assessment criteria,
+        contents, conditions, methodologies, assessment methods), then the
+        module's resources and the instructors.
+Added   "Include the course design" (off by default, remembered): puts the
+        programme summary at the start of each module file.
+Added   "Download the whole programme": all modules in one file with the
+        course design (the 3.101.0 document).
+
 ── 3.101.0 — 2026-10-12 — Module categories; CBC draft export
 MINOR. module_mapping.js, learning_outcomes.js, clusters.js,
 module_curriculum.js, module_curriculum_text.js, exports_cbc_docx.js (new),

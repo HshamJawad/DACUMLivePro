@@ -96,10 +96,17 @@ async function _build(m) {
       new TableRow({ children: [labelCell(_t('cbcQualification'), CC[0]),
         cell([txt([m.title, m.qualificationLevel].filter(Boolean).join(' — '))], { width: CC[1] })] }),
       new TableRow({ children: [labelCell(_t('cbcProducedBy'), CC[0]), cell([txt(m.producedBy)], { width: CC[1] })] }),
+      ...(m.single ? [
+        new TableRow({ children: [labelCell(_t('cbcModuleTitle'), CC[0]),
+          cell([txt([m.single.code, m.single.title].filter(Boolean).join(' '), { bold: true })], { width: CC[1] })] }),
+        new TableRow({ children: [labelCell(_t('lblModuleCategory'), CC[0]),
+          cell([txt(m.single.categoryLabel)], { width: CC[1] })] }),
+      ] : []),
     ], CC));
     children.push(para([run(_t('cbcDraftNote'), { italics: true, size: 18, color: '7F7F7F' })], { center: true, before: 600 }));
 
-    /* ── Part 1: Course design ─────────────────────────────── */
+    /* ── Part 1: Course design (whole programme, or when ticked) ── */
+    if (m.includeDesign) {
     children.push(heading(_t('cbcCourseDesign'), { size: 30, pageBreakBefore: true, before: 0 }));
     children.push(labelled(_t('cbcCourseTitle'), m.title));
     children.push(labelled(_t('cbcNominalDuration'), m.nominalHours ? _tf('cbcHoursN', { n: m.nominalHours }) : ''));
@@ -156,12 +163,13 @@ async function _build(m) {
     children.push(sub(_t('cbcInstructors')));
     list(m.instructors).forEach(p => children.push(p));
     if (m.trainers) children.push(para([run(m.trainers, { italics: true })], { indent: 360, before: 80 }));
+    }
 
     /* ── Part 2: Modules of instruction ────────────────────── */
-    children.push(heading(_t('cbcModulesOfInstruction'), { size: 30, pageBreakBefore: true, before: 0 }));
+    children.push(heading(_t(m.single ? 'cbcModuleOfInstruction' : 'cbcModulesOfInstruction'), { size: 30, pageBreakBefore: true, before: 0 }));
     const MC = [2800, TABLE_W - 2800];
     let firstModule = true;
-    m.groups.forEach(g => {
+    m.instructionGroups.forEach(g => {
       children.push(heading(g.label.toUpperCase(), { size: 24, before: firstModule ? 120 : 360, color: '2E74B5' }));
       g.modules.forEach(mod => {
         if (!firstModule) children.push(para([run('')], { pageBreakBefore: true, before: 0, after: 0 }));
@@ -192,13 +200,31 @@ async function _build(m) {
               list(items, num, 540).forEach(p => children.push(p));
             });
         });
+        // 3.101.1: a module file carries its own resources and instructors.
+        if (m.single) {
+          children.push(sub(_t('cbcResources')));
+          const RC1 = [TABLE_W / 2, TABLE_W / 2];
+          const block = (pairs) => pairs.flatMap(([label, items]) => [
+            para([run(label, { bold: true })], { before: 80 }),
+            ...((items && items.length) ? items.map(t => para([run('• ' + t)], { indent: 200 })) : [para([value('')], { indent: 200 })]),
+          ]);
+          children.push(table([new TableRow({ children: [
+            cell(block([[_t('cbcEquipment'), mod.resources.equipment], [_t('cbcTools'), mod.resources.tools]]), { width: RC1[0] }),
+            cell(block([[_t('cbcMaterials'), mod.resources.materials], [_t('cbcPPE'), mod.resources.ppe]]), { width: RC1[1] }),
+          ] })], RC1));
+          if (!m.includeDesign) {
+            children.push(sub(_t('cbcInstructors')));
+            list(m.instructors).forEach(p => children.push(p));
+            if (m.trainers) children.push(para([run(m.trainers, { italics: true })], { indent: 360, before: 80 }));
+          }
+        }
       });
     });
 
     const footer = new Footer({ children: [new Paragraph({
       bidirectional: rtl,
       tabStops: [{ type: TabStopType.RIGHT, position: TABLE_W }],
-      children: [run(`CBC — ${m.title || ''}`, { bold: true, size: 18 }),
+      children: [run(`CBC — ${m.single ? [m.single.code, m.single.title].filter(Boolean).join(' ') : (m.title || '')}`, { bold: true, size: 18 }),
                  new TextRun({ children: ['\t', PageNumber.CURRENT], size: 18, bold: true })],
     })] });
 
