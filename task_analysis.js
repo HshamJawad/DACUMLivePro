@@ -621,6 +621,7 @@ function _touchStatus(taskKey) {
 // whichever task is currently selected.
 const ICON_NUMBER = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><text x="0.4" y="5.35" font-size="4.7" font-weight="700" font-family="sans-serif">1</text><text x="0.4" y="9.5" font-size="4.7" font-weight="700" font-family="sans-serif">2</text><text x="0.4" y="13.65" font-size="4.7" font-weight="700" font-family="sans-serif">3</text><rect x="5.8" y="3.1" width="9.2" height="1.5" rx=".75"/><rect x="5.8" y="7.25" width="9.2" height="1.5" rx=".75"/><rect x="5.8" y="11.4" width="9.2" height="1.5" rx=".75"/></svg>';
 const ICON_BULLET = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false"><rect x="1" y="2.6" width="2.8" height="2.8" rx=".6"/><rect x="1" y="6.75" width="2.8" height="2.8" rx=".6"/><rect x="1" y="10.9" width="2.8" height="2.8" rx=".6"/><rect x="5.8" y="3.1" width="9.2" height="1.5" rx=".75"/><rect x="5.8" y="7.25" width="9.2" height="1.5" rx=".75"/><rect x="5.8" y="11.4" width="9.2" height="1.5" rx=".75"/></svg>';
+const ICON_TRASH = '<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="display:block"><path d="M2.5 4.5h11M6 4.5V3h4v1.5M4 4.5l.7 8.6c.05.6.55 1.1 1.15 1.1h4.3c.6 0 1.1-.5 1.15-1.1l.7-8.6M6.7 7v4.6M9.3 7v4.6"/></svg>';
 const ICON_IMPORT  = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="2.5" width="12" height="11" rx="1.5"/><path d="M4.8 6h6.4M4.8 8.5h6.4M4.8 11h4"/></svg>';
 
 function _renderListField(field, items) {
@@ -688,7 +689,7 @@ function _renderDecisionTable(r) {
                     aria-label="${escapeHtml(_t(lbl[c]))} ${i + 1}"
                     placeholder="${escapeHtml(_t(ph[c]))}">${escapeHtml(row[c])}</textarea></label>`).join('')}
         <button type="button" class="ta-dec-del" data-action="ta-dec-del" data-row="${i}"
-                title="${escapeHtml(_t('taDecDelRow'))}" aria-label="${escapeHtml(_t('taDecDelRow'))} ${i + 1}">🗑️</button>
+                title="${escapeHtml(_t('taDecDelRow'))}" aria-label="${escapeHtml(_t('taDecDelRow'))} ${i + 1}">${ICON_TRASH}</button>
       </div>`).join('');
   const expertBtn = hasExpert ? '' : `
           <button type="button" class="btn-format ta-dec-expert-btn" data-action="ta-dec-expert"
@@ -715,7 +716,7 @@ function _renderBasicSkills(r) {
           <div class="ta-basic-cell-h">
             <span class="ta-basic-cell-t"><span aria-hidden="true">${f.icon}</span> ${escapeHtml(_t(f.shortKey))}${_aiBadge(f.key)}</span>
             <button type="button" class="ta-basic-clear" data-action="ta-clear-field" data-field="${f.key}"
-                    title="${escapeHtml(_t('btnClear'))}" aria-label="${escapeHtml(_t('btnClear'))} — ${escapeHtml(_t(f.shortKey))}">🗑️</button>
+                    title="${escapeHtml(_t('btnClear'))}" aria-label="${escapeHtml(_t('btnClear'))} — ${escapeHtml(_t(f.shortKey))}">${ICON_TRASH}</button>
           </div>
           <textarea data-action="ta-edit-list" data-field="${f.key}" dir="auto" rows="3"
                     placeholder="${escapeHtml(_t(f.phKey))}">${escapeHtml(((r && r[f.key]) || []).join('\n'))}</textarea>
