@@ -6,6 +6,18 @@
   'use strict';
   var TRANSLATIONS = {
     en: {
+      /* 3.99.6 — Dashboard Excel export (dashboard_xlsx.js) */
+      xlSheetTasks: "Task Priorities",
+      xlSheetDuties: "Duty Summary",
+      xlTitleTasks: "Task Verification — Task Priorities",
+      xlTitleDuties: "Task Verification — Duty-Level Summary",
+      xlDutyCode: "Duty Code",
+      xlTaskCode: "Task Code",
+      xlMetaOccupation: "Occupation: {v}",
+      xlMetaDate: "Exported: {v}",
+      xlMetaCounts: "{t} valid tasks · {d} duties",
+      xlMetaMethod: "Training load method: {v}",
+      msgDashboardExcelFallback: "The Excel library could not be loaded, so the dashboard was exported as CSV instead.",
       /* 3.99.0 — Helper wizard (helper_wizard.js) */
       hwCardTitle: "Helper — your step-by-step guide",
       hwCardDesc: "New to DACUM Live Pro or facilitating your first workshop? The Helper walks you through every tab in the right order, shows what is done and what comes next, and takes you straight to each step.",
@@ -471,7 +483,7 @@
       msgNoDutiesDesc: 'Please go to Duties & Tasks tab and create duties with tasks first.',
       msgNoDutiesHint: 'Once duties are added, click Refresh Duties & Tasks above.',
       msgDashboardCsvOnly: 'Dashboard export only available in Workshop mode',
-      msgDashboardExported: 'Dashboard exported as CSV successfully!',
+      msgDashboardExported: 'Dashboard exported as Excel successfully!',
       msgClearAll: 'All data cleared successfully. Ready for a new DACUM session.',
       msgClearChartInfo: 'Chart Info cleared!',
       msgClearDuties: 'Duties & Tasks cleared!',
@@ -953,7 +965,7 @@
       thAvgPriority: 'Avg Priority<br>Index',
       thHighPriorityTasks: 'High Priority<br>Tasks',
       thTrainingLoad: 'Training Load<br>Score',
-      btnExportDashboardCSV: 'Export Dashboard as CSV',
+      btnExportDashboardCSV: 'Export Dashboard as Excel',
       cardTasksVerified: 'Tasks Verified',
       cardFormulaUsed: 'Formula Used',
       msgNoTaskData: 'No valid task data available.',
@@ -1839,6 +1851,18 @@
     },
 
     fr: {
+      /* 3.99.6 — Dashboard Excel export (dashboard_xlsx.js) */
+      xlSheetTasks: "Priorités des tâches",
+      xlSheetDuties: "Synthèse par activité",
+      xlTitleTasks: "Vérification des tâches — Priorités des tâches",
+      xlTitleDuties: "Vérification des tâches — Synthèse par activité",
+      xlDutyCode: "Code activité",
+      xlTaskCode: "Code tâche",
+      xlMetaOccupation: "Profession : {v}",
+      xlMetaDate: "Exporté le : {v}",
+      xlMetaCounts: "{t} tâches valides · {d} activités",
+      xlMetaMethod: "Méthode de charge de formation : {v}",
+      msgDashboardExcelFallback: "La bibliothèque Excel n’a pas pu être chargée ; le tableau de bord a été exporté en CSV.",
       /* 3.99.0 — Helper wizard (helper_wizard.js) */
       hwCardTitle: "Assistant — votre guide pas à pas",
       hwCardDesc: "Vous découvrez DACUM Live Pro ou animez votre premier atelier ? L’Assistant vous fait parcourir chaque onglet dans le bon ordre, montre ce qui est fait et ce qui vient ensuite, et vous mène directement à chaque étape.",
@@ -2304,7 +2328,7 @@
       msgNoDutiesDesc: 'Veuillez aller dans l’onglet Tâches & Activités et créer des activités.',
       msgNoDutiesHint: 'Une fois les activités ajoutées, cliquez sur Actualiser les tâches.',
       msgDashboardCsvOnly: 'L’export du tableau de bord est disponible uniquement en mode Atelier',
-      msgDashboardExported: 'Tableau de bord exporté en CSV avec succès !',
+      msgDashboardExported: 'Tableau de bord exporté en Excel avec succès !',
       msgClearAll: 'Toutes les données ont été effacées. Prêt pour une nouvelle session DACUM.',
       msgClearChartInfo: 'Fiche DACUM effacée !',
       msgClearDuties: 'Tâches & Activités effacées !',
@@ -2782,7 +2806,7 @@
       thAvgPriority: 'Indice priorité<br>moyen',
       thHighPriorityTasks: 'Tâches haute<br>priorité',
       thTrainingLoad: 'Score charge<br>formation',
-      btnExportDashboardCSV: 'Exporter le tableau de bord en CSV',
+      btnExportDashboardCSV: 'Exporter le tableau de bord en Excel',
       cardTasksVerified: 'Tâches vérifiées',
       cardFormulaUsed: 'Formule utilisée',
       msgNoTaskData: 'Aucune donnée de tâche valide.',
@@ -3662,6 +3686,18 @@
     },
 
     ar: {
+      /* 3.99.6 — Dashboard Excel export (dashboard_xlsx.js) */
+      xlSheetTasks: "أولويات المهام",
+      xlSheetDuties: "ملخص الواجبات",
+      xlTitleTasks: "التحقق من المهام — أولويات المهام",
+      xlTitleDuties: "التحقق من المهام — ملخص على مستوى الواجبات",
+      xlDutyCode: "رمز الواجب",
+      xlTaskCode: "رمز المهمة",
+      xlMetaOccupation: "المهنة: {v}",
+      xlMetaDate: "تاريخ التصدير: {v}",
+      xlMetaCounts: "{t} مهمة صالحة · {d} واجبات",
+      xlMetaMethod: "طريقة حساب عبء التدريب: {v}",
+      msgDashboardExcelFallback: "تعذّر تحميل مكتبة Excel، لذا صُدّرت اللوحة بصيغة CSV بدلاً من ذلك.",
       /* 3.99.0 — Helper wizard (helper_wizard.js) */
       hwCardTitle: "المساعد — دليلك خطوة بخطوة",
       hwCardDesc: "هل أنت جديد على DACUM Live Pro أو تيسّر ورشتك الأولى؟ يأخذك المساعد عبر التبويبات بالتسلسل الصحيح، ويبيّن ما أُنجز وما الخطوة التالية، وينقلك مباشرة إلى كل خطوة.",
@@ -4536,13 +4572,13 @@
       thAvgPriority: 'متوسط مؤشر<br>الأولوية',
       thHighPriorityTasks: 'المهام عالية<br>الأولوية',
       thTrainingLoad: 'درجة الحِمل<br>التدريبي',
-      btnExportDashboardCSV: 'تصدير اللوحة بصيغة CSV',
+      btnExportDashboardCSV: 'تصدير اللوحة بصيغة Excel',
       cardTasksVerified: 'المهام المتحقَّق منها',
       cardFormulaUsed: 'المعادلة المستخدمة',
       msgNoTaskData: 'لا تتوفر بيانات مهام صالحة.',
       msgNoDutyData: 'لا تتوفر بيانات واجبات صالحة.',
       msgDashboardWorkshopOnly: 'تصدير اللوحة متاح في نمط الورشة فقط',
-      msgDashboardExported: 'تم تصدير اللوحة بصيغة CSV بنجاح!',
+      msgDashboardExported: 'تم تصدير اللوحة بصيغة Excel بنجاح!',
       thImportance: 'الأهمية',
       thFrequency: 'التكرار',
       thLearningDifficulty: 'صعوبة التعلّم',
