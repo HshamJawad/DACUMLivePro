@@ -11,7 +11,7 @@ import { appState } from './state.js';
 import { outcomeIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, _renderLoNotice, renumberLearningOutcomes, syncClusteringWithProfile } from './clusters.js';
 import { _esc, _findEffectiveCriterionById, _getClusterEffectiveCriteria, _injectModuleCardStyles, _persistClusters, _renderUndoBars, _t, _taskLabel, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
-import { getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName } from './module_mapping.js';
+import { getModuleCategories, getModuleCategory, categoryLabel, getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName } from './module_mapping.js';
 
 // ── Learning Outcomes ─────────────────────────────────────────
 
@@ -1101,6 +1101,7 @@ export function renderModules() {
           <div class="module-title"><bdi class="mod-ref">${_esc(moduleRef(module) || `M${moduleIndex + 1}`)}</bdi> — ${module.title}
             ${lvl ? `<span class="mod-level-chip">${_esc(_txf('lblLevelShort', { n: lvl }))}</span>` : ''}
             ${module.track && !_refShowsTrack(module) ? `<span class="mod-track-chip">${_esc(module.track)}</span>` : ''}
+            ${getModuleCategory(module) ? `<span class="mod-cat-chip mod-cat-${_esc(module.category)}">${_esc(categoryLabel(getModuleCategory(module)))}</span>` : ''}
             ${getModuleNqfLevel(module) ? `<span class="mod-nqf-chip">${_esc(_tx('lblNqfChip'))}: <bdi>${_esc(getModuleNqfLevel(module))}</bdi></span>` : ''}
           </div>
           <div class="module-actions">
@@ -1114,6 +1115,13 @@ export function renderModules() {
         <div class="mod-meta-row">
           <label class="mod-meta-field"><span>${_esc(_tx('lblModuleLevel'))}</span>
             <select class="mod-level-select" data-module-id="${_esc(module.id)}">${levelOpts}</select>
+          </label>
+          <label class="mod-meta-field"><span>${_esc(_tx('lblModuleCategory'))}</span>
+            <select class="mod-cat-select" data-module-id="${_esc(module.id)}">
+              <option value="">${_esc(_tx('optNoCategory'))}</option>
+              ${getModuleCategories().map(c => `<option value="${_esc(c.id)}" ${module.category === c.id ? 'selected' : ''}>${_esc(categoryLabel(c))}</option>`).join('')}
+              <option value="__edit">✎ ${_esc(_tx('optEditCategories'))}</option>
+            </select>
           </label>
           <label class="mod-meta-field"><span>${_esc(_tx('lblModuleTrack'))}</span>
             <input type="text" class="mod-track-input" data-module-id="${_esc(module.id)}"

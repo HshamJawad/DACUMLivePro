@@ -405,6 +405,104 @@ export function setModuleTrack(moduleId, track) {
   _persistClusters();
 }
 
+// ── Module category (3.101.0) ─────────────────────────────────
+// Basic / Common / Core / Elective by default — the grouping national
+// competency-based curricula use for their course structure. The list is
+// the project's own (moduleMappingData.moduleCategories) so each country's
+// scheme can be used: rename, add or remove categories. A default entry
+// has an empty label and shows its translated name; once edited, the
+// label is the user's text. module.category holds the category id.
+export const DEFAULT_MODULE_CATEGORIES = [
+  { id: 'basic',    key: 'catBasic' },
+  { id: 'common',   key: 'catCommon' },
+  { id: 'core',     key: 'catCore' },
+  { id: 'elective', key: 'catElective' },
+];
+export function getModuleCategories() {
+  const c = (appState.moduleMappingData || {}).moduleCategories;
+  if (Array.isArray(c) && c.length) return c.filter(x => x && x.id).map(x => ({ id: String(x.id), label: String(x.label || '') }));
+  return DEFAULT_MODULE_CATEGORIES.map(d => ({ id: d.id, label: '' }));
+}
+export function categoryLabel(cat) {
+  if (!cat) return '';
+  if (cat.label && cat.label.trim()) return cat.label.trim();
+  const d = DEFAULT_MODULE_CATEGORIES.find(x => x.id === cat.id);
+  return d ? _t(d.key) : cat.id;
+}
+export function getModuleCategory(module) {
+  const id = module && module.category;
+  return id ? (getModuleCategories().find(c => c.id === id) || null) : null;
+}
+export function setModuleCategory(moduleId, id) {
+  const m = appState.moduleMappingData.modules.find(x => x.id === moduleId);
+  if (!m) return;
+  if (id && getModuleCategories().some(c => c.id === id)) m.category = id; else delete m.category;
+  renderModules();
+  _persistClusters();
+}
+/* One category per line. Lines keep the id of the category at the same
+   position, so renaming keeps every module's choice; a module whose
+   category is removed becomes unclassified. A line equal to a default
+   name in the interface language stays "default" (follows language). */
+function _saveCategoryLines(lines) {
+  const cur = getModuleCategories();
+  const clean = lines.map(l => String(l || '').replace(/\s+/g, ' ').trim().slice(0, 40)).filter(Boolean);
+  const used = new Set();
+  const next = clean.map((label, i) => {
+    let id = cur[i] ? cur[i].id : '';
+    if (!id || used.has(id)) { let n = i + 1; do { id = 'cat_' + n++; } while (used.has(id) || cur.some(c => c.id === id && c !== cur[i])); }
+    used.add(id);
+    const def = DEFAULT_MODULE_CATEGORIES.find(d => d.id === id);
+    return { id, label: def && _t(def.key) === label ? '' : label };
+  });
+  const mm = appState.moduleMappingData;
+  mm.moduleCategories = next;
+  (mm.modules || []).forEach(m => { if (m.category && !next.some(c => c.id === m.category)) delete m.category; });
+  renderModules();
+  _persistClusters();
+}
+export function openModuleCategoriesEditor() {
+  const old = document.getElementById('mmCatModal');
+  if (old) old.remove();
+  const rtl = !!(window.i18n && window.i18n.isRTL && window.i18n.isRTL());
+  const ov = document.createElement('div');
+  ov.id = 'mmCatModal';
+  ov.setAttribute('role', 'dialog');
+  ov.setAttribute('aria-modal', 'true');
+  ov.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.5);';
+  const lines = getModuleCategories().map(categoryLabel).join('\n');
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:14px;max-width:440px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden;font-family:inherit;">
+      <div style="padding:16px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;font-weight:800;color:#5b21b6;">🏷️ ${_esc(_tx('catEditTitle'))}</div>
+      <div style="padding:16px 20px;">
+        <p style="margin:0 0 10px;font-size:.86em;color:#475569;line-height:1.6;">${_esc(_tx('catEditHint'))}</p>
+        <textarea id="mmCatLines" dir="auto" rows="6" style="width:100%;box-sizing:border-box;min-height:130px;font:inherit;font-size:.92em;padding:10px;border:1.5px solid #ddd6fe;border-radius:8px;">${_esc(lines)}</textarea>
+        <div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:12px;">
+          <button type="button" data-cat="reset" style="padding:8px 12px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font:inherit;font-size:.85em;">↺ ${_esc(_tx('catEditReset'))}</button>
+          <span style="display:flex;gap:8px;">
+            <button type="button" data-cat="cancel" style="padding:8px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font:inherit;">${_esc(_tx('btnCancel'))}</button>
+            <button type="button" data-cat="save" style="padding:8px 16px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font:inherit;font-weight:700;">${_esc(_tx('btnSave'))}</button>
+          </span>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const ta = ov.querySelector('#mmCatLines');
+  ta.focus();
+  const close = () => ov.remove();
+  ov.addEventListener('click', e => {
+    if (e.target === ov) { close(); return; }
+    const b = e.target.closest('[data-cat]');
+    if (!b) return;
+    const k = b.getAttribute('data-cat');
+    if (k === 'cancel') close();
+    else if (k === 'reset') ta.value = DEFAULT_MODULE_CATEGORIES.map(d => _t(d.key)).join('\n');
+    else if (k === 'save') { _saveCategoryLines(ta.value.split('\n')); close(); }
+  });
+  ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+}
+
 // ── TVQF / NQF (3.85.0) ────────────────────────────────────────
 // OPTIONAL and separate from module.level. module.level is the level
 // INSIDE the programme (1..N): it builds the module code (CMCN 1-1) and

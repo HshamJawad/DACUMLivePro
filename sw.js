@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v236';
+const CACHE_VERSION = 'v237';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -108,6 +108,7 @@ const PRECACHE_URLS = [
   // Traceability Map (3.48.0): imported on demand by events.js only.
   BASE + 'trace_map.js',
   BASE + 'exports_cur_docx.js',
+  BASE + 'exports_cbc_docx.js',           // 3.101.0 — loaded on demand
   // Export Settings: the store + modal that both exporters read from.
   // Loaded lazily by the sidebar button and statically by the two
   // exporters, so an installed copy must carry it or a coloured
