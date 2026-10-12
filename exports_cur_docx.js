@@ -178,11 +178,20 @@ async function _exportCurriculumDocxImpl(m) {
             labelCell(L('curPrereq'), { span: 2, width: span(0, 2) }),
             cell(listParas(m.prerequisites, 0, 2), { span: 4, width: span(2, 6) }),
         ] }));
-        // 3.100.1: basic skills required on entry (from Task Analysis).
-        if ((m.entrySkills && m.entrySkills.length) || m.blank) {
+        // 3.100.2: programme requirements — only when the user ticked
+        // "Include programme requirements" in the export dialog.
+        if (m.progReqs) {
+            const pr = m.progReqs;
+            [['curEntryQuals', pr.entryQualifications], ['curEntrySkills', pr.entrySkills],
+             ['curTrainerQuals', pr.trainerQualifications]].forEach(([k, items]) => {
+                r1.push(new TableRow({ children: [
+                    labelCell(L(k), { span: 2, width: span(0, 2) }),
+                    cell(listParas(items || [], 0, 2), { span: 4, width: span(2, 6) }),
+                ] }));
+            });
             r1.push(new TableRow({ children: [
-                labelCell(L('curEntrySkills'), { span: 2, width: span(0, 2) }),
-                cell(listParas(m.entrySkills || [], 0, 2), { span: 4, width: span(2, 6) }),
+                labelCell(L('curTrainersPerGroup'), { span: 2, width: span(0, 2) }),
+                cell(m.blank && !pr.trainers ? blankLines(1) : [txt(pr.trainers)], { span: 4, width: span(2, 6) }),
             ] }));
         }
         // Time block

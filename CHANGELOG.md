@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.100.2 — 2026-10-12 — Programme requirements (optional in the CUR export)
+PATCH. module_curriculum.js, module_curriculum_text.js, exports_cur_docx.js,
+events.js, translations.js, index.html, sw.js (v235),
+tests/specs/entry-skills-helper-chip.spec.js.
+Added   Module Curriculum → Programme settings → "Programme requirements":
+        trainee entry qualifications (list), trainer qualifications (list)
+        and trainers required per group (number, shown as "n trainers per
+        group of g trainees" from the group size).
+Added   Export dialog: "Include programme requirements" (off by default,
+        remembered with the project). When ticked, the module table gets
+        rows for the entry qualifications, the module's basic skills
+        required on entry, the trainer qualifications and the trainers per
+        group. Unticked, the CUR document carries none of them — they
+        belong to a CBC-type document. (The entry-skills row added in
+        3.100.1 now follows this option too.)
+Changed Basic Skills help: the source line at the foot is removed.
+
 ── 3.100.1 — 2026-10-12 — Entry skills in the curriculum; Helper chip follows the tab
 PATCH. module_curriculum.js, module_curriculum_text.js, exports_cur_docx.js,
 helper_wizard.js, task_analysis.js, dacum-components.css, translations.js,

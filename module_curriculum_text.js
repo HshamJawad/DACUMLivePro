@@ -11,6 +11,12 @@
 // these local tables keep the tab complete in all three languages.
 export const _S = {
   en: {
+    curProgReqs: "Programme requirements",
+    curProgReqsHint: "Conditions for the whole programme: who can enrol and who can teach it. Not exported unless you tick “Include programme requirements” when exporting.",
+    curEntryQualsPh: "e.g., Completed intermediate school; minimum age 16",
+    curTrainerQualsPh: "e.g., Technical diploma in the trade + 3 years of work experience",
+    dlgProgReqs: "Include programme requirements",
+    dlgProgReqsHint: "Adds trainee entry qualifications, the module’s basic skills required on entry, trainer qualifications and trainers per group to the module table. Usually part of a CBC document rather than a CUR.",
     curEntrySuggest: "Suggest from Task Analysis",
     curEntryHint: "Reading, writing, maths and applied science a trainee needs before starting this module — collected from the Basic Skills of its tasks.",
     curEntryPh: "e.g., Read a simple wiring diagram",
@@ -159,6 +165,12 @@ export const _S = {
     hUnit: 'h'
   },
   fr: {
+    curProgReqs: "Exigences du programme",
+    curProgReqsHint: "Conditions pour tout le programme : qui peut s’inscrire et qui peut l’enseigner. Non exportées sauf si vous cochez « Inclure les exigences du programme » à l’export.",
+    curEntryQualsPh: "ex. Fin du cycle moyen ; âge minimum 16 ans",
+    curTrainerQualsPh: "ex. Diplôme technique du métier + 3 ans d’expérience",
+    dlgProgReqs: "Inclure les exigences du programme",
+    dlgProgReqsHint: "Ajoute au tableau du module les conditions d’admission, les compétences de base requises à l’entrée, les qualifications des formateurs et le nombre de formateurs par groupe. Relève plutôt d’un document CBC que d’un CUR.",
     curEntrySuggest: "Proposer depuis l’analyse des tâches",
     curEntryHint: "Lecture, écriture, mathématiques et sciences appliquées nécessaires avant ce module — recueillies dans les compétences de base de ses tâches.",
     curEntryPh: "ex. Lire un schéma de câblage simple",
@@ -306,6 +318,12 @@ export const _S = {
     hUnit: 'h'
   },
   ar: {
+    curProgReqs: "متطلبات البرنامج",
+    curProgReqsHint: "شروط على مستوى البرنامج كله: من يحق له الالتحاق ومن يحق له التدريب. لا تُصدَّر إلا إذا اخترت «تضمين متطلبات البرنامج» عند التصدير.",
+    curEntryQualsPh: "مثال: إكمال الدراسة المتوسطة؛ العمر لا يقل عن 16 سنة",
+    curTrainerQualsPh: "مثال: دبلوم فني في المهنة + 3 سنوات خبرة عملية",
+    dlgProgReqs: "تضمين متطلبات البرنامج",
+    dlgProgReqsHint: "يضيف إلى جدول الوحدة مؤهلات دخول المتدربين، والمهارات الأساسية المطلوبة للدخول، ومؤهلات المدربين، وعدد المدربين لكل مجموعة. هذه عادةً جزء من وثيقة CBC لا CUR.",
     curEntrySuggest: "اقتراح من تحليل المهمة",
     curEntryHint: "القراءة والكتابة والحساب والعلوم التطبيقية التي يحتاجها المتدرب قبل بدء هذه الوحدة — تُجمع من المهارات الأساسية لمهامها.",
     curEntryPh: "مثال: قراءة مخطط كهربائي بسيط",
@@ -460,6 +478,10 @@ export const _S = {
    on purpose ("Self-directed learning" everywhere, "learning units"). */
 export const _L = {
   en: {
+    curEntryQuals: "Trainee entry qualifications",
+    curTrainerQuals: "Trainer qualifications",
+    curTrainersPerGroup: "Trainers required per group",
+    curTrainersRatio: "{n} trainer(s) per group of {g} trainees",
     curEntrySkills: 'Basic skills required on entry',
     curModule: 'Module', curPurpose: 'Purpose statements', curNqfLevel: 'NQF Level', curCredits: 'Credits',
     curPrereq: 'Pre-requisites modules', curInstTime: 'Indicative Institutional Time',
@@ -483,6 +505,10 @@ export const _L = {
     curLevelN: 'Level {n}', curPC: 'Performance criteria', curDurationH: 'Duration (hours)'
   },
   fr: {
+    curEntryQuals: "Conditions d’admission des apprenants",
+    curTrainerQuals: "Qualifications des formateurs",
+    curTrainersPerGroup: "Formateurs requis par groupe",
+    curTrainersRatio: "{n} formateur(s) par groupe de {g} apprenants",
     curEntrySkills: 'Compétences de base requises à l’entrée',
     curModule: 'Module', curPurpose: 'Énoncé de l’objectif', curNqfLevel: 'Niveau du CNC', curCredits: 'Crédits',
     curPrereq: 'Modules préalables', curInstTime: 'Temps indicatif en établissement',
@@ -506,6 +532,10 @@ export const _L = {
     curLevelN: 'Niveau {n}', curPC: 'Critères de performance', curDurationH: 'Durée (heures)'
   },
   ar: {
+    curEntryQuals: "مؤهلات دخول المتدربين",
+    curTrainerQuals: "مؤهلات المدربين",
+    curTrainersPerGroup: "عدد المدربين المطلوب لكل مجموعة",
+    curTrainersRatio: "{n} مدرب لكل مجموعة من {g} متدرباً",
     curEntrySkills: 'المهارات الأساسية المطلوبة للدخول',
     curModule: 'الوحدة', curPurpose: 'بيان الغرض', curNqfLevel: 'مستوى الإطار الوطني للمؤهلات',
     curCredits: 'الرصيد / الساعات المعتمدة', curPrereq: 'الوحدات المتطلبة سابقاً',

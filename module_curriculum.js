@@ -6,7 +6,9 @@
 // Data lives in appState.moduleCurriculumData (see state.js for the
 // default and the normaliser):
 //
-//   settings: { programmeName, hoursPerCredit, groupSize, split{…} }
+//   settings: { programmeName, hoursPerCredit, groupSize, split{…},
+//               entryQualifications[], trainerQualifications[],
+//               trainersPerGroup, exportProgReqs (3.100.2) }
 //   byModule: { [moduleId]: { code, shortName, purpose, credits,
 //               prerequisites[], splitOverride|null, tools[], equipment[],
 //               ppe[], materials[], resources[], facilities[{item,qty}],
@@ -338,6 +340,13 @@ function _splitSumNote(split) {
     : `<span class="cur-warn">⚠ ${_esc(_txf('curSplitBad', { n: sum }))}</span>`;
 }
 
+/* 3.100.2: "2 trainers per group of 15 trainees" — '' when not set. */
+function _trainersRatio() {
+  const s = _settings();
+  const n = Number(s.trainersPerGroup);
+  return n > 0 ? curLabel('curTrainersRatio', { n, g: s.groupSize }) : '';
+}
+
 function _renderSettings() {
   const s = _settings();
   return `
@@ -353,6 +362,17 @@ function _renderSettings() {
           <label class="cur-field"><span>${_esc(_tx('curGroup'))}</span>
             <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="groupSize" value="${_esc(s.groupSize)}"></label>
         </div>
+        <div class="cur-subhead">${_esc(_tx('curProgReqs'))}</div>
+        <p class="cur-hint">${_esc(_tx('curProgReqsHint'))}</p>
+        <div class="cur-field"><span class="cur-field-label">${_esc(curLabel('curEntryQuals'))}</span>
+          ${_listEditor('set', 'entryQualifications', s.entryQualifications, { label: curLabel('curEntryQuals'), ph: _tx('curEntryQualsPh') })}</div>
+        <div class="cur-field"><span class="cur-field-label">${_esc(curLabel('curTrainerQuals'))}</span>
+          ${_listEditor('set', 'trainerQualifications', s.trainerQualifications, { label: curLabel('curTrainerQuals'), ph: _tx('curTrainerQualsPh') })}</div>
+        <label class="cur-field cur-trainers"><span>${_esc(curLabel('curTrainersPerGroup'))}</span>
+          <span class="cur-inline">
+            <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="trainersPerGroup" value="${_esc(s.trainersPerGroup == null ? '' : s.trainersPerGroup)}">
+            <small class="cur-hint" data-cur-trainers-ratio>${_esc(_trainersRatio())}</small>
+          </span></label>
       </div>
     </details>`;
 }
@@ -698,6 +718,8 @@ function _refreshDerived() {
   if (fp) fp.textContent = curFileName(module);
   const fh = root.querySelector('[data-cur-fachead]');
   if (fh) fh.textContent = curLabel('curFacilities', { n: _settings().groupSize });
+  const tr = root.querySelector('[data-cur-trainers-ratio]');
+  if (tr) tr.textContent = _trainersRatio();
 }
 
 // ── Editing ──────────────────────────────────────────────────
@@ -711,6 +733,9 @@ function _setField(scope, key, raw, loId) {
     } else if (key === 'hoursPerCredit' || key === 'groupSize') {
       const n = Number(raw);
       if (n > 0) s[key] = n;
+    } else if (key === 'trainersPerGroup') {
+      const n = Math.round(Number(raw));
+      s[key] = raw === '' || !(n > 0) ? '' : n;
     } else {
       s[key] = raw;
     }
@@ -742,10 +767,12 @@ function _setField(scope, key, raw, loId) {
 
 function _listTarget(listEl, create) {
   const module = _selectedModule();
-  if (!module || !listEl) return null;
+  if (!listEl) return null;
   const scope = listEl.getAttribute('data-cs');
   const key = listEl.getAttribute('data-ck');
-  const holder = scope === 'lo' ? _loRec(module.id, listEl.getAttribute('data-lo'), create) : _modRec(module.id, create);
+  if (scope !== 'set' && !module) return null;
+  const holder = scope === 'set' ? _settings()
+    : scope === 'lo' ? _loRec(module.id, listEl.getAttribute('data-lo'), create) : _modRec(module.id, create);
   if (!holder) return null;
   if (!Array.isArray(holder[key])) { if (!create) return null; holder[key] = []; }
   return { arr: holder[key], holder, key };
@@ -1104,7 +1131,8 @@ export function isModuleCurriculumEmpty() {
   const s = d.settings || {};
   const def = defaultModuleCurriculumData().settings;
   const settingsDefault = !(s.programmeName || '').trim() && !(s.filePrefix || '').trim() && s.levelStyle !== 'long' && Number(s.hoursPerCredit) === def.hoursPerCredit &&
-    Number(s.groupSize) === def.groupSize && SPLIT_KEYS.every(k => Number((s.split || {})[k]) === def.split[k]);
+    Number(s.groupSize) === def.groupSize && SPLIT_KEYS.every(k => Number((s.split || {})[k]) === def.split[k]) &&
+    !_clean(s.entryQualifications).length && !_clean(s.trainerQualifications).length && !(Number(s.trainersPerGroup) > 0);
   return settingsDefault && !Object.keys(d.byModule || {}).length;
 }
 /** Clear This Tab: curriculum data only — modules and LOs are untouched. */
@@ -1175,7 +1203,15 @@ export function getCurriculumModel(moduleId, opts = {}) {
     prerequisites: blank ? [] : _arr(rec.prerequisites)
       .map(id => mods.find(m => m.id === id)).filter(Boolean)
       .map(m => `${_moduleCode(m)} ${m.title || ''}`.trim()),
-    entrySkills: blank ? [] : _clean(rec.entrySkills),   // 3.100.1
+    // 3.100.1 / 3.100.2: entry skills (module) and the programme
+    // requirements are a CBC-type content — exported only when the user
+    // ticks "Include programme requirements" in the export dialog.
+    progReqs: !opts.progReqs ? null : {
+      entryQualifications: blank ? [] : _clean(s.entryQualifications),
+      entrySkills: blank ? [] : _clean(rec.entrySkills),
+      trainerQualifications: blank ? [] : _clean(s.trainerQualifications),
+      trainers: blank ? '' : _trainersRatio(),
+    },
     hours: blank ? null : hrs,
     pct: Object.fromEntries(SPLIT_KEYS.map(k => [k, Number(split[k]) || 0])),
     programme: prog ? `${prog}${lvl ? ` — ${curLabel('curLevelN', { n: lvl })}` : ''}` : '',
@@ -1219,6 +1255,8 @@ export function openCurExportDialog() {
     <p class="cur-modal-intro">${_esc(_tx('dlgIntro'))}</p>
     <label class="cur-check cur-blank-opt"><input type="checkbox" id="curBlankOpt" ${_blankPref ? 'checked' : ''}>
       <span><strong>${_esc(_tx('dlgBlank'))}</strong><br><small>${_esc(_tx('dlgBlankHint'))}</small></span></label>
+    <label class="cur-check cur-blank-opt"><input type="checkbox" id="curProgReqsOpt" ${_settings().exportProgReqs ? 'checked' : ''}>
+      <span><strong>${_esc(_tx('dlgProgReqs'))}</strong><br><small>${_esc(_tx('dlgProgReqsHint'))}</small></span></label>
     <div class="cur-exp-list">${ordered.map(m => {
       const i = mods.indexOf(m), p = moduleCompleteness(m);
       return `<div class="cur-exp-row ${m === cur ? 'is-current' : ''}">
@@ -1228,11 +1266,15 @@ export function openCurExportDialog() {
       </div>`; }).join('')}</div>`,
     [{ label: _tx('curClose'), cls: 'cur-btn-ghost', close: true }], { wide: true });
   ov.querySelector('#curBlankOpt').addEventListener('change', e => { _blankPref = e.target.checked; });
+  ov.querySelector('#curProgReqsOpt').addEventListener('change', e => {
+    _settings().exportProgReqs = !!e.target.checked;
+    _schedulePersist();
+  });
   ov.addEventListener('click', async e => {
     const b = e.target.closest('[data-cur-dl]');
     if (!b || b.disabled) return;
     b.disabled = true;
-    const ok = await exportModuleCurriculumWord(b.getAttribute('data-cur-dl'), { blank: _blankPref });
+    const ok = await exportModuleCurriculumWord(b.getAttribute('data-cur-dl'), { blank: _blankPref, progReqs: !!_settings().exportProgReqs });
     b.disabled = false;
     if (ok) { b.classList.add('is-done'); b.textContent = '✓ ' + _tx('dlgDone'); }
   });
@@ -1436,7 +1478,7 @@ function _wire() {
       const i = mods.indexOf(module) + (a === 'next-module' ? 1 : -1);
       if (mods[i]) { _selId = mods[i].id; renderModuleCurriculum(); document.querySelector('#curRoot .cur-module-select')?.focus(); }
     } else if (a === 'export-this') {
-      exportModuleCurriculumWord(module.id, { blank: false });
+      exportModuleCurriculumWord(module.id, { blank: false, progReqs: !!_settings().exportProgReqs });
     } else if (a === 'suggest-code') {
       assignModuleCode(module, '');
       renderModuleCurriculum(); _schedulePersist();
