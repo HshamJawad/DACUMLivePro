@@ -34,6 +34,9 @@ let _idx = 0;
 let _dir = 1;            // +1 forward, -1 back — drives the slide direction
 let _keyHandler = null;
 let _lastFocus = null;
+/* ✕ on the chip hides it for this run only (memory, not storage): every
+   new launch or reload shows it again, so the Helper is never lost. */
+let _chipDismissed = false;
 
 // ── Status helpers ───────────────────────────────────────────
 const _val = (id) => {
@@ -560,6 +563,7 @@ export function closeHelperWizard({ restoreFocus = true } = {}) {
   if (ov) ov.remove();
   if (_keyHandler) { document.removeEventListener('keydown', _keyHandler, true); _keyHandler = null; }
   if (restoreFocus && _lastFocus && _lastFocus.focus) { try { _lastFocus.focus(); } catch (_) {} }
+  _showChip();
 }
 
 function _onKey(e) {
@@ -595,7 +599,7 @@ function _onClick(e) {
     const btn = document.getElementById(t.getAttribute('data-hw-click'));
     closeHelperWizard({ restoreFocus: false });
     if (btn) btn.click();
-    _showChip();
+    _showChip(true);
   }
 }
 
@@ -633,7 +637,7 @@ function _goToTab(step) {
     }
   }, 120);
 
-  _showChip();
+  _showChip(true);
 }
 
 function _spot(el, cls) {
@@ -644,20 +648,32 @@ function _spot(el, cls) {
 }
 
 // ── Resume chip ──────────────────────────────────────────────
-function _showChip() {
+function _storedIdx() {
+  try {
+    const v = localStorage.getItem(_storeKey());
+    if (v !== null && !isNaN(+v)) return Math.min(Math.max(0, +v), TOTAL - 1);
+  } catch (_) {}
+  return null;
+}
+
+function _showChip(force) {
+  if (force) _chipDismissed = false;
+  if (_chipDismissed || document.getElementById(OVERLAY_ID)) return;
   _injectCSS();
   _hideChip();
+  const stored = _storedIdx();
+  const label = stored === null ? _t('hwChipLabel') : _tf('hwResume', { n: stored + 1 });
   const chip = document.createElement('div');
   chip.id = CHIP_ID;
   chip.setAttribute('dir', _rtl() ? 'rtl' : 'ltr');
   chip.innerHTML = `
     <button type="button" class="hw-chip-main" data-hw-resume title="${_esc(_t('hwResumeTip'))}">
-      <span class="hw-chip-pulse" aria-hidden="true"></span>🧭 ${_esc(_tf('hwResume', { n: _idx + 1 }))}
+      <span class="hw-chip-pulse" aria-hidden="true"></span>🧭 ${_esc(label)}
     </button>
     <button type="button" class="hw-chip-x" data-hw-chip-x title="${_esc(_t('hwClose'))}" aria-label="${_esc(_t('hwClose'))}"><svg width="11" height="11" viewBox="0 0 14 14" aria-hidden="true" focusable="false" style="display:block"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>`;
   chip.addEventListener('click', (e) => {
-    if (e.target.closest('[data-hw-chip-x]')) { _hideChip(); return; }
-    if (e.target.closest('[data-hw-resume]')) openHelperWizard(_idx);
+    if (e.target.closest('[data-hw-chip-x]')) { _chipDismissed = true; _hideChip(); return; }
+    if (e.target.closest('[data-hw-resume]')) openHelperWizard();
   });
   document.body.appendChild(chip);
 }
@@ -678,10 +694,13 @@ export function initHelperWizard() {
   // Re-draw in the new language if it changes while the Helper is open.
   window.addEventListener('dacum:langchange', () => {
     if (document.getElementById(OVERLAY_ID)) _render(false);
-    const chip = document.getElementById(CHIP_ID);
-    if (chip) _showChip();
+    if (document.getElementById(CHIP_ID)) _showChip();
   });
-  // A different project → the chip's step number no longer applies.
-  window.addEventListener('dacum:project-loaded', _hideChip);
+  // A different project → refresh the chip's step number for that project.
+  document.addEventListener('dacum:project-loaded', () => {
+    if (document.getElementById(CHIP_ID)) _showChip();
+  });
+  // Every launch / reload: show the chip once the app has finished booting.
+  document.addEventListener('dacum:app-ready', () => setTimeout(() => _showChip(), 400), { once: true });
   window.openHelperWizard = openHelperWizard;
 }

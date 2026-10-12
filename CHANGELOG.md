@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.99.3 — 2026-10-12 — Helper chip on every launch
+PATCH. helper_wizard.js, translations.js, index.html, sw.js (v229).
+Fixed   The floating Helper chip appeared only after "Go to this tab", so
+        once closed it never came back. It now shows on every launch and
+        reload ("Helper", or "Helper · Step n" once a step was viewed in
+        this project), returns when the Helper is closed, and ✕ hides it
+        for the current run only. It follows project switches (step of
+        the loaded project) and language changes.
+
 ── 3.99.2 — 2026-10-12 — Helper: close button centred
 PATCH. helper_wizard.js, index.html, sw.js (v228).
 Fixed   Helper: the ✕ in the close button sat off-centre (glyph side
