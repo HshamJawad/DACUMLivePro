@@ -7,6 +7,31 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.100.0 — 2026-10-12 — Task Analysis: decisions table; Basic Skills (SCID A-6)
+MINOR. task_analysis.js, task_analysis_ai.js, events.js, helper_wizard.js,
+exports_pdf_sections.js, exports_docx_sections.js, dacum-components.css,
+translations.js, index.html, sw.js (v233),
+tests/specs/decisions-basic-skills.spec.js (new).
+Changed Task Analysis → "Decisions, Cues & Consequences" (was "Decisions /
+        Critical Points"): one card per decision — the decision, the cue
+        it is based on, the consequence of a wrong decision (Norton's
+        task-analysis form) and an optional "How an expert handles it"
+        column (cognitive task analysis). Stored as decisionTable;
+        decisionsCriticalPoints stays in step as the plain list, so older
+        projects open with their decisions as rows and every reader of
+        the list still works. AI returns "decision || cue || consequence"
+        and fills all three columns; "Restore previous" brings the old
+        rows back. Word export: a real colour-coded table; PDF: one line
+        per decision with its cue and consequence.
+Added   Task Analysis → "Basic Skills" card after Worker Behaviours:
+        Reading, Writing, Mathematics, Applied science — the academic
+        demands of THIS task (SCID component A-6, literacy task
+        analysis). Four ordinary lists: AI, clear, Word/PDF export and the
+        Module Builder handoff carry them. Its "?" sets Basic Skills and
+        the Skills Level Matrix (Additional Info) side by side — what
+        each covers, scope, purpose, example — so each thing is recorded
+        once. Also shown in the Helper's Task Analysis step.
+
 ── 3.99.6 — 2026-10-12 — Dashboard exported as a real Excel workbook
 MINOR. dashboard_xlsx.js (new), vendor/exceljs-4.4.0/ (new: exceljs.min.js
 + LICENSE, identical to npm exceljs@4.4.0, SHA-256 7e49da68…42c9),

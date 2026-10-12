@@ -715,11 +715,23 @@ export function _pdfTaskAnalysis({ margin, pageHeight, pageWidth, pdf, yPos }) {
                     _writeList('taLblKnowledge',  r.requiredKnowledge);
                     _writeList('taLblSkills',     r.requiredSkills);
                     _writeList('taLblBehaviours', r.workerBehaviours);   // 3.92.0
+                    _writeList('taLblBasicReading', r.basicReading);   // 3.100.0
+                    _writeList('taLblBasicWriting', r.basicWriting);
+                    _writeList('taLblBasicMath',    r.basicMath);
+                    _writeList('taLblBasicScience', r.basicScience);
                     _writeList('taLblCriteria',   r.performanceCriteria);
                     _writeText('taLblStandard',   r.performanceStandard);
                     _writeList('taLblTools',      r.toolsEquipmentMaterials);
                     _writeList('taLblSafety',     r.safetyOSH);
-                    _writeList('taLblDecisions',  r.decisionsCriticalPoints);
+                    /* 3.100.0: each decision with its cue, consequence and,
+                       when given, the expert's way of handling it. */
+                    const _decLines = (r.decisionTable && r.decisionTable.length)
+                        ? r.decisionTable.map(d => [d.decision,
+                            d.cue    ? `${_t('taDecColCue')}: ${d.cue}`       : '',
+                            d.error  ? `${_t('taDecColError')}: ${d.error}`   : '',
+                            d.expert ? `${_t('taDecColExpert')}: ${d.expert}` : ''].filter(Boolean).join(' — '))
+                        : r.decisionsCriticalPoints;
+                    _writeList('taLblDecisions',  _decLines);
                     _writeText('taLblConditions', r.conditionsWorkEnvironment);
                     _writeList('taLblErrors',     r.commonErrorsTroubleshooting);
                     (r.customSections || []).forEach(sec => _writeList('=' + sec.title, sec.items));

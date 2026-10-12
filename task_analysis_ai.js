@@ -41,11 +41,18 @@ const GUIDE = {
   performanceSteps:            { max: 12, rule: '5–12 sequential, observable steps in the order the worker performs them; each starts with one action verb.' },
   requiredKnowledge:           { max: 8,  rule: '3–8 items of underpinning knowledge THIS task needs (concepts, principles, specifications to know).' },
   requiredSkills:              { max: 8,  rule: '3–8 practical or cognitive skills THIS task needs.' },
+  /* 3.100.0 — SCID A-6: the academic demands of THIS task only. */
+  basicReading:                { max: 4,  rule: '0–4 reading demands of THIS task: the documents, diagrams, labels or manuals the worker must read and understand. Empty array if none.' },
+  basicWriting:                { max: 4,  rule: '0–4 writing demands of THIS task: forms, logs, reports or records the worker must write. Empty array if none.' },
+  basicMath:                   { max: 4,  rule: '0–4 calculations, measurements or numerical judgements THIS task requires. Empty array if none.' },
+  basicScience:                { max: 4,  rule: '0–4 applied science principles the worker must understand to perform THIS task (physics, chemistry, biology). Empty array if none.' },
   workerBehaviours:            { max: 5,  rule: '2–5 worker behaviours or attitudes that matter for THIS task specifically (e.g. precision, patience with the customer, care with hazardous materials) — not generic traits that fit every task.' },
   toolsEquipmentMaterials:     { max: 10, rule: '3–10 tools, equipment, instruments, materials or consumables actually used in THIS task.' },
   safetyOSH:                   { max: 6,  rule: '2–6 task-specific hazards and precautions (including PPE only where it genuinely applies).' },
   conditionsWorkEnvironment:   { text: true, rule: '1–3 sentences: where and under what conditions the task is performed (setting, given resources, constraints).' },
-  decisionsCriticalPoints:     { max: 5,  rule: '2–5 decision points or critical checkpoints where the worker must judge or verify before continuing.' },
+  /* 3.100.0: one string per decision, three parts joined by " || " —
+     task_analysis.js splits them into the decisions table. */
+  decisionsCriticalPoints:     { max: 5,  rule: '2–5 decisions the worker must make in THIS task. Each item is ONE string in exactly this form: "decision || cue or information the worker relies on to decide || what happens if the decision is wrong". Keep each part short.' },
   performanceCriteria:         { max: 6,  rule: '3–6 observable, assessable criteria describing correct performance of THIS task (e.g. "Joint is aligned within tolerance").' },
   performanceStandard:         { text: true, rule: '1–2 sentences stating the acceptable level of performance (accuracy, quality, time, compliance). Refer to standards only generically (e.g. "manufacturer specifications", "applicable local regulations").' },
   commonErrorsTroubleshooting: { max: 6,  rule: '2–6 common errors or faults with their likely cause or remedy.' },

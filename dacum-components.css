@@ -2332,3 +2332,146 @@ html[data-content-mixed] .container input[type="text"] {
 @media (max-width: 480px) {
   .tv-standalone-btn { font-size: 0.76em !important; gap: 4px !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   3.100.0 — Task Analysis: decisions table and basic skills card
+   ══════════════════════════════════════════════════════════════ */
+.ta-dec-hint, .ta-basic-hint {
+  margin: -4px 0 14px;
+  font-size: 0.86em;
+  color: #64748b;
+  line-height: 1.6;
+}
+.ta-dec-table { display: flex; flex-direction: column; gap: 10px; }
+/* Each decision is a small card: the decision across the top, cue and
+   consequence side by side beneath it, the expert strategy (optional)
+   last. The Task Analysis form sits beside the task navigator, so a
+   four-column table would be too narrow to type in. */
+.ta-dec-head { display: none !important; }
+.ta-dec-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 34px;
+  grid-template-areas:
+    "n n del"
+    "decision decision del"
+    "cue error del"
+    "expert expert del";
+  column-gap: 10px;
+  row-gap: 8px;
+  align-items: start;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px 12px;
+}
+.ta-dec-n {
+  grid-area: n;
+  font-size: 0.78em;
+  font-weight: 800;
+  color: #94a3b8;
+}
+.ta-dec-cell-decision { grid-area: decision; }
+.ta-dec-cell-cue      { grid-area: cue; }
+.ta-dec-cell-error    { grid-area: error; }
+.ta-dec-cell-expert   { grid-area: expert; }
+.ta-dec-del { grid-area: del; align-self: start; }
+.ta-dec-h { display: none; }
+.ta-dec-cell { display: block; margin: 0; }
+.ta-dec-cell-lbl {
+  display: inline-block;
+  font-size: 0.76em;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+.ta-dec-cell-decision .ta-dec-cell-lbl { background: #eeedfe; color: #3c3489; }
+.ta-dec-cell-cue      .ta-dec-cell-lbl { background: #e1f5ee; color: #085041; }
+.ta-dec-cell-error    .ta-dec-cell-lbl { background: #faece7; color: #712b13; }
+.ta-dec-cell-expert   .ta-dec-cell-lbl { background: #fef9c3; color: #713f12; }
+.section-container .ta-dec-cell textarea,
+.section-container .ta-basic-cell textarea {
+  width: 100%;
+  min-height: 58px;
+  height: auto;
+  box-sizing: border-box;
+  font-size: 0.9em;
+  line-height: 1.5;
+  padding: 8px 10px;
+  resize: vertical;
+  margin: 0;
+}
+.ta-dec-del {
+  width: 34px;
+  height: 34px;
+  min-height: 34px;
+  max-height: 34px;
+  min-width: 34px;
+  padding: 0;
+  margin-top: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.95em;
+  opacity: 0.55;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+}
+.ta-dec-del:hover { opacity: 1; background: #fef2f2; border-color: #fecaca; }
+.ta-dec-add { margin-top: 12px; }
+.ta-dec-expert-btn {
+  width: auto !important;
+  padding: 0 12px !important;
+  font-size: 0.82em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ta-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.ta-basic-cell {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px 12px;
+}
+.ta-basic-cell-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ta-basic-cell-t { font-size: 0.9em; font-weight: 700; color: #334155; }
+.ta-basic-clear {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  max-height: 28px;
+  min-width: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85em;
+  opacity: 0.5;
+}
+.ta-basic-clear:hover { opacity: 1; background: #fef2f2; }
+.ta-basic-section .tab-title-with-help h3 { margin: 0; }
+
+@media (max-width: 760px) {
+  .ta-dec-row {
+    grid-template-columns: minmax(0, 1fr) 34px;
+    grid-template-areas:
+      "n del"
+      "decision decision"
+      "cue cue"
+      "error error"
+      "expert expert";
+  }
+  .ta-basic-grid { grid-template-columns: minmax(0, 1fr); }
+}

@@ -848,7 +848,15 @@ const _HELP_GUIDES = {
   os:            () => _showOccupationalStandardHelp(),
   lo:            () => _showLearningOutcomesHelp(),
   mm:            () => _showModuleMappingHelp(),
+  basicSkills:   () => _showBasicSkillsHelp(),   // 3.100.0
 };
+
+/** Open one of the guides above by name (used by tabs whose "?" button
+ *  is rendered by another module, e.g. Task Analysis → Basic Skills). */
+export function openHelpGuide(name) {
+  const fn = _HELP_GUIDES[name];
+  if (fn) fn();
+}
 
 /** Content of one or more tab guides as { icon, title, html } objects,
  *  without opening anything. Unknown names are skipped. */
@@ -1225,6 +1233,51 @@ function _showDutiesHelp() {
     maxWidth: '560px',
     bodyHtml,
     note: _t('helpDutiesNote'),
+  });
+}
+
+// 3.100.0 — Basic Skills (Task Analysis) vs the Skills Level Matrix
+// (Additional Info). The two names sound alike; the guide sets them
+// side by side so the facilitator records each thing once, in the right
+// place. Basic skills follow SCID component A-6, "literacy task
+// analysis" (Norton, 1993).
+function _showBasicSkillsHelp() {
+  const TH = 'padding:8px 10px;font-size:0.8em;font-weight:800;text-align:start;border-bottom:2px solid #c7d2fe;';
+  const TD = 'padding:8px 10px;font-size:0.84em;line-height:1.55;color:#334155;vertical-align:top;border-bottom:1px solid #eef2f7;';
+  const TDK = TD + 'font-weight:700;color:#1e293b;white-space:nowrap;';
+  const row = (k) =>
+    '<tr><td style="' + TDK + '">' + _t('helpBasicCmp' + k) + '</td>' +
+    '<td style="' + TD + '">' + _t('helpBasicCmp' + k + 'M') + '</td>' +
+    '<td style="' + TD + 'background:#f5f3ff;">' + _t('helpBasicCmp' + k + 'B') + '</td></tr>';
+
+  const bodyHtml =
+    '<p style="margin:14px 0 8px;font-size:0.88em;font-weight:700;color:#1e293b;">' + _t('helpBasicCmpLead') + '</p>' +
+    '<div style="overflow-x:auto;margin:0 0 14px;border:1px solid #e2e8f0;border-radius:10px;">' +
+      '<table style="width:100%;border-collapse:collapse;min-width:440px;">' +
+        '<thead><tr>' +
+          '<th style="' + TH + 'color:#64748b;"></th>' +
+          '<th style="' + TH + 'color:#0f766e;">📊 ' + _t('helpBasicCmpHeadM') + '</th>' +
+          '<th style="' + TH + 'color:#4338ca;background:#f5f3ff;">🧩 ' + _t('helpBasicCmpHeadB') + '</th>' +
+        '</tr></thead>' +
+        '<tbody>' + ['What', 'Scope', 'Purpose', 'Example'].map(row).join('') + '</tbody>' +
+      '</table>' +
+    '</div>' +
+    '<p style="margin:0 0 4px;font-size:0.78em;color:#94a3b8;line-height:1.6;">' + _t('helpBasicSource') + '</p>';
+
+  _showHelpModal({
+    id:       'basicSkillsHelpModal',
+    icon:     '\u{1F9E9}',
+    title:    _t('helpBasicTitle'),
+    maxWidth: '620px',
+    intro:    _t('helpBasicIntro'),
+    items: [
+      ['\u{1F4D6}', _t('taBasicReading'), _t('helpBasicV1')],
+      ['\u270D\uFE0F', _t('taBasicWriting'), _t('helpBasicV2')],
+      ['\u{1F522}', _t('taBasicMath'),    _t('helpBasicV3')],
+      ['\u{1F52C}', _t('taBasicScience'), _t('helpBasicV4')],
+    ],
+    bodyHtml,
+    note: _t('helpBasicNote'),
   });
 }
 
