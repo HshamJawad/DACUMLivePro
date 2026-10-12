@@ -55,6 +55,7 @@ for (const lang of ['en', 'fr', 'ar']) {
     expect(h.text).toContain(e.os);
     h = await readHelp(page, 'duties-tab', '#dutiesHelpBtn', 'dutiesHelpModal');
     expect(h.text).toContain(e.task);
+    expect(h.text).not.toMatch(/Norton|نورتون|Handbook/);  // source mentions removed (3.100.3)
     h = await readHelp(page, 'clustering-tab', '#clusterNamingHelpBtn', 'clusterNamingHelpModal');
     expect(h.text).toContain(e.naming);
     h = await readHelp(page, 'clustering-tab', '[data-action="show-pc-range-help"]', 'pcRangeHelpModal');
@@ -93,7 +94,8 @@ test('AI clustering prompt: usual 4–12, one-task exception, behaviours, verifi
   await page.evaluate(async () => { await (await import('./clustering_ai.js')).suggestClustersAI().catch(() => {}); });
   await expect.poll(() => prompt.length).toBeGreaterThan(0);
   expect(prompt).toContain('normally contains between 4 and 12');
-  expect(prompt).toContain('EXCEPTION (Norton)');
+  expect(prompt).toContain('EXCEPTION:');
+  expect(prompt).not.toContain('Norton');
   expect(prompt).toContain('skills and worker behaviours');
   expect(prompt).toContain('verified: importance 3/3, difficulty 3/3');
   expect(errors).toEqual([]);
