@@ -2,7 +2,7 @@
 
 Copied unmodified from the official npm registry packages. Each npm
 tarball's sha512 was checked against the registry's published
-`dist.integrity` before extraction. All three are MIT licensed; each
+`dist.integrity` before extraction. All are MIT licensed; each
 folder keeps the package's LICENSE file (docx also ships its bundled
 third-party notices in `index.js.LICENSE.txt`).
 
@@ -14,6 +14,8 @@ third-party notices in `index.js.LICENSE.txt`).
 |  | replaces `https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js` | | |
 | `vendor/sortablejs-1.15.3/Sortable.min.js` | sortablejs@1.15.3 → Sortable.min.js | 43 KB | `72aa2c4f9f7cb2b8b3268052d6d2daa9d952f209b7fc5cc247ff9e1153db1f16` |
 |  | replaces `https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js` | | |
+| `vendor/exceljs-4.4.0/exceljs.min.js` | exceljs@4.4.0 → dist/exceljs.min.js | 926 KB | `7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9` |
+|  | loaded on demand by `dashboard_xlsx.js` (Task Verification → Export Dashboard as Excel); precached for offline use | | |
 
 To upgrade a library: `npm pack <name>@<version>`, copy the same file
 into a new versioned folder, update the `<script src>` in index.html and

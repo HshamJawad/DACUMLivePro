@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.99.6 — 2026-10-12 — Dashboard exported as a real Excel workbook
+MINOR. dashboard_xlsx.js (new), vendor/exceljs-4.4.0/ (new: exceljs.min.js
++ LICENSE, identical to npm exceljs@4.4.0, SHA-256 7e49da68…42c9),
+vendor/README.md, tasks.js, translations.js, index.html, sw.js (v232).
+Changed Task Verification → "Export Dashboard as Excel" (was CSV) builds a
+        real .xlsx with two sheets: Task Priorities (ranked, duty/task
+        codes, means, Priority Index) and Duty Summary (the duty-level
+        table with the same sort and training-load method as on screen).
+        Title and occupation/date/method lines, styled frozen header,
+        filters, numbers kept as numbers (0.00), right-to-left sheets in
+        Arabic, headers in the interface language. ExcelJS loads on
+        first use (precached for offline). If it cannot load, the old
+        CSV is produced instead (now UTF-8 with BOM, so Arabic opens
+        correctly in Excel) with a message saying so.
+Changed tasks.js: the duty-level figures are computed once
+        (_computeDutyResults) for both the table and the export.
+
 ── 3.99.5 — 2026-10-12 — Verification report buttons; Helper chip
 PATCH. index.html, dacum-components.css, helper_wizard.js, sw.js (v231).
 Fixed   Task Verification → Verification Report: "Standalone PDF" and

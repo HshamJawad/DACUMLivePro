@@ -878,10 +878,11 @@ export function toggleDutyLevelSummary() {
   else { content.style.display = 'none'; toggle.textContent = '▶'; }
 }
 
-function updateDutyLevelSummaryFromSource(resultsSource) {
-  if (!resultsSource) resultsSource = appState.workshopResults;
-  const tableBody = document.getElementById('dutyLevelTableBody');
-  if (!tableBody) return;
+/* 3.99.6: the duty-level figures are computed here and shared by the
+   on-screen table and the Excel export, so the file always matches
+   what the dashboard shows. */
+function _computeDutyResults(resultsSource) {
+  if (!resultsSource) resultsSource = appState.workshopResults || {};
 
   // Build a code index from whichever context matches the source:
   //   – live workshopResults → live appState.dutiesData
@@ -939,6 +940,14 @@ function updateDutyLevelSummaryFromSource(resultsSource) {
   // Sort: if sortBy is 'code' (letter order), use dutyCode; else priority/trainingLoad as before
   const sortBy = document.getElementById('dutySortSelector')?.value || 'priority';
   dutyResults.sort((a,b) => sortBy === 'trainingLoad' ? b.trainingLoad - a.trainingLoad : b.avgPriority - a.avgPriority);
+  return dutyResults;
+}
+
+function updateDutyLevelSummaryFromSource(resultsSource) {
+  if (!resultsSource) resultsSource = appState.workshopResults;
+  const tableBody = document.getElementById('dutyLevelTableBody');
+  if (!tableBody) return;
+  const dutyResults = _computeDutyResults(resultsSource);
 
   if (dutyResults.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:#999;">${_t('msgNoDutyData')}</td></tr>`;
@@ -978,21 +987,42 @@ export function exportDashboard() {
     }
   });
   validResults.sort((a,b) => b.priorityIndex - a.priorityIndex);
+
+  const occ  = (document.getElementById('occupationTitle') || {}).value || 'DACUM';
+  const base = `${occ.replace(/[^a-z0-9\u0600-\u06FF]+/gi,'_').replace(/^_+|_+$/g,'') || 'DACUM'}_Workshop_Results_${new Date().toISOString().split('T')[0]}`;
+
+  /* 3.99.6: a real Excel workbook (ExcelJS, loaded on first use). If the
+     library cannot be loaded, fall back to the CSV this button used to
+     produce, so the facilitator still leaves with the data. */
+  import('./dashboard_xlsx.js')
+    .then(m => m.exportDashboardXlsx({
+      taskRows: validResults,
+      dutyRows: _computeDutyResults(appState.workshopResults),
+      occupation: occ,
+      fileBase: base,
+    }))
+    .then(() => showStatus(_t('msgDashboardExported') + ' ✓', 'success'))
+    .catch(err => {
+      console.warn('[dashboard] Excel export failed, falling back to CSV:', err);
+      _exportDashboardCSV(validResults, base);
+      showStatus(_t('msgDashboardExcelFallback'), 'error');
+    });
+}
+
+function _exportDashboardCSV(validResults, base) {
   let csv = 'Rank,Duty Code,Duty,Task Code,Task,Mean Importance,Mean Frequency,Mean Difficulty,Priority Index\n';
   validResults.forEach((r,i) => {
     csv += `${i+1},"${r.dutyCode}","${r.duty.replace(/"/g,'""')}","${r.taskCode}","${r.task.replace(/"/g,'""')}",${r.meanImportance.toFixed(2)},${r.meanFrequency.toFixed(2)},${r.meanDifficulty.toFixed(2)},${r.priorityIndex.toFixed(2)}\n`;
   });
-  const blob = new Blob([csv], { type: 'text/csv' });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href  = url;
-  const occ  = document.getElementById('occupationTitle').value || 'DACUM';
-  link.download = `${occ.replace(/[^a-z0-9]/gi,'_')}_Workshop_Results_${new Date().toISOString().split('T')[0]}.csv`;
+  link.download = base + '.csv';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-  showStatus(_t('msgDashboardExported') + ' ✓', 'success');
 }
 
 // ── Accordion Listeners ───────────────────────────────────────
