@@ -7,6 +7,13 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.99.2 — 2026-10-12 — Helper: close button centred
+PATCH. helper_wizard.js, index.html, sw.js (v228).
+Fixed   Helper: the ✕ in the close button sat off-centre (glyph side
+        bearings plus the RTL button spacing). It is now an SVG centred by
+        flex in a fixed 34 × 34 box — 0 px off-centre in EN and AR. Same
+        for the ✕ on the "Helper · Step n" chip.
+
 ── 3.99.1 — 2026-10-12 — Helper: round step circles
 PATCH. helper_wizard.js, index.html, sw.js (v227).
 Fixed   Helper stepper: the step circles were drawn as ovals — the global

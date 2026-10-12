@@ -237,6 +237,12 @@ function _injectCSS() {
 .hw-sub{margin:2px 0 0;font-size:.8em;color:#c7d2fe;line-height:1.45}
 .hw-x{min-height:34px!important;max-height:34px;min-width:34px!important;max-width:34px;padding:0!important;margin-inline-start:auto;background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;
   border-radius:10px;font-size:1.05em;cursor:pointer;flex-shrink:0;transition:background .15s}
+/* Close buttons: the icon is an SVG centred by flex — the ✕ glyph's own
+   side bearings, plus the app's RTL button spacing, pushed it off-centre. */
+#${OVERLAY_ID} .hw-x,#${CHIP_ID} .hw-chip-x{display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  padding:0!important;gap:0!important;line-height:1!important;text-indent:0!important;letter-spacing:0!important;box-sizing:border-box!important}
+#${OVERLAY_ID} .hw-x{width:34px!important;height:34px!important;flex:0 0 34px}
+#${OVERLAY_ID} .hw-x svg,#${CHIP_ID} .hw-chip-x svg{margin:0!important;flex:none}
 .hw-x:hover{background:rgba(255,255,255,.25)}
 .hw-prog{display:flex;align-items:center;gap:10px;margin-top:12px}
 .hw-bar{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
@@ -406,7 +412,7 @@ function _renderHeader(statuses) {
         <p class="hw-title" id="hwTitle">${_esc(_t('hwTitle'))}</p>
         <p class="hw-sub">${_esc(_t('hwSubtitle'))}</p>
       </div>
-      <button type="button" class="hw-x" data-hw-close title="${_esc(_t('hwClose'))}" aria-label="${_esc(_t('hwClose'))}">✕</button>
+      <button type="button" class="hw-x" data-hw-close title="${_esc(_t('hwClose'))}" aria-label="${_esc(_t('hwClose'))}"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" focusable="false" style="display:block"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
     </div>
     <div class="hw-prog">
       <div class="hw-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
@@ -648,7 +654,7 @@ function _showChip() {
     <button type="button" class="hw-chip-main" data-hw-resume title="${_esc(_t('hwResumeTip'))}">
       <span class="hw-chip-pulse" aria-hidden="true"></span>🧭 ${_esc(_tf('hwResume', { n: _idx + 1 }))}
     </button>
-    <button type="button" class="hw-chip-x" data-hw-chip-x title="${_esc(_t('hwClose'))}" aria-label="${_esc(_t('hwClose'))}">✕</button>`;
+    <button type="button" class="hw-chip-x" data-hw-chip-x title="${_esc(_t('hwClose'))}" aria-label="${_esc(_t('hwClose'))}"><svg width="11" height="11" viewBox="0 0 14 14" aria-hidden="true" focusable="false" style="display:block"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>`;
   chip.addEventListener('click', (e) => {
     if (e.target.closest('[data-hw-chip-x]')) { _hideChip(); return; }
     if (e.target.closest('[data-hw-resume]')) openHelperWizard(_idx);
