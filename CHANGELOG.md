@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.99.1 — 2026-10-12 — Helper: round step circles
+PATCH. helper_wizard.js, index.html, sw.js (v227).
+Fixed   Helper stepper: the step circles were drawn as ovals — the global
+        `button { min-height: 44px }` rule stretched them vertically. They
+        now have a fixed 30 × 30 box; the close buttons likewise.
+
 ── 3.99.0 — 2026-10-12 — Helper: guided step-by-step wizard
 MINOR. helper_wizard.js (new), events.js, module_curriculum.js, app.js,
 translations.js, index.html, sw.js (v226).

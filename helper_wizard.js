@@ -235,7 +235,7 @@ function _injectCSS() {
   justify-content:center;font-size:1.45em;flex-shrink:0}
 .hw-title{margin:0;font-size:1.08em;font-weight:800;line-height:1.3}
 .hw-sub{margin:2px 0 0;font-size:.8em;color:#c7d2fe;line-height:1.45}
-.hw-x{margin-inline-start:auto;background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;
+.hw-x{min-height:34px!important;max-height:34px;min-width:34px!important;max-width:34px;padding:0!important;margin-inline-start:auto;background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;
   border-radius:10px;font-size:1.05em;cursor:pointer;flex-shrink:0;transition:background .15s}
 .hw-x:hover{background:rgba(255,255,255,.25)}
 .hw-prog{display:flex;align-items:center;gap:10px;margin-top:12px}
@@ -246,6 +246,11 @@ function _injectCSS() {
 .hw-steps{display:flex;gap:0;overflow-x:auto;padding:12px 4px 4px;scrollbar-width:thin;scroll-behavior:smooth}
 .hw-dot-wrap{display:flex;align-items:center;flex:1 0 auto}
 .hw-dot-wrap:last-child .hw-line{display:none}
+/* Fixed box on every side: dacum-responsive.css gives every <button>
+   min-height:44px, which stretched the 30px circles into ovals. */
+#${OVERLAY_ID} .hw-dot{width:30px!important;height:30px!important;min-width:30px!important;max-width:30px!important;
+  min-height:30px!important;max-height:30px!important;aspect-ratio:1/1;line-height:1;box-sizing:border-box!important;
+  padding:0!important;margin:0!important}
 .hw-dot{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:transparent;
   color:#e0e7ff;font-size:.74em;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;
   flex-shrink:0;transition:transform .15s,background .2s,border-color .2s;font-family:inherit;padding:0}
@@ -330,7 +335,7 @@ html[dir="rtl"] .hw-guide:not([open])>summary::after,#${OVERLAY_ID}[dir="rtl"] .
 #${CHIP_ID} button{background:none;border:none;color:#fff;cursor:pointer;font-family:inherit}
 #${CHIP_ID} .hw-chip-main{display:flex;align-items:center;gap:8px;padding:10px 6px 10px 16px;font-weight:800;font-size:.86em}
 #${CHIP_ID}[dir="rtl"] .hw-chip-main{padding:10px 16px 10px 6px}
-#${CHIP_ID} .hw-chip-x{width:30px;height:30px;margin-inline-end:6px;border-radius:50%;font-size:.85em;opacity:.8}
+#${CHIP_ID} .hw-chip-x{width:30px;height:30px;min-height:30px!important;max-height:30px;min-width:30px;padding:0!important;margin-inline-end:6px;border-radius:50%;font-size:.85em;opacity:.8}
 #${CHIP_ID} .hw-chip-x:hover{background:rgba(255,255,255,.18);opacity:1}
 #${CHIP_ID} .hw-chip-pulse{width:9px;height:9px;border-radius:50%;background:#34d399;box-shadow:0 0 0 0 rgba(52,211,153,.7);
   animation:hwPulse 1.8s infinite}
