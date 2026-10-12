@@ -22,6 +22,7 @@ import { getCurriculumGuide,
 import { hasTaskSelection }       from './task_selection.js';
 import { countTaskAnalysisRecords } from './task_analysis.js';
 import { revealAICardFor }       from './ai_card_toggle.js';
+import { getPref }               from './ui_prefs.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k) : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -38,6 +39,10 @@ let _lastFocus = null;
 /* ✕ on the chip hides it for this run only (memory, not storage): every
    new launch or reload shows it again, so the Helper is never lost. */
 let _chipDismissed = false;
+/* 3.103.0: Settings → Misc "Helper button" (ui_prefs.js). In 'hidden'
+   mode the chip stays away until the Helper is opened by hand in this
+   run; in 'always' mode a ✕ lasts only until the next tab or project. */
+let _chipUnlocked = false;
 
 // ── Status helpers ───────────────────────────────────────────
 const _val = (id) => {
@@ -525,6 +530,7 @@ function _go(i) {
 
 // ── Open / close ─────────────────────────────────────────────
 export function openHelperWizard(startAt) {
+  _chipUnlocked = true;
   _injectCSS();
   _hideChip();
   const existing = document.getElementById(OVERLAY_ID);
@@ -666,6 +672,7 @@ function _storedIdx() {
 function _showChip(force) {
   if (force) _chipDismissed = false;
   if (_chipDismissed || document.getElementById(OVERLAY_ID)) return;
+  if (getPref('helperChip') === 'hidden' && !_chipUnlocked) { _hideChip(); return; }
   _injectCSS();
   _hideChip();
   const label = _chipLabel();
@@ -718,7 +725,14 @@ export function initHelperWizard() {
   });
   // A different project → refresh the chip's step number for that project.
   document.addEventListener('dacum:project-loaded', () => {
-    if (document.getElementById(CHIP_ID)) _showChip();
+    if (getPref('helperChip') === 'always') _chipDismissed = false;
+    if (document.getElementById(CHIP_ID) || getPref('helperChip') === 'always') _showChip();
+  });
+  window.addEventListener('dacum:ui-prefs-changed', (e) => {
+    if (!e.detail || e.detail.name !== 'helperChip') return;
+    if (e.detail.value === 'hidden') { _chipUnlocked = false; _hideChip(); return; }
+    _chipDismissed = false;
+    _showChip();
   });
   // The current tab decides the step: switching tabs (sidebar, Next/Back
   // buttons, "Go to this tab") moves the chip and the Helper with it.
@@ -734,6 +748,7 @@ export function initHelperWizard() {
       _idx = tabToStep[el.id];
       _saveIdx();
       _updateChipLabel();
+      if (_chipDismissed && getPref('helperChip') === 'always') _showChip(true);
     });
   });
   document.querySelectorAll('.tab-content').forEach(el =>

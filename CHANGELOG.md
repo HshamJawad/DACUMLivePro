@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.103.0 — 2026-10-13 — Settings → Misc: Helper button and AI cards
+MINOR. ui_prefs.js (new), settings_misc.js (new), export_settings.js,
+ai_card_toggle.js, helper_wizard.js, translations.js, dacum-components.css,
+index.html, sw.js (v241), tests/specs/ui-prefs.spec.js (new).
+Added   Settings → "Misc" tab (applies at once, kept on this device):
+        Helper button — Automatic (shown at each start, ✕ hides it until
+        the next start), Always shown (✕ hides it only until the next tab),
+        Always hidden (appears only after the Helper is opened from Help).
+        AI cards — Automatic (open while a tab is empty, folded once it has
+        content; a click is remembered per tab), Always open, Always
+        folded, Hidden (no ✨ AI button, cards folded).
+Changed In the fixed AI-card modes the ✨ AI button and the Helper still open
+        or fold a card, for the current session only; nothing is stored.
+        In Hidden mode a card opened by the Helper shows its button until
+        the next reload.
+Added   "Reset my per-tab choices" forgets the per-tab choices kept by
+        Automatic mode.
+
 ── 3.102.0 — 2026-10-13 — AI cards fold behind a "✨ AI" button
 MINOR. ai_card_toggle.js (new), index.html, dacum-components.css,
 translations.js, helper_wizard.js, app.js, sw.js (v240),

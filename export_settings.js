@@ -51,6 +51,7 @@
 //                        output rather than adding to it.
 // ============================================================
 
+import { renderMiscTab } from './settings_misc.js';
 import { getSavedCardColors, saveCardColors, cardSwatchRow, cardTokens,
          CARD_DEFAULT } from './card_colors.js';
 
@@ -318,6 +319,7 @@ function _render() {
       .catch(err => console.error('[settings] languages tab failed:', err));
     return;
   }
+  if (_tab === 'misc') { renderMiscTab(box); return; }   // 3.103.0
   const s = _draft || (_draft = _stored());
 
   box.innerHTML = `
@@ -434,6 +436,7 @@ function _ensureModal() {
       <div id="esTabs" role="tablist">
         <button type="button" role="tab" data-es-tab="export">🖨️ <span>${_t('setTabExport')}</span></button>
         <button type="button" role="tab" data-es-tab="languages">🌐 <span>${_t('setTabLanguages')}</span></button>
+        <button type="button" role="tab" data-es-tab="misc">🧰 <span>${_t('setTabMisc')}</span></button>
       </div>
       <div id="esModalBody"></div>
       <div id="esModalFoot">
@@ -502,7 +505,8 @@ function _ensureModal() {
     if (title) title.textContent = '⚙️ ' + _t('setTitle');
     m.querySelectorAll('[data-es-tab]').forEach(b => {
       const sp = b.querySelector('span');
-      if (sp) sp.textContent = _t(b.getAttribute('data-es-tab') === 'export' ? 'setTabExport' : 'setTabLanguages');
+      const k = { export: 'setTabExport', languages: 'setTabLanguages', misc: 'setTabMisc' }[b.getAttribute('data-es-tab')];
+      if (sp && k) sp.textContent = _t(k);
     });
     const reset = m.querySelector('#esModalReset');
     if (reset) reset.textContent = '↺ ' + _t('esReset');
@@ -521,7 +525,7 @@ function _ensureModal() {
 export function openExportSettings(opts) {
   const m = _ensureModal();
   _draft = _stored();
-  _tab = (opts && opts.tab === 'languages') ? 'languages' : 'export';
+  _tab = (opts && (opts.tab === 'languages' || opts.tab === 'misc')) ? opts.tab : 'export';
   const cc = opts && opts.cardColors;
   if (cc) _draft = { ..._draft, cardDuty: cc.duty || CARD_DEFAULT, cardTask: cc.task || CARD_DEFAULT };
   _render();

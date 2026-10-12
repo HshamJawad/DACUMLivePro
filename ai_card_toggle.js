@@ -13,11 +13,15 @@
 // • revealAICardFor(el) opens the card that holds `el` (used by the
 //   Helper's "Go to this tab" before it spotlights a button) without
 //   recording a choice.
+// • 3.103.0: Settings → Misc (ui_prefs.js) can fix the cards open or
+//   folded, or hide the button. In those modes a click (or the Helper)
+//   still works, for the current session only — nothing is stored.
 // Markup (button + .ai-card-collapse wrapper) lives in index.html;
 // styles in dacum-components.css.
 // ============================================================
 
 import { appState } from './state.js';
+import { getPref }  from './ui_prefs.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
 
@@ -51,6 +55,9 @@ const HAS_CONTENT = {
   'module-mapping-tab':    () => ((appState.moduleMappingData || {}).modules || []).length > 0,
 };
 const TABS = Object.keys(HAS_CONTENT);
+
+/* Session-only choices, used when Settings fixes the mode. */
+let _session = {};
 
 // ── Stored choices ───────────────────────────────────────────
 function _readStore() {
@@ -111,12 +118,35 @@ function _defaultOpen(tabId) {
   return !has;
 }
 
-/* Choice if the user made one, otherwise open-while-empty. */
+/* Auto: the stored choice if the user made one, otherwise
+   open-while-empty. Fixed modes: this session's click, otherwise the
+   mode. Hidden: no button (until the Helper opens a card), folded. */
 function _refresh(tabId, opts) {
   if (!HAS_CONTENT[tabId]) return;
-  const c = _readStore()[tabId];
-  const open = c === 'open' ? true : c === 'closed' ? false : _defaultOpen(tabId);
+  const mode = getPref('aiCards');
+  const btn = _btn(tabId);
+  let open;
+  if (mode === 'auto') {
+    const c = _readStore()[tabId];
+    open = c === 'open' ? true : c === 'closed' ? false : _defaultOpen(tabId);
+  } else {
+    const sc = _session[tabId];
+    open = typeof sc === 'boolean' ? sc : mode === 'open';
+  }
+  if (btn) btn.hidden = mode === 'hidden' && typeof _session[tabId] !== 'boolean';
   _apply(tabId, open, opts);
+}
+
+/** Forgets every remembered per-tab choice (Settings → Misc). */
+export function resetAICardChoices() {
+  try { localStorage.removeItem(STORE_KEY); } catch (_) {}
+  _session = {};
+  refreshAICards();
+}
+
+/** True when the user has a remembered choice for at least one tab. */
+export function hasAICardChoices() {
+  return Object.keys(_readStore()).length > 0;
 }
 
 export function refreshAICards(opts = { animate: false }) {
@@ -131,7 +161,9 @@ export function revealAICardFor(el) {
   if (!wrap || !wrap.classList.contains('is-collapsed')) return false;
   const btn = document.querySelector(`[aria-controls="${wrap.id}"]`);
   const tabId = btn && btn.getAttribute('data-ai-toggle');
-  return tabId ? _apply(tabId, true) : false;
+  if (!tabId) return false;
+  if (getPref('aiCards') !== 'auto') { _session[tabId] = true; btn.hidden = false; }
+  return _apply(tabId, true);
 }
 
 // ── Init ─────────────────────────────────────────────────────
@@ -145,7 +177,8 @@ export function initAICardToggle() {
     if (b) {
       const tabId = b.getAttribute('data-ai-toggle');
       const open = b.getAttribute('aria-expanded') !== 'true';
-      _writeChoice(tabId, open);
+      if (getPref('aiCards') === 'auto') _writeChoice(tabId, open);
+      else _session[tabId] = open;
       _apply(tabId, open);
       return;
     }
@@ -173,6 +206,11 @@ export function initAICardToggle() {
   if (!wrapSwitch()) setTimeout(wrapSwitch, 300);
 
   document.addEventListener('dacum:project-loaded', () => setTimeout(() => refreshAICards(), 0));
+  window.addEventListener('dacum:ui-prefs-changed', (e) => {
+    if (!e.detail || e.detail.name !== 'aiCards') return;
+    _session = {};
+    refreshAICards();
+  });
   window.addEventListener('dacum:langchange', () => {
     TABS.forEach(id => {
       const b = _btn(id);
