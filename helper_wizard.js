@@ -689,6 +689,9 @@ export function initHelperWizard() {
     const b = e.target.closest && e.target.closest('[data-helper-open]');
     if (!b) return;
     e.preventDefault();
+    // Opening the Helper on purpose undoes an earlier ✕ on the chip:
+    // it comes back when the Helper is closed again.
+    _chipDismissed = false;
     openHelperWizard();
   });
   // Re-draw in the new language if it changes while the Helper is open.
