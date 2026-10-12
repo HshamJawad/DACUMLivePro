@@ -7,6 +7,13 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.101.2 — 2026-10-12 — CBC: each learning outcome on a new page
+PATCH. exports_cbc_docx.js, index.html, sw.js (v239), tests/specs/cbc-export.spec.js.
+Changed CBC export: the detail of every learning outcome ("LO 1. …" with
+        its assessment criteria, contents, conditions, methodologies and
+        assessment methods) starts on a new page. The summary list of
+        outcomes stays on the module page.
+
 ── 3.101.1 — 2026-10-12 — CBC: one file per module
 PATCH. module_curriculum.js, exports_cbc_docx.js, translations.js,
 index.html, sw.js (v238), tests/specs/cbc-export.spec.js.
