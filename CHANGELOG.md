@@ -7,6 +7,25 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.99.0 — 2026-10-12 — Helper: guided step-by-step wizard
+MINOR. helper_wizard.js (new), events.js, module_curriculum.js, app.js,
+translations.js, index.html, sw.js (v226).
+Added   Help Center: "Start the Helper" opens a guided wizard that walks
+        through the twelve steps in process order (Chart Info → … →
+        Module Curriculum → Finish & export). Each step is drawn as a
+        DACUM row — a blue duty-style card (step, tab) beside a yellow
+        task-style card (what to do, live status, "Go to this tab") —
+        with a facilitator tip and, below it, the tab's own "?" guide.
+        Clickable stepper with done / in-progress / optional states,
+        progress bar, Back / Next, ← → keys (mirrored in RTL), Esc.
+        "Go to this tab" switches tab, spotlights the field or button to
+        start with, and leaves a "Helper · Step n" chip to return.
+        The last step viewed is remembered per project. EN / FR / AR.
+Changed events.js: the "?" guides can hand over their content
+        (getTabHelpGuides) so the Helper shows the same text as each
+        tab's help button; the modal body is built by one shared
+        function. module_curriculum.js: getCurriculumGuide().
+
 ── 3.98.1 — 2026-10-10 — Guide without a "What's new"; toolbar icons centred (RTL)
 PATCH. DACUM_Live_Pro_User_Guide.html, dacum-rtl.css, sw.js (v225),
 index.html.

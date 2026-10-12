@@ -108,14 +108,14 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v225';
+      var EXPECTED_SW = 'v226';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.98.1';
-      var APP_RELEASED = '2026-10-10';
+      var APP_VERSION = '3.99.0';
+      var APP_RELEASED = '2026-10-12';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
 
@@ -2146,6 +2146,21 @@
             </div>
 
             <div class="hc-grid">
+
+                <!-- ── 3.99.0: Helper — guided step-by-step wizard ─────── -->
+                <div class="hc-card hc-card-full hc-helper-card" style="background:linear-gradient(135deg,#eef2ff 0%,#f5f3ff 60%,#ecfdf5 100%);border-color:#c7d2fe;">
+                    <div class="hc-card-head">
+                        <span class="hc-card-icon" style="background:#4338ca;color:#fff;">🧭</span>
+                        <h3 class="hc-card-title" data-i18n="hwCardTitle">Helper — your step-by-step guide</h3>
+                    </div>
+                    <p class="hc-card-desc" data-i18n="hwCardDesc">New to DACUM Live Pro or facilitating your first workshop? The Helper walks you through every tab in the right order, shows what is done and what comes next, and takes you straight to each step.</p>
+                    <div class="hc-btn-row">
+                        <button type="button" class="hc-btn hc-btn-primary" data-helper-open
+                                style="background:linear-gradient(135deg,#6366f1,#4338ca);border:none;cursor:pointer;font-family:inherit;">
+                            🧭 <span data-i18n="hwOpenBtn">Start the Helper</span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- ── Section 1: Quick Start ─────────────────────────── -->
                 <div class="hc-card hc-card-full hc-card-warm">
