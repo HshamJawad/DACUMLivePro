@@ -2092,7 +2092,7 @@
 .ms-opt.ms-on { border-color: #0284c7; background: #f0f9ff; color: #0c4a6e; }
 .ms-opt input { margin: 3px 0 0; flex: none; width: 16px; height: 16px; min-height: 16px; }
 .ms-opt span { min-width: 0; overflow-wrap: anywhere; }
-.ms-reset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; }
+.ms-reset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 4px 0 6px; }
 
 #esTabs button.es-tab-on {
   background: #EFF0EE; color: #0369a1;

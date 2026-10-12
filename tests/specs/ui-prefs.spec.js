@@ -1,7 +1,7 @@
 // 3.103.0: Settings → Misc — the Helper button and the AI cards can be
 // automatic, always shown / open / folded, or hidden. In the fixed modes
-// a click works for the session only; "Reset my per-tab choices" clears
-// what Automatic mode remembered.
+// a click works for the session only; "Reset to automatic" puts both
+// groups back to Automatic and clears the per-tab choices (3.103.1).
 const { test, expect } = require('@playwright/test');
 const { openApp, loadProject, fixture } = require('../helpers');
 
@@ -90,18 +90,40 @@ test('AI cards "Hidden": no button; the Helper still opens the card and shows it
   expect(errors).toEqual([]);
 });
 
-test('Reset my per-tab choices', async ({ page }) => {
+test('Reset to automatic clears the per-tab choices', async ({ page }) => {
   const errors = await openApp(page);
   await page.evaluate(() => window.switchTab('duties-tab'));
   await toggle(page, 'duties-tab').click();
   await expect(toggle(page, 'duties-tab')).toHaveAttribute('aria-expanded', 'false');
   await openMisc(page);
   await page.locator('[data-ms-reset]').click();
-  await expect(page.locator('.ms-reset-msg')).toContainText('automatic rule');
+  await expect(page.locator('.ms-reset-msg')).toContainText('back to Automatic');
   await expect(page.locator('[data-ms-reset]')).toBeDisabled();
   expect(await page.evaluate(() => localStorage.getItem('dacum_ai_cards'))).toBeNull();
   await page.locator('#esModalClose').click();
   await expect(toggle(page, 'duties-tab')).toHaveAttribute('aria-expanded', 'true');
+  expect(errors).toEqual([]);
+});
+
+test('Reset to automatic from Hidden: buttons, cards and Helper button come back', async ({ page }) => {
+  const errors = await openApp(page);
+  await pick(page, 'helperChip', 'hidden');
+  await pick(page, 'aiCards', 'hidden');
+  await expect(toggle(page, 'duties-tab')).toBeHidden();
+  await expect(chip(page)).toHaveCount(0);
+
+  await openMisc(page);
+  await expect(page.locator('[data-ms-reset]')).toBeEnabled();
+  await page.locator('[data-ms-reset]').click();
+  await expect(page.locator('input[data-ms-pref="helperChip"][value="auto"]')).toBeChecked();
+  await expect(page.locator('input[data-ms-pref="aiCards"][value="auto"]')).toBeChecked();
+  await expect(page.locator('[data-ms-reset]')).toBeDisabled();
+  await page.locator('#esModalClose').click();
+
+  await page.evaluate(() => window.switchTab('duties-tab'));
+  await expect(toggle(page, 'duties-tab')).toBeVisible();
+  await expect(page.locator('#aiGenerateBtn')).toBeVisible();          // empty tab → open
+  await expect(chip(page)).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -140,7 +162,7 @@ test('Arabic, 360 px: Misc tab translated, no horizontal scroll', async ({ page 
   await openMisc(page);
   await expect(page.locator('#esTabs [data-es-tab="misc"]')).toContainText('متنوع');
   await expect(page.locator('#esModalBody')).toContainText('بطاقات الذكاء الاصطناعي');
-  await expect(page.locator('#esModalBody')).toContainText('إعادة ضبط اختياراتي لكل تبويب');
+  await expect(page.locator('#esModalBody')).toContainText('إعادة الضبط إلى التلقائي');
   const box = page.locator('#esModalBox');
   expect(await box.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
