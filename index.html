@@ -108,14 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v239';
+      var EXPECTED_SW = 'v240';
 
       // ── Human-readable build identity (shown in the toolbar) ──
-      // Bumped together with EXPECTED_SW above. MINOR: the Assessment
-      // Plan appendix is no longer exported (Module Builder makes the
-      // assessment forms).
-      var APP_VERSION = '3.101.2';
-      var APP_RELEASED = '2026-10-12';
+      // Bumped together with EXPECTED_SW above. MINOR: the large AI
+      // cards fold behind a "✨ AI" button beside each tab's "?".
+      var APP_VERSION = '3.102.0';
+      var APP_RELEASED = '2026-10-13';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
 
@@ -940,6 +939,8 @@
                             data-i18n="ttDutiesHelp" data-i18n-attr="title"
                             aria-label="How do I write duty and task statements?"
                             aria-haspopup="dialog">?</button>
+                    <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="duties-tab"
+                            aria-controls="aiCard_duties" aria-expanded="true"><svg class="tab-ai-toggle-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" fill="currentColor"/><path d="M18.5 13l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z" fill="currentColor"/><path d="M18 2l.6 1.9 1.9.6-1.9.6L18 7l-.6-1.9-1.9-.6 1.9-.6z" fill="currentColor"/></svg><span data-i18n="aiToggleLabel">AI</span></button>
                 </div>
                 <div id="regenHost_duties" class="rg-host"></div>
                 <button data-action="clear-tab" data-tab-id="duties-tab" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
@@ -948,6 +949,7 @@
             </div>
             
             <!-- AI Generation Section -->
+            <div class="ai-card-collapse" id="aiCard_duties"><div class="ai-card-collapse-inner">
             <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiCardTitle">AI-Powered DACUM Generation</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiCardDesc">Generate complete duties and tasks automatically based on occupation details</p>
@@ -956,6 +958,7 @@
                 </button>
                 <p style="color: rgba(255,255,255,0.8); margin: 15px 0 0 0; font-size: 0.85em;">💡 <span data-i18n="aiCardHintV2">Fill Occupation Title and Job Title in Chart Info. Adding Scope of Work improves results.</span></p>
             </div>
+            </div></div>
 
             <!-- Missing-Scope soft warning (hidden until user clicks Generate without Scope) -->
             <div id="scopeMissingWarning" style="display:none; margin: -10px 0 22px 0;">
@@ -1060,6 +1063,8 @@
                             data-i18n="ttAddInfoHelp" data-i18n-attr="title"
                             aria-label="Why does this section matter?"
                             aria-haspopup="dialog">?</button>
+                    <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="additional-info-tab"
+                            aria-controls="aiCard_addInfo" aria-expanded="true"><svg class="tab-ai-toggle-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" fill="currentColor"/><path d="M18.5 13l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z" fill="currentColor"/><path d="M18 2l.6 1.9 1.9.6-1.9.6L18 7l-.6-1.9-1.9-.6 1.9-.6z" fill="currentColor"/></svg><span data-i18n="aiToggleLabel">AI</span></button>
                 </div>
                 <div id="regenHost_additional" class="rg-host"></div>
                 <button data-action="clear-tab" data-tab-id="additional-info-tab" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
@@ -1068,6 +1073,7 @@
             </div>
 
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
+            <div class="ai-card-collapse" id="aiCard_addInfo"><div class="ai-card-collapse-inner">
             <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiInfoTitle">AI-Powered Supporting Information</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiInfoDesc">Generate Knowledge, Skills, Behaviors, Tools, Trends, Acronyms and Career Path automatically</p>
@@ -1076,6 +1082,7 @@
                 </button>
                 <p style="color: rgba(255,255,255,0.8); margin: 15px 0 0 0; font-size: 0.85em;">💡 <span data-i18n="aiInfoHint">Uses Occupation Title from Chart Info. If duties &amp; tasks already exist, they are used as the evidence base for far more accurate results. Custom sections you added are never overwritten.</span></p>
             </div>
+            </div></div>
             
             <div class="section-container">
                 <div class="section-header-editable">
@@ -1844,6 +1851,8 @@
                             data-i18n="ttClusteringHelp" data-i18n-attr="title"
                             aria-label="How should I group tasks into clusters?"
                             aria-haspopup="dialog">?</button>
+                    <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="clustering-tab"
+                            aria-controls="aiCard_clusters" aria-expanded="true"><svg class="tab-ai-toggle-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" fill="currentColor"/><path d="M18.5 13l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z" fill="currentColor"/><path d="M18 2l.6 1.9 1.9.6-1.9.6L18 7l-.6-1.9-1.9-.6 1.9-.6z" fill="currentColor"/></svg><span data-i18n="aiToggleLabel">AI</span></button>
                 </div>
                 <div id="regenHost_clusters" class="rg-host"></div>
                 <button data-action="clear-tab" data-tab-id="clustering-tab" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
@@ -1852,6 +1861,7 @@
             </div>
             
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
+            <div class="ai-card-collapse" id="aiCard_clusters"><div class="ai-card-collapse-inner">
             <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiClusterTitle">AI Clustering Assistant</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiClusterDesc">Two separate steps — review the clusters before generating their criteria</p>
@@ -1865,6 +1875,7 @@
                 </div>
                 <p style="color: rgba(255,255,255,0.8); margin: 15px 0 0 0; font-size: 0.85em;">💡 <span data-i18n="aiClusterHint">Step 1 groups tasks across duties by shared purpose, process or skills. Step 2 writes the Range and observable, measurable criteria for whichever clusters exist — including ones you built by hand.</span></p>
             </div>
+            </div></div>
 
             <!-- Available Tasks Section -->
             <div class="clustering-section">
@@ -1951,6 +1962,8 @@
                             data-i18n="ttLOHelp" data-i18n-attr="title"
                             aria-label="Learning Outcome design patterns"
                             aria-haspopup="dialog">?</button>
+                    <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="learning-outcomes-tab"
+                            aria-controls="aiCard_lo" aria-expanded="true"><svg class="tab-ai-toggle-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" fill="currentColor"/><path d="M18.5 13l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z" fill="currentColor"/><path d="M18 2l.6 1.9 1.9.6-1.9.6L18 7l-.6-1.9-1.9-.6 1.9-.6z" fill="currentColor"/></svg><span data-i18n="aiToggleLabel">AI</span></button>
                 </div>
                 <div id="regenHost_outcomes" class="rg-host"></div>
                 <button data-action="clear-tab" data-tab-id="learning-outcomes-tab" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
@@ -1959,6 +1972,7 @@
             </div>
 
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
+            <div class="ai-card-collapse" id="aiCard_lo"><div class="ai-card-collapse-inner">
             <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiLOTitle">Generate Learning Outcomes</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiLODesc">Choose the design pattern — you can use a different one for each cluster</p>
@@ -1975,6 +1989,7 @@
                 </div>
                 <p style="color: rgba(255,255,255,0.8); margin: 15px 0 0 0; font-size: 0.85em;">💡 <span data-i18n="aiLOHint">Tick criteria below to generate from just those; with none ticked, all unused criteria are used. New outcomes are added — existing ones are never replaced.</span></p>
             </div>
+            </div></div>
 
             <!-- Section 2: Performance Criteria Source List -->
             <div class="clustering-section">
@@ -2026,6 +2041,8 @@
                             data-i18n="ttMMHelp" data-i18n-attr="title"
                             aria-label="Purpose and module grouping strategies"
                             aria-haspopup="dialog">?</button>
+                    <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="module-mapping-tab"
+                            aria-controls="aiCard_mm" aria-expanded="true"><svg class="tab-ai-toggle-icon" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 2.5l1.9 5.6 5.6 1.9-5.6 1.9L10 17.5l-1.9-5.6L2.5 10l5.6-1.9z" fill="currentColor"/><path d="M18.5 13l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z" fill="currentColor"/><path d="M18 2l.6 1.9 1.9.6-1.9.6L18 7l-.6-1.9-1.9-.6 1.9-.6z" fill="currentColor"/></svg><span data-i18n="aiToggleLabel">AI</span></button>
                 </div>
                 <div id="regenHost_modules" class="rg-host"></div>
                 <button data-action="clear-tab" data-tab-id="module-mapping-tab" style="background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
@@ -2034,6 +2051,7 @@
             </div>
 
             <!-- AI Generation Section — mirrors the card in the Duties tab -->
+            <div class="ai-card-collapse" id="aiCard_mm"><div class="ai-card-collapse-inner">
             <div class="ai-gen-card" style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                 <h3 style="color: white; margin: 0 0 10px 0; font-size: 1.1em;">✨ <span data-i18n="aiMMTitle">Automatic Module Generation</span></h3>
                 <p style="color: rgba(255,255,255,0.9); margin: 0 0 15px 0; font-size: 0.95em;" data-i18n="aiMMDesc">Build modules from your Learning Outcomes, or keep grouping them manually below</p>
@@ -2047,6 +2065,7 @@
                 </div>
                 <p style="color: rgba(255,255,255,0.8); margin: 15px 0 0 0; font-size: 0.85em;" data-i18n="aiMMHint">⚡ Instant and offline — one module per outcome. 🤖 Groups related outcomes, names each module, and orders them foundational → advanced. Both replace existing modules; your Learning Outcomes are never changed.</p>
             </div>
+            </div></div>
 
             <!-- Available Learning Outcomes -->
             <div class="clustering-section">
