@@ -232,7 +232,7 @@ CLUSTERING RULES (these are the defining rules — follow them strictly):
   legitimate outcome; just make sure it is a conclusion you reached,
   not a shortcut you took.
 - A cluster normally contains between ${MIN_TASKS_PER_CLUSTER} and ${MAX_TASKS_PER_CLUSTER} tasks.
-- EXCEPTION (Norton): a task so large or significant that it deserves
+- EXCEPTION: a task so large or significant that it deserves
   to be a competency by itself — typically one verified as highly
   important and difficult — MAY form a cluster on its own. Use this
   sparingly and only for genuinely major tasks; never to avoid the

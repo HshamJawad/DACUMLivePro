@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.100.3 — 2026-10-12 — No source names in the interface; roadmap
+PATCH. translations.js, events.js, clustering_ai.js,
+DACUM_Live_Pro_User_Guide.html, ROADMAP.md, index.html, sw.js (v236),
+tests/specs/help-guides.spec.js.
+Changed The interface and the User Guide no longer name a source or a
+        model code: "(SCID)" is gone from the Task Selection intro, the
+        duty-statement guide no longer opens with "According to Norton's
+        DACUM Handbook" and its source line is removed (EN / FR / AR); the
+        AI clustering prompt drops the name too.
+Docs    ROADMAP.md: "Task Analysis linked to the steps" added for future
+        development (export layout to be decided then — not necessarily
+        one row per step); today's releases listed under done.
+
 ── 3.100.2 — 2026-10-12 — Programme requirements (optional in the CUR export)
 PATCH. module_curriculum.js, module_curriculum_text.js, exports_cur_docx.js,
 events.js, translations.js, index.html, sw.js (v235),

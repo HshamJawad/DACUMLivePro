@@ -1221,10 +1221,7 @@ function _showDutiesHelp() {
 
     '<p style="' + P + 'margin-top:4px;">' + _t('helpTaskTraitsLead') + '</p>' +
     '<ul style="margin:0 0 10px;padding-inline-start:20px;">' + TRAITS + '</ul>' +
-    '<p style="' + P + '">' + _t('helpTaskOneVerb') + '</p>' +
-
-    '<p style="margin:12px 0 0;font-size:0.78em;color:#94a3b8;line-height:1.6;">' +
-      _t('helpDutiesSource') + '</p>';
+    '<p style="' + P + '">' + _t('helpTaskOneVerb') + '</p>';
 
   _showHelpModal({
     id:       'dutiesHelpModal',
