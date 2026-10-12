@@ -178,6 +178,13 @@ async function _exportCurriculumDocxImpl(m) {
             labelCell(L('curPrereq'), { span: 2, width: span(0, 2) }),
             cell(listParas(m.prerequisites, 0, 2), { span: 4, width: span(2, 6) }),
         ] }));
+        // 3.100.1: basic skills required on entry (from Task Analysis).
+        if ((m.entrySkills && m.entrySkills.length) || m.blank) {
+            r1.push(new TableRow({ children: [
+                labelCell(L('curEntrySkills'), { span: 2, width: span(0, 2) }),
+                cell(listParas(m.entrySkills || [], 0, 2), { span: 4, width: span(2, 6) }),
+            ] }));
+        }
         // Time block
         r1.push(new TableRow({ children: [
             labelCell(L('curInstTime'), { span: 3, width: span(0, 3), center: true }),

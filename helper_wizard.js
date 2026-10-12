@@ -661,14 +661,13 @@ function _showChip(force) {
   if (_chipDismissed || document.getElementById(OVERLAY_ID)) return;
   _injectCSS();
   _hideChip();
-  const stored = _storedIdx();
-  const label = stored === null ? _t('hwChipLabel') : _tf('hwResume', { n: stored + 1 });
+  const label = _chipLabel();
   const chip = document.createElement('div');
   chip.id = CHIP_ID;
   chip.setAttribute('dir', _rtl() ? 'rtl' : 'ltr');
   chip.innerHTML = `
     <button type="button" class="hw-chip-main" data-hw-resume title="${_esc(_t('hwResumeTip'))}">
-      <span class="hw-chip-pulse" aria-hidden="true"></span>🧭 ${_esc(label)}
+      <span class="hw-chip-pulse" aria-hidden="true"></span>🧭 <span class="hw-chip-label">${_esc(label)}</span>
     </button>
     <button type="button" class="hw-chip-x" data-hw-chip-x title="${_esc(_t('hwClose'))}" aria-label="${_esc(_t('hwClose'))}"><svg width="11" height="11" viewBox="0 0 14 14" aria-hidden="true" focusable="false" style="display:block"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>`;
   chip.addEventListener('click', (e) => {
@@ -676,6 +675,17 @@ function _showChip(force) {
     if (e.target.closest('[data-hw-resume]')) openHelperWizard();
   });
   document.body.appendChild(chip);
+}
+
+/* 3.100.1: the chip follows the tab on screen — its step number is the
+   step of the current tab, updated in place (no re-animation). */
+function _chipLabel() {
+  const stored = _storedIdx();
+  return stored === null ? _t('hwChipLabel') : _tf('hwResume', { n: stored + 1 });
+}
+function _updateChipLabel() {
+  const el = document.querySelector('#' + CHIP_ID + ' .hw-chip-label');
+  if (el) el.textContent = _chipLabel();
 }
 
 function _hideChip() {
@@ -703,6 +713,25 @@ export function initHelperWizard() {
   document.addEventListener('dacum:project-loaded', () => {
     if (document.getElementById(CHIP_ID)) _showChip();
   });
+  // The current tab decides the step: switching tabs (sidebar, Next/Back
+  // buttons, "Go to this tab") moves the chip and the Helper with it.
+  // Help and Settings are outside the sequence and leave it as it was.
+  const tabToStep = {};
+  STEPS.forEach((st, i) => { if (st.tab) tabToStep[st.tab] = i; });
+  const mo = new MutationObserver(muts => {
+    muts.forEach(m => {
+      const el = m.target;
+      if (!el.classList.contains('active')) return;
+      if (String(m.oldValue || '').split(/\s+/).includes('active')) return;
+      if (!(el.id in tabToStep)) return;
+      _idx = tabToStep[el.id];
+      _saveIdx();
+      _updateChipLabel();
+    });
+  });
+  document.querySelectorAll('.tab-content').forEach(el =>
+    mo.observe(el, { attributes: true, attributeFilter: ['class'], attributeOldValue: true }));
+
   // Every launch / reload: show the chip once the app has finished booting.
   document.addEventListener('dacum:app-ready', () => setTimeout(() => _showChip(), 400), { once: true });
   window.openHelperWizard = openHelperWizard;

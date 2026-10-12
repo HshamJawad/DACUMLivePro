@@ -7,6 +7,27 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.100.1 — 2026-10-12 — Entry skills in the curriculum; Helper chip follows the tab
+PATCH. module_curriculum.js, module_curriculum_text.js, exports_cur_docx.js,
+helper_wizard.js, task_analysis.js, dacum-components.css, translations.js,
+index.html, sw.js (v234), tests/specs/entry-skills-helper-chip.spec.js (new).
+Added   Module Curriculum CUR/CBC: "Basic skills required on entry" for each
+        module, under the pre-requisite modules. "Suggest from Task
+        Analysis" collects the Basic Skills (reading, writing, maths,
+        applied science) of the module's tasks, grouped by type, without
+        duplicates; nothing is added until "Add selected". Exported as a
+        row of the module table in the Word curriculum (and as a blank row
+        in the blank template).
+Changed Helper chip: its step is the step of the tab on screen — switching
+        tabs from the sidebar, the Next/Back buttons or "Go to this tab"
+        moves it, and opening the Helper lands on that step. Help and
+        Settings leave it unchanged. The label updates in place.
+Changed Helper and Help Center texts: Task Analysis now names basic skills
+        and decisions; the curriculum tip points to the entry-skills
+        suggestion.
+Fixed   Task Analysis: the delete buttons of the Basic Skills cells and the
+        decision cards are SVG icons centred in their box (0 px off).
+
 ── 3.100.0 — 2026-10-12 — Task Analysis: decisions table; Basic Skills (SCID A-6)
 MINOR. task_analysis.js, task_analysis_ai.js, events.js, helper_wizard.js,
 exports_pdf_sections.js, exports_docx_sections.js, dacum-components.css,

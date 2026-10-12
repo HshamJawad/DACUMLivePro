@@ -11,6 +11,12 @@
 // these local tables keep the tab complete in all three languages.
 export const _S = {
   en: {
+    curEntrySuggest: "Suggest from Task Analysis",
+    curEntryHint: "Reading, writing, maths and applied science a trainee needs before starting this module — collected from the Basic Skills of its tasks.",
+    curEntryPh: "e.g., Read a simple wiring diagram",
+    curEntryTitle: "Entry requirements from Task Analysis",
+    curEntryIntro: "Basic skills recorded in the Task Analysis of the tasks behind this module, grouped by type. Tick the ones a trainee must already have on entry. Items already in the list are not added again.",
+    curEntryNone: "No basic skills were found in the Task Analysis of the tasks linked to this module. Fill in the Basic Skills card in Task Analysis first.",
     tabModuleCurriculum: 'Module Curriculum CUR/CBC',
     curEmptyTitle: 'No modules yet',
     curEmptyBody: 'The curriculum is written per module. Build your modules in Module Mapping first — they will appear here automatically.',
@@ -153,6 +159,12 @@ export const _S = {
     hUnit: 'h'
   },
   fr: {
+    curEntrySuggest: "Proposer depuis l’analyse des tâches",
+    curEntryHint: "Lecture, écriture, mathématiques et sciences appliquées nécessaires avant ce module — recueillies dans les compétences de base de ses tâches.",
+    curEntryPh: "ex. Lire un schéma de câblage simple",
+    curEntryTitle: "Conditions d’entrée depuis l’analyse des tâches",
+    curEntryIntro: "Compétences de base notées dans l’analyse des tâches de ce module, par type. Cochez celles que l’apprenant doit déjà posséder à l’entrée. Les éléments déjà dans la liste ne sont pas ajoutés de nouveau.",
+    curEntryNone: "Aucune compétence de base trouvée dans l’analyse des tâches liées à ce module. Remplissez d’abord la carte Compétences de base dans l’analyse des tâches.",
     tabModuleCurriculum: 'Curriculum du module CUR/CBC',
     curEmptyTitle: 'Aucun module pour l’instant',
     curEmptyBody: 'Le curriculum s’écrit module par module. Construisez d’abord vos modules dans la Cartographie des modules — ils apparaîtront ici automatiquement.',
@@ -294,6 +306,12 @@ export const _S = {
     hUnit: 'h'
   },
   ar: {
+    curEntrySuggest: "اقتراح من تحليل المهمة",
+    curEntryHint: "القراءة والكتابة والحساب والعلوم التطبيقية التي يحتاجها المتدرب قبل بدء هذه الوحدة — تُجمع من المهارات الأساسية لمهامها.",
+    curEntryPh: "مثال: قراءة مخطط كهربائي بسيط",
+    curEntryTitle: "متطلبات الدخول من تحليل المهمة",
+    curEntryIntro: "المهارات الأساسية المسجلة في تحليل مهام هذه الوحدة، مجمّعة حسب النوع. اختر ما يجب أن يمتلكه المتدرب عند الدخول. البنود الموجودة في القائمة لا تُضاف مرة أخرى.",
+    curEntryNone: "لم يُعثر على مهارات أساسية في تحليل المهام المرتبطة بهذه الوحدة. املأ بطاقة المهارات الأساسية في تحليل المهمة أولاً.",
     tabModuleCurriculum: 'منهج الوحدة CUR/CBC',
     curEmptyTitle: 'لا توجد وحدات بعد',
     curEmptyBody: 'يُكتب المنهج لكل وحدة على حدة. ابنِ الوحدات أولاً في تبويب «مواءمة الوحدات التعلمية» وستظهر هنا تلقائياً.',
@@ -442,6 +460,7 @@ export const _S = {
    on purpose ("Self-directed learning" everywhere, "learning units"). */
 export const _L = {
   en: {
+    curEntrySkills: 'Basic skills required on entry',
     curModule: 'Module', curPurpose: 'Purpose statements', curNqfLevel: 'NQF Level', curCredits: 'Credits',
     curPrereq: 'Pre-requisites modules', curInstTime: 'Indicative Institutional Time',
     curIndTime: 'Indicative Industry Attachment', curTotal100: 'Total 100%', curTheory: 'Theory',
@@ -464,6 +483,7 @@ export const _L = {
     curLevelN: 'Level {n}', curPC: 'Performance criteria', curDurationH: 'Duration (hours)'
   },
   fr: {
+    curEntrySkills: 'Compétences de base requises à l’entrée',
     curModule: 'Module', curPurpose: 'Énoncé de l’objectif', curNqfLevel: 'Niveau du CNC', curCredits: 'Crédits',
     curPrereq: 'Modules préalables', curInstTime: 'Temps indicatif en établissement',
     curIndTime: 'Stage indicatif en entreprise', curTotal100: 'Total 100 %', curTheory: 'Théorie',
@@ -486,6 +506,7 @@ export const _L = {
     curLevelN: 'Niveau {n}', curPC: 'Critères de performance', curDurationH: 'Durée (heures)'
   },
   ar: {
+    curEntrySkills: 'المهارات الأساسية المطلوبة للدخول',
     curModule: 'الوحدة', curPurpose: 'بيان الغرض', curNqfLevel: 'مستوى الإطار الوطني للمؤهلات',
     curCredits: 'الرصيد / الساعات المعتمدة', curPrereq: 'الوحدات المتطلبة سابقاً',
     curInstTime: 'الوقت المؤسسي التقديري', curIndTime: 'التدريب التقديري في موقع العمل',

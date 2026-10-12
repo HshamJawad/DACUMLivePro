@@ -10,6 +10,7 @@
 //   byModule: { [moduleId]: { code, shortName, purpose, credits,
 //               prerequisites[], splitOverride|null, tools[], equipment[],
 //               ppe[], materials[], resources[], facilities[{item,qty}],
+//               entrySkills[] (3.100.1 — basic skills a trainee needs to enter),
 //               byLO: { [loId]: { context, methodology, discussion,
 //                       demonstration, practice, selfDirected,
 //                       assessStatements[], assessMethods[], hours } } } }
@@ -472,6 +473,12 @@ function _renderHeader(module, idx) {
               <span><bdi>${_esc(_moduleCode(m))}</bdi> — ${_esc(m.title || '')}</span></label>`).join('')}</div>`
             : `<div class="cur-hint">${_esc(_tx('curPrereqNone'))}</div>`}
       </div>
+      <div class="cur-field cur-entry">
+        <div class="cur-sec-head"><span>${_esc(curLabel('curEntrySkills'))}</span>
+          <button type="button" class="cur-mini-btn" data-cur-action="suggest-entry">🧩 ${_esc(_tx('curEntrySuggest'))}</button></div>
+        <small class="cur-hint">${_esc(_tx('curEntryHint'))}</small>
+        ${_listEditor('mod', 'entrySkills', rec.entrySkills, { label: curLabel('curEntrySkills'), ph: _tx('curEntryPh') })}
+      </div>
       <div class="cur-subhead">${_esc(_tx('curTimeL'))}</div>
       <div id="curHoursBox" class="cur-timecard">${_timeCard(module)}</div>
       <div class="cur-subhead">${_esc(_tx('curOSLinkL'))}</div>
@@ -833,6 +840,62 @@ function _openTAPicker() {
      } }]);
 }
 
+// ── Entry requirements from Task Analysis basic skills (3.100.1) ──
+// The reading, writing, maths and applied science recorded in Task
+// Analysis (SCID A-6) for the tasks behind this module, offered as the
+// module's entry requirements. Same rules as the picker above: nothing
+// is added until "Add selected", duplicates are skipped, nothing already
+// in the list is replaced.
+const BASIC_SRC = [
+  ['basicReading', 'taBasicReading', '📖'], ['basicWriting', 'taBasicWriting', '✍️'],
+  ['basicMath', 'taBasicMath', '🔢'],       ['basicScience', 'taBasicScience', '🔬'],
+];
+function _openEntryPicker() {
+  const module = _selectedModule();
+  if (!module) return;
+  const rec = _modRec(module.id) || {};
+  const present = new Set(_clean(rec.entrySkills).map(v => v.toLowerCase()));
+  const strip = s => _str(s).replace(/^[\s]*[•\-\*○●]\s*/, '').replace(/^[\s]*\d+[\.\)]\s*/, '').trim();
+  const seen = new Set();
+  const groups = BASIC_SRC.map(([key, labelKey, icon]) => ({ key, label: _tx(labelKey), icon, items: [] }));
+  _moduleTaskIds(module).forEach(tid => {
+    const r = getTaskAnalysisRecord(tid);
+    if (!r) return;
+    groups.forEach(g => _arr(r[g.key]).map(strip).filter(Boolean).forEach(text => {
+      const k = text.toLowerCase();
+      if (seen.has(k)) return;
+      seen.add(k);
+      g.items.push({ text, already: present.has(k) });
+    }));
+  });
+  const all = groups.flatMap(g => g.items);
+  if (!all.length) { showStatus(_tx('curEntryNone'), 'error'); return; }
+  let i = 0;
+  const ov = _modal('curEntryModal', _tx('curEntryTitle'), '🧩', `
+      <p class="cur-modal-intro">${_esc(_tx('curEntryIntro'))}</p>
+      ${groups.filter(g => g.items.length).map(g => `
+        <div class="cur-guide-sec"><p class="cur-guide-h">${g.icon} ${_esc(g.label)}</p>
+          <div class="cur-ta-list">${g.items.map(it => { it.i = i++; return `
+            <div class="cur-ta-row ${it.already ? 'is-done' : ''}">
+              <label class="cur-check"><input type="checkbox" data-entry-i="${it.i}" ${it.already ? 'checked disabled' : 'checked'}>
+                <span>${_esc(it.text)}${it.already ? ` <em>(${_esc(_tx('curTAAlready'))})</em>` : ''}</span></label>
+            </div>`; }).join('')}</div></div>`).join('')}`,
+    [{ label: _tx('curCancel'), cls: 'cur-btn-ghost', close: true },
+     { label: _tx('curTAAddSel'), cls: 'cur-btn-primary', onClick: () => {
+       const r = _modRec(module.id, true);
+       const picked = [];
+       ov.querySelectorAll('input[data-entry-i]:checked:not(:disabled)').forEach(cb => {
+         const it = all.find(x => x.i === parseInt(cb.getAttribute('data-entry-i'), 10));
+         if (it) picked.push(it.text);
+       });
+       const n = _addToList(r, 'entrySkills', picked);
+       _closeModal(ov);
+       renderModuleCurriculum();
+       _schedulePersist();
+       showStatus(n ? _txf('curTAAdded', { n }) : _tx('curNothingNew'), n ? 'success' : 'info');
+     } }]);
+}
+
 // ── Suggest credits for every module (3.85.0) ──────────────────
 // OPTIONAL helper next to the credits field. Credits stay the one input
 // (hours = credits × hours per credit, as before): this only proposes a
@@ -1112,6 +1175,7 @@ export function getCurriculumModel(moduleId, opts = {}) {
     prerequisites: blank ? [] : _arr(rec.prerequisites)
       .map(id => mods.find(m => m.id === id)).filter(Boolean)
       .map(m => `${_moduleCode(m)} ${m.title || ''}`.trim()),
+    entrySkills: blank ? [] : _clean(rec.entrySkills),   // 3.100.1
     hours: blank ? null : hrs,
     pct: Object.fromEntries(SPLIT_KEYS.map(k => [k, Number(split[k]) || 0])),
     programme: prog ? `${prog}${lvl ? ` — ${curLabel('curLevelN', { n: lvl })}` : ''}` : '',
@@ -1391,6 +1455,8 @@ function _wire() {
       _showDistGuide();
     } else if (a === 'suggest-ta') {
       _openTAPicker();
+    } else if (a === 'suggest-entry') {
+      _openEntryPicker();
     } else if (a === 'li-add' || a === 'li-del') {
       const listEl = b.closest('.cur-list');
       const tgt = _listTarget(listEl, true);
