@@ -22,6 +22,7 @@ part of the app: nothing in this folder is loaded or cached by it.
 | `specs/wording-notes.spec.js` | Wording notes: the rules (verb first, -ing, "The learner will…", cognitive verbs, purpose, is/are, length, repeats), grammar checks off for French content; notes under criteria, competency names and outcomes — nothing blocked; Arabic at 360 px. |
 | `specs/worker-behaviours.spec.js` | Task Analysis "Worker Behaviours": after Required Skills, picked from Additional Info (an older record takes its first pick), in EN / FR / AR; saved in the JSON, in the Word export and in the Module Builder handoff. |
 | `specs/ai-card-toggle.spec.js` | "✨ AI" button: AI cards open while a tab is empty, folded once it has content; the user's choice per tab survives a reload and a project load; the Helper opens a folded card before highlighting; Arabic, touch, 360 px. |
+| `specs/ui-prefs.spec.js` | Settings → Misc: Helper button and AI cards in each mode (Automatic, always shown / open / folded, hidden); fixed-mode clicks last for the session only; the Helper still opens a card when the button is hidden; Reset my per-tab choices; Arabic at 360 px. |
 | `specs/help-guides.spec.js` | Help from the DACUM / SCID sources in EN / FR / AR at 360 px: the DACUM team, the occupational standard, task characteristics, competence qualities, criteria and range, learning outcomes, task verification, the one-task competency; the AI clustering prompt carries the same rules and the verified ratings. |
 
 `fixtures/sample-project.json` is a synthetic project (made with the

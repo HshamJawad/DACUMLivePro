@@ -343,6 +343,7 @@
       .tab-ai-toggle:hover { border-color: #0369a1; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18); }
       .tab-ai-toggle:focus-visible { outline: 2px solid #0369a1; outline-offset: 2px; }
       .tab-ai-toggle-icon { display: block; flex: none; margin: 0 !important; }
+      .tab-ai-toggle[hidden] { display: none !important; }
       html[dir="rtl"] .tab-ai-toggle { padding: 0 8px 0 10px !important; }
       @media (hover: none) and (pointer: coarse) {
         .tab-ai-toggle::after {
@@ -2065,7 +2066,7 @@
    ══════════════════════════════════════════════════════════════════ */
 
 #esTabs {
-  display: flex; gap: 4px;
+  display: flex; flex-wrap: wrap; gap: 4px;
   padding: 8px 14px 0;
   background: #DADCDE;
   border-bottom: 1px solid #cbd5e1;
@@ -2079,6 +2080,20 @@
   margin-bottom: -1px;
 }
 #esTabs button:hover { color: #1e293b; background: #f1f5f9; }
+/* Settings → Misc (settings_misc.js, 3.103.0) */
+.ms-group { min-width: 0; }
+.ms-opts { display: flex; flex-direction: column; gap: 6px; }
+.ms-opt {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px;
+  font-size: 0.88em; line-height: 1.5; color: #334155; cursor: pointer;
+}
+.ms-opt:hover { background: #f8fafc; }
+.ms-opt.ms-on { border-color: #0284c7; background: #f0f9ff; color: #0c4a6e; }
+.ms-opt input { margin: 3px 0 0; flex: none; width: 16px; height: 16px; min-height: 16px; }
+.ms-opt span { min-width: 0; overflow-wrap: anywhere; }
+.ms-reset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; }
+
 #esTabs button.es-tab-on {
   background: #EFF0EE; color: #0369a1;
   border-color: #cbd5e1; border-bottom: 1px solid #EFF0EE;
