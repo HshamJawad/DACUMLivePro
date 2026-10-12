@@ -191,7 +191,7 @@ async function _build(m) {
 
         mod.los.forEach(l => {
           children.push(para([run(`${_tf('cbcLOn', { n: l.n })} ${l.statement}`.trim(), { bold: true, size: 22, color: '1F3864' })],
-            { before: 240, after: 80, keepNext: true }));
+            { before: 0, after: 120, keepNext: true, pageBreakBefore: true }));   // 3.101.2: each outcome on a new page
           [['cbcAssessCriteria', l.criteria, true], ['cbcContents', l.contents, true],
            ['cbcConditions', l.conditions.length ? l.conditions : [...mod.resources.equipment, ...mod.resources.tools].slice(0, 10), true],
            ['cbcMethodologies', l.methodologies, true], ['cbcAssessMethodsLO', l.assessMethods, true]]

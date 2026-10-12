@@ -73,6 +73,9 @@ test('CBC dialog: one file per module; course design optional; whole programme b
   let xml = docXml(await dl.path());
   expect(xml).toContain('MODULE OF INSTRUCTION');
   expect(xml).not.toContain('ZZ course description');
+  // Each learning outcome starts on a new page (3.101.2).
+  const loBreaks = (xml.match(/<w:p>(?:(?!<\/w:p>).)*?<w:pageBreakBefore\/>(?:(?!<\/w:p>).)*?LO \d+\.(?:(?!<\/w:p>).)*?<\/w:p>/g) || []).length;
+  expect(loBreaks).toBe(3);
 
   // Design ticked → summary included (and remembered).
   await page.check('#cbcDesignOpt');
