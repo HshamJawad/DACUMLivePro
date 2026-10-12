@@ -6,6 +6,14 @@
   'use strict';
   var TRANSLATIONS = {
     en: {
+      /* 3.101.1 — CBC export dialog */
+      cbcDlgTitle: "Export competency-based curriculum (CBC)",
+      cbcDlgIntro: "One Word file per module, as a draft to finish in Word. Choose the module to download.",
+      cbcDlgDesign: "Include the course design",
+      cbcDlgDesignHint: "Adds the programme summary at the start of the file: description, outcomes, entry requirements, course structure, resources and instructors.",
+      cbcDlgAll: "Download the whole programme",
+      cbcDlgAllHint: "All modules in one file, with the course design.",
+      cbcModuleOfInstruction: "MODULE OF INSTRUCTION",
       /* 3.101.0 — module categories + CBC export */
       catBasic: "Basic",
       catCommon: "Common",
@@ -1960,6 +1968,14 @@
     },
 
     fr: {
+      /* 3.101.1 — CBC export dialog */
+      cbcDlgTitle: "Exporter le curriculum par compétences (CBC)",
+      cbcDlgIntro: "Un fichier Word par module, brouillon à compléter dans Word. Choisissez le module à télécharger.",
+      cbcDlgDesign: "Inclure la conception du cours",
+      cbcDlgDesignHint: "Ajoute en tête du fichier le résumé du programme : description, résultats, conditions d’admission, structure du cours, ressources et formateurs.",
+      cbcDlgAll: "Télécharger tout le programme",
+      cbcDlgAllHint: "Tous les modules dans un seul fichier, avec la conception du cours.",
+      cbcModuleOfInstruction: "MODULE DE FORMATION",
       /* 3.101.0 — module categories + CBC export */
       catBasic: "De base",
       catCommon: "Commun",
@@ -3904,6 +3920,14 @@
     },
 
     ar: {
+      /* 3.101.1 — CBC export dialog */
+      cbcDlgTitle: "تصدير المنهج القائم على الكفايات (CBC)",
+      cbcDlgIntro: "ملف Word لكل وحدة، كمسودة تُستكمل في Word. اختر الوحدة التي تريد تنزيلها.",
+      cbcDlgDesign: "تضمين تصميم البرنامج",
+      cbcDlgDesignHint: "يضيف في بداية الملف ملخص البرنامج: الوصف، والمخرجات، وشروط الالتحاق، وهيكل البرنامج، والموارد، ومؤهلات المدربين.",
+      cbcDlgAll: "تنزيل البرنامج كاملاً",
+      cbcDlgAllHint: "كل الوحدات في ملف واحد، مع تصميم البرنامج.",
+      cbcModuleOfInstruction: "الوحدة التدريبية",
       /* 3.101.0 — module categories + CBC export */
       catBasic: "أساسية",
       catCommon: "مشتركة",

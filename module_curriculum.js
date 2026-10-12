@@ -1243,7 +1243,7 @@ export function getCurriculumModel(moduleId, opts = {}) {
 // category, assessment, delivery, resources, instructors) followed by
 // the modules of instruction. Everything comes from data already in the
 // project; nothing is invented. Built in the content language.
-export function getCbcModel() {
+export function getCbcModel(opts = {}) {
   const mods = _modules();
   if (!mods.length) return null;
   const s = _settings();
@@ -1297,7 +1297,14 @@ export function getCbcModel() {
   });
   const allLos = moduleModels.flatMap(mm => mm.los);
   const total = moduleModels.reduce((a, mm) => a + (Number(mm.hours) || 0), 0);
+  /* 3.101.1: one file per module (the default) — that module only in
+     "modules of instruction", the course design only when asked for. */
+  const single = opts.moduleId ? moduleModels.find(mm => mm.id === opts.moduleId) : null;
+  if (opts.moduleId && !single) return null;
+  const slug = t => _str(t).replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_+|_+$/g, '');
   return {
+    single: single || null,
+    includeDesign: single ? !!opts.includeDesign : true,
     rtl: _isRTL(),
     sector: _domVal('sector'), producedBy: _domVal('producedBy'),
     title: _programmeName(), qualificationLevel: _str(s.qualificationLevel).trim(),
@@ -1316,13 +1323,59 @@ export function getCbcModel() {
     instructors: _clean(s.trainerQualifications),
     trainers: _trainersRatio(),
     groups,
-    fileName: `CBC_${(_programmeName() || 'Programme').replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_+|_+$/g, '')}.docx`,
+    instructionGroups: single ? [{ id: single.categoryId, label: single.categoryLabel || _tx('cbcUnclassified'), modules: [single] }] : groups,
+    fileName: single
+      ? `CBC_${slug(single.code) || 'M'}_${slug(single.title) || 'Module'}.docx`
+      : `CBC_${slug(_programmeName()) || 'Programme'}.docx`,
   };
 }
 
-export async function exportCbcWord() {
+// ── CBC export dialog — one module per click, like CUR (3.101.1) ──
+export function openCbcExportDialog() {
+  const mods = _modules();
+  if (!mods.length) {
+    _modal('cbcExportModal', _tx('cbcDlgTitle'), '🧩', `<p class="cur-modal-intro">${_esc(_tx('dlgNoModules'))}</p>`,
+      [{ label: _tx('curClose'), cls: 'cur-btn-primary', close: true }]);
+    return;
+  }
+  const cur = _selectedModule();
+  const ordered = cur ? [cur, ...mods.filter(m => m !== cur)] : mods;
+  const ov = _modal('cbcExportModal', _tx('cbcDlgTitle'), '🧩', `
+    <p class="cur-modal-intro">${_esc(_tx('cbcDlgIntro'))}</p>
+    <label class="cur-check cur-blank-opt"><input type="checkbox" id="cbcDesignOpt" ${_settings().cbcIncludeDesign ? 'checked' : ''}>
+      <span><strong>${_esc(_tx('cbcDlgDesign'))}</strong><br><small>${_esc(_tx('cbcDlgDesignHint'))}</small></span></label>
+    <div class="cur-exp-list">${ordered.map(m => {
+      const i = mods.indexOf(m), cat = getModuleCategory(m);
+      return `<div class="cur-exp-row ${m === cur ? 'is-current' : ''}">
+        <div class="cur-exp-name"><span>${_esc(_moduleLabel(m, i))}</span>
+          <small><bdi>${_esc(_moduleCode(m))}</bdi> · ${_esc(cat ? categoryLabel(cat) : _tx('optNoCategory'))}${m === cur ? ` · ${_esc(_tx('dlgCurrent'))}` : ''}</small></div>
+        <button type="button" class="cur-btn-primary cur-exp-dl" data-cbc-dl="${_esc(m.id)}">⬇ ${_esc(_tx('dlgDownload'))}</button>
+      </div>`; }).join('')}</div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <small class="cur-hint" style="flex:1 1 220px;">${_esc(_tx('cbcDlgAllHint'))}</small>
+      <button type="button" class="cur-btn-ghost" data-cbc-all>📚 ${_esc(_tx('cbcDlgAll'))}</button>
+    </div>`,
+    [{ label: _tx('curClose'), cls: 'cur-btn-ghost', close: true }], { wide: true });
+  ov.querySelector('#cbcDesignOpt').addEventListener('change', e => {
+    _settings().cbcIncludeDesign = !!e.target.checked;
+    _schedulePersist();
+  });
+  ov.addEventListener('click', async e => {
+    const b = e.target.closest('[data-cbc-dl], [data-cbc-all]');
+    if (!b || b.disabled) return;
+    b.disabled = true;
+    const ok = b.hasAttribute('data-cbc-all')
+      ? await exportCbcWord()
+      : await exportCbcWord({ moduleId: b.getAttribute('data-cbc-dl'), includeDesign: !!_settings().cbcIncludeDesign });
+    b.disabled = false;
+    if (ok && b.hasAttribute('data-cbc-dl')) { b.classList.add('is-done'); b.textContent = '✓ ' + _tx('dlgDone'); }
+  });
+}
+
+export async function exportCbcWord(opts = {}) {
   const I = window.i18n;
-  const model = (I && I.withContentLang) ? I.withContentLang(getCbcModel) : getCbcModel();
+  const build = () => getCbcModel(opts);
+  const model = (I && I.withContentLang) ? I.withContentLang(build) : build();
   if (!model) { showStatus(_tx('dlgNoModules'), 'error'); return false; }
   const { exportCbcDocx } = await import('./exports_cbc_docx.js');
   const ok = await exportCbcDocx(model);
@@ -1443,7 +1496,7 @@ export function toggleStandardMenu(anchor, viaKeyboard) {
     _closeMenu(false);
     if (what === 'os') exportOccupationalStandardWord();
     else if (what === 'cur') openCurExportDialog();
-    else if (what === 'cbc') exportCbcWord();
+    else if (what === 'cbc') openCbcExportDialog();
   });
   setTimeout(() => document.addEventListener('pointerdown', _menuOutside, true), 0);
   window.addEventListener('resize', _menuResize);
