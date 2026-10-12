@@ -131,7 +131,7 @@ const STEPS = [
   {
     tab: 'task-analysis-tab', icon: '🔬', titleKey: 'tabTaskAnalysis', sumKey: 'hcStep5', tipKey: 'hwTip6',
     optional: true,
-    guides: () => getTabHelpGuides(['taskAnalysis']),
+    guides: () => getTabHelpGuides(['taskAnalysis', 'basicSkills']),
     status() {
       const n = countTaskAnalysisRecords();
       if (!n) return S('todo', _t('hwMNone'));

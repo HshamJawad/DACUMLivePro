@@ -1071,6 +1071,45 @@ export function _docxTaskAnalysis({ AlignmentType, PageBreak, Paragraph, TextRun
                             });
                         };
 
+                        const _pushDecisionTable = (rows) => {
+                            const D = window.docx;
+                            if (!D || !D.Table) { _pushList('taLblDecisions', rows.map(x => x.decision)); return; }
+                            const withExpert = rows.some(x => x.expert);
+                            const cols = withExpert ? ['decision', 'cue', 'error', 'expert'] : ['decision', 'cue', 'error'];
+                            const head = { decision: 'taDecColDecision', cue: 'taDecColCue', error: 'taDecColError', expert: 'taDecColExpert' };
+                            const fill = { decision: 'EEEDFE', cue: 'E1F5EE', error: 'FAECE7', expert: 'FEF9C3' };
+                            const ink  = { decision: '3C3489', cue: '085041', error: '712B13', expert: '713F12' };
+                            const pct = Math.floor(94 / cols.length);
+                            const cell = (text, opts = {}) => new D.TableCell({
+                                children: [new Paragraph({
+                                    children: [new TextRun({ text: text || '', size: opts.size || 19, bold: !!opts.bold, color: opts.color })],
+                                    bidirectional: _rtl(),
+                                })],
+                                width: { size: opts.width || pct, type: D.WidthType.PERCENTAGE },
+                                shading: opts.fill ? { fill: opts.fill, type: D.ShadingType.CLEAR, color: 'auto' } : undefined,
+                                margins: { top: 60, bottom: 60, left: 90, right: 90 },
+                            });
+                            children.push(new Paragraph({
+                                children: [new TextRun({ text: _taLbl('taLblDecisions'), bold: true, size: 22 })],
+                                spacing: { before: 150, after: 60 },
+                                bidirectional: _rtl(),
+                            }));
+                            const headRow = new D.TableRow({
+                                tableHeader: true,
+                                children: [cell('#', { bold: true, width: 6, fill: 'F1F5F9' }),
+                                           ...cols.map(c => cell(_t(head[c]), { bold: true, fill: fill[c], color: ink[c], size: 18 }))],
+                            });
+                            const bodyRows = rows.map((x, i) => new D.TableRow({
+                                children: [cell(String(i + 1), { width: 6 }), ...cols.map(c => cell(x[c]))],
+                            }));
+                            children.push(new D.Table({
+                                rows: [headRow, ...bodyRows],
+                                width: { size: 100, type: D.WidthType.PERCENTAGE },
+                                visuallyRightToLeft: _rtl(),
+                            }));
+                            children.push(new Paragraph({ children: [new TextRun({ text: '', size: 8 })], spacing: { after: 80 }, bidirectional: _rtl() }));
+                        };
+
                         const _pushText = (labelKey, value) => {
                             if (!value || !value.trim()) return;
                             children.push(new Paragraph({
@@ -1111,11 +1150,22 @@ export function _docxTaskAnalysis({ AlignmentType, PageBreak, Paragraph, TextRun
                             _pushList('taLblKnowledge',  r.requiredKnowledge);
                             _pushList('taLblSkills',     r.requiredSkills);
                             _pushList('taLblBehaviours', r.workerBehaviours);   // 3.92.0
+                            _pushList('taLblBasicReading', r.basicReading);   // 3.100.0
+                            _pushList('taLblBasicWriting', r.basicWriting);
+                            _pushList('taLblBasicMath',    r.basicMath);
+                            _pushList('taLblBasicScience', r.basicScience);
                             _pushList('taLblCriteria',   r.performanceCriteria);
                             _pushText('taLblStandard',   r.performanceStandard);
                             _pushList('taLblTools',      r.toolsEquipmentMaterials);
                             _pushList('taLblSafety',     r.safetyOSH);
-                            _pushList('taLblDecisions',  r.decisionsCriticalPoints);
+                            /* 3.100.0: a real table — decision, cue, consequence
+                               (+ expert strategy when any row has one). A row
+                               with only the decision still exports cleanly. */
+                            if (r.decisionTable && r.decisionTable.some(d => d.cue || d.error || d.expert)) {
+                                _pushDecisionTable(r.decisionTable);
+                            } else {
+                                _pushList('taLblDecisions', r.decisionsCriticalPoints);
+                            }
                             _pushText('taLblConditions', r.conditionsWorkEnvironment);
                             _pushList('taLblErrors',     r.commonErrorsTroubleshooting);
                             (r.customSections || []).forEach(sec => _pushList('=' + sec.title, sec.items));

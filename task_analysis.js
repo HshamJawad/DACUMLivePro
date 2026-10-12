@@ -47,6 +47,14 @@ const LIST_FIELDS = [
   { key: 'performanceSteps',            labelKey: 'taLblSteps',      phKey: 'taPhSteps' },
   { key: 'requiredKnowledge',           labelKey: 'taLblKnowledge',  phKey: 'taPhKnowledge' },
   { key: 'requiredSkills',              labelKey: 'taLblSkills',     phKey: 'taPhSkills' },
+  /* 3.100.0 — SCID A-6 (literacy task analysis): the reading, writing,
+     maths and applied science THIS task needs. Four ordinary list fields
+     (so AI, clear, export and the Module Builder handoff treat them like
+     any other), drawn together as one "Basic Skills" card. */
+  { key: 'basicReading',                labelKey: 'taLblBasicReading', phKey: 'taPhBasicReading', basic: true, icon: '📖', shortKey: 'taBasicReading' },
+  { key: 'basicWriting',                labelKey: 'taLblBasicWriting', phKey: 'taPhBasicWriting', basic: true, icon: '✍️', shortKey: 'taBasicWriting' },
+  { key: 'basicMath',                   labelKey: 'taLblBasicMath',    phKey: 'taPhBasicMath',    basic: true, icon: '🔢', shortKey: 'taBasicMath' },
+  { key: 'basicScience',                labelKey: 'taLblBasicScience', phKey: 'taPhBasicScience', basic: true, icon: '🔬', shortKey: 'taBasicScience' },
   /* 3.92.0 — Norton/SCID: task analysis records the worker behaviours
      relevant to THIS task (picked from the occupation-wide list in
      Additional Info). Older records have no such key: read as empty. */
@@ -70,6 +78,7 @@ const TEXT_FIELDS = [
    detail. */
 export const TA_FIELD_SPECS = [
   'performanceSteps', 'requiredKnowledge', 'requiredSkills', 'workerBehaviours',
+  'basicReading', 'basicWriting', 'basicMath', 'basicScience',   // 3.100.0
   'performanceCriteria', 'performanceStandard',
   'toolsEquipmentMaterials', 'safetyOSH', 'decisionsCriticalPoints',
   'conditionsWorkEnvironment', 'commonErrorsTroubleshooting',
@@ -92,12 +101,58 @@ export function getTaskAnalysisCustomSections() {
   return Array.isArray(c) ? c.filter(x => x && x.id) : [];
 }
 
+// ── Decisions, cues and consequences (3.100.0) ────────────────
+// Norton's task-analysis form records each decision with the cue the
+// worker relies on and what a wrong decision leads to; the optional
+// fourth column ("how an expert handles it") comes from cognitive task
+// analysis. Stored as r.decisionTable = [{decision, cue, error, expert}].
+// r.decisionsCriticalPoints is kept in step as the plain list of
+// decisions, so everything that read it before still works — and a
+// record saved before 3.100.0 (list only) opens as rows with just the
+// decision filled in.
+const DEC_KEY  = 'decisionsCriticalPoints';
+const DEC_COLS = ['decision', 'cue', 'error', 'expert'];
+const _str = (v) => String(v == null ? '' : v);
+function _decRow(x) {
+  const o = {};
+  DEC_COLS.forEach(c => { o[c] = _str(x && x[c]); });
+  return o;
+}
+const _decRowFilled = (row) => DEC_COLS.some(c => _str(row[c]).trim());
+function _decisionRows(r) {
+  if (!r) return [];
+  if (Array.isArray(r.decisionTable) && r.decisionTable.length) return r.decisionTable.map(_decRow);
+  return _nonBlank(r[DEC_KEY]).map(s => _decRow({ decision: s.trim() }));
+}
+function _syncDecisionList(r) {
+  r[DEC_KEY] = (r.decisionTable || []).map(x => _str(x.decision).trim()).filter(Boolean);
+}
+/* "decision || cue || consequence [|| expert]" strings (from the AI) or
+   row objects (a restored value) → table rows. */
+function _toDecisionRows(value) {
+  return (Array.isArray(value) ? value : []).map(v => {
+    if (v && typeof v === 'object') return _decRow(v);
+    const parts = _str(v).split('||').map(x => x.trim());
+    return _decRow({ decision: parts[0], cue: parts[1], error: parts[2], expert: parts[3] });
+  }).filter(_decRowFilled);
+}
+function _cleanDecisionTable(r) {
+  return _decisionRows(r).filter(_decRowFilled)
+    .map(row => { const o = {}; DEC_COLS.forEach(c => { o[c] = row[c].trim(); }); return o; });
+}
+
 function _getField(r, key) {
+  if (key === DEC_KEY) return _decisionRows(r);
   if (!r) return _isTextField(key) ? '' : [];
   if (_isCustomKey(key)) return ((r.custom || {})[_customId(key)]) || [];
   return r[key];
 }
 function _setField(r, key, value) {
+  if (key === DEC_KEY) {
+    r.decisionTable = _toDecisionRows(value);
+    _syncDecisionList(r);
+    return;
+  }
   if (_isCustomKey(key)) {
     if (!r.custom || typeof r.custom !== 'object' || Array.isArray(r.custom)) r.custom = {};
     r.custom[_customId(key)] = value;
@@ -143,8 +198,9 @@ const _CORE_COMPLETE_KEYS = [
 function _blankRecord() {
   return {
     performanceSteps: [], requiredKnowledge: [], requiredSkills: [], workerBehaviours: [],
+    basicReading: [], basicWriting: [], basicMath: [], basicScience: [],
     toolsEquipmentMaterials: [], safetyOSH: [], conditionsWorkEnvironment: '',
-    decisionsCriticalPoints: [], performanceCriteria: [], performanceStandard: '',
+    decisionsCriticalPoints: [], decisionTable: [], performanceCriteria: [], performanceStandard: '',
     commonErrorsTroubleshooting: []
   };
 }
@@ -185,6 +241,7 @@ function _isRecordEmpty(r) {
   return LIST_FIELDS.every(f => !_nonBlank(r[f.key]).length) &&
          !(r.conditionsWorkEnvironment || '').trim() &&
          !(r.performanceStandard || '').trim() &&
+         !_decisionRows(r).some(_decRowFilled) &&
          !_customSectionsOf(r).length;
 }
 
@@ -260,6 +317,7 @@ export function getTaskAnalysisRecord(taskKey) {
   // internal id-keyed map.
   delete clean.custom;
   delete clean._aiPrev;
+  clean.decisionTable = _cleanDecisionTable(r);   // 3.100.0
   const custom = _customSectionsOf(r);
   if (custom.length) clean.customSections = custom;
   return clean;
@@ -300,6 +358,7 @@ export function getTaskAnalysisExportData() {
       // 3.46.0: user-added sections, in section order, non-blank only.
       delete record.custom;
       delete record._aiPrev;
+      record.decisionTable = _cleanDecisionTable(raw);   // 3.100.0
       record.customSections = _customSectionsOf(raw);
       return {
         dutyLetter: getDutyLetter(entry.dutyIndex),
@@ -314,6 +373,7 @@ export function getTaskAnalysisExportData() {
 // ── AI assistance hooks (used by task_analysis_ai.js) ───────────
 
 function _fieldFilled(r, key) {
+  if (key === DEC_KEY) return _decisionRows(r).some(_decRowFilled);
   const v = r ? _getField(r, key) : null;
   return Array.isArray(v) ? _nonBlank(v).length > 0 : !!(v || '').trim();
 }
@@ -606,6 +666,123 @@ function _renderTextField(field, value) {
     </div>`;
 }
 
+// ── Decisions table (3.100.0) ────────────────────────────────
+let _decExpertOpen = false;   // UI only: the optional 4th column
+
+function _renderDecisionTable(r) {
+  const rows = _decisionRows(r);
+  const hasExpert = rows.some(x => x.expert.trim());
+  const showExpert = hasExpert || _decExpertOpen;
+  const view = rows.length ? rows : [_decRow({})];
+  const cols = showExpert ? DEC_COLS : DEC_COLS.slice(0, 3);
+  const lbl = { decision: 'taDecColDecision', cue: 'taDecColCue', error: 'taDecColError', expert: 'taDecColExpert' };
+  const ph  = { decision: 'taDecPhDecision',  cue: 'taDecPhCue',  error: 'taDecPhError',  expert: 'taDecPhExpert' };
+  const head = `<div class="ta-dec-row ta-dec-head" aria-hidden="true"><span></span>${
+    cols.map(c => `<span class="ta-dec-h ta-dec-h-${c}">${escapeHtml(_t(lbl[c]))}</span>`).join('')}<span></span></div>`;
+  const body = view.map((row, i) => `
+      <div class="ta-dec-row" data-row="${i}">
+        <span class="ta-dec-n">${i + 1}</span>
+        ${cols.map(c => `<label class="ta-dec-cell ta-dec-cell-${c}">
+          <span class="ta-dec-cell-lbl">${escapeHtml(_t(lbl[c]))}</span>
+          <textarea data-action="ta-dec-edit" data-row="${i}" data-col="${c}" dir="auto" rows="2"
+                    aria-label="${escapeHtml(_t(lbl[c]))} ${i + 1}"
+                    placeholder="${escapeHtml(_t(ph[c]))}">${escapeHtml(row[c])}</textarea></label>`).join('')}
+        <button type="button" class="ta-dec-del" data-action="ta-dec-del" data-row="${i}"
+                title="${escapeHtml(_t('taDecDelRow'))}" aria-label="${escapeHtml(_t('taDecDelRow'))} ${i + 1}">🗑️</button>
+      </div>`).join('');
+  const expertBtn = hasExpert ? '' : `
+          <button type="button" class="btn-format ta-dec-expert-btn" data-action="ta-dec-expert"
+                  aria-pressed="${showExpert ? 'true' : 'false'}">${escapeHtml(_t(showExpert ? 'taDecHideExpert' : 'taDecShowExpert'))}</button>`;
+  return `
+    <div class="section-container ta-dec-section" data-field-block="${DEC_KEY}">
+      <div class="section-header-editable">
+        <h3>${_t('taLblDecisions')}${_aiBadge(DEC_KEY)}</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">${expertBtn}
+          <button type="button" class="btn-clear-section" data-action="ta-dec-clear">🗑️ ${_t('btnClear')}</button>
+        </div>
+      </div>
+      <p class="ta-dec-hint">${escapeHtml(_t('taDecHint'))}</p>
+      <div class="ta-dec-table${showExpert ? ' ta-dec-has-expert' : ''}">${head}${body}</div>
+      <button type="button" class="btn-add ta-dec-add" data-action="ta-dec-add">➕ ${escapeHtml(_t('taDecAdd'))}</button>
+    </div>`;
+}
+
+// ── Basic skills card (3.100.0) ──────────────────────────────
+function _renderBasicSkills(r) {
+  const fields = LIST_FIELDS.filter(f => f.basic);
+  const cells = fields.map(f => `
+        <div class="ta-basic-cell" data-field-block="${f.key}">
+          <div class="ta-basic-cell-h">
+            <span class="ta-basic-cell-t"><span aria-hidden="true">${f.icon}</span> ${escapeHtml(_t(f.shortKey))}${_aiBadge(f.key)}</span>
+            <button type="button" class="ta-basic-clear" data-action="ta-clear-field" data-field="${f.key}"
+                    title="${escapeHtml(_t('btnClear'))}" aria-label="${escapeHtml(_t('btnClear'))} — ${escapeHtml(_t(f.shortKey))}">🗑️</button>
+          </div>
+          <textarea data-action="ta-edit-list" data-field="${f.key}" dir="auto" rows="3"
+                    placeholder="${escapeHtml(_t(f.phKey))}">${escapeHtml(((r && r[f.key]) || []).join('\n'))}</textarea>
+        </div>`).join('');
+  return `
+    <div class="section-container ta-basic-section" data-field-block="basicSkills">
+      <div class="section-header-editable">
+        <div class="tab-title-with-help">
+          <h3>${escapeHtml(_t('taLblBasicSkills'))}</h3>
+          <button type="button" class="tab-help-btn" data-action="ta-basic-help" aria-haspopup="dialog"
+                  title="${escapeHtml(_t('ttBasicSkillsHelp'))}" aria-label="${escapeHtml(_t('ttBasicSkillsHelp'))}">?</button>
+        </div>
+      </div>
+      <p class="ta-basic-hint">${escapeHtml(_t('taBasicHint'))}</p>
+      <div class="ta-basic-grid">${cells}</div>
+    </div>`;
+}
+
+function _decEdit(rowIdx, col, value) {
+  const r = _ensureRecord(_selectedTaskKey);
+  if (!Array.isArray(r.decisionTable) || !r.decisionTable.length) r.decisionTable = _decisionRows(r);
+  while (r.decisionTable.length <= rowIdx) r.decisionTable.push(_decRow({}));
+  r.decisionTable[rowIdx] = _decRow(r.decisionTable[rowIdx]);
+  r.decisionTable[rowIdx][col] = value;
+  _syncDecisionList(r);
+  _clearAiDraft(DEC_KEY);
+}
+
+function _decAddRow() {
+  const r = _ensureRecord(_selectedTaskKey);
+  r.decisionTable = _decisionRows(r);
+  if (!r.decisionTable.length) r.decisionTable.push(_decRow({}));   // the blank row on screen
+  r.decisionTable.push(_decRow({}));
+  _renderFormPanel();
+  const all = document.querySelectorAll('#taskAnalysisFormPanel textarea[data-action="ta-dec-edit"][data-col="decision"]');
+  const last = all[all.length - 1];
+  if (last) { last.focus(); last.scrollIntoView({ block: 'nearest' }); }
+}
+
+function _decDeleteRow(rowIdx) {
+  const r = _record(_selectedTaskKey);
+  if (!r) return;
+  const rows = _decisionRows(r);
+  if (rowIdx >= rows.length) return;
+  if (_decRowFilled(rows[rowIdx]) && !confirm(_t('taDecConfirmDel'))) return;
+  rows.splice(rowIdx, 1);
+  r.decisionTable = rows;
+  _syncDecisionList(r);
+  _clearAiDraft(DEC_KEY);
+  _renderFormPanel();
+  _touchStatus(_selectedTaskKey);
+  _saveSoon();
+}
+
+function _decClear() {
+  const r = _record(_selectedTaskKey);
+  if (!r || !_decisionRows(r).some(_decRowFilled)) { showStatus(_t('msgSectionAlreadyEmpty'), 'success'); return; }
+  if (!confirm(_t('confirmClearSection'))) return;
+  r.decisionTable = [];
+  _syncDecisionList(r);
+  _clearAiDraft(DEC_KEY);
+  _renderFormPanel();
+  _touchStatus(_selectedTaskKey);
+  _saveSoon();
+  showStatus(_t('msgSectionCleared') + ' ✓', 'success');
+}
+
 function _renderFormPanel() {
   const panel = document.getElementById('taskAnalysisFormPanel');
   if (!panel) return;
@@ -654,9 +831,13 @@ function _renderFormPanel() {
       </div>
     </div>
 
-    ${TA_FIELD_SPECS.map(f => _isTextField(f.key)
-        ? _renderTextField(f, r[f.key])
-        : _renderListField(byField[f.key], r[f.key])).join('')}
+    ${TA_FIELD_SPECS.map(f => {
+        if (f.key === DEC_KEY) return _renderDecisionTable(r);
+        if (f.basic) return f.key === 'basicReading' ? _renderBasicSkills(r) : '';
+        return _isTextField(f.key)
+          ? _renderTextField(f, r[f.key])
+          : _renderListField(byField[f.key], r[f.key]);
+      }).join('')}
     ${getTaskAnalysisCustomSections().map(sec => _renderCustomField(sec, (r.custom || {})[sec.id])).join('')}
     <div class="ta-custom-add-row">
       <button type="button" class="btn-add ta-custom-add" data-action="ta-custom-add">➕ ${escapeHtml(_t('taCustomAdd'))}</button>
@@ -953,6 +1134,16 @@ export function setupTaskAnalysisEvents() {
       return;
     }
 
+    // 3.100.0 — decisions table and basic skills
+    if (action === 'ta-dec-add')    { _decAddRow(); return; }
+    if (action === 'ta-dec-del')    { _decDeleteRow(+btn.getAttribute('data-row')); return; }
+    if (action === 'ta-dec-clear')  { _decClear(); return; }
+    if (action === 'ta-dec-expert') { _decExpertOpen = !_decExpertOpen; _renderFormPanel(); return; }
+    if (action === 'ta-basic-help') {
+      import('./events.js').then(m => m.openHelpGuide('basicSkills')).catch(() => {});
+      return;
+    }
+
     if (action === 'ta-custom-add')    { _customAdd(); return; }
     if (action === 'ta-custom-rename') { _customRename(btn.getAttribute('data-section-id')); return; }
     if (action === 'ta-custom-delete') { _customDelete(btn.getAttribute('data-section-id')); return; }
@@ -998,7 +1189,7 @@ export function setupTaskAnalysisEvents() {
       const rec = _ensureRecord(_selectedTaskKey);
       _setField(rec, field, isList ? [] : '');
       _clearAiDraft(field);
-      const textarea = btn.closest('.section-container')?.querySelector('textarea');
+      const textarea = (btn.closest('[data-field-block="' + field + '"]') || btn.closest('.section-container'))?.querySelector('textarea');
       if (textarea) textarea.value = '';
       _touchStatus(_selectedTaskKey);
       showStatus(_t('msgSectionCleared') + ' ✓', 'success');
@@ -1024,6 +1215,10 @@ export function setupTaskAnalysisEvents() {
       // "is this empty" checks (see _isRecordEmpty / getTaskAnalysisExportData).
       _setField(r, field, el.value.split('\n'));
       _clearAiDraft(field);
+      return;
+    }
+    if (action === 'ta-dec-edit') {
+      _decEdit(+el.getAttribute('data-row'), el.getAttribute('data-col'), el.value);
       return;
     }
     if (action === 'ta-edit-text') {
