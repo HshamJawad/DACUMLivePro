@@ -7,6 +7,16 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.103.1 — 2026-10-13 — Misc: "Reset to automatic" restores both groups
+PATCH. settings_misc.js, translations.js, dacum-components.css, index.html,
+sw.js (v242), tests/specs/ui-prefs.spec.js.
+Fixed   With the AI cards on Hidden, the reset button was greyed out (there
+        were no per-tab choices to clear), so the ✨ AI buttons and cards
+        could not be brought back from it.
+Changed The button is now "Reset to automatic", below both groups: it puts
+        the Helper button and the AI cards back to Automatic and clears the
+        per-tab choices. Enabled whenever anything differs from that.
+
 ── 3.103.0 — 2026-10-13 — Settings → Misc: Helper button and AI cards
 MINOR. ui_prefs.js (new), settings_misc.js (new), export_settings.js,
 ai_card_toggle.js, helper_wizard.js, translations.js, dacum-components.css,

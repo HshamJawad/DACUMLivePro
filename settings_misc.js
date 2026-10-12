@@ -1,8 +1,9 @@
 // ============================================================
 // /settings_misc.js — 3.103.0
 // Settings → Misc: interface preferences that act at once (no Save):
-// the Helper button and the AI cards (ui_prefs.js), plus "Reset my
-// per-tab choices" for the "✨ AI" button. Rendered by
+// the Helper button and the AI cards (ui_prefs.js), plus "Reset to
+// automatic" — both groups back to Automatic and the per-tab choices of
+// the "✨ AI" button forgotten (3.103.1). Rendered by
 // export_settings.js like the Languages tab.
 // ============================================================
 
@@ -31,9 +32,13 @@ function _group(name, legendKey, icon) {
       <div class="ms-opts" role="radiogroup" aria-labelledby="msHead_${name}">${opts}</div>`;
 }
 
-export function renderMiscTab(box) {
+function _isDefault() {
+  return getPref('helperChip') === 'auto' && getPref('aiCards') === 'auto' && !hasAICardChoices();
+}
+
+export function renderMiscTab(box, { justReset = false } = {}) {
   if (!box) return;
-  const has = hasAICardChoices();
+  const off = _isDefault();
   box.innerHTML = `
     <p class="es-intro">🧰 ${_esc(_t('msIntro'))}</p>
     ${_group('helperChip', 'msHelperTitle', '🧭')}
@@ -41,11 +46,11 @@ export function renderMiscTab(box) {
     </section>
     ${_group('aiCards', 'msAiTitle', '✨')}
       <p class="es-note">${_esc(_t('msAiNote'))}</p>
-      <div class="ms-reset-row">
-        <button type="button" class="cl-btn" data-ms-reset${has ? '' : ' disabled'}>↺ ${_esc(_t('msAiReset'))}</button>
-        <span class="es-note ms-reset-msg" aria-live="polite"></span>
-      </div>
-    </section>`;
+    </section>
+    <div class="ms-reset-row">
+      <button type="button" class="cl-btn" data-ms-reset${off ? ' disabled' : ''}>↺ ${_esc(_t('msAiReset'))}</button>
+      <span class="es-note ms-reset-msg" aria-live="polite">${justReset ? '✓ ' + _esc(_t('msAiResetDone')) : ''}</span>
+    </div>`;
 
   box.querySelectorAll('[data-ms-pref]').forEach(r => r.addEventListener('change', () => {
     setPref(r.getAttribute('data-ms-pref'), r.value);
@@ -53,9 +58,9 @@ export function renderMiscTab(box) {
   }));
   const reset = box.querySelector('[data-ms-reset]');
   if (reset) reset.addEventListener('click', () => {
+    setPref('helperChip', 'auto');
+    setPref('aiCards', 'auto');
     resetAICardChoices();
-    reset.disabled = true;
-    const msg = box.querySelector('.ms-reset-msg');
-    if (msg) msg.textContent = '✓ ' + _t('msAiResetDone');
+    renderMiscTab(box, { justReset: true });
   });
 }

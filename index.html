@@ -108,12 +108,12 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v241';
+      var EXPECTED_SW = 'v242';
 
       // ── Human-readable build identity (shown in the toolbar) ──
-      // Bumped together with EXPECTED_SW above. MINOR: Settings → Misc
-      // (Helper button and AI cards: automatic, always shown, hidden).
-      var APP_VERSION = '3.103.0';
+      // Bumped together with EXPECTED_SW above. PATCH: Settings → Misc
+      // "Reset to automatic" restores both groups, also from Hidden.
+      var APP_VERSION = '3.103.1';
       var APP_RELEASED = '2026-10-13';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
