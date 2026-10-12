@@ -15,7 +15,7 @@ import { lwExtractDutiesAndTasks } from './workshop.js';
 import { getTaskCode, CLUSTER_ADDED_TASK_PREFIX } from './codes.js';
 import { clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI, aiMarkHTML, removeAIMark } from './ai_draft.js';
 import { CLUSTER_TASK_SOURCE_ADDED, _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, isClusterAddedTask, switchTab } from './modules_shared.js';
-import { setNqfEnabled, setNqfFramework, setModuleNqfLevel, setModuleNqfDescriptor, renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack } from './module_mapping.js';
+import { setModuleCategory, openModuleCategoriesEditor, setNqfEnabled, setNqfFramework, setModuleNqfLevel, setModuleNqfDescriptor, renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack } from './module_mapping.js';
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
@@ -1326,6 +1326,13 @@ function _injectClusterTaskStyles() {
       font-size: 0.95em; font-family: inherit; background: #fff; max-width: 100%;
     }
     .mod-track-input { width: 170px; }
+    .mod-cat-select { width: auto; max-width: 160px; }
+    .mod-cat-chip { display:inline-block; margin-inline-start:6px; padding:1px 9px; border-radius:99px; font-size:.72em; font-weight:700;
+      vertical-align:middle; background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; }
+    .mod-cat-chip.mod-cat-basic    { background:#ecfeff; color:#155e75; border-color:#a5f3fc; }
+    .mod-cat-chip.mod-cat-common   { background:#f0fdf4; color:#166534; border-color:#bbf7d0; }
+    .mod-cat-chip.mod-cat-core     { background:#eef2ff; color:#3730a3; border-color:#c7d2fe; }
+    .mod-cat-chip.mod-cat-elective { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .cov-level-count { width: 70px; }
     .mod-level-group { margin-bottom: 18px; }
     .mod-level-head {
@@ -1447,6 +1454,13 @@ function _wireClusterTaskControls() {
     if (!t || !t.matches) return;
     if (t.matches('#modulesContainer .mod-level-select'))     setModuleLevel(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesContainer .mod-track-input')) setModuleTrack(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesContainer .mod-cat-select')) {   // 3.101.0
+      if (t.value === '__edit') {
+        const m = appState.moduleMappingData.modules.find(x => x.id === t.getAttribute('data-module-id'));
+        t.value = (m && m.category) || '';
+        openModuleCategoriesEditor();
+      } else setModuleCategory(t.getAttribute('data-module-id'), t.value);
+    }
     else if (t.matches('#modulesContainer .mod-code-input'))  setModuleCode(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesContainer .mod-short-input')) setModuleShortName(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesLabelMode'))                  setModuleLabelMode(t.value);

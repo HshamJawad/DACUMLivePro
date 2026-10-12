@@ -7,6 +7,33 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.101.0 — 2026-10-12 — Module categories; CBC draft export
+MINOR. module_mapping.js, learning_outcomes.js, clusters.js,
+module_curriculum.js, module_curriculum_text.js, exports_cbc_docx.js (new),
+translations.js, index.html, sw.js (v237), tests/specs/cbc-export.spec.js (new).
+Added   Module Mapping: "Category" for each module, beside level and track —
+        Basic, Common, Core, Elective by default, shown as a chip on the
+        card. "Edit categories…" (last item of the list) renames, adds,
+        removes or reorders them for any national scheme; renaming keeps
+        each module's choice. Stored with the project.
+Added   Module Curriculum → Programme settings → "Course information
+        (CBC)": qualification level, course description, course outcomes.
+        Not used by the CUR documents.
+Added   Standard menu → CBC (was "soon"): a Word DRAFT of the competency-
+        based curriculum for the whole programme, built from the project —
+        cover; course design (title, nominal duration = sum of module
+        hours, level, description, outcomes, entry requirements, the
+        course structure grouped by category with competencies, modules,
+        outcomes and hours, assessment methods, delivery, resources,
+        instructors and trainers per group); then the modules of
+        instruction by category (competency, title, descriptor, duration,
+        level, prerequisite, outcomes; per outcome its assessment criteria,
+        contents from the Task Analysis knowledge, conditions,
+        methodologies and assessment methods). Empty fields print "—" so
+        the gaps are easy to fill in Word. Basic or common competencies
+        that are not in the chart can be added as competencies with their
+        own tasks in Competency Clusters and classified here.
+
 ── 3.100.3 — 2026-10-12 — No source names in the interface; roadmap
 PATCH. translations.js, events.js, clustering_ai.js,
 DACUM_Live_Pro_User_Guide.html, ROADMAP.md, index.html, sw.js (v236),

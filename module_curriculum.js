@@ -35,7 +35,7 @@ import { getTaskAnalysisRecord } from './task_analysis.js';
 import { exportOccupationalStandardWord } from './exports_os_docx.js';
 import { exportCurriculumDocx } from './exports_cur_docx.js';
 import { isTaskSelected, getTaskRatingMetrics } from './task_selection.js';
-import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds } from './modules.js';
+import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds, getModuleCategories, getModuleCategory, categoryLabel } from './modules.js';
 import { _DIST_GUIDE, _GUIDE, _L, _S } from './module_curriculum_text.js';
 
 
@@ -362,6 +362,14 @@ function _renderSettings() {
           <label class="cur-field"><span>${_esc(_tx('curGroup'))}</span>
             <input type="number" min="1" step="1" inputmode="numeric" class="cur-num" data-cs="set" data-ck="groupSize" value="${_esc(s.groupSize)}"></label>
         </div>
+        <div class="cur-subhead">${_esc(_tx('curCourseInfo'))}</div>
+        <p class="cur-hint">${_esc(_tx('curCourseInfoHint'))}</p>
+        <label class="cur-field"><span>${_esc(_tx('cbcQualLevel'))}</span>
+          <input type="text" data-cs="set" data-ck="qualificationLevel" value="${_esc(s.qualificationLevel || '')}" maxlength="60" placeholder="${_esc(_tx('curQualLevelPh'))}"></label>
+        <label class="cur-field"><span>${_esc(_tx('cbcCourseDesc'))}</span>
+          <textarea class="cur-auto" rows="3" data-cs="set" data-ck="courseDescription" placeholder="${_esc(_tx('curCourseDescPh'))}">${_esc(s.courseDescription || '')}</textarea></label>
+        <div class="cur-field"><span class="cur-field-label">${_esc(_tx('cbcCourseOutcomes'))}</span>
+          ${_listEditor('set', 'courseOutcomes', s.courseOutcomes, { label: _tx('cbcCourseOutcomes'), ph: _tx('curCourseOutPh') })}</div>
         <div class="cur-subhead">${_esc(_tx('curProgReqs'))}</div>
         <p class="cur-hint">${_esc(_tx('curProgReqsHint'))}</p>
         <div class="cur-field"><span class="cur-field-label">${_esc(curLabel('curEntryQuals'))}</span>
@@ -1132,7 +1140,8 @@ export function isModuleCurriculumEmpty() {
   const def = defaultModuleCurriculumData().settings;
   const settingsDefault = !(s.programmeName || '').trim() && !(s.filePrefix || '').trim() && s.levelStyle !== 'long' && Number(s.hoursPerCredit) === def.hoursPerCredit &&
     Number(s.groupSize) === def.groupSize && SPLIT_KEYS.every(k => Number((s.split || {})[k]) === def.split[k]) &&
-    !_clean(s.entryQualifications).length && !_clean(s.trainerQualifications).length && !(Number(s.trainersPerGroup) > 0);
+    !_clean(s.entryQualifications).length && !_clean(s.trainerQualifications).length && !(Number(s.trainersPerGroup) > 0) &&
+    !(s.qualificationLevel || '').trim() && !(s.courseDescription || '').trim() && !_clean(s.courseOutcomes).length;
   return settingsDefault && !Object.keys(d.byModule || {}).length;
 }
 /** Clear This Tab: curriculum data only — modules and LOs are untouched. */
@@ -1228,6 +1237,99 @@ export function getCurriculumModel(moduleId, opts = {}) {
   };
 }
 
+// ── Competency-based curriculum (CBC) — whole programme (3.101.0) ──
+// A DRAFT in Word, to be finished by hand: course design (description,
+// outcomes, entry requirements, the course structure grouped by module
+// category, assessment, delivery, resources, instructors) followed by
+// the modules of instruction. Everything comes from data already in the
+// project; nothing is invented. Built in the content language.
+export function getCbcModel() {
+  const mods = _modules();
+  if (!mods.length) return null;
+  const s = _settings();
+  const uniq = (arr) => { const seen = new Set(); return arr.map(x => _str(x).trim()).filter(x => x && !seen.has(x.toLowerCase()) && seen.add(x.toLowerCase())); };
+  const strip = x => _str(x).replace(/^[\s]*[•\-\*○●]\s*/, '').replace(/^[\s]*\d+[\.\)]\s*/, '').trim();
+  const lines = t => _str(t).split('\n').map(strip).filter(Boolean);
+  const cats = getModuleCategories();
+  const moduleModels = mods.map((m, i) => {
+    const cm = getCurriculumModel(m.id, {});
+    const rec = _modRec(m.id) || {};
+    const live = _liveLOs(m);
+    const comps = _osLink(m).map(g => g.name || _txf('curCompetency', { n: g.number }));
+    const los = live.map((o, k) => {
+      const lr = _loRec(m.id, o.id) || {};
+      const pcs = _arr(o.linkedCriteria).filter(pc => pc && !pc.stale);
+      const taskIds = uniq(pcs.flatMap(pc => criterionTaskIds(pc)));
+      const knowledge = uniq(taskIds.flatMap(t => { const r = getTaskAnalysisRecord(t); return r ? _arr(r.requiredKnowledge).map(strip) : []; }));
+      const contents = knowledge.length ? knowledge.slice(0, 12) : uniq([...lines(lr.discussion), ...lines(lr.demonstration)]);
+      const cmLo = cm.los[k] || {};
+      return {
+        n: k + 1, statement: _str(o.statement).trim(),
+        criteria: uniq(pcs.map(pc => pc.text)),
+        contents,
+        conditions: uniq([...lines(lr.context === undefined ? '' : lr.context)]),
+        methodologies: uniq(lines(lr.methodology)),
+        assessMethods: uniq(_clean(lr.assessMethods)),
+        hours: cmLo.hours,
+      };
+    });
+    const cat = getModuleCategory(m);
+    return {
+      id: m.id, code: cm.code, title: cm.title,
+      categoryId: cat ? cat.id : '', categoryLabel: cat ? categoryLabel(cat) : '',
+      competencies: comps,
+      descriptor: cm.purpose,
+      hours: cm.hours ? cm.hours.total : null,
+      level: cm.levelLabel || '',
+      prerequisites: cm.prerequisites,
+      entrySkills: _clean(rec.entrySkills),
+      los,
+      resources: { equipment: cm.equipment, tools: cm.tools, materials: uniq([...cm.materials, ...cm.resources]), ppe: cm.ppe },
+    };
+  });
+  const order = cats.map(c => c.id);
+  const groups = [];
+  [...order, ''].forEach(id => {
+    const items = moduleModels.filter(mm => (order.includes(mm.categoryId) ? mm.categoryId : '') === id);
+    if (!items.length) return;
+    const cat = cats.find(c => c.id === id);
+    groups.push({ id, label: cat ? categoryLabel(cat) : _tx('cbcUnclassified'), modules: items });
+  });
+  const allLos = moduleModels.flatMap(mm => mm.los);
+  const total = moduleModels.reduce((a, mm) => a + (Number(mm.hours) || 0), 0);
+  return {
+    rtl: _isRTL(),
+    sector: _domVal('sector'), producedBy: _domVal('producedBy'),
+    title: _programmeName(), qualificationLevel: _str(s.qualificationLevel).trim(),
+    nominalHours: total || null,
+    description: _str(s.courseDescription).trim(),
+    outcomes: _clean(s.courseOutcomes),
+    entry: uniq([..._clean(s.entryQualifications), ...moduleModels.flatMap(mm => mm.entrySkills)]),
+    assessMethods: uniq(allLos.flatMap(l => l.assessMethods)),
+    delivery: uniq(allLos.flatMap(l => l.methodologies)),
+    resources: {
+      equipment: uniq(moduleModels.flatMap(mm => mm.resources.equipment)),
+      tools: uniq(moduleModels.flatMap(mm => mm.resources.tools)),
+      materials: uniq(moduleModels.flatMap(mm => mm.resources.materials)),
+      ppe: uniq(moduleModels.flatMap(mm => mm.resources.ppe)),
+    },
+    instructors: _clean(s.trainerQualifications),
+    trainers: _trainersRatio(),
+    groups,
+    fileName: `CBC_${(_programmeName() || 'Programme').replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_+|_+$/g, '')}.docx`,
+  };
+}
+
+export async function exportCbcWord() {
+  const I = window.i18n;
+  const model = (I && I.withContentLang) ? I.withContentLang(getCbcModel) : getCbcModel();
+  if (!model) { showStatus(_tx('dlgNoModules'), 'error'); return false; }
+  const { exportCbcDocx } = await import('./exports_cbc_docx.js');
+  const ok = await exportCbcDocx(model);
+  if (ok) showStatus('✓ ' + _txf('msgCurExported', { file: model.fileName }), 'success');
+  return ok;
+}
+
 export async function exportModuleCurriculumWord(moduleId, opts = {}) {
   // 3.79.0: the model carries some labels already resolved — build it in
   // the project's content language, the same as the document itself.
@@ -1309,7 +1411,7 @@ export function toggleStandardMenu(anchor, viaKeyboard) {
   menu.innerHTML = `
     <button type="button" role="menuitem" class="cur-menu-item" data-mnu="os"><span class="cur-menu-ic cur-ic-os">OS</span>${_esc(_tx('mnuOS'))}</button>
     <button type="button" role="menuitem" class="cur-menu-item" data-mnu="cur"><span class="cur-menu-ic cur-ic-cur">CUR</span>${_esc(_tx('mnuCUR'))}</button>
-    <button type="button" role="menuitem" class="cur-menu-item" aria-disabled="true" disabled data-mnu="cbc"><span class="cur-menu-ic cur-ic-cbc">CBC</span>${_esc(_tx('mnuCBC'))}<span class="cur-soon">${_esc(_tx('mnuSoon'))}</span></button>`;
+    <button type="button" role="menuitem" class="cur-menu-item" data-mnu="cbc"><span class="cur-menu-ic cur-ic-cbc">CBC</span>${_esc(_tx('mnuCBC'))}</button>`;
   document.body.appendChild(menu);
   btn.setAttribute('aria-haspopup', 'menu');
   btn.setAttribute('aria-expanded', 'true');
@@ -1341,6 +1443,7 @@ export function toggleStandardMenu(anchor, viaKeyboard) {
     _closeMenu(false);
     if (what === 'os') exportOccupationalStandardWord();
     else if (what === 'cur') openCurExportDialog();
+    else if (what === 'cbc') exportCbcWord();
   });
   setTimeout(() => document.addEventListener('pointerdown', _menuOutside, true), 0);
   window.addEventListener('resize', _menuResize);
