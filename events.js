@@ -270,12 +270,7 @@ export function setupEvents() {
     if (e.target.closest && e.target.closest('[data-team-help]')) _showTeamHelp();
   });
   _on('osHelpBtn', 'click', () => _showOccupationalStandardHelp());
-  _on('jobTitleHelpBtn', 'click', () => _showHelpModal({
-    id:    'jobTitleHelpModal',
-    icon:  '\u{1F454}',
-    title: _t('ttJobTitleHelp'),
-    intro: _t('hintJobTitle'),
-  }));
+  _on('jobTitleHelpBtn', 'click', () => _showJobTitleHelp());
 
   // ── Additional Information tab: AI supporting-info generation ──
   // No markAiGenerated() here — the Refine Results card operates on
@@ -834,7 +829,85 @@ function _hasVerifiedLiveWorkshopData() {
          typeof appState.lwAggregatedResults !== 'undefined' && appState.lwAggregatedResults;
 }
 
-function _showHelpModal({ id, icon, title, intro, items, note, bodyHtml, maxWidth }) {
+// 3.99.0 — Helper wizard. While _helpCapture is an array, the "?"
+// guides hand their content over instead of opening a modal, so the
+// Helper shows exactly the same text as the tab's own "?" button —
+// one source, three languages, nothing to keep in step by hand.
+let _helpCapture = null;
+
+const _HELP_GUIDES = {
+  jobTitle:      () => _showJobTitleHelp(),
+  team:          () => _showTeamHelp(),
+  duties:        () => _showDutiesHelp(),
+  addInfo:       () => _showAdditionalInfoHelp(),
+  verification:  () => _showTaskVerificationHelp(),
+  taskAnalysis:  () => _showTaskAnalysisHelp(),
+  clustering:    () => _showClusteringHelp(),
+  clusterNaming: () => _showClusterNamingHelp(),
+  pcRange:       () => _showPCRangeHelp(),
+  os:            () => _showOccupationalStandardHelp(),
+  lo:            () => _showLearningOutcomesHelp(),
+  mm:            () => _showModuleMappingHelp(),
+};
+
+/** Content of one or more tab guides as { icon, title, html } objects,
+ *  without opening anything. Unknown names are skipped. */
+export function getTabHelpGuides(names) {
+  const out = [];
+  (names || []).forEach(name => {
+    const fn = _HELP_GUIDES[name];
+    if (!fn) return;
+    _helpCapture = [];
+    try { fn(); } catch (_) { /* a guide that fails is simply left out */ }
+    _helpCapture.forEach(spec => out.push({
+      icon: spec.icon, title: spec.title, html: _helpBodyHtml(spec),
+    }));
+    _helpCapture = null;
+  });
+  return out;
+}
+
+function _showJobTitleHelp() {
+  _showHelpModal({
+    id:    'jobTitleHelpModal',
+    icon:  '\u{1F454}',
+    title: _t('ttJobTitleHelp'),
+    intro: _t('hintJobTitle'),
+  });
+}
+
+/* Body of a guide (intro, bullet rows, free HTML, note) — shared by the
+   modal below and by the Helper wizard. */
+function _helpBodyHtml({ intro, items, note, bodyHtml }) {
+  const rows = (items || []).map(([bullet, strong, rest]) =>
+    '<li style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;' +
+    'border-bottom:1px solid #f1f5f9;">' +
+      '<span style="font-size:1.05em;line-height:1.4;flex-shrink:0;">' + bullet + '</span>' +
+      '<span style="font-size:0.87em;line-height:1.6;color:#334155;">' +
+        (strong ? '<strong style="color:#1e293b;">' + strong + '</strong>' + (rest ? ' — ' : '') : '') +
+        (rest || '') +
+      '</span>' +
+    '</li>'
+  ).join('');
+
+  const noteHtml = note
+    ? '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;' +
+      'padding:11px 13px;margin-bottom:18px;font-size:0.84em;line-height:1.6;color:#92400e;">' +
+      note + '</div>'
+    : '';
+
+  return (intro
+      ? '<p style="margin:0 0 8px;font-size:0.88em;color:#475569;line-height:1.6;">' +
+        intro + '</p>'
+      : '') +
+    (rows ? '<ul style="list-style:none;margin:0 0 18px;padding:0;">' + rows + '</ul>' : '') +
+    (bodyHtml || '') +
+    noteHtml;
+}
+
+function _showHelpModal(spec) {
+  if (_helpCapture) { _helpCapture.push(spec); return; }
+  const { id, icon, title, maxWidth } = spec;
   const existing = document.getElementById(id);
   if (existing) { existing.remove(); return; }   // second click closes it
 
@@ -855,23 +928,6 @@ function _showHelpModal({ id, icon, title, intro, items, note, bodyHtml, maxWidt
     'backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);' +
     'animation:aiErrFadeIn 0.2s ease;';
 
-  const rows = (items || []).map(([bullet, strong, rest]) =>
-    '<li style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;' +
-    'border-bottom:1px solid #f1f5f9;">' +
-      '<span style="font-size:1.05em;line-height:1.4;flex-shrink:0;">' + bullet + '</span>' +
-      '<span style="font-size:0.87em;line-height:1.6;color:#334155;">' +
-        (strong ? '<strong style="color:#1e293b;">' + strong + '</strong>' + (rest ? ' — ' : '') : '') +
-        (rest || '') +
-      '</span>' +
-    '</li>'
-  ).join('');
-
-  const noteHtml = note
-    ? '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;' +
-      'padding:11px 13px;margin-bottom:18px;font-size:0.84em;line-height:1.6;color:#92400e;">' +
-      note + '</div>'
-    : '';
-
   overlay.innerHTML =
     '<div style="background:#fff;border-radius:16px;max-width:' + (maxWidth || '480px') + ';width:100%;' +
     'box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;' +
@@ -884,13 +940,7 @@ function _showHelpModal({ id, icon, title, intro, items, note, bodyHtml, maxWidt
         '<p style="margin:0;font-size:1em;font-weight:800;color:#3730a3;">' + title + '</p>' +
       '</div>' +
       '<div style="padding:18px 22px 20px;overflow-y:auto;">' +
-        (intro
-          ? '<p style="margin:0 0 8px;font-size:0.88em;color:#475569;line-height:1.6;">' +
-            intro + '</p>'
-          : '') +
-        (rows ? '<ul style="list-style:none;margin:0 0 18px;padding:0;">' + rows + '</ul>' : '') +
-        (bodyHtml || '') +
-        noteHtml +
+        _helpBodyHtml(spec) +
         '<div style="display:flex;justify-content:flex-end;">' +
           '<button data-help-close style="padding:9px 22px;background:#667eea;' +
           'color:#fff;border:none;border-radius:8px;font-size:0.9em;font-weight:700;' +

@@ -1015,6 +1015,17 @@ function _showGuide() {
   _modal('curGuideModal', G.title, '📘', body, [{ label: _tx('curClose'), cls: 'cur-btn-primary', close: true }], { wide: true });
 }
 
+/** 3.99.0 — the same guide as content, for the Helper wizard. */
+export function getCurriculumGuide() {
+  const G = _GUIDE[_lang()] || _GUIDE.en;
+  return {
+    icon: '📘', title: G.title,
+    html: `<p class="cur-modal-intro">${_esc(G.intro)}</p>
+    ${G.sections.map(s => `<div class="cur-guide-sec"><p class="cur-guide-h">${s.h}</p>
+      <ul>${s.items.map(it => `<li>${it}</li>`).join('')}</ul></div>`).join('')}`,
+  };
+}
+
 function _ensureHelpButton() {
   const btn = document.getElementById('curHelpBtn');
   if (!btn) return;
