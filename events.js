@@ -1239,8 +1239,7 @@ function _showDutiesHelp() {
 // 3.100.0 — Basic Skills (Task Analysis) vs the Skills Level Matrix
 // (Additional Info). The two names sound alike; the guide sets them
 // side by side so the facilitator records each thing once, in the right
-// place. Basic skills follow SCID component A-6, "literacy task
-// analysis" (Norton, 1993).
+// place.
 function _showBasicSkillsHelp() {
   const TH = 'padding:8px 10px;font-size:0.8em;font-weight:800;text-align:start;border-bottom:2px solid #c7d2fe;';
   const TD = 'padding:8px 10px;font-size:0.84em;line-height:1.55;color:#334155;vertical-align:top;border-bottom:1px solid #eef2f7;';
@@ -1261,8 +1260,7 @@ function _showBasicSkillsHelp() {
         '</tr></thead>' +
         '<tbody>' + ['What', 'Scope', 'Purpose', 'Example'].map(row).join('') + '</tbody>' +
       '</table>' +
-    '</div>' +
-    '<p style="margin:0 0 4px;font-size:0.78em;color:#94a3b8;line-height:1.6;">' + _t('helpBasicSource') + '</p>';
+    '</div>';
 
   _showHelpModal({
     id:       'basicSkillsHelpModal',

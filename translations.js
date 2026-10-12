@@ -58,7 +58,6 @@
       helpBasicCmpExampleM: "“A skilled worker communicates in writing at a good level.”",
       helpBasicCmpExampleB: "“Installing a circuit breaker requires reading a wiring diagram and calculating the load current.”",
       helpBasicNote: "To avoid duplication: record communication and teamwork in the Skills Level Matrix; record here only the academic skills this particular task needs.",
-      helpBasicSource: "Based on SCID component A-6, “Conduct literacy task analysis” (Norton, SCID model, 1993).",
       /* 3.99.6 — Dashboard Excel export (dashboard_xlsx.js) */
       xlSheetTasks: "Task Priorities",
       xlSheetDuties: "Duty Summary",
@@ -1956,7 +1955,6 @@
       helpBasicCmpExampleM: "« Un travailleur qualifié communique bien par écrit. »",
       helpBasicCmpExampleB: "« Installer un disjoncteur exige de lire un schéma et de calculer le courant de charge. »",
       helpBasicNote: "Pour éviter les doublons : la communication et le travail d’équipe vont dans la matrice ; ici, seulement les compétences scolaires propres à cette tâche.",
-      helpBasicSource: "Fondé sur la composante A-6 du modèle SCID, « Analyse des compétences de base » (Norton, 1993).",
       /* 3.99.6 — Dashboard Excel export (dashboard_xlsx.js) */
       xlSheetTasks: "Priorités des tâches",
       xlSheetDuties: "Synthèse par activité",
@@ -3844,7 +3842,6 @@
       helpBasicCmpExampleM: "«العامل الماهر يتواصل كتابياً بمستوى جيد.»",
       helpBasicCmpExampleB: "«مهمة تركيب القاطع تتطلب قراءة مخطط كهربائي وحساب تيار الحمل.»",
       helpBasicNote: "لتجنب التكرار: سجّل التواصل والعمل الجماعي في مصفوفة المستويات، وسجّل هنا فقط المهارات الأكاديمية التي تحتاجها هذه المهمة بعينها.",
-      helpBasicSource: "مستند إلى المكوّن A-6 في نموذج SCID «تحليل المهارات الأساسية للمهمة» (نورتون، 1993).",
       /* 3.99.6 — Dashboard Excel export (dashboard_xlsx.js) */
       xlSheetTasks: "أولويات المهام",
       xlSheetDuties: "ملخص الواجبات",
