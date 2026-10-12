@@ -2325,3 +2325,10 @@ html[data-content-mixed] .container input[type="text"] {
   .crr-cols { grid-template-columns: minmax(0, 1fr); }
   .crr-arrow { display: none; }
 }
+
+/* 3.99.5 — Task Verification "Standalone PDF / DOCX": on a phone the
+   pair shares one row, so the labels step down a size to stay on one
+   line ("Standalone DOCX" otherwise wraps in English). */
+@media (max-width: 480px) {
+  .tv-standalone-btn { font-size: 0.76em !important; gap: 4px !important; }
+}

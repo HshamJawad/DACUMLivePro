@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v230';
+      var EXPECTED_SW = 'v231';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: the Assessment
       // Plan appendix is no longer exported (Module Builder makes the
       // assessment forms).
-      var APP_VERSION = '3.99.4';
+      var APP_VERSION = '3.99.5';
       var APP_RELEASED = '2026-10-12';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1612,21 +1612,24 @@
                  and "standalone" is what it should always have been:
                  a button that produces a file when you press it. -->
             <div style="max-width: 800px; margin: 24px auto 16px auto; padding: 12px 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
-                <div style="min-width: 220px; flex: 1 1 auto;">
+                <div style="min-width: 0; flex: 1 1 260px;">
                     <p style="margin: 0; font-size: 0.9em; font-weight: 700; color: #334155;">📊 <span data-i18n="lblVerificationReport">Verification Report</span></p>
                     <p style="margin: 2px 0 0; font-size: 0.8em; color: #64748b;" data-i18n="hintVerificationReport">Automatically included as an appendix in the main PDF and Word exports.</p>
                 </div>
-                <div style="display: flex; gap: 8px; flex: 0 0 auto;">
-                    <button type="button" id="btnTVExportPDF"
+                <!-- 3.99.5: the button pair may shrink and wraps onto its own
+                     row on a phone; each button takes half and centres its
+                     label, so neither overflows the card edge. -->
+                <div style="display: flex; gap: 8px; flex: 1 1 340px; max-width: 420px; min-width: 0;">
+                    <button type="button" id="btnTVExportPDF" class="tv-standalone-btn"
                             title="Export the verification results on their own as a PDF"
                             data-i18n="ttStandalonePDF" data-i18n-attr="title"
-                            style="background: #f8fafc; color: #475569; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 0.84em; font-weight: 600; cursor: pointer;">
+                            style="flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 5px; text-align: center; white-space: normal; line-height: 1.25; box-sizing: border-box; background: #f8fafc; color: #475569; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px 6px; font-size: 0.84em; font-weight: 600; cursor: pointer;">
                         📄 <span data-i18n="btnStandalonePDF">Standalone PDF</span>
                     </button>
-                    <button type="button" id="btnTVExportDOCX"
+                    <button type="button" id="btnTVExportDOCX" class="tv-standalone-btn"
                             title="Export the verification results on their own as a Word document"
                             data-i18n="ttStandaloneDOCX" data-i18n-attr="title"
-                            style="background: #f8fafc; color: #475569; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px 14px; font-size: 0.84em; font-weight: 600; cursor: pointer;">
+                            style="flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 5px; text-align: center; white-space: normal; line-height: 1.25; box-sizing: border-box; background: #f8fafc; color: #475569; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 8px 6px; font-size: 0.84em; font-weight: 600; cursor: pointer;">
                         📝 <span data-i18n="btnStandaloneDOCX">Standalone DOCX</span>
                     </button>
                 </div>

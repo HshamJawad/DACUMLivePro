@@ -7,6 +7,16 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.99.5 — 2026-10-12 — Verification report buttons; Helper chip
+PATCH. index.html, dacum-components.css, helper_wizard.js, sw.js (v231).
+Fixed   Task Verification → Verification Report: "Standalone PDF" and
+        "Standalone DOCX" no longer run past the card's edge on a phone.
+        The pair shrinks and each button takes half, label centred; it
+        shares the row with the text on wide screens. Equal margins on
+        both sides in EN / FR / AR at 360 and 390 px.
+Changed Helper chip: opening the Helper from the Help Center undoes an
+        earlier ✕ — the chip returns when the Helper is closed.
+
 ── 3.99.4 — 2026-10-12 — Language dropdown; AI message wording; toolbar edges
 PATCH. translations.js, dacum-rtl.css, dacum-components.css, index.html,
 sw.js (v230).
