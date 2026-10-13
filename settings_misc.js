@@ -17,6 +17,7 @@ const _esc = (s) => String(s == null ? '' : s)
 const LABELS = {
   helperChip: { auto: 'msHelperAuto', always: 'msHelperAlways', hidden: 'msHelperHidden' },
   aiCards:    { auto: 'msAiAuto', open: 'msAiOpen', closed: 'msAiClosed', hidden: 'msAiHidden' },
+  followProjectLang: { on: 'msFollowOn', off: 'msFollowOff' },
 };
 
 function _group(name, legendKey, icon) {
@@ -46,6 +47,9 @@ export function renderMiscTab(box, { justReset = false } = {}) {
     </section>
     ${_group('aiCards', 'msAiTitle', '✨')}
       <p class="es-note">${_esc(_t('msAiNote'))}</p>
+    </section>
+    ${_group('followProjectLang', 'msFollowTitle', '🌐')}
+      <p class="es-note">${_esc(_t('msFollowNote'))}</p>
     </section>
     <div class="ms-reset-row">
       <button type="button" class="cl-btn" data-ms-reset${off ? ' disabled' : ''}>↺ ${_esc(_t('msAiReset'))}</button>

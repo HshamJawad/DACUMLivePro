@@ -324,7 +324,7 @@ test('the project card shows its content languages and opens Settings → Langua
   await mockAI(page);
   await loadProject(page, fixture('sample-project.json'));
   const card = page.locator('.dps-card.dps-active');
-  await expect(card.locator('.dps-lang-badge')).toHaveCount(0);          // no languages set: card unchanged
+  await expect(card.locator('.dps-lang-badge')).toHaveText(/^🌐 EN$/);   // 3.107.0: no languages set — the language read from the texts
   await translateToArabic(page);
   await page.click('#esModalClose');
   const badge = card.locator('.dps-lang-badge');

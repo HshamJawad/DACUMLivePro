@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v246';
+const CACHE_VERSION = 'v247';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -169,6 +169,7 @@ const PRECACHE_URLS = [
   BASE + 'ai_card_toggle.js',             // 3.102.0
   BASE + 'ui_prefs.js',                   // 3.103.0
   BASE + 'settings_misc.js',              // 3.103.0
+  BASE + 'project_lang.js',               // 3.107.0
   BASE + 'dashboard_xlsx.js',             // 3.99.6 — loaded on demand
   BASE + 'vendor/exceljs-4.4.0/exceljs.min.js',  // 3.99.6 — loaded on demand
   BASE + 'verified_chart.js',

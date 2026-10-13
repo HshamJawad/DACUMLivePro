@@ -7,6 +7,25 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.107.0 — 2026-10-13 — A project says its language
+MINOR. project_lang.js (new), dacum_projects.js, ui_prefs.js, settings_misc.js,
+translations.js, snapshots.js, exports_docx.js, exports_pdf.js, app.js,
+autosave.js, mb_link.js, index.html, sw.js (v247),
+tests/specs/project-language.spec.js, tests/fixtures/pilot-ar.json.
+Added   Every project card in the sidebar shows its language (🌐 AR / EN /
+        FR): the content language shown when the project has content
+        languages, else read from its texts. Two copies of one project
+        in two languages can be told apart.
+Added   Opening a project written in another interface language switches
+        the interface to it, with a note offering Undo. Undo is remembered
+        for that project. Not on restoring the last project at start-up.
+        Settings → Misc → "Interface language when a project is opened":
+        follow the project (default) or keep the current language.
+Added   Saved project files and the Word / PDF exports carry the language
+        in their name: Name_AR_2026-10-13_21-40.json, …_AR_DACUM_Chart.docx.
+        Importing such a file leaves the tag out of the project name.
+Tested  project-language spec: badges, switch and Undo, no switch on
+        restore or when turned off, file name of a saved project.
 ── 3.106.1 — 2026-10-13 — Helper: clearer step dots
 helper_wizard.js, index.html, sw.js (v246).
 Fixed   Optional steps drew a dashed circle that read as a different state

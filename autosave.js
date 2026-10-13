@@ -380,7 +380,7 @@ function _showRecoveryDialog(backup) {
     // state lands where it came from rather than on top of whatever
     // happens to be open.
     if (isForeign) {
-      try { loadProject(backup.projectId); } catch (e) {
+      try { loadProject(backup.projectId, { follow: false }); } catch (e) {
         console.warn('[autosave] could not switch project before restore:', e);
       }
     }

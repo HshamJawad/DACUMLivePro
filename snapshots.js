@@ -14,6 +14,9 @@ import { importProjectFromData, loadProject, renderProjectsSidebar } from './dac
 import { reportError } from './error-handler.js';
 import { readProjects } from './project_store.js';
 import { adaptImportedFile } from './lite_import.js';
+import { liveLangTag } from './project_lang.js';
+/* The tag, unless the name already ends with it (a project imported from a tagged file). */
+const _stripLangTag = (name, tag) => (tag && new RegExp(tag + '$', 'i').test(name) ? '' : tag);
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -219,7 +222,8 @@ export function saveToJSON() {
       projectName = (data.chartInfo.occupationTitle || data.chartInfo.jobTitle || 'DACUM_Chart').trim();
     }
     const safeProjectName = projectName.replace(/[^a-z0-9؀-ۿ\s]/gi, '_').trim().replace(/\s+/g, '_');
-    link.download = `${safeProjectName}_${dateStr}_${timeStr}.json`;
+    // 3.107.0: the language of the texts in the name (…_AR_2026-10-13_21-40.json)
+    link.download = `${safeProjectName}${_stripLangTag(safeProjectName, liveLangTag())}_${dateStr}_${timeStr}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

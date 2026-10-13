@@ -3,12 +3,21 @@ const fs = require('fs');
 const path = require('path');
 
 /** Open the app and wait for it to finish starting. Collects page errors. */
-async function openApp(page, { lang } = {}) {
+async function openApp(page, { lang, followProjectLang = 'off' } = {}) {
   const errors = [];
   page.on('pageerror', e => errors.push(String(e && e.message || e)));
   if (!page.__dacumDialogs) {                   // once per page, even if opened twice
     page.__dacumDialogs = true;
     page.on('dialog', d => d.accept().catch(() => {}));   // confirm()/alert() → OK
+  }
+  /* 3.107.0: opening a project switches the interface to its language.
+     The behaviour tests written before choose their interface language
+     themselves, so it is off unless a test asks for it. */
+  if (!page.__dacumFollowSet) {
+    page.__dacumFollowSet = true;
+    await page.addInitScript((v) => {
+      try { if (!sessionStorage.getItem('__dacumFollow')) { sessionStorage.setItem('__dacumFollow', '1'); localStorage.setItem('dacum_pref_follow_project_lang', v); } } catch (_) {}
+    }, followProjectLang);
   }
   await page.goto('/index.html');
   await page.waitForFunction(() => !!window.i18n && typeof window.switchTab === 'function');

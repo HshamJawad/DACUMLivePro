@@ -29,7 +29,9 @@ import { renderAvailableTasks, renderClusters,
 import { renderAll }          from './workshop_snapshots.js';
 import { resetHistoryToCurrentState } from './history.js';
 import { renderModuleCurriculum } from './module_curriculum.js';
-import { versionStats as _clVersionStats } from './content_lang.js';
+import { versionStats as _clVersionStats, LANG_NAMES as _CL_NAMES } from './content_lang.js';
+import { projectLanguage, stateLanguage, UI_LANGS } from './project_lang.js';
+import { getPref } from './ui_prefs.js';
 
 /* i18n access — resolved lazily; see duties.js for why.
    _tp() picks the correct plural form: Arabic has six categories and
@@ -103,6 +105,7 @@ export function importProjectFromData(data, fileName) {
     .replace(/\.json$/i, '')                        // remove .json
     .replace(/_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$/, '') // strip _YYYY-MM-DD_HH-MM
     .replace(/_\d{4}-\d{2}-\d{2}$/, '')             // strip _YYYY-MM-DD (older format)
+    .replace(/_(AR|EN|FR)$/, '')                     // 3.107.0: the language tag of the file name
     .replace(/[_]+/g, ' ')                           // underscores → spaces
     .trim();
 
@@ -290,7 +293,7 @@ function _dutiesArrayToState(dutiesArr) {
   });
 }
 
-export function loadProject(id) {
+export function loadProject(id, { follow = true } = {}) {
   const projects = _loadProjects();
   const project  = projects.find(p => p.id === id);
   if (!project) { showStatus('❌ ' + _t('msgProjectNotFound'), 'error'); return; }
@@ -303,6 +306,7 @@ export function loadProject(id) {
   resetHistoryToCurrentState();
   _setActive(id);
   renderProjectsSidebar();
+  if (follow) _followProjectLanguage(project);   // not when the app restores the last project
 
   // ── Auto-refresh dashboard and sync dropdown to loaded project ──
   try {
@@ -322,6 +326,55 @@ export function loadProject(id) {
   } catch(e) {}
 
   showStatus('📂 ' + _tf('msgProjectLoaded', { name: project.name }), 'success');
+}
+
+/* ── 3.107.0: the interface follows the project's language ────
+   On opening a project written in another interface language, the
+   interface switches to it (Settings → Misc → "Interface follows the
+   project", on by default) and a note offers Undo. */
+function _followProjectLanguage(project) {
+  try {
+    if (getPref('followProjectLang') === 'off' || !window.i18n) return;
+    if (_keptIds().includes(project.id)) return;   // Undo was chosen for this project
+    const lang = stateLanguage(project.state);
+    const ui = window.i18n.getLang();
+    if (!UI_LANGS.includes(lang) || lang === ui) return;
+    window.i18n.setLang(lang);
+    _langNote(ui, lang);
+  } catch (e) { /* the project is open; the language stays as it was */ }
+}
+
+/* Projects for which Undo was chosen: they open in the interface as it is. */
+const _KEPT_KEY = 'dacum_follow_lang_kept';
+function _keptIds() {
+  try { const v = JSON.parse(localStorage.getItem(_KEPT_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; }
+}
+function _keepLang(id) {
+  if (!id) return;
+  try { localStorage.setItem(_KEPT_KEY, JSON.stringify([..._keptIds().filter(x => x !== id), id].slice(-200))); } catch (_) {}
+}
+
+function _langNote(prev, lang) {
+  const old = document.getElementById('dpsLangNote');
+  if (old) old.remove();
+  const box = document.createElement('div');
+  box.id = 'dpsLangNote';
+  box.className = 'dps-lang-note';
+  box.setAttribute('role', 'status');
+  box.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  const name = _CL_NAMES[lang] || lang.toUpperCase();
+  box.innerHTML = `<span>🌐 ${_esc(_tf('msgUiFollowedProject', { lang: name }))}</span>
+    <button type="button" data-dps-undo>${_esc(_t('tbUndo'))}</button>
+    <button type="button" data-dps-close aria-label="${_esc(_t('msCloseNote'))}">✕</button>`;
+  document.body.appendChild(box);
+  const close = () => { clearTimeout(timer); box.remove(); };
+  const timer = setTimeout(close, 9000);
+  box.querySelector('[data-dps-undo]').addEventListener('click', () => {
+    close();
+    window.i18n.setLang(prev);
+    _keepLang(_getActive());
+  });
+  box.querySelector('[data-dps-close]').addEventListener('click', close);
 }
 
 /* ── 3.79.0: the live project as ONE state object ──────────────
@@ -915,7 +968,15 @@ export function renderProjectsSidebar() {
    texts. Nothing for other projects, so their cards are unchanged. */
 function _langBadge(p, isActive) {
   const cl = (isActive && appState.contentLanguages) || (p.state && p.state.contentLanguages);
-  if (!cl || !cl.original) return '';
+  if (!cl || !cl.original) {
+    /* 3.107.0: every card says its language, read from its texts, so two
+       copies of one project in two languages can be told apart. */
+    const lang = projectLanguage(p);
+    if (!lang) return '';
+    const title = _tf('lgBadgeOne', { lang: _CL_NAMES[lang] || lang.toUpperCase() });
+    return `<button type="button" class="dps-lang-badge" data-action="project-languages" data-project-id="${p.id}"
+            title="${_esc(title)}" aria-label="${_esc(title)}">🌐 <span><b>${_esc(lang.toUpperCase())}</b></span></button>`;
+  }
   const langs = [cl.original, ...Object.keys(cl.versions || {})];
   let missing = 0;
   try {
@@ -2294,6 +2355,20 @@ function _injectCSS() {
   width: 6px; height: 6px; border-radius: 50%;
   background: #f59e0b; display: inline-block;
 }
+
+/* 3.107.0 — the interface followed the project's language (with Undo) */
+.dps-lang-note {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  z-index: 10050; display: flex; align-items: center; gap: 10px;
+  max-width: min(92vw, 560px); padding: 10px 14px;
+  background: #1e3a8a; color: #fff; border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .3); font-size: .92em;
+}
+.dps-lang-note button {
+  min-height: 0; padding: 4px 12px; border-radius: 8px; cursor: pointer;
+  font: inherit; font-weight: 700; color: #1e3a8a; background: #fff; border: none;
+}
+.dps-lang-note button[data-dps-close] { background: transparent; color: #fff; padding: 4px 6px; }
 
 /* ── Card action buttons — always visible, clearly colored ── */
 .dps-card-actions {
