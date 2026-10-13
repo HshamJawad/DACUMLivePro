@@ -7,6 +7,16 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.106.1 — 2026-10-13 — Helper: clearer step dots
+helper_wizard.js, index.html, sw.js (v246).
+Fixed   Optional steps drew a dashed circle that read as a different state
+        next to the solid "not started" circles. All circles now share one
+        style; "Optional" shows in the dot's tooltip and on the step card.
+Fixed   The step row's horizontal scrollbar sat over the bottom of the
+        circles and clipped the current step's ring. The bar is hidden (the
+        row still scrolls by swipe and follows the current step) and the
+        row has room below the ring.
+
 ── 3.106.0 — 2026-10-13 — Pilot run: plain list items in the handoff
 PATCH-level fix, released as MINOR with Module Builder 3.35.0.
 task_analysis.js, index.html, sw.js (v245), tests/specs/mb-handoff.spec.js.
