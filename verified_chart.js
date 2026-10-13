@@ -29,6 +29,7 @@ import { getDutyLetter } from './codes.js';
 import { isTaskSelected, getTaskExclusionReason, getTaskRatingMetrics, hasTaskSelection } from './task_selection.js';
 import { getTaskAnalysisStatus } from './task_analysis.js';
 import { syncAllFromDOM } from './duties.js';
+import { criteriaBadge, criteriaToggle, badgesOn, setBadgesOn } from './task_criteria.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -121,7 +122,7 @@ function _card(r) {
       <div class="vc-task-top"><span class="vc-code">${_bdi(escapeHtml(r.code))}</span>${pri}</div>
       <div class="vc-text" dir="auto">${escapeHtml(r.text)}</div>
       <div class="vc-task-foot">${sel}
-        ${r.selected ? `<span class="vc-ta vc-ta-${r.ta}" title="${escapeHtml(_t('vcTaTip') + ': ' + _taLabel(r.ta))}">${_taDot(r.ta)}</span>` : ''}</div>
+        ${r.selected ? `<span class="vc-ta vc-ta-${r.ta}" title="${escapeHtml(_t('vcTaTip') + ': ' + _taLabel(r.ta))}">${_taDot(r.ta)}</span>` : ''}${criteriaBadge(r.id, 'chart')}</div>
     </div>`;
 }
 
@@ -165,6 +166,7 @@ function _shell() {
     <div class="vc-actions">
       <button type="button" data-vc-act="edit-tasks">✏️ ${escapeHtml(_t('vcEditTasks'))}</button>
       <button type="button" data-vc-act="edit-selection">✏️ ${escapeHtml(_t('vcEditSelection'))}</button>
+      ${criteriaToggle('chart', { cls: 'vc-crit-toggle', data: 'data-vc-act' })}
       <button type="button" data-vc-act="print" class="vc-primary">🖨 ${escapeHtml(_t('vcPrint'))}</button>
     </div>`;
   _ov.querySelector('.vc-legend').innerHTML = `
@@ -186,6 +188,7 @@ function _onClick(e) {
   if (!a) return;
   const act = a.getAttribute('data-vc-act');
   if (act === 'print') { _print(); return; }
+  if (act === 'criteria') { setBadgesOn('chart', !badgesOn('chart')); _shell(); _render(); return; }   // 3.109.0
   closeVerifiedChart();
   if (act === 'edit-tasks' && window.switchTab) window.switchTab('duties-tab');
   if (act === 'edit-selection' && window.switchTab) {
