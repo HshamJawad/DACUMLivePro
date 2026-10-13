@@ -22,6 +22,7 @@ import { buildLevelsDocxBlock } from './modules.js';
 // unreachable today — tvExportMode is forced to 'appendix' — but would throw).
 import { lwExportVerifiedDOCX } from './workshop.js';
 import { _docxVerifiedChart, _docxAdditionalInfo, _docxClusters, _docxCustomSections, _docxDuties, _docxLearningOutcomes, _docxModules, _docxSkillsMatrix, _docxTaskAnalysis, _docxVerificationAppendix, _docxVerifiedResults } from './exports_docx_sections.js';
+import { liveLangTag } from './project_lang.js';
 
 
 
@@ -254,7 +255,7 @@ export function _safeFilename(title, suffix) {
     .replace(/_+/g, '_')
     .replace(/^_|_$/g, '')
     .slice(0, 80);
-  return (base || _t('fileUntitled')) + suffix;
+  return (base || _t('fileUntitled')) + liveLangTag() + suffix;   // 3.107.0: _AR / _EN / _FR
 }
 
 

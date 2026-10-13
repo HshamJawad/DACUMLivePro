@@ -68,7 +68,7 @@ function _restoreActiveProjectOnBoot() {
 
   try {
     localStorage.removeItem('dacum_active_project');
-    loadProject(id);                       // applies state, renders, re-marks active
+    loadProject(id, { follow: false });    // applies state, renders, re-marks active (3.107.0: no language switch on restore)
     if (getActiveProjectId() !== id) localStorage.setItem('dacum_active_project', id);
     return true;
   } catch (e) {

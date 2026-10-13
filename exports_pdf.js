@@ -21,6 +21,7 @@ import * as ExportSettings from './export_settings.js';
 import { writeLevelsPdf } from './modules.js';
 import { ensureArabicFont, isArabicFontLoaded, installArabicRTL, suspendJsPdfArabicParser } from './pdf_arabic.js';
 import { _pdfVerifiedChart, _pdfClusters, _pdfKnowledgeSkills, _pdfLearningOutcomes, _pdfModules, _pdfSkillsMatrix, _pdfTaskAnalysis, _pdfToolsTrends, _pdfVerificationAppendix, _pdfVerifiedResults } from './exports_pdf_sections.js';
+import { liveLangTag } from './project_lang.js';
 
 
 
@@ -65,7 +66,7 @@ function _safeFilename(title, suffix) {
     .replace(/_+/g, '_')
     .replace(/^_|_$/g, '')
     .slice(0, 80);
-  return (base || _t('fileUntitled')) + suffix;
+  return (base || _t('fileUntitled')) + liveLangTag() + suffix;   // 3.107.0: _AR / _EN / _FR
 }
 
 /* Arabic needs the font cache warm before a single glyph is drawn, and

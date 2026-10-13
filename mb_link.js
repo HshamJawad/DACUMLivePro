@@ -76,7 +76,7 @@ function _handle() {
   try { active = localStorage.getItem('dacum_active_project'); } catch (_) { active = null; }
   if (req.project && req.project !== active) {
     let ok = true;
-    try { loadProject(req.project); } catch (_) { ok = false; }
+    try { loadProject(req.project, { follow: false }); } catch (_) { ok = false; }
     let now = null;
     try { now = localStorage.getItem('dacum_active_project'); } catch (_) { now = null; }
     if (!ok || now !== req.project) { _status('⚠️ ' + _t('mbReturnNoProject'), 'error'); return; }

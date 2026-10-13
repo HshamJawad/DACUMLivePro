@@ -19,6 +19,8 @@
 const KEYS = {
   helperChip: { store: 'dacum_pref_helper_chip', values: ['auto', 'always', 'hidden'] },
   aiCards:    { store: 'dacum_pref_ai_cards',    values: ['auto', 'open', 'closed', 'hidden'] },
+  /* 3.107.0: the interface takes the language of the project opened. */
+  followProjectLang: { store: 'dacum_pref_follow_project_lang', values: ['on', 'off'] },
 };
 
 export function getPref(name) {
