@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.104.0 — 2026-10-13 — Module Builder receives the recent additions
+MINOR. module_mapping.js, module_curriculum.js, index.html, sw.js (v243),
+tests/specs/mb-handoff.spec.js (new). Pairs with Module Builder 3.33.0.
+Added   The Module Builder handoff (and the Module Mapping JSON download)
+        now carries, when entered:
+        • each module's category ({ id, label } — Basic, Common, Core,
+          Elective or the programme's own);
+        • in the module's curriculum summary: its basic skills required on
+          entry and its tools, equipment, PPE, materials, resources and
+          facilities;
+        • "programmeRequirements": entry qualifications, trainer
+          qualifications, trainers per group, and the course information
+          (qualification level, description, outcomes).
+        The Task Analysis basic skills and the decisions table already
+        travelled with each record; a test now checks it.
+Kept    Nothing is sent for empty fields; an older Module Builder ignores
+        the new fields.
+
 ── 3.103.1 — 2026-10-13 — Misc: "Reset to automatic" restores both groups
 PATCH. settings_misc.js, translations.js, dacum-components.css, index.html,
 sw.js (v242), tests/specs/ui-prefs.spec.js.

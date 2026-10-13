@@ -15,7 +15,7 @@ import { getTaskCodeShort, getDutyCode, isClusterAddedTaskId, getAddedTaskLabel 
 import { getTaskAnalysisRecord } from './task_analysis.js';
 import { isTaskSelected, getTaskSelectionHandoff } from './task_selection.js';
 import { getSupplementaryVerificationData } from './supplementary_verification.js';
-import { getCurriculumModel } from './module_curriculum.js';
+import { getCurriculumModel, getCurriculumHandoff, getProgrammeHandoff } from './module_curriculum.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOutcomes } from './clusters.js';
 import { _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
 import { renderModules } from './learning_outcomes.js';
@@ -1199,7 +1199,11 @@ function _curriculumSummary(module) {
     loHours,
     programme: model.programme || '',
   };
-  const empty = out.credits == null && !out.purpose && !out.prerequisites.length && !Object.keys(loHours).length;
+  // 3.104.0: entry skills and the module's resource lists.
+  let extra = null;
+  try { extra = getCurriculumHandoff(module.id); } catch (_) { extra = null; }
+  if (extra) Object.assign(out, extra);
+  const empty = out.credits == null && !out.purpose && !out.prerequisites.length && !Object.keys(loHours).length && !extra;
   return empty ? null : out;
 }
 
@@ -1216,6 +1220,9 @@ function _buildModuleExport(module, moduleNumber) {
     // Programme level (1..N) and specialisation; null / '' when unset.
     level: _moduleLevel(module),
     track: module.track || '',
+    // 3.104.0: the module's category (Basic, Common, Core, Elective or
+    // the programme's own), with its label as shown here.
+    ...(() => { const c = getModuleCategory(module); return c ? { category: { id: c.id, label: categoryLabel(c) } } : {}; })(),
     // 3.85.0: TVQF/NQF level and its descriptors — only when the option
     // is on and the field is filled (see getNqfSettings()).
     ...(getModuleNqfLevel(module) ? { nqfLevel: getModuleNqfLevel(module) } : {}),
@@ -1338,7 +1345,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     ...(() => { const ts = getTaskSelectionHandoff(); return ts ? { taskSelection: ts } : {}; })(),
     // 3.85.0: the qualifications framework's name, when the TVQF/NQF
     // option is on and a name was given.
-    ...(() => { const n = getNqfSettings(); return n.enabled && n.framework ? { qualificationsFramework: n.framework } : {}; })()
+    ...(() => { const n = getNqfSettings(); return n.enabled && n.framework ? { qualificationsFramework: n.framework } : {}; })(),
+    // 3.104.0: programme requirements and course information (Module
+    // Curriculum → Programme settings), when any was entered.
+    ...(() => { let p = null; try { p = getProgrammeHandoff(); } catch (_) { p = null; } return p ? { programmeRequirements: p } : {}; })()
   };
 
   try {
@@ -1367,7 +1377,9 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     contentLanguages: exportObject.contentLanguages,
                     taskSelection: exportObject.taskSelection,
                     qualificationsFramework: exportObject.qualificationsFramework,
+                    programmeRequirements: exportObject.programmeRequirements,
                     modules: [...others, ...exportObject.modules] };
+        if (!payload.programmeRequirements) delete payload.programmeRequirements;
         if (!payload.qualificationsFramework) delete payload.qualificationsFramework;
         if (!payload.contentLanguages) delete payload.contentLanguages;
         if (!payload.taskSelection) delete payload.taskSelection;
@@ -1438,6 +1450,8 @@ export function exportModuleMappingJSON() {
   if (_cl) exportData.contentLanguages = _cl;
   const _ts = getTaskSelectionHandoff();
   if (_ts) exportData.taskSelection = _ts;
+  let _pr = null; try { _pr = getProgrammeHandoff(); } catch (_) { _pr = null; }
+  if (_pr) exportData.programmeRequirements = _pr;   // 3.104.0
 
   const dateStr = new Date().toISOString().split('T')[0];
   const filename = `module-mapping-export_${dateStr}.json`;
