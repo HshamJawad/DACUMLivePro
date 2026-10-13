@@ -308,17 +308,26 @@ export function getTaskPerformanceCriteria(taskKey) {
  *  content — used by the Module Mapping → Module Builder handoff to
  *  attach the relevant Task Analysis detail to a transferred module
  *  without duplicating it into every downstream record. */
+/** A list line without the marker the formatting buttons add. */
+function _unmark(s) {
+  return String(s == null ? '' : s).replace(/^[\s]*[•\-\*○●]\s*/, '').replace(/^[\s]*\d+[\.\)]\s+/, '').trim();
+}
+
 export function getTaskAnalysisRecord(taskKey) {
   const r = _record(taskKey);
   if (!r || _isRecordEmpty(r)) return null;
   const clean = { ...r };
-  LIST_FIELDS.forEach(f => { clean[f.key] = _nonBlank(r[f.key]).map(s => s.trim()); });
+  // 3.106.0: without the "1." or "•" the Number / Bullet buttons put in
+  // front of a line — the record is read as data (Module Builder, the
+  // curriculum, the AI), and each reader numbers its own lists.
+  LIST_FIELDS.forEach(f => { clean[f.key] = _nonBlank(r[f.key]).map(_unmark).filter(Boolean); });
   // 3.46.0: user-added sections travel as [{ title, items }], not as the
   // internal id-keyed map.
   delete clean.custom;
   delete clean._aiPrev;
   clean.decisionTable = _cleanDecisionTable(r);   // 3.100.0
-  const custom = _customSectionsOf(r);
+  const custom = _customSectionsOf(r).map(sec => ({ title: sec.title, items: sec.items.map(_unmark).filter(Boolean) }))
+    .filter(sec => sec.items.length);
   if (custom.length) clean.customSections = custom;
   return clean;
 }

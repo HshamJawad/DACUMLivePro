@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.106.0 — 2026-10-13 — Pilot run: plain list items in the handoff
+PATCH-level fix, released as MINOR with Module Builder 3.35.0.
+task_analysis.js, index.html, sw.js (v245), tests/specs/mb-handoff.spec.js.
+Fixed   Task Analysis lines formatted with the Number or Bullet buttons
+        ("1. …", "• …") reached Module Builder, the curriculum and the AI
+        with their markers, so a job sheet read "Step 1: 1. Review …".
+        The record now hands over plain items; blank lines are dropped.
+        What is shown and exported from DACUM itself is unchanged.
+Tested  mb-handoff spec: numbered and bulleted lines arrive plain, a value
+        like "1.5 mm" is kept.
+
 ── 3.105.0 — 2026-10-13 — One language per text in the Module Builder handoff
 MINOR. content_lang.js, module_mapping.js, translations.js, index.html,
 sw.js (v244), tests/specs/mb-handoff.spec.js. Pairs with Module Builder 3.34.0.
