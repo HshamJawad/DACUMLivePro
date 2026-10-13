@@ -115,3 +115,20 @@ test('missing translations are named before sending', async ({ page }) => {
   expect(d.contentLanguage).toBe('en');
   expect(errors).toEqual([]);
 });
+
+// 3.106.0: lines numbered or bulleted with the formatting buttons reach
+// Module Builder as plain items — Module Builder numbers its own steps.
+test('handoff: Task Analysis lines without "1." or "•" markers, blank lines dropped', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  const first = await send(page);
+  const taskId = first.modules[0].sourceTaskIds.find(id => first.modules[0].taskAnalysis[id]);
+  await page.evaluate(async ({ taskId }) => {
+    const { appState } = await import('./state.js');
+    const r = appState.taskAnalysisData[taskId];
+    r.performanceSteps = ['1. Review the work order', '', '3. Isolate the power', '• Fit the 1.5 mm bit', ''];
+  }, { taskId });
+  const d = await send(page);
+  expect(d.modules[0].taskAnalysis[taskId].performanceSteps).toEqual(['Review the work order', 'Isolate the power', 'Fit the 1.5 mm bit']);
+  expect(errors).toEqual([]);
+});
