@@ -258,7 +258,8 @@ function _injectCSS() {
 .hw-bar>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#34d399,#10b981);
   transition:width .45s ease}
 .hw-prog-txt{font-size:.76em;color:#e0e7ff;white-space:nowrap;font-weight:600}
-.hw-steps{display:flex;gap:0;overflow-x:auto;padding:12px 4px 4px;scrollbar-width:thin;scroll-behavior:smooth}
+.hw-steps{display:flex;gap:0;overflow-x:auto;overflow-y:hidden;padding:12px 8px 12px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth}
+.hw-steps::-webkit-scrollbar{display:none}
 .hw-dot-wrap{display:flex;align-items:center;flex:1 0 auto}
 .hw-dot-wrap:last-child .hw-line{display:none}
 /* Fixed box on every side: dacum-responsive.css gives every <button>
@@ -272,7 +273,6 @@ function _injectCSS() {
 .hw-dot:hover{transform:scale(1.12)}
 .hw-dot.is-done{background:#10b981;border-color:#10b981;color:#fff}
 .hw-dot.is-partial{border-color:#fbbf24;color:#fde68a}
-.hw-dot.is-opt{border-style:dashed}
 .hw-dot.is-current{background:#fff;border-color:#fff;color:#4338ca;box-shadow:0 0 0 4px rgba(165,180,252,.45);transform:scale(1.12)}
 .hw-line{height:2px;min-width:10px;flex:1;background:rgba(255,255,255,.22);margin:0 2px}
 .hw-line.is-done{background:#10b981}
@@ -406,9 +406,9 @@ function _renderHeader(statuses) {
       i === _idx ? 'is-current' : '',
       st === 'done' ? 'is-done' : '',
       st === 'partial' ? 'is-partial' : '',
-      s.optional ? 'is-opt' : ''].filter(Boolean).join(' ');
+    ].filter(Boolean).join(' ');
     const label = s.finish ? '🏁' : (st === 'done' && i !== _idx ? '✓' : String(i + 1));
-    const tip = _tf('hwJump', { n: i + 1, name: _stepName(s) });
+    const tip = _tf('hwJump', { n: i + 1, name: _stepName(s) }) + (s.optional ? ' (' + _t('hwOptional') + ')' : '');
     const lineDone = st === 'done' ? ' is-done' : '';
     return `<div class="hw-dot-wrap"><button type="button" class="${cls}" data-hw-jump="${i}"
       title="${_esc(tip)}" aria-label="${_esc(tip)}"${i === _idx ? ' aria-current="step"' : ''}>${label}</button>
