@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.107.1 — 2026-10-13 — The interface follows the project every time
+PATCH. dacum_projects.js, index.html, sw.js (v248), tests/specs/project-language.spec.js.
+Fixed   Undo on the language note was remembered for the project, so going
+        back to it later left the interface in the other language and the
+        switch looked broken. Undo now applies to that opening only: moving
+        between projects in different languages switches every time.
+Fixed   Turning "Follow the project's language" on in Settings → Misc did
+        nothing until another project was opened; it now applies to the
+        open project at once.
+Tested  project-language spec: back and forth between an Arabic and an
+        English project, the setting turned on with a project open.
+
 ── 3.107.0 — 2026-10-13 — A project says its language
 MINOR. project_lang.js (new), dacum_projects.js, ui_prefs.js, settings_misc.js,
 translations.js, snapshots.js, exports_docx.js, exports_pdf.js, app.js,

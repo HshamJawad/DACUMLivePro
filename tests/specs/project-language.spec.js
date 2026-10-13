@@ -36,12 +36,19 @@ test('cards show the language; opening an Arabic project switches the interface,
   expect(await lang(page)).toBe('en');
   await expect(page.locator('#dpsLangNote')).toHaveCount(0);
 
-  // Undo was chosen for the Arabic project: it opens again in English
+  // Undo is for that opening only: going back and forth switches every time
+  for (let i = 0; i < 2; i++) {
+    await page.locator(`.dps-card[data-project-id="${ar}"] .dps-card-body`).click();
+    await page.waitForTimeout(400);
+    expect(await lang(page)).toBe('ar');
+    await page.locator(`.dps-card[data-project-id="${en}"] .dps-card-body`).click();
+    await page.waitForTimeout(400);
+    expect(await lang(page)).toBe('en');
+  }
   await page.locator(`.dps-card[data-project-id="${ar}"] .dps-card-body`).click();
   await page.waitForTimeout(400);
-  expect(await lang(page)).toBe('en');
   // after a reload the last project is restored without switching
-  await page.evaluate(async (id) => { localStorage.removeItem('dacum_follow_lang_kept'); }, ar);
+  await page.evaluate(() => window.i18n.setLang('en'));
   await page.reload();
   await page.waitForFunction(() => !!window.i18n && typeof window.switchTab === 'function');
   await page.waitForTimeout(800);
@@ -55,6 +62,9 @@ test('Settings → Misc "Keep the current interface language": no switch', async
   await loadProject(page, fixture('pilot-ar.json'));
   expect(await lang(page)).toBe('en');
   await expect(page.locator('#dpsLangNote')).toHaveCount(0);
+  // turned on again in Settings → Misc: the open project's language, at once
+  await page.evaluate(async () => (await import('./ui_prefs.js')).setPref('followProjectLang', 'on'));
+  expect(await lang(page)).toBe('ar');
   expect(errors).toEqual([]);
 });
 
