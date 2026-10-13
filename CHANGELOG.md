@@ -7,6 +7,25 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.109.0 — 2026-10-13 — 📏 Performance criteria from the task card
+MINOR. task_criteria.js (new), duties.js, verified_chart.js, translations.js,
+index.html, sw.js (v250), tests/specs/task-criteria.spec.js,
+tests/fixtures/pilot-criteria.json.
+Added   Task cards (Duties & Tasks, card view) carry "📏 n" once criteria
+        have been written in Task Analysis or Competency Clusters: n is the
+        task's own criteria plus the competency criteria closest to it.
+        It opens a read-only window: the task's own criteria; the criteria
+        of its competency, the closest marked (words shared with the task
+        and its analysis, words common to all the competency's criteria
+        counting least) and the others folded; the learning outcomes they
+        reach. A task with none says so.
+Added   "📏 Criteria" on the card toolbar and in the verified DACUM chart
+        shows or hides the buttons (shown on the cards, hidden on the
+        chart by default; remembered on this device). Never printed nor
+        shown in full screen.
+Tested  task-criteria spec: counts, modal sections, closest first, toggle,
+        no button without criteria, verified chart in Arabic.
+
 ── 3.108.0 — 2026-10-13 — Latin duty letters in the Arabic interface (option)
 MINOR. codes.js, ui_prefs.js, settings_misc.js, dacum_projects.js, translations.js,
 index.html, sw.js (v249), tests/specs/project-language.spec.js.

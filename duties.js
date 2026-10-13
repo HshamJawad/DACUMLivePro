@@ -15,6 +15,7 @@
 import { appState }   from './state.js';
 import { showStatus } from './renderer.js';
 import { getDutyLetter, getTaskCode as _codesTaskCode } from './codes.js';
+import { criteriaBadge, criteriaToggle, badgesOn, setBadgesOn } from './task_criteria.js';
 import { getActiveCardColors, setTempCardColor, hasTempCardColors,
          cardSwatchRow } from './card_colors.js';
 
@@ -257,6 +258,7 @@ function _makeTaskCard(task, displayCode, dutyId) {
               data-task-id="${task.inputId}"
               placeholder="${_t('phEnterTask')}"
               rows="2">${_esc(task.text)}</textarea>
+    ${(() => { const b = criteriaBadge(task.inputId, 'cards'); return b ? `<div class="tc-badge-row">${b}</div>` : ''; })()}
   `;
   return card;
 }
@@ -391,6 +393,7 @@ function _cardToolbarHtml() {
                 aria-haspopup="dialog" aria-expanded="${_ccOpen}">🎨 ${_t('ccBtn')}</button>
         ${_ccOpen ? _ccPopoverHtml() : ''}
       </span>
+      ${criteriaToggle('cards', { cls: 'wv-btn', data: 'data-cv-action' })}
       <button type="button" class="wv-btn" data-cv-action="print" title="${_t('ttCvPrint')}">🖨 ${_t('wvPrint')}</button>
       <button type="button" class="wv-btn${fs ? ' is-on' : ''}" data-cv-action="fullscreen" title="${_t('ttCvFullscreen')}" aria-pressed="${fs}">🖥 ${_t('wvFullscreen')}</button>
     </div>`;
@@ -445,6 +448,7 @@ function _onCardToolbarClick(e) {
     case 'zoom-out':   _setCardZoom(_zoomStep(_getCardZoom(), -1)); _applyCardZoom(); break;
     case 'zoom-reset': _setCardZoom(1);                    _applyCardZoom(); break;
     case 'print':      _printCardView(); break;
+    case 'criteria':   setBadgesOn('cards', !badgesOn('cards')); renderDutiesFromState(); break;   // 3.109.0
     case 'fullscreen': _isPresenting() ? _leavePresentation() : _enterPresentation(); break;
     case 'exit':
       _setCardZoom(1); _applyCardZoom();
