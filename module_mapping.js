@@ -20,10 +20,38 @@ import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOut
 import { _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
 import { renderModules } from './learning_outcomes.js';
 import { captureProjectState } from './dacum_projects.js';
-import { viewOriginal, handoffTranslations } from './content_lang.js';
+import { viewOriginal, handoffTranslations, guessLanguage, versionStats, LANG_NAMES } from './content_lang.js';
 
 /* 3.79.2: the project's other content languages, for Module Builder
    (3.16+), which shows and exports the handed-over texts in them. */
+/* 3.105.0: the language the handed-over texts are in — the version
+   shown, else the one the project is written in (guessed when content
+   languages were never set). Module Builder writes each text on the side
+   of its own language and never under another language's label. */
+function _handoffTextLanguage() {
+  try {
+    const s = captureProjectState();
+    const cl = s.contentLanguages;
+    if (cl) return cl.active || cl.original || 'en';
+    const ui = (window.i18n && window.i18n.uiLang) ? window.i18n.uiLang() : 'en';
+    return guessLanguage(s, ui);
+  } catch (_) { return 'en'; }
+}
+
+/* 3.105.0: translations still missing, per language, when the project
+   has content languages: [{ lang, missing }] (empty when complete). */
+function _handoffMissingTranslations() {
+  try {
+    const s = captureProjectState();
+    const cl = s.contentLanguages;
+    if (!cl || !cl.versions) return [];
+    const base = cl.view ? viewOriginal(s).state : s;
+    return Object.keys(cl.versions)
+      .map(lang => ({ lang, missing: versionStats(base, lang).missing }))
+      .filter(x => x.missing > 0);
+  } catch (_) { return []; }
+}
+
 function _handoffLanguages() {
   try {
     const s = captureProjectState();
@@ -1310,7 +1338,23 @@ export function openModuleBuilderFromMapping(moduleId = null) {
 
   const programme = _handoffProgramme(occupation);
 
+  /* 3.105.0: texts not translated yet would reach Module Builder in the
+     original language only. Say so before sending; Cancel opens
+     Settings → Languages to translate them first. */
+  const textLang = _handoffTextLanguage();
+  const missing = _handoffMissingTranslations();
+  if (missing.length) {
+    const list = missing.map(x => `${LANG_NAMES[x.lang] || x.lang}: ${x.missing}`).join(' · ');
+    const go = window.confirm(_tf('msgMBMissingTranslations', { list, lang: LANG_NAMES[textLang] || textLang }));
+    if (!go) {
+      import('./export_settings.js').then(m => m.openExportSettings({ tab: 'languages' })).catch(() => {});
+      return;
+    }
+  }
+
   const exportObject = {
+    // 3.105.0: the language of every text below.
+    contentLanguage: textLang,
     source: 'DACUM Live Pro v1.0',
     exportDate: new Date().toISOString(),
     // 3.49.0: which DACUM project these modules belong to. Module Builder
@@ -1375,6 +1419,7 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     dacumUrl: exportObject.dacumUrl,
                     dacumVersion: exportObject.dacumVersion,
                     contentLanguages: exportObject.contentLanguages,
+                    contentLanguage: exportObject.contentLanguage,
                     taskSelection: exportObject.taskSelection,
                     qualificationsFramework: exportObject.qualificationsFramework,
                     programmeRequirements: exportObject.programmeRequirements,
