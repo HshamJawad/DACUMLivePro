@@ -7,6 +7,14 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.108.0 — 2026-10-13 — Latin duty letters in the Arabic interface (option)
+MINOR. codes.js, ui_prefs.js, settings_misc.js, dacum_projects.js, translations.js,
+index.html, sw.js (v249), tests/specs/project-language.spec.js.
+Added   Settings → Misc → "Duty letters in the Arabic interface": Arabic
+        letters (أ، ب، ج — default) or Latin letters (A, B, C), on screen and
+        in exports. «المهمة و1» in small grey text read as "1g"; Latin
+        letters avoid it. Applied at once; the other languages are unchanged.
+
 ── 3.107.1 — 2026-10-13 — The interface follows the project every time
 PATCH. dacum_projects.js, index.html, sw.js (v248), tests/specs/project-language.spec.js.
 Fixed   Undo on the language note was remembered for the project, so going

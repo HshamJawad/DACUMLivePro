@@ -17,6 +17,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { getPref } from './ui_prefs.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -57,6 +58,9 @@ const ABJAD = [
 // what makes the change safe: there is no data to migrate.
 
 function _alphabet() {
+  /* 3.108.0: Settings → Misc can keep Latin letters (A, B, C) in the
+     Arabic interface — «المهمة و1» is easily misread at small sizes. */
+  if (getPref('codeLetters') === 'latin') return null;
   return (window.i18n && window.i18n.getLang() === 'ar') ? ABJAD : null;
 }
 
