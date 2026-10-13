@@ -21,6 +21,8 @@ const KEYS = {
   aiCards:    { store: 'dacum_pref_ai_cards',    values: ['auto', 'open', 'closed', 'hidden'] },
   /* 3.107.0: the interface takes the language of the project opened. */
   followProjectLang: { store: 'dacum_pref_follow_project_lang', values: ['on', 'off'] },
+  /* 3.108.0: duty letters in the Arabic interface — Arabic (أ ب ج) or Latin (A B C). */
+  codeLetters: { store: 'dacum_pref_code_letters', values: ['auto', 'latin'] },
 };
 
 export function getPref(name) {

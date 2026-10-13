@@ -18,6 +18,7 @@ const LABELS = {
   helperChip: { auto: 'msHelperAuto', always: 'msHelperAlways', hidden: 'msHelperHidden' },
   aiCards:    { auto: 'msAiAuto', open: 'msAiOpen', closed: 'msAiClosed', hidden: 'msAiHidden' },
   followProjectLang: { on: 'msFollowOn', off: 'msFollowOff' },
+  codeLetters: { auto: 'msCodesAuto', latin: 'msCodesLatin' },
 };
 
 function _group(name, legendKey, icon) {
@@ -50,6 +51,9 @@ export function renderMiscTab(box, { justReset = false } = {}) {
     </section>
     ${_group('followProjectLang', 'msFollowTitle', '🌐')}
       <p class="es-note">${_esc(_t('msFollowNote'))}</p>
+    </section>
+    ${_group('codeLetters', 'msCodesTitle', '🔤')}
+      <p class="es-note">${_esc(_t('msCodesNote'))}</p>
     </section>
     <div class="ms-reset-row">
       <button type="button" class="cl-btn" data-ms-reset${off ? ' disabled' : ''}>↺ ${_esc(_t('msAiReset'))}</button>

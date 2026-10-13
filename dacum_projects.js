@@ -347,6 +347,13 @@ try { localStorage.removeItem('dacum_follow_lang_kept'); } catch (_) {}   // 3.1
 
 /* Turning "Follow the project's language" on in Settings → Misc applies
    to the project open now, at once. */
+/* 3.108.0: the letters of the duty and task codes changed — redraw. */
+window.addEventListener('dacum:ui-prefs-changed', (e) => {
+  const d = e && e.detail;
+  if (!d || d.name !== 'codeLetters') return;
+  try { saveCurrentProject(); renderAll(); renderProjectsSidebar(); } catch (_) {}
+});
+
 window.addEventListener('dacum:ui-prefs-changed', (e) => {
   const d = e && e.detail;
   if (!d || d.name !== 'followProjectLang' || d.value !== 'on') return;

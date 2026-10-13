@@ -77,3 +77,17 @@ test('saved project files carry the language in their name', async ({ page }) =>
   expect(dl.suggestedFilename()).toMatch(/^Pilot_AR_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}\.json$/);
   expect(errors).toEqual([]);
 });
+
+// 3.108.0: Settings → Misc — Latin duty letters in the Arabic interface.
+test('Arabic interface: duty letters Arabic by default, Latin when chosen in Misc', async ({ page }) => {
+  const errors = await openApp(page, { lang: 'ar' });
+  await loadProject(page, fixture('pilot-ar.json'));
+  const code = () => page.evaluate(async () => (await import('./codes.js')).getTaskCodeShort('duty_6_1'));
+  expect(await code()).toBe('و1');
+  await page.evaluate(async () => (await import('./ui_prefs.js')).setPref('codeLetters', 'latin'));
+  expect(await code()).toBe('F1');
+  await expect(page.locator('body')).toContainText('F1');          // redrawn at once
+  await page.evaluate(async () => (await import('./export_settings.js')).openExportSettings({ tab: 'misc' }));
+  await expect(page.locator('input[data-ms-pref="codeLetters"][value="latin"]')).toBeChecked();
+  expect(errors).toEqual([]);
+});
