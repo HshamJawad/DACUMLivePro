@@ -335,7 +335,6 @@ export function loadProject(id, { follow = true } = {}) {
 function _followProjectLanguage(project) {
   try {
     if (getPref('followProjectLang') === 'off' || !window.i18n) return;
-    if (_keptIds().includes(project.id)) return;   // Undo was chosen for this project
     const lang = stateLanguage(project.state);
     const ui = window.i18n.getLang();
     if (!UI_LANGS.includes(lang) || lang === ui) return;
@@ -344,15 +343,16 @@ function _followProjectLanguage(project) {
   } catch (e) { /* the project is open; the language stays as it was */ }
 }
 
-/* Projects for which Undo was chosen: they open in the interface as it is. */
-const _KEPT_KEY = 'dacum_follow_lang_kept';
-function _keptIds() {
-  try { const v = JSON.parse(localStorage.getItem(_KEPT_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (_) { return []; }
-}
-function _keepLang(id) {
-  if (!id) return;
-  try { localStorage.setItem(_KEPT_KEY, JSON.stringify([..._keptIds().filter(x => x !== id), id].slice(-200))); } catch (_) {}
-}
+try { localStorage.removeItem('dacum_follow_lang_kept'); } catch (_) {}   // 3.107.0's memory of Undo, retired
+
+/* Turning "Follow the project's language" on in Settings → Misc applies
+   to the project open now, at once. */
+window.addEventListener('dacum:ui-prefs-changed', (e) => {
+  const d = e && e.detail;
+  if (!d || d.name !== 'followProjectLang' || d.value !== 'on') return;
+  const p = _loadProjects().find(x => x.id === _getActive());
+  if (p) { saveCurrentProject(); _followProjectLanguage(_loadProjects().find(x => x.id === p.id)); }
+});
 
 function _langNote(prev, lang) {
   const old = document.getElementById('dpsLangNote');
@@ -369,11 +369,9 @@ function _langNote(prev, lang) {
   document.body.appendChild(box);
   const close = () => { clearTimeout(timer); box.remove(); };
   const timer = setTimeout(close, 9000);
-  box.querySelector('[data-dps-undo]').addEventListener('click', () => {
-    close();
-    window.i18n.setLang(prev);
-    _keepLang(_getActive());
-  });
+  /* 3.107.1: Undo is for this opening only — the next project opened
+     switches again (a remembered Undo made the switch look broken). */
+  box.querySelector('[data-dps-undo]').addEventListener('click', () => { close(); window.i18n.setLang(prev); });
   box.querySelector('[data-dps-close]').addEventListener('click', close);
 }
 
