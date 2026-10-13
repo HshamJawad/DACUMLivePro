@@ -194,8 +194,21 @@ export function collectUnits(s) {
     Object.keys(rec).forEach(sec => {
       if (sec[0] === '_') return;
       const v = rec[sec];
-      if (Array.isArray(v)) addList(`ta:${taskId}:${sec}`, v);
+      /* 3.105.0: the decisions table (rows of decision / cue /
+         consequence / expert) and the lines of the sections the user
+         added (custom: { id: [lines] }) are written texts too. They were
+         skipped, so a translated project still handed them over to
+         Module Builder in the original language. */
+      if (Array.isArray(v) && v.some(x => x && typeof x === 'object')) {
+        v.forEach((row, i) => {
+          if (!row || typeof row !== 'object') return;
+          Object.keys(row).forEach(k => { if (k[0] !== '_') add(`ta:${taskId}:${sec}#${i}.${k}`, row, k); });
+        });
+      } else if (Array.isArray(v)) addList(`ta:${taskId}:${sec}`, v);
       else if (typeof v === 'string') add(`ta:${taskId}:${sec}`, rec, sec);
+      else if (sec === 'custom' && v && typeof v === 'object') {
+        Object.keys(v).forEach(id => addList(`ta:${taskId}:custom:${id}`, v[id]));
+      }
     });
   });
   (s.taskAnalysisCustomSections || []).forEach(c => c && add('tacs:' + c.id, c, 'title'));

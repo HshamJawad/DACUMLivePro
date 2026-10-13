@@ -1171,6 +1171,34 @@ export function curFileName(module) {
 }
 
 // ── Export: model for the Word builder ───────────────────────
+/* 3.104.0: what the Module Builder handoff carries from this tab beyond
+   the summary — the module's entry skills and resource lists, and the
+   programme's requirements and course information (CBC). Empty parts
+   are left out; null when there is nothing. */
+export function getCurriculumHandoff(moduleId) {
+  const rec = _modRec(moduleId) || {};
+  const mod = {};
+  ['entrySkills', 'tools', 'equipment', 'ppe', 'materials', 'resources'].forEach(k => {
+    const v = _clean(rec[k]); if (v.length) mod[k] = v;
+  });
+  const fac = _arr(rec.facilities)
+    .map(f => ({ item: _str(f && f.item).trim(), qty: _str(f && f.qty).trim() })).filter(f => f.item);
+  if (fac.length) mod.facilities = fac;
+  return Object.keys(mod).length ? mod : null;
+}
+export function getProgrammeHandoff() {
+  const s = _settings();
+  const out = {};
+  const eq = _clean(s.entryQualifications), tq = _clean(s.trainerQualifications);
+  if (eq.length) out.entryQualifications = eq;
+  if (tq.length) out.trainerQualifications = tq;
+  if (Number(s.trainersPerGroup) > 0) { out.trainersPerGroup = Number(s.trainersPerGroup); out.groupSize = s.groupSize; }
+  if (_str(s.qualificationLevel).trim()) out.qualificationLevel = _str(s.qualificationLevel).trim();
+  if (_str(s.courseDescription).trim()) out.courseDescription = _str(s.courseDescription).trim();
+  const co = _clean(s.courseOutcomes); if (co.length) out.courseOutcomes = co;
+  return Object.keys(out).length ? out : null;
+}
+
 export function getCurriculumModel(moduleId, opts = {}) {
   const mods = _modules();
   const module = mods.find(m => m.id === moduleId);

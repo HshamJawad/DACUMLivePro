@@ -15,15 +15,43 @@ import { getTaskCodeShort, getDutyCode, isClusterAddedTaskId, getAddedTaskLabel 
 import { getTaskAnalysisRecord } from './task_analysis.js';
 import { isTaskSelected, getTaskSelectionHandoff } from './task_selection.js';
 import { getSupplementaryVerificationData } from './supplementary_verification.js';
-import { getCurriculumModel } from './module_curriculum.js';
+import { getCurriculumModel, getCurriculumHandoff, getProgrammeHandoff } from './module_curriculum.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOutcomes } from './clusters.js';
 import { _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
 import { renderModules } from './learning_outcomes.js';
 import { captureProjectState } from './dacum_projects.js';
-import { viewOriginal, handoffTranslations } from './content_lang.js';
+import { viewOriginal, handoffTranslations, guessLanguage, versionStats, LANG_NAMES } from './content_lang.js';
 
 /* 3.79.2: the project's other content languages, for Module Builder
    (3.16+), which shows and exports the handed-over texts in them. */
+/* 3.105.0: the language the handed-over texts are in — the version
+   shown, else the one the project is written in (guessed when content
+   languages were never set). Module Builder writes each text on the side
+   of its own language and never under another language's label. */
+function _handoffTextLanguage() {
+  try {
+    const s = captureProjectState();
+    const cl = s.contentLanguages;
+    if (cl) return cl.active || cl.original || 'en';
+    const ui = (window.i18n && window.i18n.uiLang) ? window.i18n.uiLang() : 'en';
+    return guessLanguage(s, ui);
+  } catch (_) { return 'en'; }
+}
+
+/* 3.105.0: translations still missing, per language, when the project
+   has content languages: [{ lang, missing }] (empty when complete). */
+function _handoffMissingTranslations() {
+  try {
+    const s = captureProjectState();
+    const cl = s.contentLanguages;
+    if (!cl || !cl.versions) return [];
+    const base = cl.view ? viewOriginal(s).state : s;
+    return Object.keys(cl.versions)
+      .map(lang => ({ lang, missing: versionStats(base, lang).missing }))
+      .filter(x => x.missing > 0);
+  } catch (_) { return []; }
+}
+
 function _handoffLanguages() {
   try {
     const s = captureProjectState();
@@ -1199,7 +1227,11 @@ function _curriculumSummary(module) {
     loHours,
     programme: model.programme || '',
   };
-  const empty = out.credits == null && !out.purpose && !out.prerequisites.length && !Object.keys(loHours).length;
+  // 3.104.0: entry skills and the module's resource lists.
+  let extra = null;
+  try { extra = getCurriculumHandoff(module.id); } catch (_) { extra = null; }
+  if (extra) Object.assign(out, extra);
+  const empty = out.credits == null && !out.purpose && !out.prerequisites.length && !Object.keys(loHours).length && !extra;
   return empty ? null : out;
 }
 
@@ -1216,6 +1248,9 @@ function _buildModuleExport(module, moduleNumber) {
     // Programme level (1..N) and specialisation; null / '' when unset.
     level: _moduleLevel(module),
     track: module.track || '',
+    // 3.104.0: the module's category (Basic, Common, Core, Elective or
+    // the programme's own), with its label as shown here.
+    ...(() => { const c = getModuleCategory(module); return c ? { category: { id: c.id, label: categoryLabel(c) } } : {}; })(),
     // 3.85.0: TVQF/NQF level and its descriptors — only when the option
     // is on and the field is filled (see getNqfSettings()).
     ...(getModuleNqfLevel(module) ? { nqfLevel: getModuleNqfLevel(module) } : {}),
@@ -1303,7 +1338,23 @@ export function openModuleBuilderFromMapping(moduleId = null) {
 
   const programme = _handoffProgramme(occupation);
 
+  /* 3.105.0: texts not translated yet would reach Module Builder in the
+     original language only. Say so before sending; Cancel opens
+     Settings → Languages to translate them first. */
+  const textLang = _handoffTextLanguage();
+  const missing = _handoffMissingTranslations();
+  if (missing.length) {
+    const list = missing.map(x => `${LANG_NAMES[x.lang] || x.lang}: ${x.missing}`).join(' · ');
+    const go = window.confirm(_tf('msgMBMissingTranslations', { list, lang: LANG_NAMES[textLang] || textLang }));
+    if (!go) {
+      import('./export_settings.js').then(m => m.openExportSettings({ tab: 'languages' })).catch(() => {});
+      return;
+    }
+  }
+
   const exportObject = {
+    // 3.105.0: the language of every text below.
+    contentLanguage: textLang,
     source: 'DACUM Live Pro v1.0',
     exportDate: new Date().toISOString(),
     // 3.49.0: which DACUM project these modules belong to. Module Builder
@@ -1338,7 +1389,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     ...(() => { const ts = getTaskSelectionHandoff(); return ts ? { taskSelection: ts } : {}; })(),
     // 3.85.0: the qualifications framework's name, when the TVQF/NQF
     // option is on and a name was given.
-    ...(() => { const n = getNqfSettings(); return n.enabled && n.framework ? { qualificationsFramework: n.framework } : {}; })()
+    ...(() => { const n = getNqfSettings(); return n.enabled && n.framework ? { qualificationsFramework: n.framework } : {}; })(),
+    // 3.104.0: programme requirements and course information (Module
+    // Curriculum → Programme settings), when any was entered.
+    ...(() => { let p = null; try { p = getProgrammeHandoff(); } catch (_) { p = null; } return p ? { programmeRequirements: p } : {}; })()
   };
 
   try {
@@ -1365,9 +1419,12 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     dacumUrl: exportObject.dacumUrl,
                     dacumVersion: exportObject.dacumVersion,
                     contentLanguages: exportObject.contentLanguages,
+                    contentLanguage: exportObject.contentLanguage,
                     taskSelection: exportObject.taskSelection,
                     qualificationsFramework: exportObject.qualificationsFramework,
+                    programmeRequirements: exportObject.programmeRequirements,
                     modules: [...others, ...exportObject.modules] };
+        if (!payload.programmeRequirements) delete payload.programmeRequirements;
         if (!payload.qualificationsFramework) delete payload.qualificationsFramework;
         if (!payload.contentLanguages) delete payload.contentLanguages;
         if (!payload.taskSelection) delete payload.taskSelection;
@@ -1438,6 +1495,8 @@ export function exportModuleMappingJSON() {
   if (_cl) exportData.contentLanguages = _cl;
   const _ts = getTaskSelectionHandoff();
   if (_ts) exportData.taskSelection = _ts;
+  let _pr = null; try { _pr = getProgrammeHandoff(); } catch (_) { _pr = null; }
+  if (_pr) exportData.programmeRequirements = _pr;   // 3.104.0
 
   const dateStr = new Date().toISOString().split('T')[0];
   const filename = `module-mapping-export_${dateStr}.json`;
