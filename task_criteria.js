@@ -7,7 +7,8 @@
 //     closest to the task first, by the words they share with it and
 //     its analysis; the rest folded,
 //   • the learning outcomes those criteria reach.
-// The button exists once criteria have been written in either tab. It
+// 3.110.0: the button is on every task card ("📏 0" when no criterion is
+// written yet) and the window leads to where criteria are written. It
 // is on the cards of Duties & Tasks (shown by default) and of the
 // verified DACUM chart (hidden by default); "📏 Criteria" on each
 // toolbar shows or hides it. Never printed.
@@ -82,7 +83,7 @@ export function getTaskCriteria(taskId) {
     list.forEach(x => {
       let score = 0;
       x.w.forEach(w => { const idf = 1 / df[w]; if (title.has(w)) score += idf; else if (more.has(w)) score += idf * 0.25; });
-      comp.push({ text: x.text, cluster: c.name || '', score });
+      comp.push({ text: x.text, cluster: c.name || '', cid: c.id, score });
     });
   });
   const best = comp.reduce((m, x) => Math.max(m, x.score), 0);
@@ -93,12 +94,15 @@ export function getTaskCriteria(taskId) {
   const texts = new Set([...own, ...closest.map(x => x.text)]);
   const outcomes = ((appState.learningOutcomesData && appState.learningOutcomesData.outcomes) || []).filter(o =>
     (o.linkedCriteria || []).some(lc => lc && (lc.taskId === taskId || texts.has(_clean(lc.text)))));
-  return { own, closest, others, outcomes };
+  const home = _clusters().find(c => (c.tasks || []).some(t => t.id === taskId));
+  return { own, closest, others, outcomes, clusterId: home ? home.id : '', clusterName: home ? (home.name || '') : '' };
 }
 
 /** The small "📏 n" button for a task card ('' when not shown). */
 export function criteriaBadge(taskId, view) {
-  if (!taskId || !badgesOn(view) || !criteriaWritten()) return '';
+  /* 3.110.0: on every task card, criteria written or not — experts often
+     write them after the chart; "📏 0" leads to where they are written. */
+  if (!taskId || !badgesOn(view)) return '';
   _style();
   const r = getTaskCriteria(taskId);
   const n = r.own.length + r.closest.length;
@@ -109,7 +113,6 @@ export function criteriaBadge(taskId, view) {
 
 /** The "📏 Criteria" toolbar toggle ('' when no criteria are written yet). */
 export function criteriaToggle(view, attr) {
-  if (!criteriaWritten()) return '';
   const on = badgesOn(view);
   return `<button type="button" class="${attr.cls}${on ? ' is-on' : ''}" ${attr.data}="criteria"
             aria-pressed="${on}" title="${_esc(_t('tcToggleTip'))}">📏 ${_esc(_t('tcToggle'))}</button>`;
@@ -149,13 +152,41 @@ export function openTaskCriteria(taskId) {
         <div class="tc-task" dir="auto">${_esc(getTaskCode(taskId))} — ${_esc(_taskText(taskId))}</div></div>
         <button type="button" class="tc-x" data-tc-close aria-label="${_esc(_t('tcClose'))}">✕</button></div>
       <div class="tc-body">${body}</div>
+      <div class="tc-go">
+        <button type="button" data-tc-go="ta">✏️ ${_esc(_t('tcGoTA'))}</button>
+        ${r.clusterId ? `<button type="button" data-tc-go="cluster">✏️ ${_esc(_t('tcGoCluster'))}</button>` : ''}
+      </div>
       <div class="tc-foot">${_esc(_t('tcReadOnly'))}</div>
     </div>`;
-  _ov.addEventListener('click', (e) => { if (e.target === _ov || e.target.closest('[data-tc-close]')) closeTaskCriteria(); });
+  _ov.addEventListener('click', (e) => {
+    if (e.target === _ov || e.target.closest('[data-tc-close]')) { closeTaskCriteria(); return; }
+    const go = e.target.closest('[data-tc-go]');
+    if (go) { closeTaskCriteria(); goWriteCriteria(taskId, go.getAttribute('data-tc-go'), r.clusterId); }
+  });
   document.addEventListener('keydown', _onKey, true);
   document.body.appendChild(_ov);
   _ov.querySelector('[data-tc-close]').focus();
 }
+/** 3.110.0: to where the task's criteria are written — its Performance
+ *  Criteria in Task Analysis, or its competency's criteria in Competency
+ *  Clusters — with the cursor in the field. */
+export async function goWriteCriteria(taskId, where, clusterId) {
+  const focus = (el) => {
+    if (!el) return;
+    el.scrollIntoView({ block: 'center' });
+    try { el.focus({ preventScroll: true }); el.setSelectionRange(el.value.length, el.value.length); } catch (_) {}
+  };
+  if (where === 'cluster') {
+    if (window.switchTab) window.switchTab('clustering-tab');
+    setTimeout(() => focus(document.getElementById('criteria_' + clusterId)), 150);
+    return;
+  }
+  if (window.switchTab) window.switchTab('task-analysis-tab');
+  const ta = await import('./task_analysis.js');
+  ta.openTaskAnalysisFor(taskId);
+  setTimeout(() => focus(document.querySelector('#task-analysis-tab [data-field-block="performanceCriteria"] textarea')), 150);
+}
+
 export function closeTaskCriteria() {
   if (_ov) { _ov.remove(); _ov = null; }
   document.removeEventListener('keydown', _onKey, true);
@@ -193,6 +224,10 @@ body.card-view-printing .tc-badge, html.vc-printing .tc-badge, body.card-view-fu
 .tc-sec details summary { cursor: pointer; color: #475569; margin-top: 6px; }
 .tc-tag { font-size: .75em; background: #dcfce7; color: #166534; border-radius: 999px; padding: 0 7px; margin-inline-start: 4px; white-space: nowrap; }
 .tc-none { color: #64748b; font-style: italic; margin: 8px 0; }
+.tc-go { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 18px 0; }
+.tc-go button { width: auto !important; margin: 0 !important; min-height: 0 !important; padding: 7px 14px !important; border-radius: 9px !important;
+  cursor: pointer; font: inherit; font-weight: 600; font-size: .88em; background: #eef2ff !important; color: #3730a3 !important; border: 1px solid #c7d2fe !important; }
+.tc-go button:hover { background: #e0e7ff !important; }
 .tc-foot { padding: 8px 18px 12px; color: #94a3b8; font-size: .8em; border-top: 1px solid #f1f5f9; }`;
   document.head.appendChild(s);
 }

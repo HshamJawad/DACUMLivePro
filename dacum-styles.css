@@ -670,6 +670,15 @@ input[type="date"]:focus {
 .dcv-add-duty-btn:hover  { background: #e2e8f0; color: #1e293b; border-color: #94a3b8; box-shadow: none; filter: none; }
 .dcv-add-duty-btn:active { transform: scale(0.97); }
 
+/* 3.110.0: the row under the chart — ＋ Add Duty at one end, the
+   verified DACUM chart button at the other (it used to sit above the
+   chart and take its space). */
+.duties-foot-row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 10px 14px; margin-top: 14px;
+}
+.duties-foot-row .dcv-add-duty-btn { margin-top: 0; }
+
 /* ── Fallback for browsers without field-sizing ─────
    Uses JS-free CSS clamp trick: textarea grows via
    scrollHeight when user types (no resize handle)    */

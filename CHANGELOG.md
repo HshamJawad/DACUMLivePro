@@ -7,6 +7,22 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.110.0 — 2026-10-14 — 📏 leads to where criteria are written; verified chart button below
+MINOR. task_criteria.js, duties.js, verified_chart.js, translations.js,
+dacum-styles.css, dacum-components.css, index.html, sw.js (v251),
+tests/specs/task-criteria.spec.js.
+Changed "📏" is on every task card, criteria written or not ("📏 0", dimmed,
+        when none): experts often write criteria after the chart.
+Added   In its window: "✏️ Write the criteria in Task Analysis" opens Task
+        Analysis on the task with the cursor in Performance Criteria;
+        "✏️ Competency criteria" (when the task is in a competency) opens
+        Competency Clusters with the cursor in that competency's criteria.
+Changed Duties & Tasks: the verified DACUM chart button moved from above the
+        chart to the row under it, at the end opposite ＋ Add Duty, so the
+        chart starts higher. Not printed.
+Tested  task-criteria spec: "📏 0" and the jump to Task Analysis, the jump
+        to the competency, the button under the chart.
+
 ── 3.109.0 — 2026-10-13 — 📏 Performance criteria from the task card
 MINOR. task_criteria.js (new), duties.js, verified_chart.js, translations.js,
 index.html, sw.js (v250), tests/specs/task-criteria.spec.js,

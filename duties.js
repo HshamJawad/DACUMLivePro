@@ -558,6 +558,21 @@ if (typeof document !== 'undefined') {
   }
 }
 
+// ── Row under the chart (3.110.0) ─────────────────────────────
+// ＋ Add Duty (Card View) and the verified DACUM chart button
+// (verified_chart.js) share one row after #dutiesContainer.
+export function getDutiesFootRow() {
+  let row = document.getElementById('dutiesFootRow');
+  if (row) return row;
+  const container = document.getElementById('dutiesContainer');
+  if (!container || !container.parentNode) return null;
+  row = document.createElement('div');
+  row.id = 'dutiesFootRow';
+  row.className = 'duties-foot-row';
+  container.parentNode.insertBefore(row, container.nextSibling);
+  return row;
+}
+
 // ── Add Duty button visibility ────────────────────────────────
 
 function _setAddDutyVisibility(mode) {
@@ -571,11 +586,9 @@ function _setAddDutyVisibility(mode) {
       cardBtn           = document.createElement('button');
       cardBtn.id        = 'btnAddDutyCard';
       cardBtn.className = 'dcv-add-duty-btn';
-      // Insert after dutiesContainer
-      const container = document.getElementById('dutiesContainer');
-      if (container && container.parentNode) {
-        container.parentNode.insertBefore(cardBtn, container.nextSibling);
-      }
+      // In the row under the chart, first (3.110.0)
+      const foot = getDutiesFootRow();
+      if (foot) foot.insertBefore(cardBtn, foot.firstChild);
       // Wire ONCE with onclick — never accumulates extra listeners
       cardBtn.onclick = () => addDuty();
     }
