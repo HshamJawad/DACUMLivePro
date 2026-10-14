@@ -63,3 +63,46 @@ test('filled project + AI down: confirm with snapshot, stop at stage 1, nothing 
                                          s.learningOutcomesData.outcomes.length, s.moduleMappingData.modules.length]`);
   expect(after).toEqual(before);
 });
+
+// 3.114.0: rebuilding Duties & Tasks detaches the work keyed to the current
+// tasks; the dialog names it (setup and confirm). Task Analysis is not a
+// stage — a note says where it is done, before and after the run.
+test('filled project: the work tied to the current tasks is named; Task Analysis note', async ({ page }) => {
+  const errors = await openApp(page);
+  await mockAI(page, { fail: true });
+  await loadProject(page, fixture('sample-project.json'));
+  const taskId = await page.evaluate(async () => {
+    const { appState } = await import('./state.js');
+    const id = appState.dutiesData[0].tasks[0].inputId;
+    appState.taskAnalysisData[id] = Object.assign(appState.taskAnalysisData[id] || {}, { basicReading: ['Read the wiring diagram'] });
+    appState.taskSelection = appState.taskSelection || {};
+    appState.taskSelection.excluded = Object.assign({}, appState.taskSelection.excluded, { [appState.dutiesData[0].tasks[1].inputId]: '' });
+    return id;
+  });
+  expect(taskId).toBeTruthy();
+  await openDraft(page);
+  await expect(page.locator('#dgOverlay #dgLinkedWork')).toBeVisible();
+  const warn = page.locator('#dgOverlay .dg-body .dg-note-warn').first();
+  await expect(warn).toContainText('Task Analysis for');
+  await expect(warn).toContainText('Task Selection: 1 tasks left out');
+  await expect(page.locator('#dgOverlay #dgTANote')).toContainText('Task Analysis is not part of the draft');
+  await expect(page.locator('#dgOverlay')).toContainText('Task Verification stays with the panel');
+  await page.click('#dgStart');
+  await expect.poll(() => phase(page)).toBe('confirm');
+  await expect(page.locator('#dgOverlay #dgLinkedWork')).toBeVisible();
+  await expect(page.locator('#dgOverlay .dg-clash-list').last()).toContainText('Task Analysis for');
+  expect(errors).toEqual([]);
+});
+
+test('new project: no linked-work list; the Task Analysis note shows when the draft is done', async ({ page }) => {
+  const errors = await openApp(page);
+  await mockAI(page, { messy: true });
+  await fillJob(page);
+  await openDraft(page);
+  await expect(page.locator('#dgOverlay #dgLinkedWork')).toHaveCount(0);
+  await page.click('#dgStart');
+  await waitEnd(page);
+  expect(await phase(page)).toBe('done');
+  await expect(page.locator('#dgOverlay #dgTANote')).toBeVisible();
+  expect(errors).toEqual([]);
+});
