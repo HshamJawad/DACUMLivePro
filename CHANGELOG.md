@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.112.0 — 2026-10-14 — Module Builder in the side navigation
+MINOR. dacum_projects.js, translations.js, index.html, sw.js (v253),
+tests/specs/mb-handoff.spec.js.
+Added   Side navigation: "🚀 Module Builder", after Module Curriculum and
+        before Settings. It does exactly what Module Mapping → "Proceed to
+        Module Builder" does — sends every module and opens (or reuses) the
+        Module Builder tab — from any tab, without opening Module Mapping.
+        Not a tab: it never becomes the active item.
+Tested  mb-handoff spec: the side button sends all modules and opens
+        Module Builder.
+
 ── 3.111.0 — 2026-10-14 — Back to the chart from Task Analysis; the user's own chart terms
 MINOR. chart_terms.js (new), task_criteria.js, task_analysis.js, settings_misc.js,
 app.js, translations.js, dacum-components.css, index.html, sw.js (v252),

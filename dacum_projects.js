@@ -701,6 +701,17 @@ export function initProjectsSidebar() {
         <span class="dps-nav-icon">📘</span>
         <span class="dps-nav-text">${_t('tabModuleCurriculum')}</span>
       </button>
+      <!-- ── Module Builder (3.112.0) ─────────────────────────────
+           Same action as Module Mapping → "🚀 Proceed to Module
+           Builder": sends every module and opens (or reuses) the
+           Module Builder tab. Like Settings below, it has no
+           data-target-tab, so the nav delegate ignores it and it never
+           becomes the active item. -->
+      <button class="dps-nav-item dps-nav-mb" id="dpsModuleBuilder"
+              type="button" data-tooltip="${_t('sbModuleBuilder')}">
+        <span class="dps-nav-icon">🚀</span>
+        <span class="dps-nav-text">${_t('sbModuleBuilder')}</span>
+      </button>
       <!-- ── Export Settings ──────────────────────────────────────
            Sits immediately before Help, and takes its SHAPE from
            .dps-nav-item (icon, size, padding, collapsed-rail tooltip)
@@ -807,6 +818,19 @@ export function initProjectsSidebar() {
       import('./export_settings.js')
         .then(m => m.openExportSettings())
         .catch(err => console.error('[export-settings] load failed:', err));
+    });
+  }
+
+  // ── Wire: Module Builder (3.112.0) — the Module Mapping button's action ──
+  // Loaded lazily, like Settings: module_mapping.js is not needed to
+  // build the sidebar, and a static import here would be circular.
+  const _mbBtn = document.getElementById('dpsModuleBuilder');
+  if (_mbBtn) {
+    _mbBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      import('./module_mapping.js')
+        .then(m => m.openModuleBuilderFromMapping())
+        .catch(err => console.error('[module-builder] load failed:', err));
     });
   }
 
@@ -2466,6 +2490,13 @@ window.addEventListener('dacum:langchange', () => {
     const esTxt = esBtn.querySelector('.dps-nav-text');
     if (esTxt) esTxt.textContent = esLabel;
     esBtn.setAttribute('data-tooltip', esLabel);
+  }
+  const mbBtn = document.getElementById('dpsModuleBuilder');
+  if (mbBtn) {
+    const mbLabel = _t('sbModuleBuilder');
+    const mbTxt = mbBtn.querySelector('.dps-nav-text');
+    if (mbTxt) mbTxt.textContent = mbLabel;
+    mbBtn.setAttribute('data-tooltip', mbLabel);
   }
 
   const title = document.querySelector('.dps-title');

@@ -1324,6 +1324,7 @@
       btnExportMM: 'Export Module Mapping (JSON)',
       mbBannerTitle: 'Ready to build detailed training modules?',
       btnOpenModuleBuilder: 'Proceed to Module Builder',
+      sbModuleBuilder: 'Module Builder',  // 3.112.0 side navigation
       mbBannerHint: 'Export your modules and continue with detailed curriculum development',
       msgMBMissingTranslations: "Some texts are not translated yet ({list}). Module Builder will receive them in {lang} only.\n\nOK — send anyway\nCancel — translate them first (Settings → Languages)",
       msgMBExported: 'Module data exported! Opening Module Builder…',
@@ -3338,6 +3339,7 @@
       btnExportMM: 'Exporter le mappage des modules (JSON)',
       mbBannerTitle: 'Prêt à construire des modules de formation détaillés ?',
       btnOpenModuleBuilder: 'Passer au constructeur de modules',
+      sbModuleBuilder: 'Module Builder',  // 3.112.0
       mbBannerHint: 'Exportez vos modules et poursuivez le développement détaillé du curriculum',
       msgMBMissingTranslations: "Certains textes ne sont pas encore traduits ({list}). Module Builder les recevra seulement en {lang}.\n\nOK — envoyer quand même\nAnnuler — les traduire d’abord (Paramètres → Langues)",
       msgMBExported: 'Données des modules exportées ! Ouverture du constructeur…',
@@ -5299,6 +5301,7 @@
       btnExportMM: 'تصدير مواءمة الوحدات (JSON)',
       mbBannerTitle: 'هل أنت مستعد لبناء وحدات تدريبية مفصّلة؟',
       btnOpenModuleBuilder: 'الانتقال إلى بانِي الوحدات',
+      sbModuleBuilder: 'Module Builder',  // 3.112.0
       mbBannerHint: 'صدّر وحداتك وواصل التطوير التفصيلي للمنهاج',
       msgMBMissingTranslations: "بعض النصوص لم تُترجم بعد ({list}). سيستلمها Module Builder باللغة {lang} فقط.\n\nموافق — الإرسال على أي حال\nإلغاء — ترجمتها أولاً (الإعدادات ← اللغات)",
       msgMBExported: 'تم تصدير بيانات الوحدات! جارٍ فتح بانِي الوحدات…',
