@@ -39,15 +39,51 @@ test('task cards: 📏 with a count; the modal lists own and closest criteria an
   expect(errors).toEqual([]);
 });
 
-test('no criteria written anywhere: no button, no toggle', async ({ page }) => {
+test('no criteria written yet: "📏 0" leads to Task Analysis, cursor in Performance Criteria', async ({ page }) => {
   const errors = await openApp(page, { lang: 'en' });
   const data = fixture('pilot-criteria.json');
   data.taskAnalysis = {};
   data.competencyClusters.clusters.forEach(c => { c.performanceCriteria = []; });
   await loadProject(page, data);
   await page.evaluate(() => window.switchTab('duties-tab'));
-  await expect(page.locator('#dutiesContainer .tc-badge')).toHaveCount(0);
-  await expect(page.locator('#cardViewToolbar [data-cv-action="criteria"]')).toHaveCount(0);
+  const b = card(page, 'duty_6_2').locator('.tc-badge');
+  await expect(b).toHaveText('📏 0');
+  await expect(b).toHaveClass(/tc-zero/);
+  await expect(page.locator('#cardViewToolbar [data-cv-action="criteria"]')).toHaveCount(1);
+  await b.click();
+  const m = page.locator('.tc-overlay');
+  await expect(m).toContainText('No performance criteria have been written for this task yet.');
+  await m.locator('[data-tc-go="ta"]').click();
+  await expect(page.locator('#task-analysis-tab')).toHaveClass(/active/);
+  await expect(page.locator('#taskAnalysisNav .ta-nav-task[data-task-key="duty_6_2"]')).toHaveClass(/ta-nav-active|active/);
+  await expect(page.locator('#task-analysis-tab [data-field-block="performanceCriteria"] textarea')).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
+test('"Competency criteria" leads to the competency of the task, cursor in its criteria', async ({ page }) => {
+  const errors = await openApp(page, { lang: 'en' });
+  await loadProject(page, fixture('pilot-criteria.json'));
+  await page.evaluate(() => window.switchTab('duties-tab'));
+  await card(page, 'duty_6_2').locator('.tc-badge').click();
+  const cid = await page.evaluate(async () => (await import('./task_criteria.js')).getTaskCriteria('duty_6_2').clusterId);
+  await page.locator('.tc-overlay [data-tc-go="cluster"]').click();
+  await expect(page.locator('#clustering-tab')).toHaveClass(/active/);
+  await expect(page.locator(`#criteria_${cid}`)).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
+test('the verified chart button is under the chart, at the end opposite ＋ Add Duty', async ({ page }) => {
+  const errors = await openApp(page, { lang: 'en' });
+  await loadProject(page, fixture('pilot-criteria.json'));
+  await page.evaluate(() => window.switchTab('duties-tab'));
+  const foot = page.locator('#dutiesFootRow');
+  await expect(foot.locator('#btnAddDutyCard')).toBeVisible();
+  await expect(foot.locator('.vc-launch')).toBeVisible();
+  const [add, vc, chart] = await Promise.all([foot.locator('#btnAddDutyCard').boundingBox(), foot.locator('.vc-launch').boundingBox(),
+    page.locator('#dutiesContainer').boundingBox()]);
+  expect(vc.y).toBeGreaterThan(chart.y + chart.height - 1);           // below the chart
+  expect(vc.x).toBeGreaterThan(add.x + add.width);                    // the other end (LTR)
+  expect(await page.locator('#duties-tab .vc-launch').count()).toBe(1);
   expect(errors).toEqual([]);
 });
 

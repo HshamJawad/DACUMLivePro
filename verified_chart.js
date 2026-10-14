@@ -28,7 +28,7 @@ import { escapeHtml } from './renderer.js';
 import { getDutyLetter } from './codes.js';
 import { isTaskSelected, getTaskExclusionReason, getTaskRatingMetrics, hasTaskSelection } from './task_selection.js';
 import { getTaskAnalysisStatus } from './task_analysis.js';
-import { syncAllFromDOM } from './duties.js';
+import { syncAllFromDOM, getDutiesFootRow } from './duties.js';
 import { criteriaBadge, criteriaToggle, badgesOn, setBadgesOn } from './task_criteria.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -267,8 +267,10 @@ export function renderVerifiedChartButtons() {
   }
   const du = document.getElementById('duties-tab');
   if (du && !du.querySelector('.vc-launch-row')) {
-    const anchor = document.getElementById('dutiesContainer');
-    if (anchor) anchor.insertAdjacentHTML('beforebegin', `<div class="vc-launch-row vc-launch-duties">${_buttonHtml('duties')}<span class="vc-launch-hint"></span></div>`);
+    /* 3.110.0: under the chart, at the end opposite ＋ Add Duty, so the
+       chart starts higher on the screen. */
+    const foot = getDutiesFootRow();
+    if (foot) foot.insertAdjacentHTML('beforeend', `<div class="vc-launch-row vc-launch-duties"><span class="vc-launch-hint"></span>${_buttonHtml('duties')}</div>`);
   }
   const { status: s } = getVerifiedChartData();
   document.querySelectorAll('.vc-launch-row').forEach(row => {
@@ -357,6 +359,7 @@ function _injectStyles() {
 .vc-launch.vc-pending { background: #f1f5f9; color: #64748b; border: 1px dashed #94a3b8; }
 .vc-launch.vc-pending::after { content: ' ⏳'; }
 .vc-launch-hint { font-size: .82em; color: #64748b; }
+.duties-foot-row .vc-launch-row { margin: 0; margin-inline-start: auto; }
 html.vc-lock, html.vc-lock body { overflow: hidden; }
 .vc-overlay { position: fixed; inset: 0; z-index: 10050; background: rgba(15,23,42,.55); display: flex; align-items: stretch; justify-content: center; padding: 16px; box-sizing: border-box; }
 .vc-panel { background: #fff; border-radius: 14px; width: 100%; max-width: 1500px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.3); }

@@ -1729,6 +1729,7 @@
       @media print {
         body.card-view-printing #duties-tab > *:not(#wallPrintHeader):not(#dutiesContainer),
         body.card-view-printing #btnAddDutyCard,
+        body.card-view-printing .duties-foot-row,
         body.card-view-printing .cv-toolbar,
         body.card-view-printing .dcv-close-btn,
         body.card-view-printing .dcv-add-btn,
