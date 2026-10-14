@@ -7,6 +7,21 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.113.0 — 2026-10-14 — Duties & Tasks help: transversal duties, the review, the order
+MINOR. events.js, translations.js, index.html, sw.js (v254),
+tests/specs/help-guides.spec.js.
+Changed Duties & Tasks help: a chart usually has 6–12 duties; a broad
+        occupation may need up to about 15.
+Added   A duty may be non-occupation-specific (transversal), e.g. workplace
+        communication — personal traits stay behaviours.
+Added   "Before the chart is final": the panel's review of clarity,
+        redundancy and omissions — about how the statements are written and
+        whether the chart is complete — set apart, in its own line, from
+        Task Verification's importance, difficulty and frequency.
+Added   "Then: put the chart in order": duties first, then the tasks within
+        each duty; the codes renumber automatically when cards are dragged.
+Tested  help-guides spec (EN, FR, AR, 360 px).
+
 ── 3.112.0 — 2026-10-14 — Module Builder in the side navigation
 MINOR. dacum_projects.js, translations.js, index.html, sw.js (v253),
 tests/specs/mb-handoff.spec.js.
