@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.114.0 — 2026-10-14 — Full Draft: the work tied to the tasks, where Task Analysis fits
+MINOR. projects.js, draft_ui.js, translations.js, index.html, sw.js (v255),
+tests/specs/full-draft.spec.js.
+Added   Full Draft, when Duties & Tasks would be rebuilt: the overwrite note
+        and the confirmation also list the work keyed to the current tasks —
+        workshop votes, verification ratings, Task Analysis, Task Selection.
+        It stays saved but no longer attaches to the new tasks (new ids).
+        The single "Generate" in Duties & Tasks already said so; the run
+        skips that question.
+Added   Note "Task Analysis is not part of the draft" (setup and done views):
+        it is done per task in its tab; after analysing, "Regenerate from
+        here" in Competency Clusters lets criteria and range use it.
+Changed "Task Verification is not generated" → "Task Verification stays with
+        the panel", which no longer contradicts the optional draft ratings.
+Tested  full-draft spec: the linked-work list (setup and confirm), its
+        absence on a new project, the Task Analysis note.
+
 ── 3.113.0 — 2026-10-14 — Duties & Tasks help: transversal duties, the review, the order
 MINOR. events.js, translations.js, index.html, sw.js (v254),
 tests/specs/help-guides.spec.js.

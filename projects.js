@@ -853,6 +853,30 @@ function _maxDutyNumberInUse() {
   return max;
 }
 
+/** 3.114.0: work keyed to the CURRENT tasks — votes, ratings, Task
+ *  Analysis, task selection. Regenerating Duties & Tasks gives the new
+ *  tasks new ids, so this work stays saved but attaches to nothing. The
+ *  Full Draft dialog lists it (it skips the confirm below during a run). */
+export function taskLinkedWorkLines() {
+  const tasks = new Set();
+  (appState.dutiesData || []).forEach(d => (d.tasks || []).forEach(t => t && tasks.add(t.inputId)));
+  const countKeys = (obj, pred) => Object.keys(obj || {})
+    .filter(k => tasks.has(k) && (!pred || pred(obj[k]))).length;
+  const nonEmpty = (v) => v && typeof v === 'object' &&
+    Object.keys(v).some(k => k !== '_aiDraft' && k !== '_aiPrev' && v[k] != null && String(v[k]).trim() !== '' &&
+                             !(Array.isArray(v[k]) && !v[k].some(x => String(x || '').trim())));
+  const lines = [];
+  const votes = countKeys(appState.workshopResults);
+  const rated = countKeys(appState.verificationRatings);
+  const ta    = countKeys(appState.taskAnalysisData, nonEmpty);
+  const sel   = countKeys(appState.taskSelection?.excluded);
+  if (votes) lines.push(_tf('aiOwVotes',   { n: votes }));
+  if (rated) lines.push(_tf('aiOwRatings', { n: rated }));
+  if (ta)    lines.push(_tf('aiOwTA',      { n: ta }));
+  if (sel)   lines.push(_tf('aiOwSelection', { n: sel }));
+  return lines;
+}
+
 /** Overwrite question naming the work tied to the current tasks. */
 function _aiOverwriteMessage() {
   const tasks = new Set();

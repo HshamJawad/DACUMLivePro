@@ -14,7 +14,7 @@ import { STAGES, runDraft, cancelDraft, resumeDraft,
          moduleCurriculumAtStake, modulesLeftBehind,
          quotaCheck,
          scopeIsMissing }                    from './draft_agent.js';
-import { switchTab }                         from './projects.js';
+import { switchTab, taskLinkedWorkLines }    from './projects.js';
 import { verifyOccupation, needsConfirmation, VERDICT, describeCheck,
          markBypassed, wasBypassed,
          clearBypass }                       from './occupation_check.js';
@@ -214,7 +214,27 @@ function _clashInfo(ids) {
   }
   const names = [...new Set(clashNames)];
   const lang  = (window.i18n && window.i18n.getLang) ? window.i18n.getLang() : 'en';
-  return { clashes, names, tabs: names.join(lang === 'ar' ? '\u060C ' : ', ') };
+  /* 3.114.0: new duties mean new task ids — work keyed to the current
+     tasks stays saved but no longer attaches to the chart. */
+  let linked = [];
+  if (clashes.includes('duties')) { try { linked = taskLinkedWorkLines(); } catch (_) { linked = []; } }
+  return { clashes, names, linked, tabs: names.join(lang === 'ar' ? '\u060C ' : ', ') };
+}
+
+/* 3.114.0: the work tied to the current tasks, when Duties is rebuilt. */
+function _linkedHtml(linked) {
+  if (!linked || !linked.length) return '';
+  return `<p id="dgLinkedWork">${_esc(_t('dgLinkedLead'))}</p>
+      <ul class="dg-clash-list">${linked.map(l => `<li>${_esc(l)}</li>`).join('')}</ul>`;
+}
+
+/* 3.114.0: where Task Analysis fits — it is not a Full Draft stage. */
+function _taNoteHtml() {
+  return `
+    <div class="dg-note dg-note-info" id="dgTANote">
+      <strong>\u{1F52C} ${_esc(_t('dgTANoteTitle'))}</strong>
+      <p>${_esc(_t('dgTANoteBody'))}</p>
+    </div>`;
 }
 
 function _setupBody() {
@@ -222,7 +242,7 @@ function _setupBody() {
   if (missing.length) return _prereqBody(missing);
 
   const ids       = selectedIds();
-  const { clashes, tabs: clashTabs } = _clashInfo(ids);
+  const { clashes, linked, tabs: clashTabs } = _clashInfo(ids);
   const leftBehind = modulesLeftBehind(ids);
 
   const _anyEmpty = JOB_FIELDS.slice(0, 3)
@@ -236,6 +256,7 @@ function _setupBody() {
         <strong>\u26A0\uFE0F ${_esc(_t('dgOverwriteTitle'))}</strong>
         <p>${_esc(_tf('dgOverwriteBody', { tabs: clashTabs }))}</p>
         ${clashes.includes('moduleCurriculum') ? `<p>${_esc(_t('dgCurriculumKeptNote'))}</p>` : ''}
+        ${_linkedHtml(linked)}
       </div>` : ''}
 
     ${_jobInfoBlock(_jobInfoOpen === null ? (_jobInfoOpen = _anyEmpty) : _jobInfoOpen)}
@@ -299,6 +320,7 @@ function _setupBody() {
       <strong>\u{1F465} ${_esc(_t('dgVerifExcludedTitle'))}</strong>
       <p>${_esc(_t('dgVerifExcludedBody'))}</p>
     </div>
+    ${_taNoteHtml()}
 
     ${leftBehind ? `
       <div class="dg-note dg-note-warn" id="dgModulesLeftBehind">
@@ -410,13 +432,14 @@ function _prereqBody(missing) {
    on a near-finished project that is several tabs of panel work. The
    recommended path saves a snapshot first (📸 Saved Snapshots). */
 function _confirmBody() {
-  const { clashes, names } = _clashInfo(selectedIds());
+  const { clashes, names, linked } = _clashInfo(selectedIds());
   return `
     <div class="dg-note dg-note-warn">
       <strong>\u26A0\uFE0F ${_esc(_t('dgConfirmTitle'))}</strong>
       <p>${_esc(_t('dgConfirmBody'))}</p>
       <ul class="dg-clash-list">${names.map(n => `<li>${_esc(n)}</li>`).join('')}</ul>
       ${clashes.includes('moduleCurriculum') ? `<p>${_esc(_t('dgCurriculumKeptNote'))}</p>` : ''}
+      ${_linkedHtml(linked)}
     </div>
     <div class="dg-note dg-note-info">
       <strong>\u{1F4F8} ${_esc(_t('dgConfirmSnapTitle'))}</strong>
@@ -457,7 +480,8 @@ function _runBody() {
       }).join('')}
     </ol>
 
-    ${hint ? `<p class="dg-run-hint">${_esc(hint)}</p>` : ''}`;
+    ${hint ? `<p class="dg-run-hint">${_esc(hint)}</p>` : ''}
+    ${_phase === 'done' ? _taNoteHtml() : ''}`;
 }
 
 function _footButtons() {
