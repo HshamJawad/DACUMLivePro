@@ -1202,7 +1202,8 @@ function _showDutiesHelp() {
      Arabic the emphasised phrase frequently sits elsewhere in the
      sentence, so fragment-joining produces nonsense. */
   const LIS = ['helpDutiesLi1','helpDutiesLi2','helpDutiesLi3',
-               'helpDutiesLi4','helpDutiesLi5','helpDutiesLi6','helpDutiesLi7']
+               'helpDutiesLi4','helpDutiesLi5','helpDutiesLi6','helpDutiesLi7',
+               'helpDutiesLi8']   // 3.113.0: transversal duties
     .map(k => '<li style="' + LI + '">' + _t(k) + '</li>').join('');
 
   /* 3.87.0: the characteristics of a task (Norton), under the task box. */
@@ -1221,7 +1222,31 @@ function _showDutiesHelp() {
 
     '<p style="' + P + 'margin-top:4px;">' + _t('helpTaskTraitsLead') + '</p>' +
     '<ul style="margin:0 0 10px;padding-inline-start:20px;">' + TRAITS + '</ul>' +
-    '<p style="' + P + '">' + _t('helpTaskOneVerb') + '</p>';
+    '<p style="' + P + '">' + _t('helpTaskOneVerb') + '</p>' +
+
+    /* 3.113.0: once the cards are up — the review (how the statements
+       are written, and whether anything is missing or doubled), kept
+       visibly apart from the verification ratings, then the order. */
+    '<div id="dutiesHelpReview" style="background:#f0fdf4;border-inline-start:3px solid #15803d;' +
+      'border-radius:8px;padding:11px 13px;margin:14px 0 10px;">' +
+      '<p style="margin:0 0 6px;font-size:0.86em;font-weight:800;color:#15803d;">🔎 ' +
+        _t('helpReviewTitle') + '</p>' +
+      '<p style="' + P + '">' + _t('helpReviewLead') + '</p>' +
+      '<ul style="margin:0 0 8px;padding-inline-start:20px;">' +
+        ['helpReviewClarity', 'helpReviewRedundancy', 'helpReviewOmissions']
+          .map(k => '<li style="' + LI + '">' + _t(k) + '</li>').join('') +
+      '</ul>' +
+      '<p style="margin:0;font-size:0.84em;color:#475569;line-height:1.6;background:#fff;' +
+        'border:1px dashed #86efac;border-radius:6px;padding:8px 10px;">⚖️ ' +
+        _t('helpReviewNotVerify') + '</p>' +
+    '</div>' +
+
+    '<div id="dutiesHelpSequence" style="background:#f8fafc;border-inline-start:3px solid #64748b;' +
+      'border-radius:8px;padding:11px 13px;margin-bottom:10px;">' +
+      '<p style="margin:0 0 6px;font-size:0.86em;font-weight:800;color:#334155;">↕️ ' +
+        _t('helpSeqTitle') + '</p>' +
+      '<p style="margin:0;font-size:0.86em;color:#475569;line-height:1.6;">' + _t('helpSeqBody') + '</p>' +
+    '</div>';
 
   _showHelpModal({
     id:       'dutiesHelpModal',

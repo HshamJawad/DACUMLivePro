@@ -26,13 +26,16 @@ async function readHelp(page, tab, opener, modalId) {
 const EXPECT = {
   en: { team: 'Panel members', teamSize: '8–12', os: 'Job descriptions', task: 'two or more steps',
         naming: 'head', pc: 'How would I know one if I saw one', lo: 'Draw a square',
-        tv: 'fewer than 25%', cl: 'by itself', clBeh: 'worker behaviours' },
+        tv: 'fewer than 25%', cl: 'by itself', clBeh: 'worker behaviours',
+        dutyMax: 'about 15', transversal: 'transversal', review: 'Omissions', notVerify: 'Not the same as Task Verification' },
   fr: { team: 'Membres du panel', teamSize: '8 à 12', os: 'Descriptions de poste', task: 'deux étapes ou plus',
         naming: 'la tête', pc: 'Comment le reconnaîtrais-je', lo: 'Tracer un carré',
-        tv: 'moins de 25 %', cl: 'à elle seule', clBeh: 'comportements' },
+        tv: 'moins de 25 %', cl: 'à elle seule', clBeh: 'comportements',
+        dutyMax: '15 environ', transversal: 'transversale', review: 'Omissions', notVerify: 'Ce n’est pas la vérification des tâches' },
   ar: { team: 'أعضاء لجنة الخبراء', teamSize: '8–12', os: 'الوصف الوظيفي', task: 'خطوتين أو أكثر',
         naming: 'الرأس', pc: 'كيف أعرفه إذا رأيته', lo: 'ارسم مربعاً',
-        tv: 'أقل من 25%', cl: 'بمفردها', clBeh: 'سلوكيات' },
+        tv: 'أقل من 25%', cl: 'بمفردها', clBeh: 'سلوكيات',
+        dutyMax: 'نحو 15', transversal: 'عرضية', review: 'النواقص', notVerify: 'هذه ليست التحقق من المهام' },
 };
 
 for (const lang of ['en', 'fr', 'ar']) {
@@ -56,6 +59,10 @@ for (const lang of ['en', 'fr', 'ar']) {
     h = await readHelp(page, 'duties-tab', '#dutiesHelpBtn', 'dutiesHelpModal');
     expect(h.text).toContain(e.task);
     expect(h.text).not.toMatch(/Norton|نورتون|Handbook/);  // source mentions removed (3.100.3)
+    // 3.113.0: up to ~15 duties, transversal duties, the review (kept apart
+    // from the verification ratings) and the order of the chart.
+    for (const k of ['dutyMax', 'transversal', 'review', 'notVerify']) expect(h.text).toContain(e[k]);
+    expect(h.fits).toBe(true);
     h = await readHelp(page, 'clustering-tab', '#clusterNamingHelpBtn', 'clusterNamingHelpModal');
     expect(h.text).toContain(e.naming);
     h = await readHelp(page, 'clustering-tab', '[data-action="show-pc-range-help"]', 'pcRangeHelpModal');
