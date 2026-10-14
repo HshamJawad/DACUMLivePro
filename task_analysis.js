@@ -645,7 +645,9 @@ function _renderListField(field, items) {
     <div class="section-container" data-field-block="${field.key}">
       <div class="section-header-editable">
         <h3>${_t(field.labelKey)}${_aiBadge(field.key)}</h3>
-        <div style="display:flex;gap:10px;">${pickBtn}
+        <div style="display:flex;gap:10px;">${field.key === 'performanceCriteria' ? `
+          <button type="button" class="btn-format ta-back-duties" data-tc-back
+                  title="${escapeHtml(_t('tcBackTip'))}" aria-label="${escapeHtml(_t('tcBackTip'))}">↩ ${escapeHtml(_t('tcBack'))}</button>` : ''}${pickBtn}
           <button type="button" class="btn-format btn-icon" data-action="ta-format-list"
                   data-field="${field.key}" data-format-type="number"
                   title="${escapeHtml(_t('ttAddNumbering'))}" aria-label="${escapeHtml(_t('ttAddNumbering'))}">${ICON_NUMBER}</button>

@@ -8,6 +8,7 @@ import { renderSkillsLevel } from './renderer.js';
 import { updateUsageBadge }  from './storage.js';
 import { setupTabs }         from './tabs.js';
 import { setupEvents }       from './events.js';
+import './chart_terms.js';   // 3.111.0: the tab named with the user's chart terms
 import { switchTab }         from './projects.js';
 import { addDuty }           from './duties.js';
 import { updateCollectionMode, updateWorkflowMode, updateDutyLevelSummary } from './tasks.js';

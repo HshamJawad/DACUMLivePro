@@ -7,6 +7,21 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.111.0 — 2026-10-14 — Back to the chart from Task Analysis; the user's own chart terms
+MINOR. chart_terms.js (new), task_criteria.js, task_analysis.js, settings_misc.js,
+app.js, translations.js, dacum-components.css, index.html, sw.js (v252),
+tests/specs/task-criteria.spec.js.
+Added   Task Analysis → Performance Criteria: "↩ Duties & Tasks" first, before
+        the numbering and bullet buttons. Coming from a task card's 📏, it
+        returns to that card in the chart and outlines it for a moment.
+Added   Settings → Misc → "Chart terms": DACUM — Duties and Tasks (default) —
+        or the user's own two terms (for example those of their country or
+        agency). They name the Duties & Tasks tab (heading and side
+        navigation), with the DACUM name in brackets underneath; the cards
+        keep Duty A / Task A1. Applied as typed, in every language.
+Tested  task-criteria spec: the way back to the card, the chart terms on and
+        off across a language change.
+
 ── 3.110.0 — 2026-10-14 — 📏 leads to where criteria are written; verified chart button below
 MINOR. task_criteria.js, duties.js, verified_chart.js, translations.js,
 dacum-styles.css, dacum-components.css, index.html, sw.js (v251),

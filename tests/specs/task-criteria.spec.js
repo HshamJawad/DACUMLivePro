@@ -100,3 +100,45 @@ test('verified chart: hidden by default, shown with 📏 Criteria; Arabic modal'
   await expect(page.locator('.tc-overlay')).toHaveAttribute('dir', 'rtl');
   expect(errors).toEqual([]);
 });
+
+// 3.111.0: "↩ Duties & Tasks" on the Performance Criteria card of Task
+// Analysis — back to the chart, on the task card the user came from.
+test('Task Analysis → "↩ Duties & Tasks" returns to the task card that was opened', async ({ page }) => {
+  const errors = await openApp(page, { lang: 'en' });
+  await loadProject(page, fixture('pilot-criteria.json'));
+  await page.evaluate(() => window.switchTab('duties-tab'));
+  await card(page, 'duty_6_2').locator('.tc-badge').click();
+  await page.locator('.tc-overlay [data-tc-go="ta"]').click();
+  const back = page.locator('#task-analysis-tab [data-field-block="performanceCriteria"] [data-tc-back]');
+  await expect(back).toBeVisible();
+  // first of the card's buttons
+  const first = await page.locator('#task-analysis-tab [data-field-block="performanceCriteria"] .section-header-editable button').first().getAttribute('data-tc-back');
+  expect(first).not.toBeNull();
+  await back.click();
+  await expect(page.locator('#duties-tab')).toHaveClass(/active/);
+  await expect(card(page, 'duty_6_2')).toHaveClass(/tc-flash/);
+  await expect(card(page, 'duty_6_2')).toBeInViewport();
+  expect(errors).toEqual([]);
+});
+
+// 3.111.0: Settings → Misc → Chart terms.
+test('chart terms: the user\'s own terms name the tab, DACUM name underneath; back to DACUM', async ({ page }) => {
+  const errors = await openApp(page, { lang: 'en' });
+  await loadProject(page, fixture('pilot-criteria.json'));
+  await page.evaluate(async () => (await import('./export_settings.js')).openExportSettings({ tab: 'misc' }));
+  await page.locator('input[name="ms_terms"][value="custom"]').check();
+  await page.locator('[data-ms-term="duty"]').fill('General Areas of Competence');
+  await page.locator('[data-ms-term="task"]').fill('Skills');
+  await expect(page.locator('#dutiesViewHeadingLegacy')).toContainText('General Areas of Competence and Skills');
+  await expect(page.locator('#dutiesTermsSub')).toHaveText('(Duties and Tasks)');
+  await expect(page.locator('#dpsSidebarNav [data-target-tab="duties-tab"] .dps-nav-text')).toHaveText('General Areas of Competence and Skills');
+  await page.evaluate(() => window.i18n.setLang('ar'));
+  await expect(page.locator('#dutiesTermsSub')).toHaveText('(الواجبات والمهام)');
+  await expect(page.locator('#dpsSidebarNav [data-target-tab="duties-tab"] .dps-nav-text')).toHaveText('General Areas of Competence وSkills');
+  await page.evaluate(async () => (await import('./chart_terms.js')).setChartTerms({ mode: 'dacum' }));
+  await expect(page.locator('#dutiesViewHeadingLegacy')).toHaveText('الواجبات والمهام');
+  await expect(page.locator('#dutiesTermsSub')).toHaveCount(0);
+  // the cards keep their labels
+  await expect(page.locator('#task_duty_1_1 .dcv-task-label')).toContainText('المهمة');
+  expect(errors).toEqual([]);
+});

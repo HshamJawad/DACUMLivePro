@@ -170,7 +170,9 @@ export function openTaskCriteria(taskId) {
 /** 3.110.0: to where the task's criteria are written — its Performance
  *  Criteria in Task Analysis, or its competency's criteria in Competency
  *  Clusters — with the cursor in the field. */
+let _returnTo = null;   // the task card the user came from (📏)
 export async function goWriteCriteria(taskId, where, clusterId) {
+  _returnTo = taskId;
   const focus = (el) => {
     if (!el) return;
     el.scrollIntoView({ block: 'center' });
@@ -193,6 +195,29 @@ export function closeTaskCriteria() {
 }
 function _onKey(e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeTaskCriteria(); } }
 
+/** 3.111.0: "↩ Duties & Tasks" in Task Analysis — back to the chart, on
+ *  the task card the user came from (📏), shown for a moment. */
+export function backToDuties() {
+  if (window.switchTab) window.switchTab('duties-tab');
+  const id = _returnTo;
+  _returnTo = null;
+  if (!id) return;
+  setTimeout(() => {
+    const card = document.querySelector(`.dcv-task-card [data-task-id="${CSS.escape(id)}"]`)?.closest('.dcv-task-card')
+      || document.querySelector(`[data-task-id="${CSS.escape(id)}"]`);
+    if (!card) return;
+    card.scrollIntoView({ block: 'center', inline: 'center' });
+    card.classList.add('tc-flash');
+    setTimeout(() => card.classList.remove('tc-flash'), 1800);
+  }, 150);
+}
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-tc-back]');
+  if (!b) return;
+  e.preventDefault();
+  backToDuties();
+}, true);
+
 /* One listener for every "📏" button, wherever it is drawn. */
 document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-tc-open]');
@@ -210,6 +235,7 @@ function _style() {
   line-height: 1.6 !important; cursor: pointer; background: #eef2ff !important; color: #3730a3 !important;
   border: 1px solid #c7d2fe !important; box-shadow: none !important; font-weight: 700; }
 .tc-badge.tc-zero { opacity: .55; }
+.dcv-task-card.tc-flash { outline: 3px solid #6366f1; outline-offset: 2px; transition: outline-color .3s; }
 .tc-badge-row { display: flex; justify-content: flex-end; margin-top: 4px; }
 .vc-task .tc-badge { font-size: .7em !important; }
 body.card-view-printing .tc-badge, html.vc-printing .tc-badge, body.card-view-fullscreen .tc-badge { display: none !important; }

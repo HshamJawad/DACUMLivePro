@@ -2083,6 +2083,12 @@
 #esTabs button:hover { color: #1e293b; background: #f1f5f9; }
 /* Settings → Misc (settings_misc.js, 3.103.0) */
 .ms-group { min-width: 0; }
+/* 3.111.0: chart terms (Settings → Misc) and the DACUM name under a custom tab title */
+.ms-terms { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 8px 0 2px; }
+.ms-terms label { display: flex; flex-direction: column; gap: 4px; font-size: .88em; color: #475569; flex: 1 1 200px; }
+.ms-terms input { padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
+.ct-sub { display: block; font-size: .5em; font-weight: 500; color: #64748b; margin-top: 2px; }
+.ta-back-duties { width: auto; white-space: nowrap; padding: 6px 12px; font-weight: 600; }
 .ms-opts { display: flex; flex-direction: column; gap: 6px; }
 .ms-opt {
   display: flex; align-items: flex-start; gap: 8px;
