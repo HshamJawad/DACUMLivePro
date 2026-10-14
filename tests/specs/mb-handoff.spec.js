@@ -132,3 +132,33 @@ test('handoff: Task Analysis lines without "1." or "•" markers, blank lines dr
   expect(d.modules[0].taskAnalysis[taskId].performanceSteps).toEqual(['Review the work order', 'Isolate the power', 'Fit the 1.5 mm bit']);
   expect(errors).toEqual([]);
 });
+
+// 3.112.0: the side navigation's "Module Builder" does what Module
+// Mapping's "Proceed to Module Builder" does — sends every module and
+// opens the Module Builder tab — and never becomes the active nav item.
+test('side navigation: Module Builder sends the modules like the Module Mapping button', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(() => {
+    localStorage.removeItem('dacum_modules_export');
+    window.__opened = [];
+    window.open = (url, name) => { window.__opened.push([url, name]); return null; };
+  });
+  const btn = page.locator('#dpsModuleBuilder');
+  await expect(btn).toBeVisible();
+  await expect(btn).not.toHaveAttribute('data-target-tab', /.*/);
+  await btn.click();
+  await expect.poll(() => page.evaluate(() => !!localStorage.getItem('dacum_modules_export'))).toBe(true);
+  const r = await page.evaluate(async () => {
+    const { appState } = await import('./state.js');
+    return {
+      sent: JSON.parse(localStorage.getItem('dacum_modules_export')).modules.length,
+      all: appState.moduleMappingData.modules.length,
+      opened: window.__opened,
+    };
+  });
+  expect(r.sent).toBe(r.all);
+  expect(r.opened.some(([u]) => String(u).includes('Module-Builder'))).toBe(true);
+  await expect(btn).not.toHaveClass(/dps-nav-active/);
+  expect(errors).toEqual([]);
+});
