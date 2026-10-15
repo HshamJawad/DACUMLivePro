@@ -1363,6 +1363,9 @@
       helpMMMode2Detail: 'Selected LOs are grouped into a single module.',
       helpMMMode3: 'Manual / Flexible Grouping',
       helpMMMode3Detail: 'Use the dropdowns below to assign outcomes freely.',
+      helpMMMatrixTitle: '📐 Curriculum matrix — depth of treatment',
+      helpMMMatrix: 'Under the coverage matrix, a table of the tasks × the modules says how each module treats each task: ○ introduced, ◐ practised, ● mastered and assessed. The tool suggests it from the criteria (the last module reaching a task assesses it, earlier ones practise it); click a cell to change it.',
+      helpMMMatrixWhy: 'Why it helps: it shows the progression of the programme, and finds what a list cannot — a task never assessed, a task assessed before it is practised, the same task assessed in several modules. It is evidence for quality review that the curriculum is coherent, and it travels in the Module Mapping export.',
       helpMMNote: 'These are ways of thinking about the grouping, not settings to switch between — build any of them with the module controls below.',
       /* ── AI generation messages ── */
       msgDailyLimit: 'Daily limit reached ({n} generations). Try again tomorrow!',
@@ -3395,6 +3398,9 @@
       helpMMMode2Detail: 'Les résultats sélectionnés sont regroupés dans un seul module.',
       helpMMMode3: 'Regroupement manuel / flexible',
       helpMMMode3Detail: 'Utilisez les menus ci-dessous pour affecter librement les résultats.',
+      helpMMMatrixTitle: '📐 Matrice du programme — profondeur de traitement',
+      helpMMMatrix: 'Sous la matrice de couverture, un tableau tâches × modules indique comment chaque module traite chaque tâche : ○ introduite, ◐ pratiquée, ● maîtrisée et évaluée. L’outil le propose à partir des critères (le dernier module qui atteint une tâche l’évalue, les précédents la pratiquent) ; cliquez sur une case pour la changer.',
+      helpMMMatrixWhy: 'Pourquoi c’est utile : il montre la progression du programme et révèle ce qu’une liste ne montre pas — une tâche jamais évaluée, une tâche évaluée avant d’être pratiquée, la même tâche évaluée dans plusieurs modules. C’est une preuve de cohérence pour l’assurance qualité, incluse dans l’export de la cartographie des modules.',
       helpMMNote: 'Ce sont des façons de penser le regroupement, non des réglages à basculer — construisez l’une ou l’autre avec les contrôles ci-dessous.',
       /* ── AI generation messages ── */
       msgDailyLimit: 'Limite quotidienne atteinte ({n} générations). Réessayez demain !',
@@ -5374,6 +5380,9 @@
       helpMMMode2Detail: 'تُجمَّع المحصلات المختارة في وحدة واحدة.',
       helpMMMode3: 'تجميع يدوي / مرن',
       helpMMMode3Detail: 'استخدم القوائم المنسدلة أدناه لإسناد المحصلات بحرّية.',
+      helpMMMatrixTitle: '📐 مصفوفة المنهج — درجة التناول',
+      helpMMMatrix: 'تحت مصفوفة التغطية، جدول المهام × الوحدات يبيّن كيف تتناول كل وحدة كل مهمة: ○ تمهيد، ◐ ممارسة، ● إتقان وتقييم. تقترحه الأداة من المعايير (آخر وحدة تصل إلى المهمة تقيّمها والسابقة تمارسها)، وانقر أي خانة لتغييرها.',
+      helpMMMatrixWhy: 'فائدتها: تُظهر تدرّج البرنامج، وتكشف ما لا تكشفه القوائم — مهمة لا تُقيَّم أبداً، أو تُقيَّم قبل ممارستها، أو تُقيَّم في أكثر من وحدة. وهي دليل على اتساق المنهج لمراجعي الجودة، وتُضمَّن في تصدير ربط الوحدات.',
       helpMMNote: 'هذه طرائق للتفكير في التجميع، لا إعدادات تُبدَّل بينها — يمكنك بناء أي منها بأدوات الوحدات أدناه.',
       /* ── AI generation messages ── */
       msgDailyLimit: 'بلغتَ الحد اليومي ({n} عملية توليد). حاول غداً!',
