@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.117.0 — 2026-10-15 — Help: how many performance criteria per task
+MINOR. events.js, translations.js, index.html, sw.js (v258),
+tests/specs/help-guides.spec.js.
+Added   Task Analysis help: "How many criteria?" — criteria do not match the
+        steps one to one; usually 3–6 per task, covering the critical steps
+        (safety, accuracy, sequence), the quality of the result and the time
+        when it matters; one criterion may cover several steps; "the task is
+        done correctly" cannot be assessed. The same rule, shorter, in the
+        Performance Criteria & Range help (Competency Clusters). EN / FR / AR.
+        Matches what the Task Analysis AI already asks for (3–6).
+Tested  help-guides spec (EN, FR, AR, 360 px).
+
 ── 3.116.0 — 2026-10-15 — Skills Level Matrix: the four levels as an example; slate buttons
 PATCH-sized MINOR. index.html, renderer.js, occupational_standard.js, translations.js,
 sw.js (v257), tests/specs/os-skills-matrix.spec.js.
