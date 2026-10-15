@@ -36,7 +36,7 @@ import { bypassToClusteringTab, resetVerificationDecision, initializeClusteringF
   openModuleBuilderFromMapping, exportModuleMappingJSON,
   dismissCriteriaRenumberNote, restoreClusterAI }  from './modules.js';
 import { showStatus, escapeHtml,
-  toggleSkillsLevelSection, addSkillsCategory, removeSkillsCategory,
+  addSkillsCategory, removeSkillsCategory,
   updateSkillsCategoryName, addSkillsCompetency, removeSkillsCompetency,
   updateSkillsCompetencyText, handleSkillsLevelChange, resetSkillsLevel,
   toggleEditHeading, clearSection, formatList,
@@ -363,7 +363,6 @@ export function setupEvents() {
   _on('btnExportModuleMapping',     'click', () => exportModuleMappingJSON());
 
   // Skills Level
-  _on('btnToggleSkillsLevel',       'click', () => toggleSkillsLevelSection());
   _on('btnAddSkillsCategory',       'click', () => addSkillsCategory());
   _on('btnResetSkillsLevel',        'click', () => resetSkillsLevel());
 

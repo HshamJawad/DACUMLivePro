@@ -40,7 +40,7 @@ export const OS_SOURCE_TAB = {
   duties:        'duties-tab',
   narrative:     'additional-info-tab',
   header:        'info-tab',
-  employability: 'additional-info-tab',
+  employability: 'occupational-standard-tab',   // 3.115.0: edited in the standard itself
   competencies:  'clustering-tab',
   tools:         'additional-info-tab',
 };
@@ -219,7 +219,7 @@ export function getOccupationalStandardChecklist(model) {
     { key: 'venueDate',    ok: has(field('venueDate')),      tab: 'info-tab' },
     { key: 'duties',       ok: m.part1.duties.some(d => d.tasks.length), tab: 'duties-tab' },
     { key: 'narrative',    ok: m.part1.narrative.length > 0, tab: 'additional-info-tab' },
-    { key: 'employability', ok: !!m.part2.employability,     tab: 'additional-info-tab' },
+    { key: 'employability', ok: !!m.part2.employability,     tab: 'occupational-standard-tab' },
     { key: 'competencies', ok: m.part2.competencies.length > 0, tab: 'clustering-tab' },
     { key: 'tools',        ok: !!m.part2.tools,              tab: 'additional-info-tab' },
   ];
