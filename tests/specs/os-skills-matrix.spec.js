@@ -49,3 +49,25 @@ test('Arabic, 360 px: the matrix in the standard fits the screen', async ({ page
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   expect(errors).toEqual([]);
 });
+
+// 3.116.0: the four levels in the info box are an example, shown whatever
+// levels the matrix has; the tab's buttons are light slate.
+test('the level list is an example, always shown; slate buttons', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(() => window.switchTab('occupational-standard-tab'));
+  const box = page.locator('#osMatrixSlot .skills-level-info-box');
+  await expect(box).toContainText('For example');
+  await expect(box.locator('li')).toHaveCount(4);
+  // rename every level: the example list stays
+  await page.evaluate(async () => {
+    const m = await import('./state.js');
+    m.appState.skillsLevelColumns = [{ id: 'a', label: 'Level 1', custom: true }, { id: 'b', label: 'Level 2', custom: true }];
+    (await import('./renderer.js')).renderSkillsLevel();
+  });
+  for (let i = 0; i < 4; i++) await expect(box.locator('li').nth(i)).toBeVisible();
+  const bg = (sel) => page.locator(sel).first().evaluate(el => getComputedStyle(el).backgroundColor);
+  expect(await bg('#osRoot .os-export-btn')).toBe('rgb(241, 245, 249)');
+  expect(await bg('#osMatrixSlot .mx-mini.mx-add-comp')).toBe('rgb(241, 245, 249)');
+  expect(errors).toEqual([]);
+});

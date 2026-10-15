@@ -77,12 +77,13 @@ function _injectStyles() {
   white-space: nowrap; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; cursor: pointer;
 }
 #${TAB_ID} .os-progress.is-done { background: #dcfce7; color: #166534; border-color: #86efac; cursor: default; }
+/* 3.116.0: the tab's buttons in light slate, like Additional Info. */
 #${TAB_ID} .os-export-btn {
-  margin: 0; padding: 8px 14px !important; border-radius: 8px; border: none; cursor: pointer;
-  font: inherit; font-size: .88em; font-weight: 700; color: #fff; white-space: nowrap;
-  background: linear-gradient(135deg, #0f766e, #0d9488);
+  margin: 0; padding: 8px 14px !important; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer;
+  font: inherit; font-size: .88em; font-weight: 700; color: #475569; white-space: nowrap;
+  background: #f1f5f9; box-shadow: none;
 }
-#${TAB_ID} .os-export-btn:hover { filter: brightness(1.08); }
+#${TAB_ID} .os-export-btn:hover { background: #e2e8f0; color: #1e293b; border-color: #94a3b8; }
 #${TAB_ID} .os-missing { margin: 0 0 16px; padding: 12px 14px; border: 1px solid #fde68a; background: #fffbeb; border-radius: 12px; }
 #${TAB_ID} .os-missing h4 { margin: 0 0 8px; color: #92400e; font-size: .92em; }
 #${TAB_ID} .os-missing ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
@@ -98,10 +99,13 @@ function _injectStyles() {
 #${TAB_ID} .os-sec-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin: 0 0 10px; }
 #${TAB_ID} .os-sec-head h4 { margin: 0; color: var(--os-ink); font-size: 1em; }
 #${TAB_ID} .os-edit {
-  margin: 0; padding: 4px 10px !important; border-radius: 999px; border: 1px solid var(--os-violet-line);
-  background: #faf5ff; color: var(--os-violet); font: inherit; font-size: .78em; font-weight: 600; cursor: pointer; white-space: nowrap;
+  margin: 0; padding: 4px 10px !important; border-radius: 999px; border: 1px solid #cbd5e1;
+  background: #f1f5f9; color: #475569; font: inherit; font-size: .78em; font-weight: 600; cursor: pointer; white-space: nowrap; box-shadow: none;
 }
-#${TAB_ID} .os-edit:hover { background: #f3e8ff; }
+#${TAB_ID} .os-edit:hover { background: #e2e8f0; color: #1e293b; border-color: #94a3b8; }
+/* The matrix's own buttons, in this tab, follow the same slate. */
+#${TAB_ID} .btn-reset-skills { background: #f1f5f9; color: #b91c1c; border: 1px solid #cbd5e1; box-shadow: none; }
+#${TAB_ID} .btn-reset-skills:hover { background: #e2e8f0; border-color: #94a3b8; }
 #${TAB_ID} .os-kv { display: grid; grid-template-columns: minmax(120px, 32%) minmax(0, 1fr); border: 1px solid var(--os-line); border-radius: 10px; overflow: hidden; }
 #${TAB_ID} .os-kv > div { padding: 8px 10px; border-top: 1px solid var(--os-line); font-size: .88em; min-width: 0; overflow-wrap: anywhere; }
 #${TAB_ID} .os-kv > div:nth-child(-n+2) { border-top: none; }
