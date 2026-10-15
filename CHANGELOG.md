@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.118.0 — 2026-10-15 — Module Builder handoff: country / context and scope of work
+MINOR. module_mapping.js, index.html, sw.js (v260), tests/specs/mb-handoff.spec.js.
+Added   The handoff to Module Builder carries Chart Info's Country / Context
+        (`context`) and Scope of Work (`scopeOfWork`), when filled, so Module
+        Builder's AI drafting of information sheets writes for the right
+        country and job boundary. Absent while empty; kept when modules are
+        sent one at a time.
+Tested  mb-handoff spec.
+
 ── 3.117.1 — 2026-10-15 — User Guide brought up to 3.117
 PATCH. DACUM_Live_Pro_User_Guide.html, index.html, sw.js (v259).
 Changed The User Guide (last revised at 3.98.1) now covers 3.99–3.117, EN / FR / AR:

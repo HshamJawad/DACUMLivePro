@@ -162,3 +162,22 @@ test('side navigation: Module Builder sends the modules like the Module Mapping 
   await expect(btn).not.toHaveClass(/dps-nav-active/);
   expect(errors).toEqual([]);
 });
+
+// 3.118.0: country / context and scope of work travel with the handoff,
+// for Module Builder's AI drafting; absent while empty.
+test('handoff: country / context and scope of work from Chart Info', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(() => { document.getElementById('context').value = ''; document.getElementById('scopeOfWork').value = ''; });
+  const before = await send(page);
+  expect(before.context).toBeUndefined();
+  expect(before.scopeOfWork).toBeUndefined();
+  await page.evaluate(() => {
+    document.getElementById('context').value = 'Iraq';
+    document.getElementById('scopeOfWork').value = 'Installs and maintains computer hardware.';
+  });
+  const d = await send(page);
+  expect(d.context).toBe('Iraq');
+  expect(d.scopeOfWork).toBe('Installs and maintains computer hardware.');
+  expect(errors).toEqual([]);
+});

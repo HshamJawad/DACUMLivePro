@@ -1374,6 +1374,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     occupationTitle,
     jobTitle,
     sector: document.getElementById('sector')?.value || '',
+    // 3.118.0: country / context and scope of work from Chart Info, for
+    // Module Builder's AI drafting of information sheets (absent when empty).
+    ...(() => { const c = (document.getElementById('context')?.value || '').trim(); return c ? { context: c } : {}; })(),
+    ...(() => { const s = (document.getElementById('scopeOfWork')?.value || '').trim(); return s ? { scopeOfWork: s } : {}; })(),
     labelMode: getModuleLabelMode(),
     modules: modulesToSend.map(m => _buildModuleExport(m, mm.modules.indexOf(m) + 1)),
     // Occupation-level Verified Occupational Reference Data. Always
@@ -1423,7 +1427,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
                     taskSelection: exportObject.taskSelection,
                     qualificationsFramework: exportObject.qualificationsFramework,
                     programmeRequirements: exportObject.programmeRequirements,
+                    context: exportObject.context, scopeOfWork: exportObject.scopeOfWork,
                     modules: [...others, ...exportObject.modules] };
+        if (!payload.context) delete payload.context;
+        if (!payload.scopeOfWork) delete payload.scopeOfWork;
         if (!payload.programmeRequirements) delete payload.programmeRequirements;
         if (!payload.qualificationsFramework) delete payload.qualificationsFramework;
         if (!payload.contentLanguages) delete payload.contentLanguages;
