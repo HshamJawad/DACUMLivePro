@@ -1028,6 +1028,7 @@ function _showTaskAnalysisHelp() {
     intro: _t('helpTAIntro'),
     items: [
       ['\u{1F4CB}', _t('helpTAK1'), _t('helpTAV1')],
+      ['\u{1F3AF}', _t('helpTAK7'), _t('helpTAV7')],   // 3.117.0: how many criteria
       ['\u{1F9E0}', _t('helpTAK2'), _t('helpTAV2')],
       ['\u{1F6E0}', _t('helpTAK3'), _t('helpTAV3')],
       ['\u26A0\uFE0F', _t('helpTAK4'), _t('helpTAV4')],
@@ -1122,6 +1123,8 @@ function _showPCRangeHelp() {
       '<li style="' + LI + '">' + _t('helpPCLi4') + '</li>' +       // 3.87.0
     '</ol>' +
     '<p style="' + P + 'margin-top:-8px;margin-bottom:16px;">\u{1F50E} ' + _t('helpPCTest') + '</p>' +
+    /* 3.117.0: how many — criteria are not one per step. */
+    '<p id="helpPCCountP" style="' + P + 'margin-top:-6px;margin-bottom:16px;">\u{1F3AF} ' + _t('helpPCCount') + '</p>' +
 
     '<p style="' + P + '">' + _t('helpPCRangeLead') + '</p>' +
     '<ul style="' + LIST + '">' +
