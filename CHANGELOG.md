@@ -7,6 +7,21 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.117.1 — 2026-10-15 — User Guide brought up to 3.117
+PATCH. DACUM_Live_Pro_User_Guide.html, index.html, sw.js (v259).
+Changed The User Guide (last revised at 3.98.1) now covers 3.99–3.117, EN / FR / AR:
+        the Helper; a new Settings section (Misc: Helper button, AI cards,
+        following the project's language, Latin duty letters, chart terms);
+        the language badge and filename tags; the ✨ AI fold; Full Draft
+        (optional scope, linked work, Task Analysis note, verification stays
+        with the panel); Duties (📏 criteria, wording/duplication review,
+        transversal duties); Task Analysis (decisions, basic skills, 3–6
+        criteria per task, ↩ Duties & Tasks); the Skills Level Matrix moved to
+        the Occupational Standard, levels shown as an example; module
+        categories and 🚀 Module Builder; CBC export; the Excel dashboard.
+        The Skills section now follows the Occupational Standard in the guide.
+Tested  Guide rendered EN / FR / AR, 360 px without horizontal scroll; full suite.
+
 ── 3.117.0 — 2026-10-15 — Help: how many performance criteria per task
 MINOR. events.js, translations.js, index.html, sw.js (v258),
 tests/specs/help-guides.spec.js.
