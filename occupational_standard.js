@@ -4,8 +4,10 @@
 //
 // A VIEW of the Occupational Profile & Standard document — the same
 // model the Word exporter prints (os_model.js), so what is shown here is
-// exactly what the file contains. Nothing is edited or stored here: each
-// section links to the tab its content comes from. The export button
+// exactly what the file contains. Each section links to the tab its
+// content comes from — except the employability competencies by
+// occupational level (the Skills Level Matrix), which since 3.115.0 are
+// edited here and only here (the editor lives in #osMatrixPark). The export button
 // calls the same exporter as the toolbar's "Standard" menu.
 //
 // Rendered on entry to the tab, on a language change and on a project
@@ -15,7 +17,7 @@
 import { getOccupationalStandardModel, getOccupationalStandardChecklist,
          OS_SOURCE_TAB } from './os_model.js';
 import { exportOccupationalStandardWord } from './exports_os_docx.js';
-import { escapeHtml } from './renderer.js';
+import { escapeHtml, renderSkillsLevel } from './renderer.js';
 
 const TAB_ID = 'occupational-standard-tab';
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -27,6 +29,7 @@ const TAB_LABEL_KEY = {
   'duties-tab':          'tabDuties',
   'additional-info-tab': 'tabAdditionalInfo',
   'clustering-tab':      'tabClustering',
+  'occupational-standard-tab': 'tabOccStandard',
 };
 
 const CHECK_LABEL = {
@@ -55,6 +58,8 @@ function _injectStyles() {
   st.id = 'osTabStyles';
   st.textContent = `
 #${TAB_ID} { --os-ink:#1e293b; --os-muted:#64748b; --os-line:#e2e8f0; --os-violet:#6d28d9; --os-violet-line:#ddd6fe; }
+#${TAB_ID} .os-matrix-slot .skills-level-info-box > h3 { display: none; }
+#${TAB_ID} .os-matrix-slot .skills-level-info-box { margin-bottom: 12px; }
 #${TAB_ID} .os-intro { margin: 0 0 14px; color: var(--os-muted); font-size: .9em; line-height: 1.6; }
 #${TAB_ID} .os-topbar {
   position: sticky; top: 64px; z-index: 20;
@@ -186,7 +191,23 @@ function _renderBlocks(blocks) {
     </div>`).join('');
 }
 
-function _renderEmployability(emp) {
+/* 3.115.0: the matrix editor is ONE node, moved between its parking
+   place and this section. Parked before the section is rebuilt (an
+   innerHTML wipe would destroy it and its listeners), placed after. */
+function _parkMatrix() {
+  const ed = document.getElementById('skillsLevelEditor');
+  const park = document.getElementById('osMatrixPark');
+  if (ed && park && ed.parentElement !== park) park.appendChild(ed);
+}
+function _placeMatrix() {
+  const ed = document.getElementById('skillsLevelEditor');
+  const slot = document.getElementById('osMatrixSlot');
+  if (!ed || !slot) return;
+  slot.appendChild(ed);
+  try { renderSkillsLevel(); } catch (e) { console.warn('[os] matrix render failed', e); }
+}
+
+function _renderEmployability(emp) {   // read-only table (no longer shown in the tab; kept for reference)
   if (!emp) return _none();
   return `<div class="os-table-wrap"><table class="os-emp">
     <thead><tr><th>${_esc(_t('osColCompetency'))}</th>${emp.levelLabels.map(l => `<th class="os-lv">${_esc(l)}</th>`).join('')}</tr></thead>
@@ -224,6 +245,7 @@ export function renderOccupationalStandard() {
   if (!root) return;
   _injectStyles();
   _wire(root);
+  _parkMatrix();
 
   const M = getOccupationalStandardModel();
   const check = getOccupationalStandardChecklist(M);
@@ -255,10 +277,11 @@ export function renderOccupationalStandard() {
     <div class="os-part">
       <div class="os-part-head"><h3>${_esc(p2.title)}</h3>${M.subtitle ? `<p>${_esc(M.subtitle)}</p>` : ''}</div>
       ${_section(_t('osHeaderHeading'), OS_SOURCE_TAB.header, _kv(p2.header))}
-      ${_section(_t('expEmployability'), OS_SOURCE_TAB.employability, _renderEmployability(p2.employability))}
+      ${_section(_t('expEmployability'), null, '<div id="osMatrixSlot" class="os-matrix-slot"></div>')}
       ${_section(_t('osCompetenciesHeading'), OS_SOURCE_TAB.competencies, _renderCompetencies(p2.competencies))}
       ${_section(_t('osToolsEquipment'), OS_SOURCE_TAB.tools, p2.tools ? _renderBlocks([p2.tools]) : _none())}
     </div>`;
+  _placeMatrix();
 }
 
 // ── Events ───────────────────────────────────────────────────
@@ -271,6 +294,12 @@ function _wire(root) {
     const go = e.target.closest('[data-os-goto]');
     if (go) {
       const tab = go.getAttribute('data-os-goto');
+      /* 3.115.0: "edit in this tab" — the matrix — scrolls to it. */
+      if (tab === TAB_ID) {
+        const slot = document.getElementById('osMatrixSlot');
+        if (slot) { try { slot.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { slot.scrollIntoView(); } }
+        return;
+      }
       if (typeof window.switchTab === 'function') window.switchTab(tab);
       try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {}
       return;

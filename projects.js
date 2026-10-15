@@ -491,8 +491,9 @@ export function clearCurrentTab(tabId) {
     });
     document.getElementById('customSectionsContainer').innerHTML = '';
     appState.customSectionCounter = 0;
-    appState.skillsLevelColumns = null;   // levels back to the defaults too
-    resetSkillsLevel(false); // false = no confirm
+    /* 3.115.0: the Skills Level Matrix is no longer in this tab (it is
+       edited in the Occupational Standard, with its own Reset), so
+       clearing this tab leaves it alone. */
     showStatus(_tf('msgTabCleared', { v: _t('tabAdditionalInfo') }), 'success');
 
   } else if (tabId === 'verification-tab') {

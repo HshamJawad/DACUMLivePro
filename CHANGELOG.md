@@ -7,6 +7,22 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.115.0 — 2026-10-15 — Skills Level Matrix edited in the Occupational Standard
+MINOR. index.html, occupational_standard.js, os_model.js, projects.js,
+events.js, translations.js, sw.js (v256), tests/specs/os-skills-matrix.spec.js.
+Changed The Skills Level Matrix (employability competencies by occupational
+        level) is edited in the Occupational Standard tab, in its
+        "Employability" section, instead of the read-only table and its
+        "Edit in Additional Info" link. Removed from Additional Info: one
+        place for it. Same data — saved projects, exports, the workshop and
+        the Full Draft are unchanged; the Additional Info AI still fills it.
+Changed Clearing the Additional Info tab no longer resets the matrix (it has
+        its own Reset in the standard). The standard's missing-items list
+        scrolls to the matrix.
+Changed Help: Basic Skills hint and comparison, steps 3 and 7, the
+        standard's intro — EN / FR / AR.
+Tested  os-skills-matrix spec (also Arabic at 360 px).
+
 ── 3.114.0 — 2026-10-14 — Full Draft: the work tied to the tasks, where Task Analysis fits
 MINOR. projects.js, draft_ui.js, translations.js, index.html, sw.js (v255),
 tests/specs/full-draft.spec.js.

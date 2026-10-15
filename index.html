@@ -108,14 +108,14 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v255';
+      var EXPECTED_SW = 'v256';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: one language per
       // text in the Module Builder handoff (text language, decisions table
       // and added sections translated, missing translations named).
-      var APP_VERSION = '3.114.0';
-      var APP_RELEASED = '2026-10-14';
+      var APP_VERSION = '3.115.0';
+      var APP_RELEASED = '2026-10-15';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
 
@@ -1186,37 +1186,6 @@
                 </button>
             </div>
             
-            <!-- ADDITIONAL INFO – Skills Level Matrix (Collapsible) -->
-            <div class="skills-level-accordion">
-                <div class="skills-level-header" id="btnToggleSkillsLevel">
-                    <div class="skills-level-title">📊 <span data-i18n="skillsMatrixTitle">Skills Level Matrix (click to expand)</span></div>
-                    <div class="skills-level-toggle">▼</div>
-                </div>
-                <div class="skills-level-content" id="skillsLevelContent">
-                    <div class="skills-level-info-box">
-                        <h3 data-i18n="skillsMatrixHeading">Employability Competencies by Occupational Level</h3>
-                        <p data-i18n="skillsMatrixIntro">Select the minimum required skills level for this occupation.</p>
-                        <ul style="margin-top: 10px;">
-                            <li><strong data-i18n="lvlCraftsman">Craftsman/Supervisor</strong> <span data-i18n="lvlCraftsmanDesc">Advanced level requiring comprehensive skills</span></li>
-                            <li><strong data-i18n="lvlSkilled">Skilled</strong> <span data-i18n="lvlSkilledDesc">Proficient level requiring specialized skills</span></li>
-                            <li><strong data-i18n="lvlSemiSkilled">Semi-skilled</strong> <span data-i18n="lvlSemiSkilledDesc">Intermediate level requiring basic competencies</span></li>
-                            <li><strong data-i18n="lvlFoundation">Foundation skills</strong> <span data-i18n="lvlFoundationDesc">Entry level requiring minimal competencies</span></li>
-                        </ul>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0;" data-i18n="editCompetencies">Edit Employability Competencies</h3>
-                        <button class="btn-reset-skills" id="btnResetSkillsLevel">🗑️ <span data-i18n="btnResetSelections">Reset All Selections</span></button>
-                    </div>
-
-                    <div id="skillsLevelContainer"></div>
-
-                    <div class="skills-level-buttons">
-                        <button class="btn-add-category" id="btnAddSkillsCategory">➕ <span data-i18n="btnAddCategory">Add Category</span></button>
-                    </div>
-                </div>
-            </div>
-            
             <div class="step-nav-row">
                 <button type="button" class="btn-back-step" data-nav-back="duties-tab"
                         title="Return to Duties & Tasks to review or edit"
@@ -1938,6 +1907,37 @@
             </div>
 
             <div id="osRoot"></div>
+            <!-- 3.115.0: the Skills Level Matrix (employability competencies by
+                 occupational level) is edited HERE, in the Occupational
+                 Standard, and nowhere else. occupational_standard.js moves
+                 this node into the "Employability" section on every render
+                 and back here before the section is rebuilt, so its
+                 listeners survive. -->
+            <div id="osMatrixPark" hidden>
+              <div id="skillsLevelEditor" class="os-matrix-editor">
+                    <div class="skills-level-info-box">
+                        <h3 data-i18n="skillsMatrixHeading">Employability Competencies by Occupational Level</h3>
+                        <p data-i18n="skillsMatrixIntro">Select the minimum required skills level for this occupation.</p>
+                        <ul style="margin-top: 10px;">
+                            <li><strong data-i18n="lvlCraftsman">Craftsman/Supervisor</strong> <span data-i18n="lvlCraftsmanDesc">Advanced level requiring comprehensive skills</span></li>
+                            <li><strong data-i18n="lvlSkilled">Skilled</strong> <span data-i18n="lvlSkilledDesc">Proficient level requiring specialized skills</span></li>
+                            <li><strong data-i18n="lvlSemiSkilled">Semi-skilled</strong> <span data-i18n="lvlSemiSkilledDesc">Intermediate level requiring basic competencies</span></li>
+                            <li><strong data-i18n="lvlFoundation">Foundation skills</strong> <span data-i18n="lvlFoundationDesc">Entry level requiring minimal competencies</span></li>
+                        </ul>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0;" data-i18n="editCompetencies">Edit Employability Competencies</h3>
+                        <button class="btn-reset-skills" id="btnResetSkillsLevel">🗑️ <span data-i18n="btnResetSelections">Reset All Selections</span></button>
+                    </div>
+
+                    <div id="skillsLevelContainer"></div>
+
+                    <div class="skills-level-buttons">
+                        <button class="btn-add-category" id="btnAddSkillsCategory">➕ <span data-i18n="btnAddCategory">Add Category</span></button>
+                    </div>
+              </div>
+            </div>
 
             <div class="step-nav-row">
                 <button type="button" class="btn-back-step" data-nav-back="clustering-tab">
