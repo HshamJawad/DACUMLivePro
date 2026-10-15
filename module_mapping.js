@@ -18,6 +18,7 @@ import { getSupplementaryVerificationData } from './supplementary_verification.j
 import { getCurriculumModel, getCurriculumHandoff, getProgrammeHandoff } from './module_curriculum.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOutcomes } from './clusters.js';
 import { _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
+import { renderCurriculumMatrix, getCurriculumMatrix } from './curriculum_matrix.js';
 import { renderModules } from './learning_outcomes.js';
 import { captureProjectState } from './dacum_projects.js';
 import { viewOriginal, handoffTranslations, guessLanguage, versionStats, LANG_NAMES } from './content_lang.js';
@@ -983,6 +984,8 @@ export function renderCoverageMatrix() {
     const t = det.querySelector('.cov-fold-toggle');
     if (t) t.textContent = _tx(_covOpen ? 'covHide' : 'covShow');
   });
+  /* 3.119.0: the curriculum matrix (depth of treatment) under it. */
+  try { renderCurriculumMatrix(); } catch (e) { console.warn('[curriculum matrix]', e); }
 }
 
 let _covOpen = (() => { try { return localStorage.getItem('dacum_cov_open') === '1'; } catch (_) { return false; } })();
@@ -1504,6 +1507,7 @@ export function exportModuleMappingJSON() {
   if (_ts) exportData.taskSelection = _ts;
   let _pr = null; try { _pr = getProgrammeHandoff(); } catch (_) { _pr = null; }
   if (_pr) exportData.programmeRequirements = _pr;   // 3.104.0
+  try { exportData.curriculumMatrix = getCurriculumMatrix(); } catch (_) { /* 3.119.0 */ }
 
   const dateStr = new Date().toISOString().split('T')[0];
   const filename = `module-mapping-export_${dateStr}.json`;

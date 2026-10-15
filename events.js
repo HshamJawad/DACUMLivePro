@@ -1443,7 +1443,11 @@ function _showModuleMappingHelp() {
 
     mode(1, _t('helpMMMode1'), _t('helpMMMode1Detail')) +
     mode(2, _t('helpMMMode2'), _t('helpMMMode2Detail')) +
-    mode(3, _t('helpMMMode3'), _t('helpMMMode3Detail'));
+    mode(3, _t('helpMMMode3'), _t('helpMMMode3Detail')) +
+    /* 3.119.0: the curriculum matrix */
+    '<p style="margin:14px 0 8px;font-size:0.88em;font-weight:700;color:#1e293b;">' + _t('helpMMMatrixTitle') + '</p>' +
+    '<p style="margin:0 0 6px;font-size:0.86em;line-height:1.65;color:#334155;">' + _t('helpMMMatrix') + '</p>' +
+    '<p style="margin:0;font-size:0.86em;line-height:1.65;color:#334155;">' + _t('helpMMMatrixWhy') + '</p>';
 
   _showHelpModal({
     id:       'mmHelpModal',

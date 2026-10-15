@@ -7,6 +7,22 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.119.0 — 2026-10-15 — Curriculum matrix: depth of treatment
+MINOR. curriculum_matrix.js (new), module_mapping.js, modules_shared.js,
+translations.js, events.js, index.html, sw.js (v262),
+tests/specs/curriculum-matrix.spec.js (new).
+Added   Module Mapping: under the coverage matrix, a table of the tasks ×
+        the modules says how each module treats each task — ○ introduced,
+        ◐ practised, ● mastered and assessed (symbols, the same in every
+        language). Suggested from the criteria: of the modules that reach
+        a task, the last assesses it and the earlier ones practise it. A
+        click cycles a cell (○ → ◐ → ● → none → suggestion), kept in
+        moduleMappingData.depth. Checks under it: a task never assessed,
+        assessed before it is practised, or assessed in several modules.
+        In the Module Mapping JSON export (curriculumMatrix). EN / FR / AR.
+        Module Mapping help: what the matrix is and why it helps.
+Tested  curriculum-matrix spec.
+
 ── 3.118.1 — 2026-10-15 — 🎨 Colours panel kept in the content area
 PATCH. duties.js, index.html, sw.js (v261), tests/specs/task-criteria.spec.js.
 Fixed   The 🎨 card-colours panel of Duties & Tasks opened toward the side
