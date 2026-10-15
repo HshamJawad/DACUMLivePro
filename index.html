@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v256';
+      var EXPECTED_SW = 'v257';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: one language per
       // text in the Module Builder handoff (text language, decisions table
       // and added sections translated, missing translations named).
-      var APP_VERSION = '3.115.0';
+      var APP_VERSION = '3.116.0';
       var APP_RELEASED = '2026-10-15';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1917,7 +1917,7 @@
               <div id="skillsLevelEditor" class="os-matrix-editor">
                     <div class="skills-level-info-box">
                         <h3 data-i18n="skillsMatrixHeading">Employability Competencies by Occupational Level</h3>
-                        <p data-i18n="skillsMatrixIntro">Select the minimum required skills level for this occupation.</p>
+                        <p data-i18n="skillsMatrixIntro">Tick the occupational levels that require each competency. The levels are yours to set — rename, add or remove them in the table header (1–6 levels). For example, a common set of four levels:</p>
                         <ul style="margin-top: 10px;">
                             <li><strong data-i18n="lvlCraftsman">Craftsman/Supervisor</strong> <span data-i18n="lvlCraftsmanDesc">Advanced level requiring comprehensive skills</span></li>
                             <li><strong data-i18n="lvlSkilled">Skilled</strong> <span data-i18n="lvlSkilledDesc">Proficient level requiring specialized skills</span></li>

@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.116.0 — 2026-10-15 — Skills Level Matrix: the four levels as an example; slate buttons
+PATCH-sized MINOR. index.html, renderer.js, occupational_standard.js, translations.js,
+sw.js (v257), tests/specs/os-skills-matrix.spec.js.
+Changed The info box above the matrix presents Craftsman/Supervisor, Skilled,
+        Semi-skilled and Foundation as an EXAMPLE of a set of levels — the
+        user sets their own in the table header (1–6) — and always shows it
+        (it used to hide a level once renamed or removed). EN / FR / AR.
+Changed Occupational Standard tab buttons in light slate like Additional Info:
+        Export, "Edit in …", the matrix's Reset, "+ Competency", "+ Level"
+        and the row/category ×. The completeness pill keeps its colours.
+Tested  os-skills-matrix spec.
+
 ── 3.115.0 — 2026-10-15 — Skills Level Matrix edited in the Occupational Standard
 MINOR. index.html, occupational_standard.js, os_model.js, projects.js,
 events.js, translations.js, sw.js (v256), tests/specs/os-skills-matrix.spec.js.

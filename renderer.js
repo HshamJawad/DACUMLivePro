@@ -183,9 +183,11 @@ function _injectMatrixStyles() {
       gap: 8px 12px; padding: 10px 14px; border-bottom: 1px solid #eef0f4; }
     #skillsLevelContainer .mx-hint { font-size: .8em; color: #6b7280; min-width: 0; }
     #skillsLevelContainer .mx-top-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-    #skillsLevelContainer .mx-btn { margin: 0; padding: 6px 12px !important; border-radius: 8px; border: 1px solid #d1d5db;
-      background: #fff; color: #374151; font: inherit; font-size: .82em; font-weight: 600; cursor: pointer; white-space: nowrap; }
-    #skillsLevelContainer .mx-btn-red { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+    /* 3.116.0: light slate, like the Additional Info buttons. */
+    #skillsLevelContainer .mx-btn { margin: 0; padding: 6px 12px !important; border-radius: 8px; border: 1px solid #cbd5e1;
+      background: #f1f5f9; color: #475569; font: inherit; font-size: .82em; font-weight: 600; cursor: pointer; white-space: nowrap; box-shadow: none; }
+    #skillsLevelContainer .mx-btn:hover { background: #e2e8f0; color: #1e293b; border-color: #94a3b8; }
+    #skillsLevelContainer .mx-btn-red { color: #b91c1c; }
     #skillsLevelContainer .mx-wrap { overflow-x: auto; }
     #skillsLevelContainer table.mx-table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .9em; margin: 0; }
     #skillsLevelContainer .mx-table th, #skillsLevelContainer .mx-table td { border: 1px solid var(--mx-line); padding: 0; vertical-align: middle; }
@@ -208,6 +210,8 @@ function _injectMatrixStyles() {
     #skillsLevelContainer .mx-lv-add { margin: 0; padding: 4px 6px !important; border: 1px dashed currentColor; border-radius: 6px;
       background: transparent; color: inherit; font: inherit; font-size: .78em; font-weight: 700; cursor: pointer; white-space: nowrap; }
     #skillsLevelContainer .mx-lv-add:disabled { opacity: .4; cursor: not-allowed; }
+    #skillsLevelContainer .mx-lv-add:not(:disabled) { border: 1px solid #cbd5e1; background: #f1f5f9; color: #475569; }
+    #skillsLevelContainer .mx-lv-add:not(:disabled):hover { background: #e2e8f0; color: #1e293b; border-color: #94a3b8; }
     #skillsLevelContainer tr.mx-cat td { background: #f2f2f2; }
     #skillsLevelContainer .mx-cat-cell { display: flex; align-items: center; gap: 8px; padding: 5px 8px; }
     #skillsLevelContainer .mx-cat-name { flex: 1 1 auto; min-width: 0; margin: 0 !important; padding: 5px 6px !important;
@@ -215,9 +219,10 @@ function _injectMatrixStyles() {
       font: inherit; font-weight: 700; color: #111827; }
     #skillsLevelContainer .mx-cat-name:hover, #skillsLevelContainer .mx-cat-name:focus { border-color: #d1d5db !important;
       background: #fff !important; outline: none; }
-    #skillsLevelContainer .mx-mini { margin: 0; padding: 4px 10px !important; border-radius: 6px; border: 1px solid #a7f3d0;
-      background: #ecfdf5; color: #047857; font: inherit; font-size: .78em; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
-    #skillsLevelContainer .mx-mini.mx-del { border-color: #fecaca; background: #fff; color: #b91c1c; padding: 4px 9px !important; min-width: 32px; min-height: 32px; }
+    #skillsLevelContainer .mx-mini { margin: 0; padding: 4px 10px !important; border-radius: 6px; border: 1px solid #cbd5e1;
+      background: #f1f5f9; color: #475569; font: inherit; font-size: .78em; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    #skillsLevelContainer .mx-mini:hover { background: #e2e8f0; color: #1e293b; border-color: #94a3b8; }
+    #skillsLevelContainer .mx-mini.mx-del { border-color: #cbd5e1; background: #f1f5f9; color: #b91c1c; padding: 4px 9px !important; min-width: 32px; min-height: 32px; }
     #skillsLevelContainer .mx-comp-cell { display: flex; align-items: flex-start; }
     #skillsLevelContainer .mx-num { color: #6366f1; font-weight: 700; font-size: .85em; padding: 9px 4px 0 10px; min-width: 30px; flex-shrink: 0; }
     #skillsLevelContainer .mx-comp-text { flex: 1 1 auto; min-width: 0; margin: 0 !important; padding: 6px 6px !important;
@@ -295,19 +300,13 @@ function _wireMatrix(container) {
   });
 }
 
-/* The info box explains the four DEFAULT levels. Each explanation stays
-   only while its level is present under its default name. */
-function _syncLevelLegend(cols) {
+/* 3.116.0: the info box lists the four default levels as an EXAMPLE of
+   a set of levels — the user sets their own in the table — so the list
+   is always shown, whatever levels the matrix has now. */
+function _syncLevelLegend(cols) {   // eslint-disable-line no-unused-vars
   const items = document.querySelectorAll('.skills-level-info-box ul > li');
-  if (items.length !== DEFAULT_LEVELS.length) return;
-  let shown = 0;
-  DEFAULT_LEVELS.forEach((d, i) => {
-    const c = cols.find(x => x.id === d.id);
-    const show = !!c && !c.custom;
-    items[i].style.display = show ? '' : 'none';
-    if (show) shown++;
-  });
-  items[0].parentElement.style.display = shown ? '' : 'none';
+  items.forEach(li => { li.style.display = ''; });
+  if (items[0]) items[0].parentElement.style.display = '';
 }
 
 // Labels of the default levels follow the interface language; the
