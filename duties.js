@@ -337,8 +337,13 @@ function _ccRefresh() {
   /* Keep the panel inside the screen (phones, RTL). */
   const pop = bar.querySelector('.cc-pop');
   if (pop) {
+    /* 3.118.1: kept inside the CONTENT area, not just the screen — it
+       opened toward the side navigation and slid under it. The bar's
+       own width is the content column, whichever side the sidebar is on. */
     const r = pop.getBoundingClientRect(), vw = document.documentElement.clientWidth;
-    const dx = r.left < 8 ? 8 - r.left : (r.right > vw - 8 ? (vw - 8) - r.right : 0);
+    const box = bar.getBoundingClientRect();
+    const minL = Math.max(8, box.left), maxR = Math.min(vw - 8, box.right);
+    const dx = r.left < minL ? minL - r.left : (r.right > maxR ? maxR - r.right : 0);
     if (dx) pop.style.transform = `translateX(${Math.round(dx)}px)`;
   }
   bar.querySelector('.cc-pop .cc-on')?.focus({ preventScroll: true });

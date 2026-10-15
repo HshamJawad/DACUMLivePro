@@ -7,6 +7,14 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.118.1 — 2026-10-15 — 🎨 Colours panel kept in the content area
+PATCH. duties.js, index.html, sw.js (v261), tests/specs/task-criteria.spec.js.
+Fixed   The 🎨 card-colours panel of Duties & Tasks opened toward the side
+        navigation and slid under it: it was kept inside the screen only.
+        It is now kept inside the toolbar's own width (the content column),
+        whichever side the navigation is on.
+Tested  task-criteria spec (fails without the fix).
+
 ── 3.118.0 — 2026-10-15 — Module Builder handoff: country / context and scope of work
 MINOR. module_mapping.js, index.html, sw.js (v260), tests/specs/mb-handoff.spec.js.
 Added   The handoff to Module Builder carries Chart Info's Country / Context

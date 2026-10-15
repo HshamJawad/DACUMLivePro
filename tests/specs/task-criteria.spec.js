@@ -142,3 +142,23 @@ test('chart terms: the user\'s own terms name the tab, DACUM name underneath; ba
   await expect(page.locator('#task_duty_1_1 .dcv-task-label')).toContainText('المهمة');
   expect(errors).toEqual([]);
 });
+
+// 3.118.1: the 🎨 colours panel stays in the content area — it opened
+// toward the side navigation and slid under it.
+test('🎨 colours panel opens inside the content area, not under the side navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const errors = await openApp(page, { lang: 'en' });
+  await loadProject(page, fixture('pilot-criteria.json'));
+  await page.evaluate(() => window.switchTab('duties-tab'));
+  await page.locator('#cardViewToolbar .cc-wrap > button').click();
+  const pop = page.locator('#cardViewToolbar .cc-pop');
+  await expect(pop).toBeVisible();
+  const r = await page.evaluate(() => {
+    const p = document.querySelector('#cardViewToolbar .cc-pop').getBoundingClientRect();
+    const b = document.getElementById('cardViewToolbar').getBoundingClientRect();
+    return { pl: p.left, pr: p.right, bl: b.left, br: b.right };
+  });
+  expect(r.pl).toBeGreaterThanOrEqual(r.bl - 1);
+  expect(r.pr).toBeLessThanOrEqual(r.br + 1);
+  expect(errors).toEqual([]);
+});
