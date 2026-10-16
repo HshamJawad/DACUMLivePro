@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.120.0 — 2026-10-16 — Competency labels in the Arabic interface
+MINOR. cluster_labels.js (new), clusters.js, clustering_ai.js,
+wording_check.js, settings_misc.js, translations.js, dacum-components.css,
+index.html, sw.js (v263), tests/specs/cluster-labels.spec.js (new).
+Added   Settings → Misc → "Competency labels (Arabic interface)": C1, C2…
+        (default) or the user's own pattern — {n} number, {ord} feminine
+        ordinal (الكفاءة الأولى), {ordm} masculine ordinal — with quick
+        picks and a preview. Applied at once in the Competency Clustering
+        tab (titles, task dropdown, AI and criteria dialogs, wording notes).
+        Other languages, exports and criteria codes (1-1) keep C1.
+
 ── 3.119.0 — 2026-10-15 — Curriculum matrix: depth of treatment
 MINOR. curriculum_matrix.js (new), module_mapping.js, modules_shared.js,
 translations.js, events.js, index.html, sw.js (v262),

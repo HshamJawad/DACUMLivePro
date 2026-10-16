@@ -48,6 +48,7 @@
 // ============================================================
 
 import { appState }   from './state.js';
+import { clusterLabel } from './cluster_labels.js';
 import { showStatus } from './renderer.js';
 import { renderAvailableTasks, renderClusters, persistClustering,
          loText, initializeClusteringFromTasks, syncClusteringWithProfile,
@@ -671,7 +672,7 @@ export async function generateForSingleCluster(clusterId) {
   const keys = await openAIPartsDialog({
     id:       'clAiModal',
     title:    _t('clAiTitle'),
-    subtitle: `C${idx + 1} — ${cluster.name || ''}`,
+    subtitle: `${clusterLabel(idx + 1)} — ${cluster.name || ''}`,
     intro:    _t('clAiIntro'),
     parts: [
       { key: 'range',    label: _t('lblRange'),               filled: _isFilledRange(cluster) },

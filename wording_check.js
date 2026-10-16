@@ -25,6 +25,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { clusterLabel } from './cluster_labels.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
 /* Each value is wrapped in Unicode isolates (FSI … PDI) so an English
@@ -104,7 +105,7 @@ export function competencyNameIssues(clusters, index) {
   const out = [];
   const key = _norm(name);
   const twin = clusters.findIndex((c, i) => i !== index && _norm(c && c.name) === key);
-  if (twin >= 0) out.push(_tf('wnNameDup', { n: 'C' + (twin + 1) }));
+  if (twin >= 0) out.push(_tf('wnNameDup', { n: clusterLabel(twin + 1) }));
   const n = _words(name).length;
   if (n > 12) out.push(_tf('wnNameLong', { n }));
   if (isEnglishText(name)) out.push(..._startIssues(name), ..._purposeIssue(name));
