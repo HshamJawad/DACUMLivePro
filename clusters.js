@@ -19,6 +19,7 @@ import { setModuleCategory, openModuleCategoriesEditor, setNqfEnabled, setNqfFra
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
+import { clusterLabel } from './cluster_labels.js';
 import { competencyNameIssues, criterionIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 
 // ── Undo / Redo for Competency Clusters (3.84.0) ──────────────
@@ -301,7 +302,7 @@ export function renderAvailableTasks() {
   cd.availableTasks.forEach((task, index) => {
     let clusterOptions = `<option value="">${_t('optSelectCluster')}</option>`;
     cd.clusters.forEach((cluster, ci) => {
-      clusterOptions += `<option value="${cluster.id}">C${ci + 1} — ${cluster.name}</option>`;
+      clusterOptions += `<option value="${cluster.id}">${_esc(clusterLabel(ci + 1))} — ${cluster.name}</option>`;
     });
 
     const off = _unsel(task);
@@ -405,7 +406,7 @@ export function renderClusters() {
     html += `
       <div class="cluster-item">
         <div class="cluster-header">
-          <div class="cluster-title"><bdi>C${clusterNumber}</bdi> — <span dir="auto">${_esc(cluster.name)}</span></div>
+          <div class="cluster-title"><bdi>${_esc(clusterLabel(clusterNumber))}</bdi> — <span dir="auto">${_esc(cluster.name)}</span></div>
           <div class="cluster-actions">
             <button type="button" class="btn-ai-cluster" data-action="regen-cluster-criteria" data-cluster-id="${cluster.id}"
                     title="${_esc(_t('ttRegenCriteria'))}">✨ ${_t('btnAICriteria')}</button>
@@ -1817,7 +1818,7 @@ export function openReplaceCriteriaDialog(clusterId) {
   m.innerHTML = `
     <div class="crr-box" role="dialog" aria-modal="true" aria-labelledby="crrTitle">
       <div class="crr-head">
-        <h3 id="crrTitle" dir="auto">🔁 ${_esc(_tf('crrTitle', { c: 'C' + plan.clusterNumber + ' — ' + (plan.cluster.name || '') }))}</h3>
+        <h3 id="crrTitle" dir="auto">🔁 ${_esc(_tf('crrTitle', { c: clusterLabel(plan.clusterNumber) + ' — ' + (plan.cluster.name || '') }))}</h3>
         <button type="button" class="crr-x" data-crr="cancel" aria-label="${_esc(_t('crrCancel'))}">✕</button>
       </div>
       <div class="crr-body">
@@ -1896,6 +1897,12 @@ export function replaceWithTaskAnalysisCriteria(clusterId, choice = {}) {
    appState — no user input is held in the DOM alone — so a rebuild is
    lossless. Guarded on the containers existing so a language switch
    never constructs a tab the user has not opened. */
+/* 3.120.0: Settings → Misc → competency labels changed. */
+window.addEventListener('dacum:clusterlabels', () => {
+  if (document.getElementById('availableTasksList')) renderAvailableTasks();
+  if (document.getElementById('clustersContainer'))  renderClusters();
+});
+
 window.addEventListener('dacum:langchange', () => {
   if (document.getElementById('availableTasksList')) renderAvailableTasks();
   if (document.getElementById('clustersContainer'))  renderClusters();

@@ -10,6 +10,7 @@
 import { getPref, setPref, PREF_VALUES } from './ui_prefs.js';
 import { resetAICardChoices, hasAICardChoices } from './ai_card_toggle.js';
 import { getChartTerms, setChartTerms } from './chart_terms.js';
+import { getClusterLabelPref, setClusterLabelPref, formatClusterLabel } from './cluster_labels.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
 const _esc = (s) => String(s == null ? '' : s)
@@ -55,6 +56,33 @@ function _termsGroup() {
     </section>`;
 }
 
+/* 3.120.0: what the Clustering tab calls each competency in the Arabic
+   interface: C1 (default) or the user's pattern. */
+const CL_PICKS = ['الكفاءة {n}', 'الكفاءة {ord}'];
+function _clPreview(pattern) {
+  return [1, 2, 3].map(n => formatClusterLabel(pattern, n)).join('، ') + '…';
+}
+function _clLabelGroup() {
+  const p = getClusterLabelPref();
+  const custom = p.mode === 'custom';
+  const opt = (v, key) => `
+      <label class="ms-opt${(v === 'custom') === custom ? ' ms-on' : ''}">
+        <input type="radio" name="ms_cllabel" value="${v}"${(v === 'custom') === custom ? ' checked' : ''}>
+        <span>${_esc(_t(key))}</span>
+      </label>`;
+  return `
+    <section class="es-section ms-group">
+      <div class="es-sec-head" id="msHead_cllabel"><span>🔖 ${_esc(_t('msClTitle'))}</span></div>
+      <div class="ms-opts" role="radiogroup" aria-labelledby="msHead_cllabel">${opt('code', 'msClCode')}${opt('custom', 'msClCustom')}</div>
+      <div class="ms-terms"${custom ? '' : ' hidden'}>
+        <label>${_esc(_t('msClPattern'))} <input type="text" data-ms-cl-pattern maxlength="60" dir="rtl" lang="ar" value="${_esc(p.pattern)}" placeholder="الكفاءة {n}"></label>
+      </div>
+      <div class="ms-cl-picks"${custom ? '' : ' hidden'}>${CL_PICKS.map(k => `<button type="button" class="cl-btn" data-ms-cl-pick="${_esc(k)}" dir="rtl">${_esc(formatClusterLabel(k, 1))}</button>`).join('')}</div>
+      <p class="es-note ms-cl-preview" dir="rtl"${custom ? '' : ' hidden'}>${_esc(_t('msClPreview'))} <bdi>${_esc(_clPreview(p.pattern))}</bdi></p>
+      <p class="es-note">${_esc(_t('msClNote'))}</p>
+    </section>`;
+}
+
 function _isDefault() {
   return getPref('helperChip') === 'auto' && getPref('aiCards') === 'auto' && !hasAICardChoices();
 }
@@ -77,6 +105,7 @@ export function renderMiscTab(box, { justReset = false } = {}) {
       <p class="es-note">${_esc(_t('msCodesNote'))}</p>
     </section>
     ${_termsGroup()}
+    ${_clLabelGroup()}
     <div class="ms-reset-row">
       <button type="button" class="cl-btn" data-ms-reset${off ? ' disabled' : ''}>↺ ${_esc(_t('msAiReset'))}</button>
       <span class="es-note ms-reset-msg" aria-live="polite">${justReset ? '✓ ' + _esc(_t('msAiResetDone')) : ''}</span>
@@ -90,6 +119,23 @@ export function renderMiscTab(box, { justReset = false } = {}) {
   };
   box.querySelectorAll('input[name="ms_terms"]').forEach(r => r.addEventListener('change', () => { terms(); renderMiscTab(box); }));
   box.querySelectorAll('[data-ms-term]').forEach(i => i.addEventListener('input', terms));
+
+  /* 3.120.0: competency labels — applied as they are typed. */
+  const clInput = box.querySelector('[data-ms-cl-pattern]');
+  const clPrev = box.querySelector('.ms-cl-preview bdi');
+  const clSave = () => {
+    const custom = box.querySelector('input[name="ms_cllabel"][value="custom"]').checked;
+    setClusterLabelPref({ mode: custom ? 'custom' : 'code', pattern: clInput.value });
+    if (clPrev) clPrev.textContent = _clPreview(clInput.value);
+  };
+  box.querySelectorAll('input[name="ms_cllabel"]').forEach(r => r.addEventListener('change', () => {
+    if (r.value === 'custom' && !clInput.value.trim()) clInput.value = CL_PICKS[0];
+    clSave(); renderMiscTab(box);
+  }));
+  clInput.addEventListener('input', clSave);
+  box.querySelectorAll('[data-ms-cl-pick]').forEach(b => b.addEventListener('click', () => {
+    clInput.value = b.getAttribute('data-ms-cl-pick'); clSave();
+  }));
 
   box.querySelectorAll('[data-ms-pref]').forEach(r => r.addEventListener('change', () => {
     setPref(r.getAttribute('data-ms-pref'), r.value);

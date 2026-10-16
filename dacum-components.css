@@ -2593,3 +2593,5 @@ html[data-content-mixed] .container input[type="text"] {
   }
   .ta-basic-grid { grid-template-columns: minmax(0, 1fr); }
 }
+/* 3.120.0: competency labels — quick picks */
+.ms-cl-picks { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 2px; }
