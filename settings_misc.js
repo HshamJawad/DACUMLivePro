@@ -57,6 +57,17 @@ function _termsGroup() {
     </section>`;
 }
 
+/* 3.123.1: the quick pick matching the pattern stays highlighted
+   (not only on hover), so the choice made is visible. */
+const _picked = (k, pattern) => (k === String(pattern || '').trim() ? ' ms-pick-on' : '');
+function _markPicks(box, attr, value) {
+  box.querySelectorAll(`[${attr}]`).forEach(b => {
+    const on = b.getAttribute(attr) === String(value || '').trim();
+    b.classList.toggle('ms-pick-on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+}
+
 /* 3.120.0: what the Clustering tab calls each competency in the Arabic
    interface: C1 (default) or the user's pattern. */
 const CL_PICKS = ['الكفاءة {n}', 'الكفاءة {ord}'];
@@ -78,7 +89,7 @@ function _clLabelGroup() {
       <div class="ms-terms"${custom ? '' : ' hidden'}>
         <label>${_esc(_t('msClPattern'))} <input type="text" data-ms-cl-pattern maxlength="60" dir="rtl" lang="ar" value="${_esc(p.pattern)}" placeholder="الكفاءة {n}"></label>
       </div>
-      <div class="ms-cl-picks"${custom ? '' : ' hidden'}>${CL_PICKS.map(k => `<button type="button" class="cl-btn" data-ms-cl-pick="${_esc(k)}" dir="rtl">${_esc(formatClusterLabel(k, 1))}</button>`).join('')}</div>
+      <div class="ms-cl-picks"${custom ? '' : ' hidden'}>${CL_PICKS.map(k => `<button type="button" class="cl-btn${_picked(k, p.pattern)}" data-ms-cl-pick="${_esc(k)}" aria-pressed="${k === p.pattern.trim()}" dir="rtl">${_esc(formatClusterLabel(k, 1))}</button>`).join('')}</div>
       <p class="es-note ms-cl-preview" dir="rtl"${custom ? '' : ' hidden'}>${_esc(_t('msClPreview'))} <bdi>${_esc(_clPreview(p.pattern))}</bdi></p>
       <p class="es-note">${_esc(_t('msClNote'))}</p>
     </section>`;
@@ -105,7 +116,7 @@ function _loLabelGroup() {
       <div class="ms-terms"${custom ? '' : ' hidden'}>
         <label>${_esc(_t('msClPattern'))} <input type="text" data-ms-lo-pattern maxlength="60" dir="rtl" lang="ar" value="${_esc(p.pattern)}" placeholder="محصلة التعلم {n}"></label>
       </div>
-      <div class="ms-cl-picks"${custom ? '' : ' hidden'}>${LO_PICKS.map(k => `<button type="button" class="cl-btn" data-ms-lo-pick="${_esc(k)}" dir="rtl">${_esc(formatLoLabel(k, 1))}</button>`).join('')}</div>
+      <div class="ms-cl-picks"${custom ? '' : ' hidden'}>${LO_PICKS.map(k => `<button type="button" class="cl-btn${_picked(k, p.pattern)}" data-ms-lo-pick="${_esc(k)}" aria-pressed="${k === p.pattern.trim()}" dir="rtl">${_esc(formatLoLabel(k, 1))}</button>`).join('')}</div>
       <p class="es-note ms-lo-preview" dir="rtl"${custom ? '' : ' hidden'}>${_esc(_t('msClPreview'))} <bdi>${_esc(_loPreview(p.pattern))}</bdi></p>
       <p class="es-note">${_esc(_t('msLoNote'))}</p>
     </section>`;
@@ -156,6 +167,7 @@ export function renderMiscTab(box, { justReset = false } = {}) {
     const custom = box.querySelector('input[name="ms_cllabel"][value="custom"]').checked;
     setClusterLabelPref({ mode: custom ? 'custom' : 'code', pattern: clInput.value });
     if (clPrev) clPrev.textContent = _clPreview(clInput.value);
+    _markPicks(box, 'data-ms-cl-pick', clInput.value);
   };
   box.querySelectorAll('input[name="ms_cllabel"]').forEach(r => r.addEventListener('change', () => {
     if (r.value === 'custom' && !clInput.value.trim()) clInput.value = CL_PICKS[0];
@@ -173,6 +185,7 @@ export function renderMiscTab(box, { justReset = false } = {}) {
     const custom = box.querySelector('input[name="ms_lolabel"][value="custom"]').checked;
     setLoLabelPref({ mode: custom ? 'custom' : 'code', pattern: loInput.value });
     if (loPrev) loPrev.textContent = _loPreview(loInput.value);
+    _markPicks(box, 'data-ms-lo-pick', loInput.value);
   };
   box.querySelectorAll('input[name="ms_lolabel"]').forEach(r => r.addEventListener('change', () => {
     if (r.value === 'custom' && !loInput.value.trim()) loInput.value = LO_PICKS[0];

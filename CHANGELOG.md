@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.123.1 — 2026-10-19 — Settings → Misc: the chosen quick pick stays highlighted
+PATCH. settings_misc.js, dacum-components.css, index.html, sw.js (v269),
+tests/specs/lo-labels.spec.js.
+Fixed   In "Competency labels" and "Learning outcome labels", the quick
+        pick matching the pattern (e.g. محصلة التعلم الأولى) was highlighted
+        only on hover / focus, so on a computer the choice disappeared once
+        the mouse moved away. It is now marked (and aria-pressed) and
+        follows the pattern as it is typed.
+
 ── 3.123.0 — 2026-10-19 — Learning outcome labels in the Arabic interface
 MINOR. lo_labels.js (new), learning_outcomes.js, module_mapping.js,
 clusters.js, module_curriculum.js, task_criteria.js, trace_map.js,
