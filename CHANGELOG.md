@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.125.0 — 2026-10-19 — Settings → Languages: "Translation", reset to default
+MINOR. settings_languages.js, translations.js, index.html, sw.js (v271),
+tests/specs/content-languages.spec.js.
+Changed The "Content versions of this project" card is now titled
+        "Translation" (الترجمة / Traduction).
+Added   "Reset to default" in that card: the project goes back to no
+        content language — the language buttons and the translate
+        section disappear, as before the original was confirmed. When a
+        translation is shown, the original is brought back first; existing
+        translations are deleted only after a confirmation.
+
 ── 3.124.0 — 2026-10-19 — Task Analysis: "?" on Performance Criteria
 MINOR. task_analysis.js, dacum-components.css, index.html, sw.js (v270),
 tests/specs/ta-pc-help.spec.js (new).

@@ -202,7 +202,11 @@ export function renderLanguagesTab(box) {
         <p class="es-note">${_esc(_t('lgOriginalHint'))}</p>
       </div>
       <div class="cl-versions" role="list">${_versionRow(cl.original, true)}${
-        Object.keys(cl.versions || {}).map(l => _versionRow(l, false)).join('')}</div>`;
+        Object.keys(cl.versions || {}).map(l => _versionRow(l, false)).join('')}</div>
+      <div class="cl-row cl-reset-row">
+        <button type="button" class="cl-btn" data-cl-act="reset" ${_busy ? 'disabled' : ''}>↺ ${_esc(_t('lgReset'))}</button>
+      </div>
+      <p class="es-note">${_esc(_t('lgResetHint'))}</p>`;
   }
   html += `</section>`;
 
@@ -345,6 +349,8 @@ function _onClick(e) {
     const v = (_box.querySelector('#clOriginalNew') || {}).value || 'en';
     appState.contentLanguages = CL.newCL(v);
     _save(); _syncDocument(); _rerender();
+  } else if (act === 'reset') {
+    _resetLanguages();
   } else if (act === 'review') {
     _mode = 'review'; _reviewLang = lang; _reviewFilter = 'all'; _reviewQuery = ''; _reviewLimit = 150;
     _rerender();
@@ -364,6 +370,22 @@ function _onClick(e) {
   } else if (act === 'back') {
     _translateBack();
   }
+}
+
+/* 3.125.0: back to the default — no content language set, as for a new
+   project. The original is shown first; translations are deleted only
+   after a confirmation. */
+function _resetLanguages() {
+  const cl = _cl();
+  if (!cl) return;
+  const n = Object.keys(cl.versions || {}).length;
+  if (n && !window.confirm(_t('lgConfirmReset'))) return;
+  if (cl.active !== cl.original && !switchContentLanguage(cl.original, { quiet: true })) return;
+  appState.contentLanguages = null;
+  _estimate = null; _choice = null;
+  _save(); _syncDocument(); renderLanguageBanner();
+  showStatus('↺ ' + _t('lgResetDone'), 'success');
+  _rerender();
 }
 
 /* First press: estimate. Second press (same choice): translate. */
