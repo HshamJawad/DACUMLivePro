@@ -1917,9 +1917,13 @@ function _injectCSS() {
 }
 
 /* Main container shifts right to make room for fixed sidebar */
+/* 3.129.3: the margin is NOT animated. Animating it re-laid out the
+   whole working area on every frame (a dozen full layouts per toggle,
+   tens of thousands of elements in a real project), which is what made
+   collapsing / expanding feel heavy. The content now moves once; only
+   the sidebar's own width is animated. */
 #dacumAppWrapper > .container {
   margin-left: 260px;
-  transition: margin-left 0.25s cubic-bezier(.4,0,.2,1);
   min-width: 0;
   overflow-x: hidden;
 }
@@ -1946,7 +1950,7 @@ function _injectCSS() {
   border-inline-end: 1px solid #BFC4C9;
   display: flex;
   flex-direction: column;
-  transition: width 0.25s cubic-bezier(.4,0,.2,1);
+  transition: width 0.18s cubic-bezier(.4,0,.2,1);
   z-index: 300;
   box-shadow: 0 0 18px rgba(15,23,42,0.13);
   /* Single-unit scrollbar (ChatGPT style) */

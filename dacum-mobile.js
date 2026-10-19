@@ -52,7 +52,7 @@
 
       /* ── Smooth transitions per context ── */
       '@media (min-width:1101px){' +
-        '.dps-sidebar{transition:width 0.25s cubic-bezier(.4,0,.2,1)!important;}' +
+        '.dps-sidebar{transition:width 0.18s cubic-bezier(.4,0,.2,1)!important;}' +   /* 3.129.3: shorter; only the rail is animated */
       '}' +
       '@media (max-width:1100px){' +
         '.dps-sidebar{' +

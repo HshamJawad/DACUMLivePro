@@ -29,3 +29,21 @@ for (const lang of ['en', 'ar']) {
     expect(errors).toEqual([]);
   });
 }
+
+// 3.129.3: collapsing / expanding animates the rail only — the working
+// area moves once (animating its margin re-laid out the whole page on
+// every frame).
+for (const lang of ['en', 'ar']) {
+  test(`the working area's margin is not animated (${lang})`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const errors = await openApp(page, { lang });
+    const t = await page.evaluate(() => {
+      const cs = getComputedStyle(document.querySelector('#dacumAppWrapper > .container'));
+      return { prop: cs.transitionProperty, dur: cs.transitionDuration };
+    });
+    expect(/margin/.test(t.prop) && t.dur.split(',').some(d => parseFloat(d) > 0)).toBe(false);
+    const sbT = await page.evaluate(() => getComputedStyle(document.querySelector('.dps-sidebar')).transitionProperty);
+    expect(sbT).toContain('width');
+    expect(errors).toEqual([]);
+  });
+}
