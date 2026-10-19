@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.127.0 — 2026-10-19 — Task Analysis: automatic bullets
+MINOR. task_analysis.js, index.html, sw.js (v274),
+tests/specs/ta-auto-bullets.spec.js (new).
+Added   The list cards of Task Analysis (steps, knowledge, skills, basic
+        skills, tools, safety, criteria, errors, own sections) bullet
+        themselves: typing into an empty card starts with "• ", and Enter
+        continues the list — with "• ", or with the next number once the
+        1-2-3 button has switched the card to numbering. Enter on a line
+        holding only its marker removes it; Shift+Enter is a plain line.
+        Undo (Ctrl+Z) works as usual.
+
 ── 3.126.0 — 2026-10-19 — Collapsed side navigation scrolls
 MINOR. dacum_projects.js, dacum-mobile.js, index.html, sw.js (v273),
 tests/specs/sidebar-rail.spec.js (new), tests/specs/task-criteria.spec.js.

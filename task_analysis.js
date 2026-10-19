@@ -1258,6 +1258,55 @@ export function setupTaskAnalysisEvents() {
     }
   });
 
+  /* 3.127.0: automatic bullets in the list cards. Typing into an empty
+     list starts it with "• "; Enter continues the list in the style of
+     the current line — "• ", or the next number once the user has
+     switched to numbering with the 1-2-3 button. Enter on a line that
+     holds only its marker removes the marker (ends the list there). */
+  const _insert = (el, s) => {
+    el.focus();
+    // execCommand keeps the browser's own Undo; setRangeText is the fallback.
+    let ok = false;
+    try { ok = document.execCommand('insertText', false, s); } catch (_) { ok = false; }
+    if (!ok) {
+      el.setRangeText(s, el.selectionStart, el.selectionEnd, 'end');
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  };
+  root.addEventListener('beforeinput', function (e) {
+    const el = e.target;
+    if (!el.matches || !el.matches('textarea[data-action="ta-edit-list"]') || e.isComposing) return;
+    if (el.value === '' && e.inputType === 'insertText' && e.data && e.data.trim() && !e.data.includes('\n')) {
+      e.preventDefault();
+      _insert(el, '• ' + e.data);
+    }
+  });
+  root.addEventListener('keydown', function (e) {
+    const el = e.target;
+    if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (!el.matches || !el.matches('textarea[data-action="ta-edit-list"]')) return;
+    if (el.selectionStart !== el.selectionEnd) return;
+    const pos = el.selectionStart;
+    const start = el.value.lastIndexOf('\n', pos - 1) + 1;
+    const line = el.value.slice(start, pos);
+    const num = /^\s*(\d+)[.)]\s*/.exec(line);
+    const bul = /^\s*[•\-*○●▪]\s*/.exec(line);
+    const marker = num || bul;
+    if (!marker && !line.trim()) return;           // a blank line: a plain new line
+    e.preventDefault();
+    if (marker && !line.slice(marker[0].length).trim() && el.value.slice(pos).split('\n')[0].trim() === '') {
+      el.setSelectionRange(start, pos);            // a marker alone: remove it
+      let ok = false;
+      try { ok = document.execCommand('delete'); } catch (_) { ok = false; }
+      if (!ok) {
+        el.setRangeText('', start, pos, 'end');
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      return;
+    }
+    _insert(el, '\n' + (num ? `${+num[1] + 1}. ` : '• '));
+  });
+
   // Status dot / pill catch up once the field loses focus. Capture
   // phase is required — blur/focusout on inputs doesn't bubble.
   root.addEventListener('blur', function (e) {
