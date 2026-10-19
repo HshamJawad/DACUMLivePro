@@ -726,8 +726,14 @@ function _renderBasicSkills(r) {
         <div class="ta-basic-cell" data-field-block="${f.key}">
           <div class="ta-basic-cell-h">
             <span class="ta-basic-cell-t"><span aria-hidden="true">${f.icon}</span> ${escapeHtml(_t(f.shortKey))}${_aiBadge(f.key)}</span>
-            <button type="button" class="ta-basic-clear" data-action="ta-clear-field" data-field="${f.key}"
-                    title="${escapeHtml(_t('btnClear'))}" aria-label="${escapeHtml(_t('btnClear'))} — ${escapeHtml(_t(f.shortKey))}">${ICON_TRASH}</button>
+            <span class="ta-basic-tools">
+              <button type="button" class="ta-basic-tool ta-basic-fmt" data-action="ta-format-list" data-field="${f.key}" data-format-type="number"
+                      title="${escapeHtml(_t('ttAddNumbering'))}" aria-label="${escapeHtml(_t('ttAddNumbering'))} — ${escapeHtml(_t(f.shortKey))}">${ICON_NUMBER}</button>
+              <button type="button" class="ta-basic-tool ta-basic-fmt" data-action="ta-format-list" data-field="${f.key}" data-format-type="bullet"
+                      title="${escapeHtml(_t('ttAddBullets'))}" aria-label="${escapeHtml(_t('ttAddBullets'))} — ${escapeHtml(_t(f.shortKey))}">${ICON_BULLET}</button>
+              <button type="button" class="ta-basic-tool ta-basic-clear" data-action="ta-clear-field" data-field="${f.key}"
+                      title="${escapeHtml(_t('btnClear'))}" aria-label="${escapeHtml(_t('btnClear'))} — ${escapeHtml(_t(f.shortKey))}">${ICON_TRASH}</button>
+            </span>
           </div>
           <textarea data-action="ta-edit-list" data-field="${f.key}" dir="auto" rows="3"
                     placeholder="${escapeHtml(_t(f.phKey))}">${escapeHtml(((r && r[f.key]) || []).join('\n'))}</textarea>
@@ -1168,7 +1174,10 @@ export function setupTaskAnalysisEvents() {
     if (action === 'ta-format-list') {
       const field = btn.getAttribute('data-field');
       const formatType = btn.getAttribute('data-format-type');
-      const textarea = btn.closest('.section-container')?.querySelector('textarea');
+      // The cell's own block first: the Basic Skills card holds four
+      // lists inside one section-container (3.121.0).
+      const textarea = (btn.closest('[data-field-block="' + field + '"]') || btn.closest('.section-container'))
+        ?.querySelector('textarea');
       if (!textarea) return;
       const text = textarea.value.trim();
       if (!text) { showStatus(_t('msgNothingToFormat'), 'error'); return; }

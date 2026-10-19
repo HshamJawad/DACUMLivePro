@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.121.0 — 2026-10-19 — Basic Skills: numbering and bullets per list
+MINOR. task_analysis.js, dacum-components.css, index.html, sw.js (v264),
+tests/specs/decisions-basic-skills.spec.js.
+Added   Task Analysis → Basic Skills card: each of the four lists
+        (Reading, Writing, Math, Applied Science) has its own Numbering
+        and Bullets buttons beside 🗑, the same as the other Task
+        Analysis fields. A list already numbered or bulleted is
+        re-formatted, not doubled.
+Fixed   The Task Analysis numbering/bullets handler now formats the
+        textarea of the button's own field block, so a section holding
+        several lists never formats the wrong one.
+Tested  decisions-basic-skills spec (EN / AR).
+
 ── 3.120.0 — 2026-10-16 — Competency labels in the Arabic interface
 MINOR. cluster_labels.js (new), clusters.js, clustering_ai.js,
 wording_check.js, settings_misc.js, translations.js, dacum-components.css,

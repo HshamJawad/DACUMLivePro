@@ -2560,7 +2560,9 @@ html[data-content-mixed] .container input[type="text"] {
   margin-bottom: 8px;
 }
 .ta-basic-cell-t { font-size: 0.9em; font-weight: 700; color: #334155; }
-.ta-basic-clear {
+/* 3.121.0: numbering · bullets · clear, side by side in each cell */
+.ta-basic-tools { display: inline-flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+.ta-basic-tool {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2578,6 +2580,9 @@ html[data-content-mixed] .container input[type="text"] {
   cursor: pointer;
   color: #94a3b8;
 }
+.ta-basic-tool svg { width: 16px; height: 16px; display: block; pointer-events: none; }
+.ta-basic-fmt:hover { color: #4f46e5; background: #eef2ff; }
+.ta-basic-tool:focus-visible { outline: 2px solid #6366f1; outline-offset: 1px; }
 .ta-basic-clear:hover { color: #dc2626; background: #fef2f2; }
 .ta-basic-section .tab-title-with-help h3 { margin: 0; }
 
