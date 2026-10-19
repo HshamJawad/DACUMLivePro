@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.124.0 — 2026-10-19 — Task Analysis: "?" on Performance Criteria
+MINOR. task_analysis.js, dacum-components.css, index.html, sw.js (v270),
+tests/specs/ta-pc-help.spec.js (new).
+Added   A "?" beside the Performance Criteria heading of Task Analysis.
+        It opens the same guide as the criteria "?" of the Competency
+        Clustering tab: what a criterion is, how many to write, its
+        components (object, action, qualifier), the worked example and
+        the wording rule (a statement of the result, in the passive).
+
 ── 3.123.1 — 2026-10-19 — Settings → Misc: the chosen quick pick stays highlighted
 PATCH. settings_misc.js, dacum-components.css, index.html, sw.js (v269),
 tests/specs/lo-labels.spec.js.
