@@ -28,6 +28,7 @@
 // ============================================================
 
 import { getTraceGraph } from './modules.js';
+import { loLabel } from './lo_labels.js';
 
 const COLS = ['task', 'comp', 'crit', 'lo', 'mod'];
 const LIST_BREAK = 760;            // below this width: list mode
@@ -205,7 +206,7 @@ function _code(type, item) {
   if (type === 'task') return item.code || '';
   if (type === 'comp') return String(item.num);
   if (type === 'crit') return item.id;
-  if (type === 'lo')   return item.number;
+  if (type === 'lo')   return loLabel(item);
   if (type === 'mod')  return item.ref;
   return '';
 }

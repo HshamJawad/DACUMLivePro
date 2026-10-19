@@ -8,6 +8,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { loLabel } from './lo_labels.js';
 import { outcomeIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, _renderLoNotice, renumberLearningOutcomes, syncClusteringWithProfile } from './clusters.js';
 import { _esc, _findEffectiveCriterionById, _getClusterEffectiveCriteria, _injectModuleCardStyles, _persistClusters, _renderUndoBars, _t, _taskLabel, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
@@ -89,7 +90,7 @@ export function renderPCSourceList() {
 
       let loOptions = `<option value="">${_t('optAssignToLO')}</option>`;
       lo.outcomes.forEach(outcome => {
-        loOptions += `<option value="${outcome.id}">${outcome.number}</option>`;
+        loOptions += `<option value="${outcome.id}">${_esc(loLabel(outcome))}</option>`;
       });
 
       html += `
@@ -247,7 +248,7 @@ function _enhancePCSource(container) {
         const before = (appState.learningOutcomesData.outcomes || []).length;
         btn.click();
         const outs = appState.learningOutcomesData.outcomes || [];
-        if (outs.length > before) _flashPCSelectionBar(_txf('pcLoCreated', { n: outs[outs.length - 1].number }));
+        if (outs.length > before) _flashPCSelectionBar(_txf('pcLoCreated', { n: loLabel(outs[outs.length - 1]) }));
       }
     });
   }
@@ -326,7 +327,7 @@ export function renderLearningOutcomes() {
     html += `
       <div class="lo-block" id="${outcome.id}">
         <div class="lo-block-header">
-          <div class="lo-number">${outcome.number}<span class="lo-need-badge"${(outcome.statement || '').trim() ? ' hidden' : ''}>✎ ${_esc(_tx('loNeedStatement'))}</span></div>
+          <div class="lo-number"><bdi>${_esc(loLabel(outcome))}</bdi><span class="lo-need-badge"${(outcome.statement || '').trim() ? ' hidden' : ''}>✎ ${_esc(_tx('loNeedStatement'))}</span></div>
           <div class="lo-actions">
             <button class="btn-delete-lo" data-action="delete-lo" data-lo-id="${outcome.id}">❌ ${_t('btnDelete')}</button>
           </div>
@@ -334,7 +335,7 @@ export function renderLearningOutcomes() {
         <div class="lo-statement lo-statement-inline" id="statement_${outcome.id}">
           <textarea id="textarea_${outcome.id}" class="lo-inline-input" rows="1"
             data-action-blur="save-lo-statement" data-lo-id="${outcome.id}"
-            placeholder="${_esc(_tx('loInlinePh'))}" aria-label="${_esc(outcome.number)}">${_esc(outcome.statement || '')}</textarea>
+            placeholder="${_esc(_tx('loInlinePh'))}" aria-label="${_esc(loLabel(outcome))}">${_esc(outcome.statement || '')}</textarea>
           <div class="lo-inline-foot">
             ${(outcome.statement || '').trim() || !outcome.linkedCriteria.some(pc => !pc.stale) ? '' :
               `<button type="button" class="lo-use-pc" data-lo-id="${outcome.id}">↳ ${_esc(_tx('loUsePC'))}</button>`}
@@ -579,7 +580,7 @@ export function deleteLearningOutcome(loId) {
   const data = appState.learningOutcomesData;
   const idx = data.outcomes.findIndex(o => o.id === loId);
   const before = _undoSnap();
-  const label = idx !== -1 ? _txf('undoDeleteLO', { lo: data.outcomes[idx].number }) : '';
+  const label = idx !== -1 ? _txf('undoDeleteLO', { lo: loLabel(data.outcomes[idx]) }) : '';
   if (idx !== -1) data.outcomes.splice(idx, 1);
   if (idx !== -1) _undoRecord(label, before);
   renumberLearningOutcomes();
@@ -623,7 +624,7 @@ export function unassignPCFromLO(loId, pcId) {
   const idx = m ? parseInt(m[1], 10) : lo.linkedCriteria.findIndex(pc => pc.id === pcId);
   if (idx >= 0 && idx < lo.linkedCriteria.length) {
     const before = _undoSnap();
-    const label = _txf('undoUnlinkPC', { pc: lo.linkedCriteria[idx].id, lo: lo.number });
+    const label = _txf('undoUnlinkPC', { pc: lo.linkedCriteria[idx].id, lo: loLabel(lo) });
     lo.linkedCriteria.splice(idx, 1);
     _undoRecord(label, before);
   }
@@ -1163,7 +1164,7 @@ export function renderModules() {
             return `
               <div class="module-lo-assigned">
                 <div class="module-lo-assigned-content">
-                  <div class="module-lo-assigned-number">${outcome.number}</div>
+                  <div class="module-lo-assigned-number"><bdi>${_esc(loLabel(outcome))}</bdi></div>
                   <div class="module-lo-assigned-statement">${outcome.statement || `<em>${_t('msgNoStatement')}</em>`}</div>
                   <div class="module-lo-assigned-criteria">${_t('lblMappedPCInline')} ${criteriaText}</div>
                 </div>

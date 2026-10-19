@@ -7,6 +7,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { loLabel } from './lo_labels.js';
 import { getTaskCode } from './codes.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getTaskSelectionExportSummary, exportSelectionCell } from './task_selection.js';
@@ -925,7 +926,7 @@ export function _pdfLearningOutcomes({ margin, pageHeight, pageWidth, pdf, yPos 
                     
                     pdf.setFontSize(12);
                     pdf.setFont(undefined, 'bold');
-                    pdf.text(`${lo.number}:`, margin + 5, yPos);
+                    pdf.text(`${loLabel(lo)}:`, margin + 5, yPos);
                     yPos += 5;
                     
                     if (lo.statement && lo.statement.trim()) {
@@ -1016,7 +1017,7 @@ export function _pdfModules({ margin, pageHeight, pageWidth, pdf, yPos }) {
                     
                     pdf.setFontSize(11);
                     pdf.setFont(undefined, 'bold');
-                    pdf.text(`${lo.number}:`, margin + 10, yPos);
+                    pdf.text(`${loLabel(lo)}:`, margin + 10, yPos);
                     yPos += 5;
                     
                     if (lo.statement && lo.statement.trim()) {

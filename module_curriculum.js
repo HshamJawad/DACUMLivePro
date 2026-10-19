@@ -30,6 +30,7 @@
 
 import { appState, normalizeModuleCurriculumData, defaultModuleCurriculumData, CUR_DEFAULT_SPLIT } from './state.js';
 import { showStatus } from './renderer.js';
+import { loLabel } from './lo_labels.js';
 import { getTaskCodeShort, isClusterAddedTaskId, getAddedTaskLabel } from './codes.js';
 import { getTaskAnalysisRecord } from './task_analysis.js';
 import { exportOccupationalStandardWord } from './exports_os_docx.js';
@@ -516,7 +517,7 @@ function _renderHeader(module, idx) {
           ${g.tasks.length ? ` · ${_esc(_tx('curTasksL'))}: ${g.tasks.map(t => `<bdi class="cur-task">${_esc(t)}</bdi>`).join(' ')}` : ''}</div></li>`).join('')}</ul>`
         : `<div class="cur-hint">${_esc(_tx('curOSNone'))}</div>`}
       <div class="cur-subhead">${_esc(_tx('curLOListL'))}</div>
-      ${los.length ? `<ol class="cur-lolist">${los.map(o => `<li><bdi class="cur-lonum">${_esc(o.number || '')}</bdi> ${_esc(o.statement || '')}</li>`).join('')}</ol>`
+      ${los.length ? `<ol class="cur-lolist">${los.map(o => `<li><bdi class="cur-lonum">${_esc(loLabel(o))}</bdi> ${_esc(o.statement || '')}</li>`).join('')}</ol>`
         : `<div class="cur-hint">${_esc(_tx('curNoLOs'))}</div>`}
     </section>`;
 }
