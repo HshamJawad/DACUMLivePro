@@ -75,6 +75,9 @@ let _duties  = [];
    What DOES follow the language: the labels, the legend, the duty name
    and the modal chrome around the plot. */
 const _rtlChart = () => (window.i18n ? window.i18n.isRTL() : false);
+/* 3.122.2: the chart's own text in the interface font — Cairo in Arabic.
+   Kept as an attribute (not CSS) so the PNG export still carries it. */
+const _svgFont = () => (_rtlChart() ? "Cairo, Segoe UI, system-ui, sans-serif" : 'Segoe UI, system-ui, sans-serif');
 
 function _esc(s) {
   return String(s == null ? '' : s)
@@ -207,7 +210,7 @@ function _buildChartSVG(duty) {
            '" stroke="' + (major ? '#cbd5e1' : '#eef2f7') + '" stroke-width="1"/>';
     if (major) {
       svg += '<text x="' + (PAD.left - 10) + '" y="' + (y + 4) + '" text-anchor="end" ' +
-             'font-family="Segoe UI, system-ui, sans-serif" font-size="11" fill="#64748b">' + val + '</text>';
+             'font-family="' + _svgFont() + '" font-size="11" fill="#64748b">' + val + '</text>';
     }
   }
 
@@ -227,7 +230,7 @@ function _buildChartSVG(duty) {
   avgMarkup += '<rect x="' + (width - PAD.right - plateW) + '" y="' + (avgY - 17) + '" width="' + plateW +
          '" height="14" rx="3" fill="#ffffff" fill-opacity="0.92"/>';
   avgMarkup += '<text x="' + (width - PAD.right - 5) + '" y="' + (avgY - 6.5) + '" text-anchor="end" ' +
-         'font-family="Segoe UI, system-ui, sans-serif" font-size="10" font-weight="700" ' +
+         'font-family="' + _svgFont() + '" font-size="10" font-weight="700" ' +
          'fill="#dc2626">' + avgTxt + '</text>';
 
   // Bars
@@ -239,7 +242,7 @@ function _buildChartSVG(duty) {
       svg += '<rect x="' + gx + '" y="' + PAD.top + '" width="' + groupW + '" height="' + PLOT_H +
              '" fill="#f8fafc"/>';
       svg += '<text x="' + (gx + groupW / 2) + '" y="' + (PAD.top + PLOT_H / 2) +
-             '" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" ' +
+             '" text-anchor="middle" font-family="' + _svgFont() + '" ' +
              'font-size="10" fill="#94a3b8">not rated</text>';
     } else {
       keys.forEach((k, j) => {
@@ -252,14 +255,14 @@ function _buildChartSVG(duty) {
                t[k].toFixed(2) + '</title></rect>';
         if (showValues && t[k] > 0) {
           svg += '<text x="' + (x + BAR_W / 2) + '" y="' + (y - 4) + '" text-anchor="middle" ' +
-                 'font-family="Segoe UI, system-ui, sans-serif" font-size="9.5" ' +
+                 'font-family="' + _svgFont() + '" font-size="9.5" ' +
                  'fill="#475569">' + t[k].toFixed(1) + '</text>';
         }
       });
     }
 
     svg += '<text x="' + (gx + groupW / 2) + '" y="' + (PAD.top + PLOT_H + 18) +
-           '" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" ' +
+           '" text-anchor="middle" font-family="' + _svgFont() + '" ' +
            'font-size="11.5" font-weight="700" fill="#334155">' + _esc(t.code) + '</text>';
   });
 
@@ -273,7 +276,7 @@ function _buildChartSVG(duty) {
   svg += '<line x1="' + PAD.left + '" y1="' + PAD.top + '" x2="' + PAD.left +
          '" y2="' + (PAD.top + PLOT_H) + '" stroke="#334155" stroke-width="1.5"/>';
   svg += '<text x="' + (PAD.left + plotW / 2) + '" y="' + (height - 12) + '" text-anchor="middle" ' +
-         'font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" ' +
+         'font-family="' + _svgFont() + '" font-size="11" font-weight="600" ' +
          'fill="#64748b">Tasks (DACUM order)</text>';
 
   svg += '</svg>';
