@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.129.2 — 2026-10-19 — A new project shows the interface language
+PATCH. project_lang.js, dacum_projects.js, index.html, sw.js (v278),
+tests/specs/project-language.spec.js.
+Fixed   A new project has no text yet, and its language was read as
+        English: its card showed "🌐 EN" in an Arabic or French
+        interface, and opening it (with "Interface follows the project")
+        switched the interface to English with the switch note. A project
+        with no text now has no language of its own: its card shows the
+        interface language, and opening it never switches. Once it has
+        text, its card follows that text as before.
+
 ── 3.129.1 — 2026-10-19 — User Guide brought up to 3.129 (EN/FR/AR)
 PATCH. DACUM_Live_Pro_User_Guide.html, index.html, sw.js (v277).
 Changed Offline: the first visit (from the web link) needs the internet;

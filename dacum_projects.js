@@ -30,7 +30,7 @@ import { renderAll }          from './workshop_snapshots.js';
 import { resetHistoryToCurrentState } from './history.js';
 import { renderModuleCurriculum } from './module_curriculum.js';
 import { versionStats as _clVersionStats, LANG_NAMES as _CL_NAMES } from './content_lang.js';
-import { projectLanguage, stateLanguage, UI_LANGS } from './project_lang.js';
+import { badgeLanguage, stateLanguage, UI_LANGS } from './project_lang.js';
 import { getPref } from './ui_prefs.js';
 
 /* i18n access — resolved lazily; see duties.js for why.
@@ -1002,7 +1002,7 @@ function _langBadge(p, isActive) {
   if (!cl || !cl.original) {
     /* 3.107.0: every card says its language, read from its texts, so two
        copies of one project in two languages can be told apart. */
-    const lang = projectLanguage(p);
+    const lang = badgeLanguage(p);   // 3.129.2: an empty project shows the interface language
     if (!lang) return '';
     const title = _tf('lgBadgeOne', { lang: _CL_NAMES[lang] || lang.toUpperCase() });
     return `<button type="button" class="dps-lang-badge" data-action="project-languages" data-project-id="${p.id}"

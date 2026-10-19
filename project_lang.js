@@ -10,18 +10,30 @@
 // shown); otherwise the texts are read (guessLanguage).
 // ============================================================
 
-import { guessLanguage } from './content_lang.js';
+import { guessLanguage, collectUnits } from './content_lang.js';
 import { captureProjectState } from './dacum_projects.js';
 
 export const UI_LANGS = ['en', 'ar', 'fr'];
 const _cache = new Map();   // project id → { stamp, lang }
 
-/** Language of a project state object ('en' | 'ar' | 'fr' | other code). */
+/** Language of a project state object ('en' | 'ar' | 'fr' | other code),
+ *  or '' while it cannot be told — 3.129.2: a new project has no text
+ *  yet, and reading it as English put "EN" on its card in an Arabic or
+ *  French interface and switched the interface to English on opening. */
 export function stateLanguage(s) {
   if (!s) return '';
   const cl = s.contentLanguages;
   if (cl && (cl.active || cl.original)) return cl.active || cl.original;
-  try { return guessLanguage(s, 'en'); } catch (_) { return ''; }
+  try {
+    if (!collectUnits(s).units.some(u => /\p{L}/u.test(u.text || ''))) return '';
+    return guessLanguage(s, 'en');
+  } catch (_) { return ''; }
+}
+
+/** What a card shows: the project's language, or — while it has no text
+ *  to tell — the interface language it is being written in. */
+export function badgeLanguage(p) {
+  return projectLanguage(p) || (window.i18n && window.i18n.getLang ? window.i18n.getLang() : '');
 }
 
 /** Language of a saved project record (cached until it is saved again). */

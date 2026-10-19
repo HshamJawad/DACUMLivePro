@@ -91,3 +91,22 @@ test('Arabic interface: duty letters Arabic by default, Latin when chosen in Mis
   await expect(page.locator('input[data-ms-pref="codeLetters"][value="latin"]')).toBeChecked();
   expect(errors).toEqual([]);
 });
+
+// 3.129.2: a new project has no text yet — its card shows the interface
+// language (not EN), and opening it never switches the interface.
+for (const ui of ['ar', 'fr', 'en']) {
+  test(`new empty project: card shows the interface language, no switch (${ui})`, async ({ page }) => {
+    const errors = await openApp(page, { lang: ui, followProjectLang: 'on' });
+    const id = await page.evaluate(async () => (await import('./dacum_projects.js')).createProject('Empty'));
+    await expect(badge(page, id)).toContainText(ui.toUpperCase());
+    // open another project, then come back to the empty one: no switch, no note
+    await loadProject(page, fixture(ui === 'ar' ? 'pilot-ar.json' : 'sample-project.json'));
+    const back = await lang(page);
+    await page.locator(`.dps-card[data-project-id="${id}"] .dps-card-body`).click();
+    await page.waitForTimeout(400);
+    expect(await lang(page)).toBe(back);
+    await expect(page.locator('#dpsLangNote')).toHaveCount(0);
+    await expect(badge(page, id)).toContainText(back.toUpperCase());
+    expect(errors).toEqual([]);
+  });
+}
