@@ -644,7 +644,9 @@ function _renderListField(field, items) {
   return `
     <div class="section-container" data-field-block="${field.key}">
       <div class="section-header-editable">
-        <h3>${_t(field.labelKey)}${_aiBadge(field.key)}</h3>
+        <h3>${_t(field.labelKey)}${_aiBadge(field.key)}${field.key === 'performanceCriteria' ? `
+          <button type="button" class="tab-help-btn ta-pc-help" data-action="ta-pc-help" aria-haspopup="dialog"
+                  title="${escapeHtml(_t('ttPCRangeHelp'))}" aria-label="${escapeHtml(_t('ttPCRangeHelp'))}">?</button>` : ''}</h3>
         <div style="display:flex;gap:10px;">${field.key === 'performanceCriteria' ? `
           <button type="button" class="btn-format ta-back-duties" data-tc-back
                   title="${escapeHtml(_t('tcBackTip'))}" aria-label="${escapeHtml(_t('tcBackTip'))}">↩ ${escapeHtml(_t('tcBack'))}</button>` : ''}${pickBtn}
@@ -1157,6 +1159,11 @@ export function setupTaskAnalysisEvents() {
     if (action === 'ta-dec-del')    { _decDeleteRow(+btn.getAttribute('data-row')); return; }
     if (action === 'ta-dec-clear')  { _decClear(); return; }
     if (action === 'ta-dec-expert') { _decExpertOpen = !_decExpertOpen; _renderFormPanel(); return; }
+    /* 3.124.0: the same guide as the Competency Clustering criteria "?". */
+    if (action === 'ta-pc-help') {
+      import('./events.js').then(m => m.openHelpGuide('pcRange')).catch(() => {});
+      return;
+    }
     if (action === 'ta-basic-help') {
       import('./events.js').then(m => m.openHelpGuide('basicSkills')).catch(() => {});
       return;
