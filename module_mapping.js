@@ -941,6 +941,7 @@ export function renderCoverageMatrix() {
    <details class="cov-fold" ${_covOpen ? 'open' : ''}>
     <summary class="cov-fold-head">
       <span class="cov-fold-title">📊 ${_esc(_tx('covTitle'))}</span>
+      ${matrixHelpButton('coverage', 'ttCovHelp')}
       ${summary.total ? `<span class="cov-fold-mini">
         <span class="cov-pill cov-ok">✓ ${_esc(_txf('covCoveredN', { n: summary.covered, p: pct }))}</span>
         <span class="cov-pill cov-gap">✗ ${_esc(_txf('covGapN', { n: summary.gap }))}</span>
@@ -977,6 +978,7 @@ export function renderCoverageMatrix() {
     </div>` : `<div class="no-clusters-message">${_esc(_tx('covEmpty'))}</div>`}
     </div>
    </details>`;
+  bindMatrixHelp(sec);
   const det = sec.querySelector('details.cov-fold');
   det.addEventListener('toggle', () => {
     _covOpen = det.open;
@@ -986,6 +988,24 @@ export function renderCoverageMatrix() {
   });
   /* 3.119.0: the curriculum matrix (depth of treatment) under it. */
   try { renderCurriculumMatrix(); } catch (e) { console.warn('[curriculum matrix]', e); }
+}
+
+/* 3.122.0: the "?" in the title bar of the coverage and curriculum
+   matrices. It sits inside <summary>, so a click must not reach the
+   <details> (it would fold or unfold the card). The guides live in
+   events.js, loaded on demand to keep the import graph acyclic. */
+export function matrixHelpButton(guide, tipKey) {
+  const tip = _esc(_tx(tipKey));
+  return `<button type="button" class="tab-help-btn cov-help-btn" data-matrix-help="${guide}"
+          aria-haspopup="dialog" title="${tip}" aria-label="${tip}">?</button>`;
+}
+export function bindMatrixHelp(sec) {
+  sec.querySelectorAll('[data-matrix-help]').forEach(b => b.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const guide = b.getAttribute('data-matrix-help');
+    import('./events.js').then(m => m.openHelpGuide(guide)).catch(err => console.warn('[matrix help]', err));
+  }));
 }
 
 let _covOpen = (() => { try { return localStorage.getItem('dacum_cov_open') === '1'; } catch (_) { return false; } })();
@@ -1014,6 +1034,7 @@ function _injectCovFoldStyles() {
     .cov-fold[open] .cov-fold-toggle::after { content: ' ▴'; }
     .cov-fold[open] > .cov-fold-head { border-radius: 10px 10px 0 0; }
     .cov-fold-body { padding-top: 12px; }
+    .cov-fold-head .cov-help-btn { margin-inline-start: -6px; }   /* 3.122.0: hug the title */
   `;
   document.head.appendChild(st);
 }

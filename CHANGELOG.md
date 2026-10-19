@@ -7,6 +7,20 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.122.0 — 2026-10-19 — Help for the coverage and curriculum matrices
+MINOR. module_mapping.js, curriculum_matrix.js, events.js, helper_wizard.js,
+translations.js, index.html, sw.js (v265), tests/specs/matrix-help.spec.js (new).
+Added   Module Mapping: a "?" in the title bar of "Performance criteria
+        coverage by level" and of "Curriculum matrix — depth of
+        treatment". Each opens its own guide: why it matters, what each
+        status / symbol means, how the levels are suggested (and why ○
+        never is), how to close the gaps and clear the alerts, when
+        "several modules" is fine, a good order of work, and where the
+        matrix is exported. The click never folds or unfolds the card.
+        Both guides are also listed on the Helper wizard's Module Mapping
+        step. EN / FR / AR.
+Tested  matrix-help spec (EN / FR / AR at phone width).
+
 ── 3.121.0 — 2026-10-19 — Basic Skills: numbering and bullets per list
 MINOR. task_analysis.js, dacum-components.css, index.html, sw.js (v264),
 tests/specs/decisions-basic-skills.spec.js.

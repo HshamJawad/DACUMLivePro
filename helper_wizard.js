@@ -175,7 +175,7 @@ const STEPS = [
   },
   {
     tab: 'module-mapping-tab', icon: '📦', titleKey: 'tabModuleMapping', sumKey: 'hcStep9', tipKey: 'hwTip10',
-    guides: () => getTabHelpGuides(['mm']),
+    guides: () => getTabHelpGuides(['mm', 'coverage', 'cmx']),
     status() {
       const n = ((appState.moduleMappingData || {}).modules || []).length;
       return n ? S('done', _tf('hwMMods', { n })) : S('todo', _t('hwMNone'));
