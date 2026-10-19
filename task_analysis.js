@@ -835,7 +835,7 @@ function _renderFormPanel() {
           <div class="ta-form-task">${_bdi(letter + entry.taskNum)}. ${escapeHtml(entry.task.text)}</div>
           ${_usedInLine(entry.taskKey)}
         </div>
-        <span id="taskAnalysisStatusPill"
+        <span id="taskAnalysisStatusPill" title="${escapeHtml(_t('taStatusTip'))}"
               class="completion-indicator ${status === 'completed' ? 'complete' : 'incomplete'} ta-status-pill ta-status-pill-${status}">
           ${_statusLabel(status)}
         </span>

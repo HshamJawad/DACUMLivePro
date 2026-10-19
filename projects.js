@@ -215,6 +215,7 @@ function _doClear() {
   appState.taskAnalysisCustomSections = [];
   appState.additionalInfoAI           = {};
   appState.contentLanguages           = null;
+  appState.draftStages                = [];   // 3.129.0
   try { document.dispatchEvent(new CustomEvent('dacum:content-languages-changed')); } catch (e) {}
   appState.collectionMode       = 'workshop';
   appState.workflowMode         = 'standard';

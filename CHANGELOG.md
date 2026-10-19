@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.129.0 — 2026-10-19 — "Completed" explained; Regenerate only after a draft
+MINOR. task_analysis.js, events.js, translations.js, draft_agent.js,
+draft_regen.js, state.js, dacum_projects.js, projects.js, snapshots.js,
+index.html, sw.js (v276), tests/specs/regen-status.spec.js (new).
+Added   Task Analysis: the status pill explains "Completed" on hover, and
+        the tab's "?" guide has a "Status of each task" entry (EN/FR/AR).
+Changed "↻ Regenerate from here" is shown only in the tabs whose content
+        the Full Draft generated in this project (recorded as
+        draftStages, saved with the project and in the JSON export).
+        Content typed by hand no longer shows it, which suggested an AI
+        run that never happened. Projects drafted before this version
+        show it again after their next draft.
+
 ── 3.128.0 — 2026-10-19 — Task Analysis: "Completed" from the essentials
 MINOR. task_analysis.js, index.html, sw.js (v275),
 tests/specs/ta-status.spec.js (new).

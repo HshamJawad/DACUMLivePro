@@ -20,6 +20,7 @@
 import { STAGES, regenerateFrom, quotaCheck,
          isDraftRunning, onDraftProgress }   from './draft_agent.js';
 import { showStatus }                        from './renderer.js';
+import { appState }                          from './state.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -48,7 +49,13 @@ export function renderRegenButtons() {
     const stage = STAGES.find(s => s.id === stageId);
     if (!stage) return;
 
-    // Nothing to rebuild from if this stage has never produced anything.
+    /* 3.129.0: only where the Full Draft generated this stage. Content
+       typed by hand has nothing to "regenerate", and the button there
+       suggested an AI run that never happened. */
+    const generated = Array.isArray(appState.draftStages) && appState.draftStages.includes(stageId);
+    if (!generated) { host.innerHTML = ''; return; }
+
+    // Nothing to rebuild from if this stage has no content (any more).
     let hasContent = false;
     try { hasContent = !!stage.verify(); } catch (_) { hasContent = false; }
     if (!hasContent) { host.innerHTML = ''; return; }
@@ -116,3 +123,5 @@ onDraftProgress((ev) => {
 });
 
 window.addEventListener('dacum:langchange', renderRegenButtons);
+/* 3.129.0: another project opened — its own record decides. */
+document.addEventListener('dacum:project-loaded', renderRegenButtons);

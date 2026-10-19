@@ -1036,6 +1036,7 @@ function _showTaskAnalysisHelp() {
       ['\u26A0\uFE0F', _t('helpTAK4'), _t('helpTAV4')],
       ['\u2705', _t('helpTAK5'), _t('helpTAV5')],
       ['\u{1F517}', _t('helpTAK6'), _t('helpTAV6')],
+      ['\u{1F7E2}', _t('helpTAK8'), _t('helpTAV8')],   // 3.129.0: what "Completed" means
     ],
     note: _t('helpTANote'),
   });

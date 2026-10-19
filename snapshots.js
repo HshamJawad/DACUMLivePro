@@ -193,6 +193,11 @@ export function saveToJSON() {
       data.supplementaryVerification = appState.supplementaryVerification;
     }
 
+    // 3.129.0: the Full Draft stages generated (Regenerate buttons).
+    if (Array.isArray(appState.draftStages) && appState.draftStages.length) {
+      data.draftStages = appState.draftStages;
+    }
+
     // 3.79.0: content languages and their stored translations. Written
     // only once the user has set them, so other files are unchanged.
     if (appState.contentLanguages) {

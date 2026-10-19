@@ -150,6 +150,8 @@ export function importProjectFromData(data, fileName) {
     supplementaryVerification: s.supplementaryVerification    || null,
     // 3.79.0 — absent in older files.
     contentLanguages:         (s.contentLanguages && typeof s.contentLanguages === 'object') ? s.contentLanguages : null,
+    // 3.129.0 — absent in older files: no Full Draft recorded.
+    draftStages:              Array.isArray(s.draftStages) ? s.draftStages : [],
     collectionMode:           s.verification?.collectionMode || 'workshop',
     workflowMode:             s.verification?.workflowMode   || 'standard',
     workshopParticipants:     s.verification?.workshopParticipants || 10,
@@ -1087,6 +1089,7 @@ function _captureState() {
     taskAnalysisCustomSections: appState.taskAnalysisCustomSections || [],
     additionalInfoAI:         appState.additionalInfoAI        || {},
     contentLanguages:         appState.contentLanguages        || null,
+    draftStages:              Array.isArray(appState.draftStages) ? appState.draftStages : [],
     supplementaryVerification: appState.supplementaryVerification || null,
     collectionMode:           appState.collectionMode,
     workflowMode:             appState.workflowMode,
@@ -1144,6 +1147,8 @@ function _applyState(s) {
   appState.additionalInfoAI         = (s.additionalInfoAI && typeof s.additionalInfoAI === 'object') ? s.additionalInfoAI : {};
   // 3.79.0 — absent in older projects: no content languages set.
   appState.contentLanguages         = (s.contentLanguages && typeof s.contentLanguages === 'object') ? s.contentLanguages : null;
+  // 3.129.0 — absent in older projects: no Full Draft recorded.
+  appState.draftStages              = Array.isArray(s.draftStages) ? s.draftStages.slice() : [];
   // Older projects have no such key — the default is the feature OFF,
   // which is exactly how those projects behaved before.
   appState.supplementaryVerification = s.supplementaryVerification || defaultSupplementaryVerification();
