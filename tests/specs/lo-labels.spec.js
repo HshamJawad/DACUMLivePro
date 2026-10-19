@@ -40,6 +40,10 @@ test('Arabic interface: LO1 by default; the chosen titles from Settings → Misc
   await expect(title).toHaveText('محصلة التعلم 1');
   await page.locator('[data-ms-lo-pick="محصلة التعلم {ord}"]').click();
   await expect(title).toHaveText('محصلة التعلم الأولى');
+  // the chosen pick stays marked after the pointer leaves
+  await page.mouse.move(0, 0);
+  await expect(page.locator('[data-ms-lo-pick="محصلة التعلم {ord}"]')).toHaveClass(/ms-pick-on/);
+  await expect(page.locator('[data-ms-lo-pick="محصلة التعلم {n}"]')).not.toHaveClass(/ms-pick-on/);
   await expect(page.locator('.ms-lo-preview')).toContainText('محصلة التعلم الأولى، محصلة التعلم الثانية، محصلة التعلم الثالثة');
   // the project keeps LO1
   expect(await state(page, 's => s.learningOutcomesData.outcomes[0].number')).toBe('LO1');
