@@ -68,6 +68,10 @@ export const appState = {
   // 3.79.0: the project's content languages (Settings → Languages) —
   // null until the user sets them; see content_lang.js for the shape.
   contentLanguages: null,
+  // 3.129.0: the Full Draft stages that have produced content in this
+  // project (draft_agent.js) — the "Regenerate from here" buttons are
+  // shown for these only.
+  draftStages: [],
 
   // ── Supplementary Occupational Verification (optional) ─────
   // Occupation-level evidence (knowledge & skills, tools, behaviours,

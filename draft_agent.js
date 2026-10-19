@@ -392,6 +392,10 @@ async function _runStages(stages) {
     if (stage.replaces) { try { dropLearningHistory(); } catch (_) {} }
 
     appState.draftProgress.done.push(stage.id);
+    /* 3.129.0: remembered with the project — draft_regen.js shows its
+       "Regenerate from here" button only where a draft was generated. */
+    if (!Array.isArray(appState.draftStages)) appState.draftStages = [];
+    if (!appState.draftStages.includes(stage.id)) appState.draftStages.push(stage.id);
     _emit({ type: 'stage-done', id: stage.id, index: i, total: stages.length });
   }
 
