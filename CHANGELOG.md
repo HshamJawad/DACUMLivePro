@@ -7,6 +7,20 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.129.1 — 2026-10-19 — User Guide brought up to 3.129 (EN/FR/AR)
+PATCH. DACUM_Live_Pro_User_Guide.html, index.html, sw.js (v277).
+Changed Offline: the first visit (from the web link) needs the internet;
+        the tool then works offline in the browser or installed, while the
+        browser keeps the site's data. Updates, AI and live voting always
+        need the network ("Works offline after the first visit").
+Added   Task Analysis: what "Completed" means, automatic bullets and
+        numbering, a numbering / bullets pair per list, the "?" beside
+        Performance Criteria. Full Draft: Regenerate only in drafted tabs.
+        Module Mapping: the curriculum matrix and the matrices' "?"; the
+        Module Builder handoff carries Country / Context and Scope of
+        Work. Settings → Misc: competency and learning outcome labels.
+        Languages: the "Translation" card and its Reset to default.
+
 ── 3.129.0 — 2026-10-19 — "Completed" explained; Regenerate only after a draft
 MINOR. task_analysis.js, events.js, translations.js, draft_agent.js,
 draft_regen.js, state.js, dacum_projects.js, projects.js, snapshots.js,
