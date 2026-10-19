@@ -52,6 +52,19 @@ for (const lang of ['en', 'ar']) {
     expect(await state(page, 's => s.taskAnalysisData.duty_1_1.basicMath'))
       .toEqual(['Calculate load current', 'Convert units']);
 
+    // 3.121.0: each list has its own numbering / bullets buttons, and they
+    // format that list only.
+    await page.locator('textarea[data-field="basicReading"]').fill('Read safety signs\nRead the SDS');
+    await page.click('[data-action="ta-format-list"][data-field="basicMath"][data-format-type="number"]');
+    await expect(page.locator('textarea[data-field="basicMath"]')).toHaveValue('1. Calculate load current\n2. Convert units');
+    await expect(page.locator('textarea[data-field="basicReading"]')).toHaveValue('Read safety signs\nRead the SDS');
+    await page.click('[data-action="ta-format-list"][data-field="basicMath"][data-format-type="bullet"]');
+    expect(await state(page, 's => s.taskAnalysisData.duty_1_1.basicMath'))
+      .toEqual(['• Calculate load current', '• Convert units']);
+    await page.click('[data-action="ta-format-list"][data-field="basicReading"][data-format-type="number"]');
+    expect(await state(page, 's => s.taskAnalysisData.duty_1_1.basicReading'))
+      .toEqual(['1. Read safety signs', '2. Read the SDS']);
+
     // The "?" explains the difference with the Skills Level Matrix.
     await page.click('[data-action="ta-basic-help"]');
     await expect(page.locator('#basicSkillsHelpModal table')).toBeVisible();
