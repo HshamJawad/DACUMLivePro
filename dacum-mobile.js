@@ -48,7 +48,7 @@
        * (fixed in dacum_projects.js _injectCSS).                     *
        * This rule only ensures the sidebar itself is scrollable.      */
       '.dps-sidebar{overflow-y:auto!important;overflow-x:hidden!important;}' +
-      '.dps-sidebar.dps-collapsed{overflow:visible!important;}' +
+      '.dps-sidebar.dps-collapsed{overflow-x:hidden!important;overflow-y:auto!important;}' +   /* 3.126.0: the rail scrolls */
 
       /* ── Smooth transitions per context ── */
       '@media (min-width:1101px){' +

@@ -1826,6 +1826,37 @@ function _toggleSidebar() {
   try { localStorage.setItem('dps_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e) {}
 }
 
+/* 3.126.0: tooltips of the collapsed rail. The rail scrolls, which
+   clips anything drawn outside it, so one tip lives in <body> and is
+   placed beside the icon under the pointer (or keyboard focus). */
+function _wireRailTips() {
+  let tip = null;
+  const hide = () => { if (tip) tip.hidden = true; };
+  const show = (e) => {
+    const item = e.target && e.target.closest && e.target.closest('.dps-sidebar.dps-collapsed .dps-nav-item[data-tooltip]');
+    if (!item) { hide(); return; }
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.className = 'dps-rail-tip';
+      tip.setAttribute('role', 'tooltip');
+      document.body.appendChild(tip);
+    }
+    tip.textContent = item.getAttribute('data-tooltip');
+    const r = item.getBoundingClientRect();
+    const rtl = document.documentElement.getAttribute('dir') === 'rtl';
+    tip.style.top = (r.top + r.height / 2) + 'px';
+    tip.style.left  = rtl ? 'auto' : (r.right + 12) + 'px';
+    tip.style.right = rtl ? (window.innerWidth - r.left + 12) + 'px' : 'auto';
+    tip.hidden = false;
+  };
+  document.addEventListener('mouseover', show);
+  document.addEventListener('focusin', show);
+  document.addEventListener('focusout', hide);
+  document.addEventListener('scroll', hide, true);
+  document.addEventListener('click', hide, true);
+}
+_wireRailTips();
+
 function _updateCollapseIcon(collapsed) {
   const btn = document.getElementById('dpsCollapseBtn');
   if (!btn) return;
@@ -1922,10 +1953,27 @@ function _injectCSS() {
 .dps-sidebar::-webkit-scrollbar-thumb { background: #AEB4BA; border-radius: 5px; }
 .dps-sidebar::-webkit-scrollbar-thumb:hover { background: #959CA3; }
 
-/* Collapsed state: slim 68px icon rail */
+/* Collapsed state: slim 68px icon rail. 3.126.0: it scrolls vertically
+   when the icons do not fit; the tooltips are drawn outside it by
+   _wireRailTips(), since a scrolling box clips what overflows it. */
 .dps-sidebar.dps-collapsed {
   width: 68px;
-  overflow: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.dps-rail-tip {
+  position: fixed;
+  transform: translateY(-50%);
+  background: #3F464D;
+  color: #FFFFFF;
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 0.82em;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 9999;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  pointer-events: none;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -2131,6 +2179,8 @@ function _injectCSS() {
 .dps-sidebar.dps-collapsed .dps-nav-item:hover::after {
   opacity: 1;
 }
+/* 3.126.0: replaced by the floating .dps-rail-tip (the rail scrolls). */
+.dps-sidebar.dps-collapsed .dps-nav-item::after { display: none; }
 
 /* ════════════════════════════════════════════════════════
    BOTTOM SECTION: Projects header + search + list
