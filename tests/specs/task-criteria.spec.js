@@ -111,8 +111,8 @@ test('Task Analysis → "↩ Duties & Tasks" returns to the task card that was o
   await page.locator('.tc-overlay [data-tc-go="ta"]').click();
   const back = page.locator('#task-analysis-tab [data-field-block="performanceCriteria"] [data-tc-back]');
   await expect(back).toBeVisible();
-  // first of the card's buttons
-  const first = await page.locator('#task-analysis-tab [data-field-block="performanceCriteria"] .section-header-editable button').first().getAttribute('data-tc-back');
+  // first of the card's buttons (3.124.0: the "?" beside the title is not one of them)
+  const first = await page.locator('#task-analysis-tab [data-field-block="performanceCriteria"] .section-header-editable > div button').first().getAttribute('data-tc-back');
   expect(first).not.toBeNull();
   await back.click();
   await expect(page.locator('#duties-tab')).toHaveClass(/active/);

@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.126.0 — 2026-10-19 — Collapsed side navigation scrolls
+MINOR. dacum_projects.js, dacum-mobile.js, index.html, sw.js (v273),
+tests/specs/sidebar-rail.spec.js (new), tests/specs/task-criteria.spec.js.
+Changed The collapsed side navigation (68px icon rail) scrolls vertically
+        when its icons do not fit the window height; the last tabs were
+        out of reach on short screens. Its tooltips, which a scrolling
+        box would clip, are now one floating tip beside the icon under
+        the pointer or keyboard focus (mirrored in Arabic).
+Fixed   task-criteria spec: "↩ Duties & Tasks" is checked as the first of
+        the card's action buttons, not of the header (3.124.0 put a "?"
+        beside the title).
+
 ── 3.125.1 — 2026-10-19 — Module Curriculum: "＋ Add" buttons in light grey
 PATCH. dacum-curriculum.css, index.html, sw.js (v272).
 Changed The "＋ Add" buttons of the Module Curriculum lists (resources,
