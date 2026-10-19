@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.122.2 — 2026-10-19 — Task Verification results chart in the interface font
+PATCH. verification_charts.js, dacum-components.css, index.html, sw.js (v267),
+tests/specs/help-font.spec.js.
+Fixed   The Task Verification results window (.tvc-dialog) and the text
+        of its chart had 'Segoe UI' written in; they now use the
+        interface font — Cairo in Arabic, like the tabs. The chart keeps
+        its font as an SVG attribute, so the PNG export carries it too.
+Tested  help-font spec (AR / EN); full suite.
+
 ── 3.122.1 — 2026-10-19 — Help windows in the interface font
 PATCH. events.js, task_analysis.js, dacum_projects.js, error-handler.js,
 index.html, sw.js (v266), tests/specs/help-font.spec.js (new).

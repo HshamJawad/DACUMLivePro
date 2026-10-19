@@ -23,6 +23,14 @@ for (const lang of ['ar', 'en']) {
     await page.evaluate(() => window.switchTab('module-mapping-tab'));
     await page.locator('[data-matrix-help="cmx"]').click();
     expect(await fontOf(page, '#cmxHelpModal li')).toBe(tabFont);
+
+    // 3.122.2: the Task Verification results chart window and its chart text.
+    await page.evaluate(() => window.switchTab('verification-tab'));
+    await page.evaluate(async () => (await import('./verification_charts.js')).openVerificationChart());
+    await expect(page.locator('#tvcModal .tvc-title')).toBeVisible();
+    expect(await fontOf(page, '#tvcModal .tvc-title')).toBe(tabFont);
+    const svgFonts = await page.locator('#tvcModal svg text').evaluateAll(ts => ts.map(t => t.getAttribute('font-family')));
+    for (const f of svgFonts) expect(f.startsWith('Cairo')).toBe(lang === 'ar');
     expect(errors).toEqual([]);
   });
 }
