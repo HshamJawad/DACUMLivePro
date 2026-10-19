@@ -334,3 +334,33 @@ test('the project card shows its content languages and opens Settings → Langua
   await expect(page.locator('#esTabs [data-es-tab="languages"]')).toHaveClass(/es-tab-on/);
   expect(errors).toEqual([]);
 });
+
+// 3.125.0: "Reset to default" — back to no content language; from a
+// translation shown, the original comes back exactly and the
+// translation is deleted after a confirmation.
+test('reset to default: language buttons gone, original restored', async ({ page }) => {
+  const errors = await openApp(page);
+  await mockAI(page);
+  await loadProject(page, fixture('sample-project.json'));
+  const before = await capture(page);
+  // just after confirming the original
+  await openLanguages(page);
+  await expect(page.locator('#esModalBody .es-sec-head').first()).toContainText('Translation');
+  await page.click('[data-cl-act="init"]');
+  await expect(page.locator('input[name="clShown"]')).toHaveCount(1);
+  await page.click('[data-cl-act="reset"]');
+  expect(await state(page, 's => s.contentLanguages')).toBeNull();
+  await expect(page.locator('input[name="clShown"]')).toHaveCount(0);
+  await expect(page.locator('[data-cl-act="init"]')).toBeVisible();
+  // with a translation shown
+  await page.click('[data-cl-act="init"]');
+  await page.selectOption('#clTo', 'ar');
+  await page.click('#clTranslateBtn');
+  await page.click('#clTranslateBtn');
+  await expect.poll(() => state(page, 's => s.contentLanguages && s.contentLanguages.active')).toBe('ar');
+  await page.click('[data-cl-act="reset"]');                // confirm() is accepted by the helpers
+  await expect.poll(() => state(page, 's => s.contentLanguages')).toBeNull();
+  await expect(page.locator('#clBanner')).toHaveCount(0);
+  expect(await capture(page)).toBe(before);
+  expect(errors).toEqual([]);
+});
