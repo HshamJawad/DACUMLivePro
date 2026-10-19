@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.129.3 — 2026-10-19 — Lighter collapse / expand of the side navigation
+PATCH. dacum_projects.js, dacum-rtl.css, dacum-mobile.js, index.html,
+sw.js (v279), tests/specs/sidebar-rail.spec.js.
+Fixed   Collapsing or expanding the side navigation felt heavy: the
+        working area's margin was animated with it, so the whole page —
+        tens of thousands of elements in a real project — was laid out
+        again on every frame. The working area now moves once; only the
+        rail's width is animated (0.18 s instead of 0.25 s). Measured at
+        6× CPU throttling: about 19 frames per toggle instead of 13, and
+        slow frames (> 50 ms) down from about 3 to under 1.
+
 ── 3.129.2 — 2026-10-19 — A new project shows the interface language
 PATCH. project_lang.js, dacum_projects.js, index.html, sw.js (v278),
 tests/specs/project-language.spec.js.
