@@ -186,14 +186,15 @@ const ADDITIONAL_INFO_SOURCES = {
   workerBehaviours:        { inputId: 'behaviorsInput', headingId: 'behaviorsHeading', titleKey: 'taLblBehaviours' },   // 3.92.0
 };
 
-// Fields that must ALL have at least one entry/value for a task to be
+// Fields that must ALL have at least one entry for a task to be
 // considered "Completed" rather than "In Progress" — a heuristic for
 // the status dot only. Nothing in the app is blocked by this; per the
 // spec, no field is ever required to proceed.
-const _CORE_COMPLETE_KEYS = [
-  'performanceSteps', 'requiredKnowledge', 'requiredSkills',
-  'toolsEquipmentMaterials', 'safetyOSH', 'performanceCriteria'
-];
+// 3.128.0: only the two the analysis cannot do without — the steps and
+// the performance criteria. Not every task needs tools, safety notes or
+// a performance standard, and requiring them left such tasks
+// "In Progress" for good.
+const _CORE_COMPLETE_KEYS = ['performanceSteps', 'performanceCriteria'];
 
 function _blankRecord() {
   return {
@@ -248,8 +249,7 @@ function _isRecordEmpty(r) {
 function _status(taskKey) {
   const r = _record(taskKey);
   if (_isRecordEmpty(r)) return 'not-started';
-  const coreFilled = _CORE_COMPLETE_KEYS.every(k => _nonBlank(r[k]).length > 0) &&
-                      (r.performanceStandard || '').trim();
+  const coreFilled = _CORE_COMPLETE_KEYS.every(k => _nonBlank(r[k]).length > 0);
   return coreFilled ? 'completed' : 'in-progress';
 }
 

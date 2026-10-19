@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.128.0 — 2026-10-19 — Task Analysis: "Completed" from the essentials
+MINOR. task_analysis.js, index.html, sw.js (v275),
+tests/specs/ta-status.spec.js (new).
+Changed A task's analysis shows "Completed" once its Performance Steps
+        and Performance Criteria are filled. Knowledge, skills, tools,
+        safety and the performance standard are no longer required for
+        it: not every task needs them, and such tasks stayed
+        "In Progress" for good. Also on the verified DACUM chart.
+
 ── 3.127.0 — 2026-10-19 — Task Analysis: automatic bullets
 MINOR. task_analysis.js, index.html, sw.js (v274),
 tests/specs/ta-auto-bullets.spec.js (new).
