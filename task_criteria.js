@@ -15,6 +15,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { loLabel } from './lo_labels.js';
 import { getTaskCode } from './codes.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -140,7 +141,7 @@ export function openTaskCriteria(taskId) {
       body += sec(_t('tcComp') + (name ? ' — ' + name : ''), cl + ot);
     }
     body += sec(_t('tcOutcomes'), r.outcomes.length
-      ? `<ul>${li(r.outcomes, o => `<b>${_esc(o.number || '')}</b> ${_esc(o.statement || '')}`)}</ul>`
+      ? `<ul>${li(r.outcomes, o => `<b>${_esc(loLabel(o))}</b> ${_esc(o.statement || '')}`)}</ul>`
       : `<p class="tc-none">${_esc(_t('tcNoOutcome'))}</p>`);
   }
   _ov = document.createElement('div');

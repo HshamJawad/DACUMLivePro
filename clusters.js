@@ -20,6 +20,7 @@ import { renderLearningOutcomes, renderModules, renderPCSourceList } from './lea
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
 import { clusterLabel } from './cluster_labels.js';
+import { loLabel } from './lo_labels.js';
 import { competencyNameIssues, criterionIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 
 // ── Undo / Redo for Competency Clusters (3.84.0) ──────────────
@@ -1797,7 +1798,7 @@ export function openReplaceCriteriaDialog(clusterId) {
     const sugTasks = [...byTask.keys()].filter(tid => byTask.get(tid).some(c => lo.suggest.includes(c.key)));
     const others = [...byTask.keys()].filter(tid => !sugTasks.includes(tid));
     return `<div class="crr-lo">
-        <div class="crr-lo-head" dir="auto"><b>${_esc(lo.number || '')}</b> ${_esc(lo.statement)}</div>
+        <div class="crr-lo-head" dir="auto"><b>${_esc(loLabel(lo))}</b> ${_esc(lo.statement)}</div>
         <div class="crr-cols">
           <div class="crr-before"><div class="crr-lbl">${_esc(_t('crrBefore'))}</div>
             <ul>${lo.old.map(pc => `<li dir="auto"><bdi>${_esc(pc.id)}</bdi> ${_esc(pc.text)}</li>`).join('')}</ul></div>
@@ -1901,6 +1902,14 @@ export function replaceWithTaskAnalysisCriteria(clusterId, choice = {}) {
 window.addEventListener('dacum:clusterlabels', () => {
   if (document.getElementById('availableTasksList')) renderAvailableTasks();
   if (document.getElementById('clustersContainer'))  renderClusters();
+});
+
+/* 3.123.0: Settings → Misc → learning outcome labels changed. */
+window.addEventListener('dacum:lolabels', () => {
+  if (document.getElementById('pcSourceList'))       renderPCSourceList();
+  if (document.getElementById('loBlocksContainer'))  renderLearningOutcomes();
+  if (document.getElementById('moduleLoList'))      renderModuleLoList();
+  if (document.getElementById('modulesContainer'))  renderModules();
 });
 
 window.addEventListener('dacum:langchange', () => {

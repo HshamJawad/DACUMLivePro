@@ -7,6 +7,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { loLabel } from './lo_labels.js';
 import { getTaskCode, getDutyLetter } from './codes.js';
 import { getTaskAnalysisExportData } from './task_analysis.js';
 import { getTaskSelectionExportSummary, exportSelectionCell } from './task_selection.js';
@@ -1362,7 +1363,7 @@ export function _docxLearningOutcomes({ AlignmentType, PageBreak, Paragraph, Tex
                             children.push(new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: `${lo.number}:`,
+                                        text: `${loLabel(lo)}:`,
                                         bold: true,
                                         size: 24, // 12pt
                                     }),
@@ -1468,7 +1469,7 @@ export function _docxModules({ AlignmentType, PageBreak, Paragraph, TextRun, chi
                             children.push(new Paragraph({
                                 children: [
                                     new TextRun({
-                                        text: `${lo.number}:`,
+                                        text: `${loLabel(lo)}:`,
                                         bold: true,
                                         size: 22, // 11pt
                                     }),

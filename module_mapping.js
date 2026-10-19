@@ -9,6 +9,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { loLabel } from './lo_labels.js';
 import { readProjects } from './project_store.js';
 import { showStatus } from './renderer.js';
 import { getTaskCodeShort, getDutyCode, isClusterAddedTaskId, getAddedTaskLabel } from './codes.js';
@@ -101,7 +102,7 @@ export function renderModuleLoList() {
       <div class="module-lo-item">
         <input type="checkbox" id="mlo_${outcome.id}" data-lo-id="${outcome.id}" data-action="update-module-button">
         <div class="module-lo-content">
-          <div class="module-lo-number">${outcome.number}</div>
+          <div class="module-lo-number"><bdi>${_esc(loLabel(outcome))}</bdi></div>
           <div class="module-lo-statement">${outcome.statement || `<em>${_t('msgNoStatementProvided')}</em>`}</div>
           <div class="module-lo-criteria">${_t('lblMappedPCInline')} ${criteriaText}</div>
         </div>
@@ -618,7 +619,7 @@ export function computeCoverage() {
   });
   lo.outcomes.forEach(o => (o.linkedCriteria || []).forEach(pc => {
     const row = !pc.stale && pc.key && byKey.get(pc.key);
-    if (row && !row.los.includes(o.number)) row.los.push(o.number);
+    if (row && !row.los.includes(loLabel(o))) row.los.push(loLabel(o));
   }));
 
   rows.forEach(r => {
@@ -1070,7 +1071,7 @@ export function removeLoFromModule(moduleId, loId) {
   if (idx !== -1) {
     const before = _undoSnap();
     const mi = appState.moduleMappingData.modules.indexOf(module);
-    const label = _txf('undoRemoveLO', { lo: module.learningOutcomes[idx].number, m: moduleRef(module) || `M${mi + 1}` });
+    const label = _txf('undoRemoveLO', { lo: loLabel(module.learningOutcomes[idx]), m: moduleRef(module) || `M${mi + 1}` });
     module.learningOutcomes.splice(idx, 1);
     _undoRecord(label, before);
     _persistClusters();

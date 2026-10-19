@@ -11,6 +11,7 @@ import { getPref, setPref, PREF_VALUES } from './ui_prefs.js';
 import { resetAICardChoices, hasAICardChoices } from './ai_card_toggle.js';
 import { getChartTerms, setChartTerms } from './chart_terms.js';
 import { getClusterLabelPref, setClusterLabelPref, formatClusterLabel } from './cluster_labels.js';
+import { getLoLabelPref, setLoLabelPref, formatLoLabel } from './lo_labels.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
 const _esc = (s) => String(s == null ? '' : s)
@@ -83,6 +84,33 @@ function _clLabelGroup() {
     </section>`;
 }
 
+/* 3.123.0: what each learning outcome is called in the Arabic interface
+   and its exports: LO1 (default) or the user's pattern. */
+const LO_PICKS = ['محصلة التعلم {n}', 'محصلة التعلم {ord}'];
+function _loPreview(pattern) {
+  return [1, 2, 3].map(n => formatLoLabel(pattern, n)).join('، ') + '…';
+}
+function _loLabelGroup() {
+  const p = getLoLabelPref();
+  const custom = p.mode === 'custom';
+  const opt = (v, key) => `
+      <label class="ms-opt${(v === 'custom') === custom ? ' ms-on' : ''}">
+        <input type="radio" name="ms_lolabel" value="${v}"${(v === 'custom') === custom ? ' checked' : ''}>
+        <span>${_esc(_t(key))}</span>
+      </label>`;
+  return `
+    <section class="es-section ms-group">
+      <div class="es-sec-head" id="msHead_lolabel"><span>🎯 ${_esc(_t('msLoTitle'))}</span></div>
+      <div class="ms-opts" role="radiogroup" aria-labelledby="msHead_lolabel">${opt('code', 'msLoCode')}${opt('custom', 'msLoCustom')}</div>
+      <div class="ms-terms"${custom ? '' : ' hidden'}>
+        <label>${_esc(_t('msClPattern'))} <input type="text" data-ms-lo-pattern maxlength="60" dir="rtl" lang="ar" value="${_esc(p.pattern)}" placeholder="محصلة التعلم {n}"></label>
+      </div>
+      <div class="ms-cl-picks"${custom ? '' : ' hidden'}>${LO_PICKS.map(k => `<button type="button" class="cl-btn" data-ms-lo-pick="${_esc(k)}" dir="rtl">${_esc(formatLoLabel(k, 1))}</button>`).join('')}</div>
+      <p class="es-note ms-lo-preview" dir="rtl"${custom ? '' : ' hidden'}>${_esc(_t('msClPreview'))} <bdi>${_esc(_loPreview(p.pattern))}</bdi></p>
+      <p class="es-note">${_esc(_t('msLoNote'))}</p>
+    </section>`;
+}
+
 function _isDefault() {
   return getPref('helperChip') === 'auto' && getPref('aiCards') === 'auto' && !hasAICardChoices();
 }
@@ -106,6 +134,7 @@ export function renderMiscTab(box, { justReset = false } = {}) {
     </section>
     ${_termsGroup()}
     ${_clLabelGroup()}
+    ${_loLabelGroup()}
     <div class="ms-reset-row">
       <button type="button" class="cl-btn" data-ms-reset${off ? ' disabled' : ''}>↺ ${_esc(_t('msAiReset'))}</button>
       <span class="es-note ms-reset-msg" aria-live="polite">${justReset ? '✓ ' + _esc(_t('msAiResetDone')) : ''}</span>
@@ -135,6 +164,23 @@ export function renderMiscTab(box, { justReset = false } = {}) {
   clInput.addEventListener('input', clSave);
   box.querySelectorAll('[data-ms-cl-pick]').forEach(b => b.addEventListener('click', () => {
     clInput.value = b.getAttribute('data-ms-cl-pick'); clSave();
+  }));
+
+  /* 3.123.0: learning outcome labels — applied as they are typed. */
+  const loInput = box.querySelector('[data-ms-lo-pattern]');
+  const loPrev = box.querySelector('.ms-lo-preview bdi');
+  const loSave = () => {
+    const custom = box.querySelector('input[name="ms_lolabel"][value="custom"]').checked;
+    setLoLabelPref({ mode: custom ? 'custom' : 'code', pattern: loInput.value });
+    if (loPrev) loPrev.textContent = _loPreview(loInput.value);
+  };
+  box.querySelectorAll('input[name="ms_lolabel"]').forEach(r => r.addEventListener('change', () => {
+    if (r.value === 'custom' && !loInput.value.trim()) loInput.value = LO_PICKS[0];
+    loSave(); renderMiscTab(box);
+  }));
+  loInput.addEventListener('input', loSave);
+  box.querySelectorAll('[data-ms-lo-pick]').forEach(b => b.addEventListener('click', () => {
+    loInput.value = b.getAttribute('data-ms-lo-pick'); loSave();
   }));
 
   box.querySelectorAll('[data-ms-pref]').forEach(r => r.addEventListener('change', () => {

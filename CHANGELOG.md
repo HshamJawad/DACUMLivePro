@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.123.0 — 2026-10-19 — Learning outcome labels in the Arabic interface
+MINOR. lo_labels.js (new), learning_outcomes.js, module_mapping.js,
+clusters.js, module_curriculum.js, task_criteria.js, trace_map.js,
+exports_pdf_sections.js, exports_docx_sections.js, settings_misc.js,
+translations.js, index.html, sw.js (v268), tests/specs/lo-labels.spec.js (new).
+Added   Settings → Misc → "Learning outcome labels (Arabic interface)":
+        LO1, LO2… (default) or the user's own pattern — {n} number
+        (محصلة التعلم 1), {ord} feminine ordinal (محصلة التعلم الأولى),
+        {ordm} masculine ordinal — with quick picks and a preview.
+        Applied at once in Learning Outcomes (cards, "assign to" list,
+        undo messages), Module Mapping (lists, coverage matrix and its
+        export), the curriculum outcome list, the trace map, the task
+        criteria and replace-criteria dialogs, and the PDF / Word
+        exports made in the Arabic interface. Display only: the project
+        file keeps LO1 (it keys outcome hours and the Module Builder
+        handoff), so switching back to the default rewrites nothing.
+
 ── 3.122.2 — 2026-10-19 — Task Verification results chart in the interface font
 PATCH. verification_charts.js, dacum-components.css, index.html, sw.js (v267),
 tests/specs/help-font.spec.js.
