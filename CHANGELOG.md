@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.125.1 — 2026-10-19 — Module Curriculum: "＋ Add" buttons in light grey
+PATCH. dacum-curriculum.css, index.html, sw.js (v272).
+Changed The "＋ Add" buttons of the Module Curriculum lists (resources,
+        entry skills, facilities…) had a dashed violet border; they now
+        use the light grey of the tool's other buttons (.btn-format).
+
 ── 3.125.0 — 2026-10-19 — Settings → Languages: "Translation", reset to default
 MINOR. settings_languages.js, translations.js, index.html, sw.js (v271),
 tests/specs/content-languages.spec.js.
