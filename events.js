@@ -940,7 +940,7 @@ function _showHelpModal(spec) {
   overlay.innerHTML =
     '<div style="background:#fff;border-radius:16px;max-width:' + (maxWidth || '480px') + ';width:100%;' +
     'box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;' +
-    'font-family:\'Segoe UI\',system-ui,sans-serif;animation:aiErrSlideIn 0.22s ease;' +
+    'font-family:inherit;animation:aiErrSlideIn 0.22s ease;' +
     'max-height:86vh;display:flex;flex-direction:column;">' +
       '<div style="padding:20px 22px 16px;display:flex;align-items:center;gap:12px;' +
       'background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-bottom:1px solid #c7d2fe;' +

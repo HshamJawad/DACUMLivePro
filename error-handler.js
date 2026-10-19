@@ -94,7 +94,7 @@ function _injectCSS() {
       box-shadow: 0 32px 80px rgba(0,0,0,.28), 0 0 0 1px rgba(0,0,0,.04);
       width: 100%; max-width: 430px;
       padding: 30px 30px 24px;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: inherit;
       animation: errh-dlg-in .25s cubic-bezier(.22,.68,0,1.2);
     }
     @keyframes errh-dlg-in {
@@ -164,7 +164,7 @@ function _injectCSS() {
       padding:13px 18px; border-radius:13px;
       box-shadow:0 10px 40px rgba(0,0,0,.28),
                  0 0 0 1px rgba(255,255,255,.06);
-      font-family:'Segoe UI',system-ui,sans-serif;
+      font-family:inherit;
       font-size:.87rem;
       display:flex; align-items:center; gap:12px;
       z-index:2147483641;
