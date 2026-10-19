@@ -517,7 +517,7 @@ export function showWelcomeOverlay() {
       padding:44px 40px 36px;
       text-align:center;
       box-shadow:0 32px 80px rgba(0,0,0,0.55);
-      font-family:'Segoe UI',system-ui,sans-serif;
+      font-family:inherit;
       animation:dacumWelcomeSlideIn 0.28s cubic-bezier(.16,1,.3,1);
     ">
       <div style="font-size:3.2em;line-height:1;margin-bottom:16px;">📋</div>

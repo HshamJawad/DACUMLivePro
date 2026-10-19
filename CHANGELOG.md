@@ -7,6 +7,16 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.122.1 — 2026-10-19 — Help windows in the interface font
+PATCH. events.js, task_analysis.js, dacum_projects.js, error-handler.js,
+index.html, sw.js (v266), tests/specs/help-font.spec.js (new).
+Fixed   Every help window ("?" of the tabs and cards), the Task Analysis
+        "pick from Additional Info" dialog, the welcome dialog and the
+        error dialog / toast had 'Segoe UI' written into them, so Arabic
+        showed in a system font instead of Cairo. They now inherit the
+        interface font — Cairo in Arabic, the same as the tabs.
+Tested  help-font spec (AR / EN); full suite.
+
 ── 3.122.0 — 2026-10-19 — Help for the coverage and curriculum matrices
 MINOR. module_mapping.js, curriculum_matrix.js, events.js, helper_wizard.js,
 translations.js, index.html, sw.js (v265), tests/specs/matrix-help.spec.js (new).
