@@ -848,6 +848,8 @@ const _HELP_GUIDES = {
   lo:            () => _showLearningOutcomesHelp(),
   mm:            () => _showModuleMappingHelp(),
   basicSkills:   () => _showBasicSkillsHelp(),   // 3.100.0
+  coverage:      () => _showCoverageHelp(),      // 3.122.0
+  cmx:           () => _showCurriculumMatrixHelp(), // 3.122.0
 };
 
 /** Open one of the guides above by name (used by tabs whose "?" button
@@ -1418,6 +1420,97 @@ function _showOccupationalStandardHelp() {
 // Rather than leave a control that silently does nothing, the three
 // strategies are documented here as guidance on how to use the
 // dropdowns below, which is how grouping actually works today.
+/* ── 3.122.0: "?" of the two Module Mapping matrices ──────────────
+   Opened from the "?" in each card's title bar (module_mapping.js and
+   curriculum_matrix.js), and listed in the Helper wizard. */
+const _H_HEAD = 'margin:16px 0 8px;font-size:0.88em;font-weight:700;color:#1e293b;';
+const _H_P    = 'margin:0 0 6px;font-size:0.86em;line-height:1.65;color:#334155;';
+/* Inline ○ ◐ ● ✓ ✗ in the matrix's symbol font: the body font draws ◐ tiny. */
+function _hSym(html) {
+  return html.replace(/[○◐●✓✗]/g, c =>
+    '<span style="font:700 1.15em/1 \'Segoe UI Symbol\',\'Noto Sans Symbols 2\',\'DejaVu Sans\',sans-serif;color:#4338ca;">' + c + '</span>');
+}
+function _hHead(key) { return '<p style="' + _H_HEAD + '">' + _t(key) + '</p>'; }
+function _hPara(key) { return '<p style="' + _H_P + '">' + _hSym(_t(key)) + '</p>'; }
+function _hWhy(headKey, key) {
+  return '<div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:11px 13px;margin:12px 0 4px;">' +
+    '<p style="margin:0 0 4px;font-size:0.86em;font-weight:800;color:#3730a3;">💡 ' + _t(headKey) + '</p>' +
+    '<p style="margin:0;font-size:0.86em;line-height:1.65;color:#3730a3;">' + _t(key) + '</p></div>';
+}
+/* Rows of [symbol, symbol colour, label key, meaning key]. */
+function _hRows(rows) {
+  return '<ul style="list-style:none;margin:0;padding:0;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">' +
+    rows.map(([sym, color, lbl, txt], i) =>
+      '<li style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;' +
+      (i ? 'border-top:1px solid #f1f5f9;' : '') + '">' +
+        '<span style="flex:0 0 26px;text-align:center;font:700 17px/1.35 \'Segoe UI Symbol\',\'Noto Sans Symbols 2\',\'DejaVu Sans\',sans-serif;color:' + color + ';">' + sym + '</span>' +
+        '<span style="font-size:0.86em;line-height:1.6;color:#334155;"><strong style="color:#1e293b;">' + _t(lbl) + '</strong> — ' + _hSym(_t(txt)) + '</span>' +
+      '</li>').join('') + '</ul>';
+}
+function _hSteps(keys) {
+  return '<ol style="margin:0 0 4px;padding-inline-start:22px;">' +
+    keys.map(k => '<li style="font-size:0.86em;line-height:1.65;color:#334155;margin:3px 0;">' + _hSym(_t(k)) + '</li>').join('') + '</ol>';
+}
+
+function _showCoverageHelp() {
+  const bodyHtml =
+    _hWhy('helpCovWhyHead', 'helpCovWhy') +
+    _hHead('helpCovStatusLead') +
+    _hRows([
+      ['✓', '#15803d', 'helpCovStOk',    'helpCovStOkM'],
+      ['✗', '#dc2626', 'helpCovStGap',   'helpCovStGapM'],
+      ['◐', '#b45309', 'helpCovStLo',    'helpCovStLoM'],
+      ['⚠', '#c2410c', 'helpCovStMulti', 'helpCovStMultiM'],
+    ]) +
+    _hHead('helpCovFixHead') +
+    _hSteps(['helpCovFix1', 'helpCovFix2', 'helpCovFix3', 'helpCovFix4']) +
+    _hHead('helpCovMultiHead') + _hPara('helpCovMulti') +
+    _hHead('helpCovLevelsHead') + _hPara('helpCovLevels') +
+    '<div style="height:12px"></div>';
+  _showHelpModal({
+    id:       'coverageHelpModal',
+    icon:     '\u{1F4CA}',
+    title:    _t('helpCovTitle'),
+    maxWidth: '600px',
+    intro:    _t('helpCovIntro'),
+    bodyHtml,
+    note:     _t('helpCovNote'),
+  });
+}
+
+function _showCurriculumMatrixHelp() {
+  const bodyHtml =
+    _hWhy('helpCmxWhyHead', 'helpCmxWhy') +
+    _hHead('helpCmxSymLead') +
+    _hRows([
+      ['○', '#4338ca', 'helpCmxSymI',    'helpCmxSymIM'],
+      ['◐', '#4338ca', 'helpCmxSymP',    'helpCmxSymPM'],
+      ['●', '#4338ca', 'helpCmxSymA',    'helpCmxSymAM'],
+      ['·', '#94a3b8', 'helpCmxSymNone', 'helpCmxSymNoneM'],
+    ]) +
+    _hHead('helpCmxSugHead') + _hPara('helpCmxSug') + _hPara('helpCmxSugI') +
+    _hHead('helpCmxEditHead') + _hPara('helpCmxEdit') +
+    _hHead('helpCmxChecksHead') +
+    _hRows([
+      ['!', '#c2410c', 'helpCmxChkNever', 'helpCmxChkNeverM'],
+      ['!', '#c2410c', 'helpCmxChkEarly', 'helpCmxChkEarlyM'],
+      ['!', '#c2410c', 'helpCmxChkMulti', 'helpCmxChkMultiM'],
+    ]) +
+    '<p style="' + _H_P + 'margin-top:8px;color:#64748b;">' + _t('helpCmxChecksNote') + '</p>' +
+    _hHead('helpCmxOrderHead') +
+    _hSteps(['helpCmxStep1', 'helpCmxStep2', 'helpCmxStep3']) +
+    '<div style="height:12px"></div>';
+  _showHelpModal({
+    id:       'cmxHelpModal',
+    icon:     '\u{1F4D0}',
+    title:    _t('helpCmxTitle'),
+    maxWidth: '600px',
+    intro:    _t('helpCmxIntro'),
+    bodyHtml,
+    note:     _t('helpCmxNote'),
+  });
+}
+
 function _showModuleMappingHelp() {
   /* "Mode {n}:" is a key with a slot rather than 'Mode ' + n — the word
      order differs by language and the number is not always a suffix. */

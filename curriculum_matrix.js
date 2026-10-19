@@ -19,7 +19,8 @@
 // ============================================================
 import { appState } from './state.js';
 import { _esc, _taskLabel, _tx, _txf } from './modules_shared.js';
-import { _collectModuleTaskAnalysis, moduleRef, persistModuleMapping } from './module_mapping.js';
+import { _collectModuleTaskAnalysis, moduleRef, persistModuleMapping,
+         matrixHelpButton, bindMatrixHelp } from './module_mapping.js';
 
 const SYM = { i: '○', p: '◐', a: '●' };
 const CYCLE = ['i', 'p', 'a', '-'];
@@ -143,6 +144,7 @@ export function renderCurriculumMatrix() {
    <details class="cov-fold" ${_open ? 'open' : ''}>
     <summary class="cov-fold-head">
       <span class="cov-fold-title">📐 ${_esc(_tx('cmxTitle'))}</span>
+      ${matrixHelpButton('cmx', 'ttCmxHelp')}
       <span class="cov-fold-mini">${m.rows.length ? `<span class="cov-pill ${nNever ? 'cov-gap' : 'cov-ok'}">${_esc(_txf('cmxSummary', { n: m.rows.length, k: nNever }))}</span>` : ''}</span>
       <span class="cov-fold-toggle">${_esc(_tx(_open ? 'covHide' : 'covShow'))}</span>
     </summary>
@@ -153,6 +155,7 @@ export function renderCurriculumMatrix() {
       ${checks ? `<ul class="cmx-checks">${checks}</ul>` : (m.rows.length ? `<p class="cmx-ok">✓ ${_esc(_tx('cmxAllGood'))}</p>` : '')}
     </div>
    </details>`;
+  bindMatrixHelp(sec);
   const det = sec.querySelector('details');
   det.addEventListener('toggle', () => {
     _open = det.open;
