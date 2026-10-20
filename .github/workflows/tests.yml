@@ -13,7 +13,7 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest moved to Ubuntu 26 (2026-10-19), where Playwright 1.56 cannot install its browser dependencies
     timeout-minutes: 15
     defaults:
       run:
