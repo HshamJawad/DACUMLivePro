@@ -159,6 +159,39 @@ function _renderTableView(container) {
   });
 }
 
+// ── Agreed in the workshop (3.132.0) ──────────────────────────
+// One mark on each duty card and each task card of the Card View: the
+// facilitator presses 👍 when the panel has agreed the statement, and it
+// turns green. duty.agreed / task.agreed — true, or absent. A tool for
+// the workshop, not part of the chart: nothing changes in the exports.
+const _THUMB_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3Zm2 11V10l4.3-7.2a1.6 1.6 0 0 1 2.9 1.1L15.4 9H20a2 2 0 0 1 2 2.3l-1.3 8A2 2 0 0 1 18.7 21H9Z" fill="currentColor"/></svg>';
+function _agreeBtn(kind, id, on) {
+  const tip = _t(on ? 'ttAgreedOn' : 'ttAgreedOff');
+  return `<button type="button" class="dcv-agree${on ? ' is-on' : ''}" data-action="toggle-agree"
+            data-agree-kind="${kind}" data-agree-id="${_esc(id)}" aria-pressed="${on ? 'true' : 'false'}"
+            title="${_esc(tip)}" aria-label="${_esc(tip)}">${_THUMB_SVG}</button>`;
+}
+/** 👍 pressed: the duty (by id) or the task (by inputId) is agreed, or no longer. */
+export function toggleAgreed(kind, id) {
+  let item = null;
+  (appState.dutiesData || []).forEach(d => {
+    if (kind === 'duty' && d.id === id) item = d;
+    if (kind === 'task') (d.tasks || []).forEach(t => { if (t.inputId === id) item = t; });
+  });
+  if (!item) return false;
+  if (item.agreed) delete item.agreed; else item.agreed = true;
+  document.querySelectorAll(`.dcv-agree[data-agree-kind="${kind}"][data-agree-id="${CSS.escape(id)}"]`).forEach(b => {
+    const on = !!item.agreed;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.title = _t(on ? 'ttAgreedOn' : 'ttAgreedOff');
+    b.setAttribute('aria-label', b.title);
+    const card = b.closest('.dcv-task-card, .dcv-duty-card');
+    if (card) card.classList.toggle('is-agreed', on);
+  });
+  return true;
+}
+
 // ── CARD VIEW ─────────────────────────────────────────────────
 
 function _renderCardView(container) {
@@ -185,7 +218,7 @@ function _renderCardView(container) {
     // clipped by an overflow:hidden ancestor, and it removes the
     // need for the old top-padding / padding-left spacing hacks.
     const dutyCard = document.createElement('div');
-    dutyCard.className = 'dcv-duty-card';
+    dutyCard.className = 'dcv-duty-card' + (duty.agreed ? ' is-agreed' : '');
     dutyCard.setAttribute('data-duty-card-id', duty.id);
     dutyCard.innerHTML = `
       <div class="dcv-card-top">
@@ -204,6 +237,7 @@ function _renderCardView(container) {
                 data-duty-id="${duty.id}"
                 placeholder="${_t('phEnterDuty')}"
                 rows="2">${_esc(duty.title)}</textarea>
+      <div class="dcv-card-foot">${_agreeBtn('duty', duty.id, !!duty.agreed)}</div>
     `;
     row.appendChild(dutyCard);
 
@@ -239,7 +273,7 @@ function _renderCardView(container) {
 
 function _makeTaskCard(task, displayCode, dutyId) {
   const card = document.createElement('div');
-  card.className = 'dcv-task-card';
+  card.className = 'dcv-task-card' + (task.agreed ? ' is-agreed' : '');
   card.id = task.divId;
   card.innerHTML = `
     <div class="dcv-card-top">
@@ -258,7 +292,7 @@ function _makeTaskCard(task, displayCode, dutyId) {
               data-task-id="${task.inputId}"
               placeholder="${_t('phEnterTask')}"
               rows="2">${_esc(task.text)}</textarea>
-    ${(() => { const b = criteriaBadge(task.inputId, 'cards'); return b ? `<div class="tc-badge-row">${b}</div>` : ''; })()}
+    <div class="tc-badge-row">${criteriaBadge(task.inputId, 'cards')}${_agreeBtn('task', task.inputId, !!task.agreed)}</div>
   `;
   return card;
 }
