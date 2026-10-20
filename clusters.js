@@ -15,7 +15,7 @@ import { lwExtractDutiesAndTasks } from './workshop.js';
 import { getTaskCode, CLUSTER_ADDED_TASK_PREFIX } from './codes.js';
 import { clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI, aiMarkHTML, removeAIMark } from './ai_draft.js';
 import { CLUSTER_TASK_SOURCE_ADDED, _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, isClusterAddedTask, switchTab } from './modules_shared.js';
-import { setModuleCategory, openModuleCategoriesEditor, setNqfEnabled, setNqfFramework, setModuleNqfLevel, setModuleNqfDescriptor, renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack } from './module_mapping.js';
+import { setModuleCategory, openModuleCategoriesEditor, setNqfEnabled, setNqfFramework, setModuleNqfLevel, setModuleNqfDescriptor, renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack, setModuleFullTitle } from './module_mapping.js';
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
@@ -1465,6 +1465,7 @@ function _wireClusterTaskControls() {
     }
     else if (t.matches('#modulesContainer .mod-code-input'))  setModuleCode(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesContainer .mod-short-input')) setModuleShortName(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesContainer .mod-fulltitle-input')) setModuleFullTitle(t.getAttribute('data-module-id'), t.value);   // 3.131.0
     else if (t.matches('#modulesLabelMode'))                  setModuleLabelMode(t.value);
     // TVQF / NQF (3.85.0)
     else if (t.matches('#mmNqfEnable'))                         setNqfEnabled(t.checked);
@@ -1475,7 +1476,7 @@ function _wireClusterTaskControls() {
     else if (t.matches('#coverageMatrixSection .cov-gaps-only')) { setCoverageGapsOnly(t.checked); renderCoverageMatrix(); }
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('#modulesContainer .mod-track-input, #modulesContainer .mod-code-input, #modulesContainer .mod-short-input, #modulesContainer .mod-nqf-input, #mmNqfFramework')) {
+    if (e.key === 'Enter' && e.target && e.target.matches && e.target.matches('#modulesContainer .mod-track-input, #modulesContainer .mod-code-input, #modulesContainer .mod-short-input, #modulesContainer .mod-fulltitle-input, #modulesContainer .mod-nqf-input, #mmNqfFramework')) {
       e.preventDefault(); e.target.blur();
     }
   });

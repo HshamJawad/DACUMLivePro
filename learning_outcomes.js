@@ -1113,6 +1113,12 @@ export function renderModules() {
           </div>
         </div>
         ${module.rationale ? `<div class="mod-rationale">💡 ${_esc(module.rationale)}</div>` : ''}
+        <div class="mod-meta-row mod-fulltitle-row">
+          <label class="mod-meta-field mod-fulltitle-field"><span>${_esc(_tx('lblModuleFullTitle'))}</span>
+            <input type="text" dir="auto" class="mod-fulltitle-input" data-module-id="${_esc(module.id)}"
+              value="${_esc(module.fullTitle || '')}" maxlength="300" placeholder="${_esc(module.title || _tx('phModuleFullTitle'))}">
+          </label>
+        </div>
         <div class="mod-meta-row">
           <label class="mod-meta-field"><span>${_esc(_tx('lblModuleLevel'))}</span>
             <select class="mod-level-select" data-module-id="${_esc(module.id)}">${levelOpts}</select>
