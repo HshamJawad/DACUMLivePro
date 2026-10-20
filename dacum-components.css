@@ -2615,5 +2615,4 @@ html[data-content-mixed] .container input[type="text"] {
 }
 .dcv-agree:hover { color: #16a34a !important; border-color: #86efac !important; }
 .dcv-agree.is-on { background: #16a34a !important; border-color: #15803d !important; color: #fff !important; }
-.dcv-task-card.is-agreed, .dcv-duty-card.is-agreed { box-shadow: inset 0 0 0 2px #22c55e; }
 body.card-view-printing .dcv-agree, html.vc-printing .dcv-agree { display: none !important; }
