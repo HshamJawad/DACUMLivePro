@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v283';
+      var EXPECTED_SW = 'v284';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: one language per
       // text in the Module Builder handoff (text language, decisions table
       // and added sections translated, missing translations named).
-      var APP_VERSION = '3.132.1';
+      var APP_VERSION = '3.133.0';
       var APP_RELEASED = '2026-10-20';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -2080,6 +2080,13 @@
             <!-- Create Module Button -->
             <button class="btn-create-module" id="btnCreateModule"  disabled>
                 ✨ <span data-i18n="btnCreateModule">Create New Module</span>
+            </button>
+
+            <!-- 3.133.0: a whole module typed in from an existing curriculum -->
+            <button type="button" class="btn-create-module" id="btnAddManualModule" style="border-style: dashed; margin-top: -8px;"
+                    data-i18n="ttAddManualModule" data-i18n-attr="title"
+                    title="Type in a whole module from an existing curriculum — its title, learning outcomes and performance criteria; tasks are optional">
+                📄 <span data-i18n="btnAddManualModule">Add a module by hand</span>
             </button>
 
             <!-- Modules Container -->

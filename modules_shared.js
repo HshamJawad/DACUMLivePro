@@ -250,6 +250,24 @@ const _LOCAL_STRINGS = {
     phModuleTrack:            'Common to all',
     lblModuleCode:            'Code',
     lblModuleShort:           'Short name',
+    // 3.133.0: a module typed in by hand, from an existing curriculum
+    lblManualChip:            'Entered by hand',
+    hintManualModule:         'Typed in from an existing curriculum. Its outcomes and criteria belong to this module only — they are not in the Learning Outcomes tab, automatic generation never replaces it, and the coverage matrix leaves it out. Linking a criterion to a task is optional.',
+    promptManualModuleTitle:  'Title of the module (e.g. from your existing curriculum):',
+    phManualLo:               'Learning outcome — e.g. Install a single-phase distribution board',
+    lblManualPcs:             'Performance criteria',
+    phManualPc:               'Performance criterion',
+    lblManualPcTask:          'Linked task (optional)',
+    optManualNoTask:          '— no task —',
+    btnManualAddLo:           'Add learning outcome',
+    btnManualAddPc:           'Add criterion',
+    ttManualMoveUp:           'Move up',
+    ttManualMoveDown:         'Move down',
+    ttManualDelPc:            'Delete this criterion',
+    undoRemoveManualPc:       'Criterion {pc} deleted from {m}',
+    msgMBSentOne:             'Module {m} sent to Module Builder (this module only)…',
+    msgMBSentAll:             'All modules ({n}) sent to Module Builder…',
+    covManualNote:            'Modules entered by hand ({n}) are not in this matrix: their criteria come from an existing curriculum, not from the chart.',
     lblModuleFullTitle:       'Full module title',
     phModuleFullTitle:        'As printed in the curriculum — e.g. Installing and maintaining residential electrical systems',
     lblCodeAuto:              'auto',
@@ -390,6 +408,24 @@ const _LOCAL_STRINGS = {
     phModuleTrack:            'Commun à tous',
     lblModuleCode:            'Code',
     lblModuleShort:           'Nom court',
+    // 3.133.0 : module saisi à la main, depuis un programme existant
+    lblManualChip:            'Saisi à la main',
+    hintManualModule:         'Saisi depuis un programme existant. Ses résultats et critères appartiennent à ce module seulement — ils ne figurent pas dans l’onglet Résultats d’apprentissage, la génération automatique ne le remplace jamais et la matrice de couverture ne le compte pas. Lier un critère à une tâche est facultatif.',
+    promptManualModuleTitle:  'Titre du module (p. ex. tiré de votre programme existant) :',
+    phManualLo:               'Résultat d’apprentissage — p. ex. Installer un tableau de distribution monophasé',
+    lblManualPcs:             'Critères de performance',
+    phManualPc:               'Critère de performance',
+    lblManualPcTask:          'Tâche liée (facultatif)',
+    optManualNoTask:          '— aucune tâche —',
+    btnManualAddLo:           'Ajouter un résultat',
+    btnManualAddPc:           'Ajouter un critère',
+    ttManualMoveUp:           'Monter',
+    ttManualMoveDown:         'Descendre',
+    ttManualDelPc:            'Supprimer ce critère',
+    undoRemoveManualPc:       'Critère {pc} supprimé de {m}',
+    msgMBSentOne:             'Module {m} envoyé à Module Builder (ce module seulement)…',
+    msgMBSentAll:             'Tous les modules ({n}) envoyés à Module Builder…',
+    covManualNote:            'Les modules saisis à la main ({n}) ne figurent pas dans cette matrice : leurs critères viennent d’un programme existant, pas du tableau.',
     lblModuleFullTitle:       'Titre complet du module',
     phModuleFullTitle:        'Tel qu’imprimé dans le programme — p. ex. Installation et entretien des réseaux électriques résidentiels',
     lblCodeAuto:              'auto',
@@ -530,6 +566,24 @@ const _LOCAL_STRINGS = {
     phModuleTrack:            'مشتركة للجميع',
     lblModuleCode:            'الرمز',
     lblModuleShort:           'اسم مختصر',
+    // 3.133.0: وحدة تُدخل يدوياً من منهج سابق
+    lblManualChip:            'مُدخلة يدوياً',
+    hintManualModule:         'أُدخلت من منهج سابق. نتائج التعلم ومعايير الأداء فيها خاصة بهذه الوحدة فقط — لا تظهر في تبويب نتائج التعلم، ولا يستبدلها التوليد التلقائي، ولا تُحسب في مصفوفة التغطية. ربط المعيار بمهمة اختياري.',
+    promptManualModuleTitle:  'عنوان الوحدة (مثلاً من منهجك السابق):',
+    phManualLo:               'نتيجة التعلم — مثل: تركيب لوحة توزيع أحادية الطور',
+    lblManualPcs:             'معايير الأداء',
+    phManualPc:               'معيار الأداء',
+    lblManualPcTask:          'المهمة المرتبطة (اختياري)',
+    optManualNoTask:          '— بلا مهمة —',
+    btnManualAddLo:           'إضافة نتيجة تعلم',
+    btnManualAddPc:           'إضافة معيار',
+    ttManualMoveUp:           'نقل للأعلى',
+    ttManualMoveDown:         'نقل للأسفل',
+    ttManualDelPc:            'حذف هذا المعيار',
+    undoRemoveManualPc:       'حُذف المعيار {pc} من {m}',
+    msgMBSentOne:             'أُرسلت الوحدة {m} إلى Module Builder (هذه الوحدة فقط)…',
+    msgMBSentAll:             'أُرسلت جميع الوحدات ({n}) إلى Module Builder…',
+    covManualNote:            'الوحدات المُدخلة يدوياً ({n}) غير مشمولة في هذه المصفوفة: معاييرها من منهج سابق وليست من المخطط.',
     lblModuleFullTitle:       'العنوان الكامل للوحدة',
     phModuleFullTitle:        'كما يُطبع في المنهج — مثل: تركيب وصيانة الشبكات الكهربائية المنزلية',
     lblCodeAuto:              'تلقائي',
@@ -896,6 +950,34 @@ export function _injectModuleCardStyles() {
     }
     #modulesContainer .mod-ref { color: #4338ca; }
     #modulesContainer .mod-code-dup { margin: -6px 0 10px; font-size: .85em; font-weight: 600; color: #b45309; }
+    /* 3.133.0: a module typed in by hand (from an existing curriculum). */
+    #modulesContainer .module-item.mm-manual { border-style: dashed; border-color: #a78bfa; }
+    #modulesContainer .mod-manual-chip { font-size: .72em; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+      background: #fef3c7; color: #92400e; margin-inline-start: 6px; vertical-align: middle; white-space: nowrap; }
+    #modulesContainer .mm-manual-note { font-size: .85em; color: #6b7280; margin: -4px 0 10px; }
+    #modulesContainer .mm-manual-lo { background: #fff; border: 1px solid #ede9fe; border-radius: 8px; padding: 10px 12px; }
+    #modulesContainer .mm-manual-lo + .mm-manual-lo { margin-top: 8px; }
+    #modulesContainer .mm-manual-lo-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+    #modulesContainer .mm-manual-lo-tools { display: inline-flex; gap: 6px; align-items: center; }
+    #modulesContainer .mm-lo-statement { width: 100%; box-sizing: border-box; border: 1px solid #ddd6fe; border-radius: 8px;
+      padding: 8px; font: inherit; resize: vertical; min-height: 0; height: auto; }
+    #modulesContainer .mm-manual-pcs { margin-top: 8px; padding-inline-start: 10px; border-inline-start: 3px solid #ede9fe; }
+    #modulesContainer .mm-manual-pcs-title { font-size: .82em; font-weight: 700; color: #6d28d9; margin-bottom: 4px; }
+    #modulesContainer .mm-manual-pc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+    #modulesContainer .mm-pc-num { font-weight: 700; color: #4338ca; min-width: 2.2em; font-size: .9em; }
+    #modulesContainer .mm-pc-text { flex: 1 1 240px; min-width: 0; width: auto !important; margin: 0 !important;
+      padding: 6px 8px; border: 1px solid #ddd6fe; border-radius: 6px; }
+    #modulesContainer .mm-pc-task { flex: 0 1 220px; min-width: 0; max-width: 100%; padding: 6px; border: 1px solid #ddd6fe;
+      border-radius: 6px; font-size: .85em; background: #fff; }
+    #modulesContainer .mm-icon-btn { border: 1px solid #ddd6fe; background: #fff; color: #6d28d9; border-radius: 6px;
+      padding: 3px 8px; cursor: pointer; font-size: .85em; line-height: 1.4; }
+    #modulesContainer .mm-icon-btn:disabled { opacity: .35; cursor: default; }
+    #modulesContainer .mm-add-btn { border: 1px dashed #a78bfa; background: transparent; color: #6d28d9; border-radius: 8px;
+      padding: 5px 12px; cursor: pointer; font-size: .85em; font-weight: 600; }
+    #modulesContainer .mm-add-btn.mm-add-lo { margin-top: 10px; }
+    @media (max-width: 600px) {
+      #modulesContainer .mm-pc-text, #modulesContainer .mm-pc-task { flex: 1 1 100%; }
+    }
     @media (max-width: 600px) {
       #modulesContainer .mod-meta-field .mod-track-input,
       #modulesContainer .mod-meta-field .mod-code-input,
