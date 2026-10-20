@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.131.0 — 2026-10-20 — Module Mapping: full module title
+MINOR. module_mapping.js, learning_outcomes.js, clusters.js, modules_shared.js,
+module_curriculum.js, index.html, sw.js (v281),
+tests/specs/module-full-title.spec.js (new).
+Added   Each module card has a «Full module title» row above level,
+        category, track, code and short name: the long, official title
+        beside the working title (module.fullTitle; empty = the working
+        title). Printed as the module title in the curriculum documents
+        (CUR / CBC), and sent to Module Builder (fullTitle) with the
+        category, where both are shown and editable in Module
+        Management (Module Builder 3.58.0). EN / FR / AR.
+Tested  module-full-title spec (EN, AR at phone width); full suite.
+
 ── 3.130.0 — 2026-10-20 — Helper wizard brought up to date (EN/FR/AR)
 MINOR. helper_wizard.js, task_analysis.js, translations.js, index.html,
 sw.js (v280), tests/specs/helper-wizard-ta.spec.js (new).

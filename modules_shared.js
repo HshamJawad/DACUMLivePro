@@ -250,6 +250,8 @@ const _LOCAL_STRINGS = {
     phModuleTrack:            'Common to all',
     lblModuleCode:            'Code',
     lblModuleShort:           'Short name',
+    lblModuleFullTitle:       'Full module title',
+    phModuleFullTitle:        'As printed in the curriculum — e.g. Installing and maintaining residential electrical systems',
     lblCodeAuto:              'auto',
     ttCodeReset:              'Back to the automatic code',
     msgCodeDuplicate:         'Another module has the same code',
@@ -388,6 +390,8 @@ const _LOCAL_STRINGS = {
     phModuleTrack:            'Commun à tous',
     lblModuleCode:            'Code',
     lblModuleShort:           'Nom court',
+    lblModuleFullTitle:       'Titre complet du module',
+    phModuleFullTitle:        'Tel qu’imprimé dans le programme — p. ex. Installation et entretien des réseaux électriques résidentiels',
     lblCodeAuto:              'auto',
     ttCodeReset:              'Revenir au code automatique',
     msgCodeDuplicate:         'Un autre module a le même code',
@@ -526,6 +530,8 @@ const _LOCAL_STRINGS = {
     phModuleTrack:            'مشتركة للجميع',
     lblModuleCode:            'الرمز',
     lblModuleShort:           'اسم مختصر',
+    lblModuleFullTitle:       'العنوان الكامل للوحدة',
+    phModuleFullTitle:        'كما يُطبع في المنهج — مثل: تركيب وصيانة الشبكات الكهربائية المنزلية',
     lblCodeAuto:              'تلقائي',
     ttCodeReset:              'العودة إلى الرمز التلقائي',
     msgCodeDuplicate:         'يوجد وحدة أخرى بالرمز نفسه',
@@ -867,6 +873,12 @@ export function _injectModuleCardStyles() {
     #modulesContainer .mod-meta-field .mod-code-input, #modulesContainer .mod-meta-field .mod-short-input {
       width: 110px !important; max-width: 100%; min-width: 0; flex: 0 1 110px;
       display: inline-block !important; margin: 0 !important; border-color: #ddd6fe;
+    }
+    /* 3.131.0: the full title takes the whole row. */
+    #modulesContainer .mod-fulltitle-row { margin-bottom: 6px; }
+    #modulesContainer .mod-meta-field.mod-fulltitle-field { display: flex; width: 100%; }
+    #modulesContainer .mod-meta-field .mod-fulltitle-input {
+      flex: 1 1 auto; width: auto !important; min-width: 0; margin: 0 !important; border-color: #ddd6fe;
     }
     /* 3.34.1: level, track, code and short name on ONE line on desktop. */
     #modulesContainer .mod-meta-row { gap: 8px 14px; }

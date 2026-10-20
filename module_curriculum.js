@@ -36,7 +36,7 @@ import { getTaskAnalysisRecord } from './task_analysis.js';
 import { exportOccupationalStandardWord } from './exports_os_docx.js';
 import { exportCurriculumDocx } from './exports_cur_docx.js';
 import { isTaskSelected, getTaskRatingMetrics } from './task_selection.js';
-import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds, getModuleCategories, getModuleCategory, categoryLabel } from './modules.js';
+import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds, getModuleCategories, getModuleCategory, categoryLabel, getModuleFullTitle } from './modules.js';
 import { _DIST_GUIDE, _GUIDE, _L, _S } from './module_curriculum_text.js';
 
 
@@ -1232,7 +1232,8 @@ export function getCurriculumModel(moduleId, opts = {}) {
   const fileName = curFileName(module);
   return {
     blank, rtl: _isRTL(), lang,
-    code, title: _str(module.title).trim(), shortName: _moduleShortName(module),
+    // 3.131.0: the full title when the module has one.
+    code, title: getModuleFullTitle(module), shortName: _moduleShortName(module),
     // 3.85.0: the "NQF Level" row shows the module's TVQF/NQF level when
     // that option is on and filled; otherwise the programme level, as before.
     level: lvl, levelLabel: getModuleNqfLevel(module) || (lvl ? String(lvl) : ''),

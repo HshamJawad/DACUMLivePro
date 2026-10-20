@@ -365,6 +365,21 @@ export function setModuleShortName(moduleId, value) {
   assignModuleShortName(m, value);
   _persistClusters();
 }
+/* 3.131.0: the module's full title — the long, official one — beside
+   its working title (module.title, often short). Optional: absent = the
+   working title. Printed in the curriculum documents and sent to Module
+   Builder. */
+export function getModuleFullTitle(module) {
+  const f = module && typeof module.fullTitle === 'string' ? module.fullTitle.trim() : '';
+  return f || String((module && module.title) || '').trim();
+}
+export function setModuleFullTitle(moduleId, value) {
+  const m = _idModules().find(x => x.id === moduleId);
+  if (!m) return;
+  const v = String(value || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+  if (!v || v === String(m.title || '').trim()) delete m.fullTitle; else m.fullTitle = v;
+  _persistClusters();
+}
 export function isModuleCodeDuplicate(module) {
   const c = getModuleCode(module).toLowerCase();
   return !!c && _idModules().some(m => m !== module && getModuleCode(m).toLowerCase() === c);
@@ -1270,6 +1285,8 @@ function _buildModuleExport(module, moduleNumber) {
     moduleCode: getModuleCode(module),
     shortName: getModuleShortName(module),
     moduleTitle: module.title,
+    // 3.131.0: the full (official) title; '' when the module has none.
+    fullTitle: (typeof module.fullTitle === 'string' ? module.fullTitle.trim() : ''),
     // Programme level (1..N) and specialisation; null / '' when unset.
     level: _moduleLevel(module),
     track: module.track || '',
