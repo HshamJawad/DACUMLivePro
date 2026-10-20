@@ -20,7 +20,7 @@ import { getTabHelpGuides }       from './events.js';
 import { getCurriculumGuide,
          isModuleCurriculumEmpty } from './module_curriculum.js';
 import { hasTaskSelection }       from './task_selection.js';
-import { countTaskAnalysisRecords } from './task_analysis.js';
+import { countTaskAnalysisRecords, countTaskAnalysisCompleted } from './task_analysis.js';
 import { revealAICardFor }       from './ai_card_toggle.js';
 import { getPref }               from './ui_prefs.js';
 
@@ -137,12 +137,15 @@ const STEPS = [
   {
     tab: 'task-analysis-tab', icon: '🔬', titleKey: 'tabTaskAnalysis', sumKey: 'hcStep5', tipKey: 'hwTip6',
     optional: true,
-    guides: () => getTabHelpGuides(['taskAnalysis', 'basicSkills']),
+    // 3.130.0: the Performance Criteria "?" (3.124.0) and "done" from the
+    // tasks that show "Completed" (3.128.0), not from any content.
+    guides: () => getTabHelpGuides(['taskAnalysis', 'basicSkills', 'pcRange']),
     status() {
       const n = countTaskAnalysisRecords();
       if (!n) return S('todo', _t('hwMNone'));
+      const k = countTaskAnalysisCompleted();
       const total = _duties().tasks;
-      return S(total && n >= total ? 'done' : 'partial', _tf('hwMTA', { n }));
+      return S(total && k >= total ? 'done' : 'partial', _tf('hwMTA', { n, k }));
     },
   },
   {

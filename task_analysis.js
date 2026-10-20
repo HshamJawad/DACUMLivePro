@@ -346,6 +346,12 @@ export function countTaskAnalysisRecords() {
   return Object.values(appState.taskAnalysisData || {}).filter(r => !_isRecordEmpty(r)).length;
 }
 
+/** 3.130.0: how many analyses show "Completed" (steps and criteria
+ *  filled, 3.128.0) — read by the Helper wizard. */
+export function countTaskAnalysisCompleted() {
+  return Object.keys(appState.taskAnalysisData || {}).filter(k => _status(k) === 'completed').length;
+}
+
 /** Full export dataset: every task that has ANY analysis content, in
  *  duty/task order, with duty letter + task code already resolved.
  *  List fields are pre-cleaned of blank lines; consumed as-is by
