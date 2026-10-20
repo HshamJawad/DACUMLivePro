@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.130.0 — 2026-10-20 — Helper wizard brought up to date (EN/FR/AR)
+MINOR. helper_wizard.js, task_analysis.js, translations.js, index.html,
+sw.js (v280), tests/specs/helper-wizard-ta.spec.js (new).
+Changed Task Analysis step: "Done" once every task shows "Completed"
+        (steps and criteria filled, 3.128.0) instead of once every task
+        has any content; the line reads "{n} tasks analysed · {k}
+        completed". Its tip states the completion rule.
+Added   Task Analysis step lists the Performance Criteria guide (the "?"
+        of 3.124.0). Module Mapping tip: close the gaps of the coverage
+        matrix and check the curriculum matrix.
+Tested  helper-wizard-ta spec (EN / FR / AR); full suite.
+
 ── 3.129.3 — 2026-10-19 — Lighter collapse / expand of the side navigation
 PATCH. dacum_projects.js, dacum-rtl.css, dacum-mobile.js, index.html,
 sw.js (v279), tests/specs/sidebar-rail.spec.js.
