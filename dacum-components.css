@@ -2603,3 +2603,17 @@ html[data-content-mixed] .container input[type="text"] {
 /* 3.120.0: competency labels — quick picks */
 .ms-cl-picks { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 2px; }
 .ms-cl-picks .cl-btn.ms-pick-on { border-color: #0284c7; background: #e0f2fe; color: #0c4a6e; font-weight: 600; }
+
+/* ── 3.132.0: 👍 agreed in the workshop (duties.js) ───────────── */
+.dcv-card-foot { display: flex; justify-content: flex-end; margin-top: 4px; }
+.tc-badge-row { gap: 6px; align-items: center; }
+.dcv-agree {
+  display: inline-flex !important; align-items: center; justify-content: center;
+  width: 28px; height: 24px; min-height: 0 !important; padding: 0 !important; margin: 0 !important;
+  border-radius: 999px !important; border: 1px solid #cbd5e1 !important; background: #fff !important;
+  color: #94a3b8 !important; cursor: pointer; box-shadow: none !important; transition: background .15s, color .15s;
+}
+.dcv-agree:hover { color: #16a34a !important; border-color: #86efac !important; }
+.dcv-agree.is-on { background: #16a34a !important; border-color: #15803d !important; color: #fff !important; }
+.dcv-task-card.is-agreed, .dcv-duty-card.is-agreed { box-shadow: inset 0 0 0 2px #22c55e; }
+body.card-view-printing .dcv-agree, html.vc-printing .dcv-agree { display: none !important; }

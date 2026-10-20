@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.132.0 — 2026-10-20 — Duties & Tasks: 👍 agreed in the workshop
+MINOR. duties.js, events.js, translations.js, dacum-components.css,
+index.html, sw.js (v282), ROADMAP.md, tests/specs/agreed-mark.spec.js (new).
+Added   Card View: a 👍 at the bottom of each duty card and of each task
+        card (beside 📏 criteria). The facilitator presses it when the
+        panel has agreed the statement: it turns green and the card gets
+        a green edge; pressed again, it is cleared. duty.agreed /
+        task.agreed, kept with the project, with Undo. A workshop tool:
+        not printed, nothing changes in the exports. EN / FR / AR.
+        Counter, edited-after-agreement warning and table view: ROADMAP.
+Tested  agreed-mark spec (EN / AR); full suite.
+
 ── 3.131.0 — 2026-10-20 — Module Mapping: full module title
 MINOR. module_mapping.js, learning_outcomes.js, clusters.js, modules_shared.js,
 module_curriculum.js, index.html, sw.js (v281),

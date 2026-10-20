@@ -11,7 +11,7 @@ import { generateOneModulePerOutcome,
 import { suggestClustersAI, generateRangeAndCriteriaAI,
          generateForSingleCluster } from './clustering_ai.js';
 import { generateLearningOutcomesAI } from './learning_outcomes_ai.js';
-import { addDuty, addTask, removeDuty, removeTask, clearDuty,
+import { addDuty, addTask, removeDuty, removeTask, clearDuty, toggleAgreed,
          syncAllFromDOM, syncDutyTitle, syncTaskText,
          toggleViewMode, switchToViewMode }            from './duties.js';
 import { pushHistoryState, undo, redo,
@@ -442,6 +442,12 @@ export function setupEvents() {
       } else if (target.matches('[data-action="clear-duty"]')) {
         pushHistoryState();           // syncAllFromDOM called inside clearDuty
         clearDuty(target.getAttribute('data-duty-id'));
+      } else if (target.closest('[data-action="toggle-agree"]')) {   // 3.132.0
+        const b = target.closest('[data-action="toggle-agree"]');
+        syncAllFromDOM(); pushHistoryState();
+        if (toggleAgreed(b.getAttribute('data-agree-kind'), b.getAttribute('data-agree-id'))) {
+          try { saveCurrentProject(); } catch (_) { /* autosave will catch up */ }
+        }
       }
     });
 
