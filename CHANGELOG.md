@@ -7,6 +7,11 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.132.1 — 2026-10-20 — 👍 agreed: no green frame on the card
+PATCH. dacum-components.css, index.html, sw.js (v283).
+Changed An agreed duty or task card keeps its own look: only the 👍
+        turns green (the green edge on the card is removed).
+
 ── 3.132.0 — 2026-10-20 — Duties & Tasks: 👍 agreed in the workshop
 MINOR. duties.js, events.js, translations.js, dacum-components.css,
 index.html, sw.js (v282), ROADMAP.md, tests/specs/agreed-mark.spec.js (new).
