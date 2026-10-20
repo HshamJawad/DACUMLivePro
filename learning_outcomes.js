@@ -12,7 +12,7 @@ import { loLabel } from './lo_labels.js';
 import { outcomeIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, _renderLoNotice, renumberLearningOutcomes, syncClusteringWithProfile } from './clusters.js';
 import { _esc, _findEffectiveCriterionById, _getClusterEffectiveCriteria, _injectModuleCardStyles, _persistClusters, _renderUndoBars, _t, _taskLabel, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
-import { getModuleCategories, getModuleCategory, categoryLabel, getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName } from './module_mapping.js';
+import { getModuleCategories, getModuleCategory, categoryLabel, getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName, isManualModule, renumberManualModule, manualTaskOptions } from './module_mapping.js';
 
 // ── Learning Outcomes ─────────────────────────────────────────
 
@@ -1089,6 +1089,59 @@ export function renderModules() {
 
   const levelCount = getModuleLevelCount();
   const nqf = getNqfSettings();
+  mm.modules.forEach(renumberManualModule);
+  let _taskOpts = null;   // built once, only when a manual module needs it
+
+  /* 3.133.0: the outcomes of a module typed in by hand — written and
+     edited here, on the card (see addManualModule in module_mapping.js). */
+  const manualLos = (module) => {
+    if (!_taskOpts) _taskOpts = manualTaskOptions();
+    const mid = _esc(module.id);
+    const los = module.learningOutcomes || [];
+    const taskSelect = (o, pc, j) => {
+      const known = !pc.taskId || _taskOpts.some(t => t.id === pc.taskId);
+      return `<select class="mm-pc-task" data-module-id="${mid}" data-lo-id="${_esc(o.id)}" data-pc-index="${j}"
+          aria-label="${_esc(_tx('lblManualPcTask'))}" title="${_esc(_tx('lblManualPcTask'))}">
+        <option value="">${_esc(_tx('optManualNoTask'))}</option>
+        ${_taskOpts.map(t => `<option value="${_esc(t.id)}" ${pc.taskId === t.id ? 'selected' : ''}>${_esc(t.label)}</option>`).join('')}
+        ${known ? '' : `<option value="${_esc(pc.taskId)}" selected>${_esc(pc.taskId)}</option>`}
+      </select>`;
+    };
+    return `
+      <div class="mm-manual-note">📄 ${_esc(_tx('hintManualModule'))}</div>
+      <div class="module-los-list mm-manual-los">
+        ${los.map((o, i) => `
+          <div class="mm-manual-lo" data-lo-id="${_esc(o.id)}">
+            <div class="mm-manual-lo-head">
+              <span class="module-lo-assigned-number"><bdi>${_esc(loLabel(o))}</bdi></span>
+              <span class="mm-manual-lo-tools">
+                <button type="button" class="mm-icon-btn" data-action="mm-move-lo" data-dir="-1" data-module-id="${mid}" data-lo-id="${_esc(o.id)}"
+                  ${i === 0 ? 'disabled' : ''} title="${_esc(_tx('ttManualMoveUp'))}" aria-label="${_esc(_tx('ttManualMoveUp'))}">▲</button>
+                <button type="button" class="mm-icon-btn" data-action="mm-move-lo" data-dir="1" data-module-id="${mid}" data-lo-id="${_esc(o.id)}"
+                  ${i === los.length - 1 ? 'disabled' : ''} title="${_esc(_tx('ttManualMoveDown'))}" aria-label="${_esc(_tx('ttManualMoveDown'))}">▼</button>
+                <button type="button" class="btn-remove-lo" data-action="mm-del-lo" data-module-id="${mid}" data-lo-id="${_esc(o.id)}">✕ ${_t('btnRemove2')}</button>
+              </span>
+            </div>
+            <textarea class="mm-lo-statement" dir="auto" rows="2" data-module-id="${mid}" data-lo-id="${_esc(o.id)}"
+              placeholder="${_esc(_tx('phManualLo'))}" aria-label="${_esc(_tx('phManualLo'))}">${_esc(o.statement || '')}</textarea>
+            <div class="mm-manual-pcs">
+              <div class="mm-manual-pcs-title">${_esc(_tx('lblManualPcs'))}</div>
+              ${(o.linkedCriteria || []).map((pc, j) => `
+                <div class="mm-manual-pc">
+                  <bdi class="mm-pc-num">${_esc(pc.id)}</bdi>
+                  <input type="text" class="mm-pc-text" dir="auto" data-module-id="${mid}" data-lo-id="${_esc(o.id)}" data-pc-index="${j}"
+                    value="${_esc(pc.text || '')}" placeholder="${_esc(_tx('phManualPc'))}" aria-label="${_esc(_tx('phManualPc'))}">
+                  ${taskSelect(o, pc, j)}
+                  <button type="button" class="mm-icon-btn" data-action="mm-del-pc" data-module-id="${mid}" data-lo-id="${_esc(o.id)}" data-pc-index="${j}"
+                    title="${_esc(_tx('ttManualDelPc'))}" aria-label="${_esc(_tx('ttManualDelPc'))}">✕</button>
+                </div>`).join('')}
+              <button type="button" class="mm-add-btn" data-action="mm-add-pc" data-module-id="${mid}" data-lo-id="${_esc(o.id)}">+ ${_esc(_tx('btnManualAddPc'))}</button>
+            </div>
+          </div>`).join('')}
+        <button type="button" class="mm-add-btn mm-add-lo" data-action="mm-add-lo" data-module-id="${mid}">+ ${_esc(_tx('btnManualAddLo'))}</button>
+      </div>`;
+  };
+
   const card = (module, moduleIndex) => {
     const { sourceTaskIds } = _collectModuleTaskAnalysis(module);
     const lvl = _moduleLevel(module);
@@ -1097,9 +1150,10 @@ export function renderModules() {
         `<option value="${i + 1}" ${lvl === i + 1 ? 'selected' : ''}>${_esc(_txf('lblLevelN', { n: i + 1 }))}</option>`))
       .join('');
     return `
-      <div class="module-item">
+      <div class="module-item${isManualModule(module) ? ' mm-manual' : ''}" data-module-id="${_esc(module.id)}">
         <div class="module-header">
           <div class="module-title"><bdi class="mod-ref">${_esc(moduleRef(module) || `M${moduleIndex + 1}`)}</bdi> — ${module.title}
+            ${isManualModule(module) ? `<span class="mod-manual-chip" title="${_esc(_tx('hintManualModule'))}">📄 ${_esc(_tx('lblManualChip'))}</span>` : ''}
             ${lvl ? `<span class="mod-level-chip">${_esc(_txf('lblLevelShort', { n: lvl }))}</span>` : ''}
             ${module.track && !_refShowsTrack(module) ? `<span class="mod-track-chip">${_esc(module.track)}</span>` : ''}
             ${getModuleCategory(module) ? `<span class="mod-cat-chip mod-cat-${_esc(module.category)}">${_esc(categoryLabel(getModuleCategory(module)))}</span>` : ''}
@@ -1162,7 +1216,7 @@ export function renderModules() {
         <div style="font-size:0.85em;color:#64748b;margin:-4px 0 10px;">
           ${_t('lblRelatedTasks')}: ${sourceTaskIds.map(id => _taskLabel(id)).join(', ')}
         </div>` : ''}
-        <div class="module-los-list">
+        ${isManualModule(module) ? manualLos(module) : `<div class="module-los-list">
           ${module.learningOutcomes.map(outcome => {
             const criteriaText = outcome.linkedCriteria.map(pc =>
               `${pc.id}${pc.taskId ? ` [${_taskLabel(pc.taskId)}]` : ''}: ${pc.text}`
@@ -1178,7 +1232,7 @@ export function renderModules() {
                   data-module-id="${module.id}" data-lo-id="${outcome.id}">✕ ${_t('btnRemove2')}</button>
               </div>`;
           }).join('')}
-        </div>
+        </div>`}
       </div>`;
   };
 

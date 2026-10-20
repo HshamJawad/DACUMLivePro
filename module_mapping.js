@@ -146,6 +146,166 @@ export function createModule() {
   renderModules();
 }
 
+/* ── Modules typed in by hand (3.133.0) ─────────────────────────────
+   A module from an existing curriculum (an old paper file, say), typed
+   in on its card: title, learning outcomes and their performance
+   criteria. Its outcomes belong to the module only — they are not
+   Learning Outcomes of the chart, so they never appear in the Learning
+   Outcomes tab, automatic generation never replaces the module, and the
+   coverage matrix (which lists the chart's criteria) leaves it out.
+   Linking a criterion to a chart task is optional; a linked task brings
+   its Task Analysis to Module Builder like any other module's.
+   Shape: module.manual = true; each outcome and criterion carries
+   manual: true and is numbered by position (LO1, criterion 1.1 …). */
+export function isManualModule(m) { return !!(m && m.manual); }
+
+function _manualModule(moduleId) {
+  return _idModules().find(m => m && m.id === moduleId && m.manual) || null;
+}
+function _manualLo(m, loId) {
+  return (m && (m.learningOutcomes || []).find(o => o && o.id === loId)) || null;
+}
+
+/** LO1, LO2 … and criteria 1.1, 1.2 … by position, inside the module. */
+export function renumberManualModule(m) {
+  if (!isManualModule(m)) return;
+  (m.learningOutcomes || []).forEach((o, i) => {
+    o.number = `LO${i + 1}`;
+    if (!Array.isArray(o.linkedCriteria)) o.linkedCriteria = [];
+    o.linkedCriteria.forEach((pc, j) => { pc.id = `${i + 1}.${j + 1}`; });
+  });
+}
+
+function _newManualPc() { return { id: '', text: '', taskId: null, manual: true }; }
+function _newManualLo(m) {
+  m.manualCounter = (m.manualCounter || 0) + 1;
+  return { id: `${m.id}_mlo${m.manualCounter}`, number: '', statement: '', manual: true,
+           linkedCriteria: [_newManualPc()] };
+}
+
+/* An id no module, and no Module Curriculum record, has used — so a new
+   module never inherits the curriculum written for a deleted one. */
+function _freshModuleId() {
+  const mm = appState.moduleMappingData;
+  const taken = new Set(_idModules().map(m => m.id));
+  Object.keys(appState.moduleCurriculumData?.byModule || {}).forEach(id => taken.add(id));
+  let id;
+  do { mm.moduleCounter = (mm.moduleCounter || 0) + 1; id = `module_${mm.moduleCounter}`; }
+  while (taken.has(id));
+  return id;
+}
+
+function _manualChanged(m, opts = {}) {
+  renumberManualModule(m);
+  _persistClusters();
+  if (opts.render !== false) renderModules();
+  if (opts.focus) {
+    const el = document.querySelector(opts.focus);
+    if (el) try { el.focus(); } catch (_) { /* ignore */ }
+  }
+}
+
+/** Adds a module typed in by hand; asks for its title first. */
+export function addManualModule(title) {
+  if (title == null) title = prompt(_tx('promptManualModuleTitle'), '');
+  if (title == null) return null;
+  const mm = appState.moduleMappingData;
+  const m = { id: _freshModuleId(), title: String(title).trim(), manual: true, learningOutcomes: [] };
+  if (!m.title) m.title = _tf('lblModuleN', { n: mm.modules.length + 1 });
+  m.learningOutcomes.push(_newManualLo(m));
+  mm.modules.push(m);
+  renderModuleLoList();
+  _manualChanged(m, { focus: `#modulesContainer .mm-lo-statement[data-module-id="${m.id}"]` });
+  return m.id;
+}
+
+export function addManualLo(moduleId) {
+  const m = _manualModule(moduleId);
+  if (!m) return;
+  const o = _newManualLo(m);
+  m.learningOutcomes.push(o);
+  _manualChanged(m, { focus: `#modulesContainer .mm-lo-statement[data-lo-id="${o.id}"]` });
+}
+
+export function deleteManualLo(moduleId, loId) {
+  const m = _manualModule(moduleId);
+  const idx = m ? m.learningOutcomes.findIndex(o => o && o.id === loId) : -1;
+  if (idx === -1) return;
+  const before = _undoSnap();
+  const label = _txf('undoRemoveLO', { lo: loLabel(m.learningOutcomes[idx]), m: moduleRef(m) });
+  m.learningOutcomes.splice(idx, 1);
+  _undoRecord(label, before);
+  _manualChanged(m);
+}
+
+export function moveManualLo(moduleId, loId, dir) {
+  const m = _manualModule(moduleId);
+  const los = m ? m.learningOutcomes : [];
+  const i = los.findIndex(o => o && o.id === loId);
+  const j = i + (dir < 0 ? -1 : 1);
+  if (i === -1 || j < 0 || j >= los.length) return;
+  [los[i], los[j]] = [los[j], los[i]];
+  _manualChanged(m);
+}
+
+export function addManualPc(moduleId, loId) {
+  const m = _manualModule(moduleId);
+  const o = _manualLo(m, loId);
+  if (!o) return;
+  o.linkedCriteria.push(_newManualPc());
+  const n = o.linkedCriteria.length - 1;
+  _manualChanged(m, { focus: `#modulesContainer .mm-pc-text[data-lo-id="${loId}"][data-pc-index="${n}"]` });
+}
+
+export function deleteManualPc(moduleId, loId, index) {
+  const m = _manualModule(moduleId);
+  const o = _manualLo(m, loId);
+  const i = Number(index);
+  if (!o || !o.linkedCriteria[i]) return;
+  const before = _undoSnap();
+  const label = _txf('undoRemoveManualPc', { pc: o.linkedCriteria[i].id, m: moduleRef(m) });
+  o.linkedCriteria.splice(i, 1);
+  _undoRecord(label, before);
+  _manualChanged(m);
+}
+
+/* Typing: kept at once, saved on change, without redrawing the card
+   (a redraw would take the cursor out of the field). */
+export function setManualLoStatement(moduleId, loId, value, save) {
+  const o = _manualLo(_manualModule(moduleId), loId);
+  if (!o) return;
+  o.statement = String(value || '');
+  if (save) _persistClusters();
+}
+
+export function setManualPcText(moduleId, loId, index, value, save) {
+  const o = _manualLo(_manualModule(moduleId), loId);
+  const pc = o && o.linkedCriteria[Number(index)];
+  if (!pc) return;
+  pc.text = String(value || '');
+  if (save) _persistClusters();
+}
+
+export function setManualPcTask(moduleId, loId, index, taskId) {
+  const m = _manualModule(moduleId);
+  const o = _manualLo(m, loId);
+  const pc = o && o.linkedCriteria[Number(index)];
+  if (!pc) return;
+  pc.taskId = taskId || null;
+  _manualChanged(m);
+}
+
+/** The chart's tasks, for the optional "linked task" of a criterion. */
+export function manualTaskOptions() {
+  const out = [];
+  (appState.dutiesData || []).forEach(duty => (duty.tasks || []).forEach(task => {
+    const text = String(task.text || '').trim();
+    if (!text || !task.inputId) return;
+    out.push({ id: task.inputId, label: `${_taskLabel(task.inputId)} — ${text}` });
+  }));
+  return out;
+}
+
 /* ── Automatic Module Generation: options ───────────────────────────
    Two choices shown inside the existing AI card, read by
    module_mapping_ai.js through getModuleGenOptions():
@@ -950,6 +1110,8 @@ export function renderCoverageMatrix() {
   });
 
   const pct = summary.total ? Math.round(summary.covered / summary.total * 100) : 0;
+  // 3.133.0: modules typed in by hand are not traced to the chart.
+  const manualN = ((appState.moduleMappingData || {}).modules || []).filter(isManualModule).length;
   _injectCovFoldStyles();
   // Collapsible: the matrix lists every criterion and makes the tab very
   // long. Closed, the bar still shows the two numbers that matter.
@@ -973,6 +1135,7 @@ export function renderCoverageMatrix() {
       <label class="cov-gaps-toggle"><input type="checkbox" class="cov-gaps-only" ${_covGapsOnly ? 'checked' : ''}>
         ${_esc(_tx('covGapsOnly'))}</label>
     </div>
+    ${manualN ? `<div class="cov-manual-note" style="font-size:.85em;color:#6b7280;margin:6px 0;">📄 ${_esc(_txf('covManualNote', { n: manualN }))}</div>` : ''}
     ${summary.total ? `
     <div class="cov-summary">
       <span class="cov-pill">${_esc(_txf('covTotal', { n: summary.total }))}</span>
@@ -1277,6 +1440,7 @@ function _curriculumSummary(module) {
 
 function _buildModuleExport(module, moduleNumber) {
   _refreshModuleOutcomes();
+  renumberManualModule(module);
   const { sourceTaskIds, taskAnalysis, sourceTasks } = _collectModuleTaskAnalysis(module);
   return {
     moduleId: module.id,
@@ -1285,6 +1449,9 @@ function _buildModuleExport(module, moduleNumber) {
     moduleCode: getModuleCode(module),
     shortName: getModuleShortName(module),
     moduleTitle: module.title,
+    // 3.133.0: typed in by hand from an existing curriculum — its outcomes
+    // and criteria are not traced to the chart (absent for other modules).
+    ...(module.manual ? { source: 'manual' } : {}),
     // 3.131.0: the full (official) title; '' when the module has none.
     fullTitle: (typeof module.fullTitle === 'string' ? module.fullTitle.trim() : ''),
     // Programme level (1..N) and specialisation; null / '' when unset.
@@ -1345,10 +1512,10 @@ function _handoffProgramme(occupation) {
 
 /**
  * Hands off to Module Builder. With no argument, transfers every
- * module (the original, unchanged behaviour, still wired to the
- * existing "Proceed to Module Builder" banner button). Pass a
- * moduleId to transfer just that one module instead — used by the
- * per-module "Build in Module Builder" buttons in renderModules().
+ * module ("Proceed to Module Builder" and the sidebar's Module Builder
+ * button). Pass a moduleId to transfer just that one module — the
+ * per-module "Build in Module Builder" buttons in renderModules(); the
+ * handoff then carries that module only (3.133.0).
  * Either way the payload now also carries each module's traceable
  * source tasks and their Task Analysis content (see _buildModuleExport),
  * not just Learning Outcomes and Performance Criteria text.
@@ -1442,43 +1609,15 @@ export function openModuleBuilderFromMapping(moduleId = null) {
   };
 
   try {
-    // Keyed by module so transferring the same module again updates its
-    // entry instead of appending an uncontrolled duplicate — the most
-    // this side of the handoff can do about de-duplication, since the
-    // actual de-dup/merge behaviour on arrival is Module Builder's own.
+    /* 3.133.0: what is written is exactly what was asked for — one
+       module from its card's 🚀, every module from "Proceed to Module
+       Builder" or the sidebar. A single module used to be merged into
+       whatever the last handoff had left here, so after one "send all"
+       every card's 🚀 sent every module again. Module Builder keeps one
+       library per programme (programId) and adds or updates the modules
+       it receives, so the others it already holds are not touched. */
     const STORAGE_KEY = 'dacum_modules_export';
-    let payload = exportObject;
-    if (moduleId) {
-      let existing = null;
-      try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (_) { existing = null; }
-      // 3.49.0: modules still waiting from ANOTHER project are dropped,
-      // not merged — otherwise one payload would carry two programmes
-      // under a single programId.
-      const sameProgramme = existing && (existing.programId || null) === (programme.id || null);
-      if (existing && Array.isArray(existing.modules) && sameProgramme) {
-        const others = existing.modules.filter(m => m.moduleId !== moduleId);
-        payload = { ...existing, exportDate: exportObject.exportDate, occupation,
-                    occupationTitle, jobTitle, sector: exportObject.sector, labelMode: exportObject.labelMode,
-                    occupationalReference: exportObject.occupationalReference,
-                    handoffVersion: exportObject.handoffVersion,
-                    programId: exportObject.programId, programName: exportObject.programName,
-                    dacumUrl: exportObject.dacumUrl,
-                    dacumVersion: exportObject.dacumVersion,
-                    contentLanguages: exportObject.contentLanguages,
-                    contentLanguage: exportObject.contentLanguage,
-                    taskSelection: exportObject.taskSelection,
-                    qualificationsFramework: exportObject.qualificationsFramework,
-                    programmeRequirements: exportObject.programmeRequirements,
-                    context: exportObject.context, scopeOfWork: exportObject.scopeOfWork,
-                    modules: [...others, ...exportObject.modules] };
-        if (!payload.context) delete payload.context;
-        if (!payload.scopeOfWork) delete payload.scopeOfWork;
-        if (!payload.programmeRequirements) delete payload.programmeRequirements;
-        if (!payload.qualificationsFramework) delete payload.qualificationsFramework;
-        if (!payload.contentLanguages) delete payload.contentLanguages;
-        if (!payload.taskSelection) delete payload.taskSelection;
-      }
-    }
+    const payload = { ...exportObject, scope: moduleId ? 'module' : 'all' };
     // Diagnostic only — confirms exactly what left this tab, so a report
     // of "N modules went in, fewer came out the other side" can be
     // checked against this line instead of guessed at. Safe to remove
@@ -1495,7 +1634,9 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // itself "module-builder" and imports the handoff at once, without a
     // reload); otherwise open it.
     openNamedWindow('https://hshamjawad.github.io/Module-Builder/', 'module-builder');
-    showStatus(_t('msgMBExported'), 'success');
+    showStatus(moduleId
+      ? _txf('msgMBSentOne', { m: moduleRef(modulesToSend[0]) || modulesToSend[0].title || '' })
+      : _txf('msgMBSentAll', { n: payload.modules.length }), 'success');
   } catch (error) {
     console.error('Error exporting to Module Builder:', error);
     showStatus(_tf('msgMBExportError', { msg: error.message }), 'error');

@@ -33,6 +33,8 @@ import { bypassToClusteringTab, resetVerificationDecision, initializeClusteringF
   reassignPCToLO, unassignPCFromLO,
   updateCreateModuleButton, createModule, renameModule, deleteModule,
   removeLoFromModule, addLoToModuleFromDropdown,
+  addManualModule, addManualLo, deleteManualLo, moveManualLo, addManualPc, deleteManualPc,
+  setManualLoStatement, setManualPcText, setManualPcTask,
   openModuleBuilderFromMapping, exportModuleMappingJSON,
   dismissCriteriaRenumberNote, restoreClusterAI }  from './modules.js';
 import { showStatus, escapeHtml,
@@ -359,6 +361,7 @@ export function setupEvents() {
 
   // Module Mapping
   _on('btnCreateModule',            'click', () => createModule());
+  _on('btnAddManualModule',         'click', () => addManualModule());
   _on('btnOpenModuleBuilder',       'click', () => openModuleBuilderFromMapping());
   _on('btnExportModuleMapping',     'click', () => exportModuleMappingJSON());
 
@@ -686,6 +689,34 @@ export function setupEvents() {
       else if (action === 'remove-lo-from-module') {
         removeLoFromModule(target.getAttribute('data-module-id'), target.getAttribute('data-lo-id'));
       }
+      // 3.133.0: a module typed in by hand
+      else if (action && action.startsWith('mm-')) {
+        const mid = target.getAttribute('data-module-id'), lid = target.getAttribute('data-lo-id');
+        if (action === 'mm-add-lo')       addManualLo(mid);
+        else if (action === 'mm-del-lo')  deleteManualLo(mid, lid);
+        else if (action === 'mm-move-lo') moveManualLo(mid, lid, Number(target.getAttribute('data-dir')));
+        else if (action === 'mm-add-pc')  addManualPc(mid, lid);
+        else if (action === 'mm-del-pc')  deleteManualPc(mid, lid, target.getAttribute('data-pc-index'));
+      }
+    });
+    // Typing is kept as it goes; saved when the field is left.
+    const _manualField = (e, save) => {
+      const t = e.target;
+      if (!t || !t.matches) return;
+      const mid = t.getAttribute('data-module-id'), lid = t.getAttribute('data-lo-id');
+      if (t.matches('.mm-lo-statement'))  setManualLoStatement(mid, lid, t.value, save);
+      else if (t.matches('.mm-pc-text'))  setManualPcText(mid, lid, t.getAttribute('data-pc-index'), t.value, save);
+      else if (save && t.matches('.mm-pc-task')) setManualPcTask(mid, lid, t.getAttribute('data-pc-index'), t.value);
+    };
+    modulesCont.addEventListener('input',  e => _manualField(e, false));
+    modulesCont.addEventListener('change', e => _manualField(e, true));
+    modulesCont.addEventListener('keydown', e => {
+      // Enter in a criterion adds the next one; IME composition is left alone.
+      const t = e.target;
+      if (e.key !== 'Enter' || e.isComposing || !t || !t.matches || !t.matches('.mm-pc-text')) return;
+      e.preventDefault();
+      setManualPcText(t.getAttribute('data-module-id'), t.getAttribute('data-lo-id'), t.getAttribute('data-pc-index'), t.value, true);
+      addManualPc(t.getAttribute('data-module-id'), t.getAttribute('data-lo-id'));
     });
   }
 

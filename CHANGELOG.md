@@ -7,6 +7,28 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.133.0 — 2026-10-20 — Module Mapping: modules typed in by hand; 🚀 sends one module
+MINOR. module_mapping.js, module_mapping_ai.js, learning_outcomes.js, modules_shared.js,
+events.js, translations.js, index.html, sw.js (v284),
+tests/specs/manual-module.spec.js (new).
+Added   «📄 Add a module by hand»: a whole module from an existing curriculum
+        (an old paper file, say) — title, then learning outcomes and their
+        performance criteria written on the card, with add, delete, move
+        and Undo. Linking a criterion to a chart task is optional (a linked
+        task brings its Task Analysis along). module.manual; its outcomes
+        belong to the module only: not in the Learning Outcomes tab, never
+        replaced by automatic generation (also in replace mode), left out
+        of the coverage matrix (with a note). Sent to Module Builder like
+        any module, marked source: 'manual'. EN / FR / AR.
+Fixed   A module card's 🚀 «Build in Module Builder» sent every module when
+        an earlier handoff was still waiting in the browser: the one module
+        was merged into it. It now sends that module only (scope:
+        'module'); «Proceed to Module Builder» and the sidebar send all
+        (scope: 'all'). Module Builder adds or updates what it receives
+        and keeps the rest of its library. The status line names what was
+        sent.
+Tested  manual-module spec (EN, AR at phone width); full suite.
+
 ── 3.132.1 — 2026-10-20 — 👍 agreed: no green frame on the card
 PATCH. dacum-components.css, index.html, sw.js (v283).
 Changed An agreed duty or task card keeps its own look: only the 👍

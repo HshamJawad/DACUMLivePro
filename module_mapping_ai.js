@@ -77,6 +77,10 @@ function _modules() {
   return (appState.moduleMappingData?.modules) || [];
 }
 
+/* 3.133.0: modules typed in by hand (from an existing curriculum) are
+   never replaced by a run — only the modules built from the chart are. */
+function _manualModules() { return _modules().filter(m => m && m.manual); }
+
 /** Outcomes the run works on: all of them, or only unassigned ones. */
 function _scope(keepExisting) {
   const all = _outcomes();
@@ -108,7 +112,7 @@ function _cleanTitle(t) {
 function _newModuleId(keepExisting = true) {
   const mm = appState.moduleMappingData;
   // In replace mode the old modules are about to go, so their ids are free.
-  const taken = new Set(keepExisting ? _modules().map(m => m.id) : []);
+  const taken = new Set((keepExisting ? _modules() : _manualModules()).map(m => m.id));
   /* Module Curriculum keeps its records by module id, even for modules
      that were replaced (so Undo can bring them back). Replace mode resets
      the counter, so without this a new "module_1" would inherit the
@@ -124,7 +128,7 @@ function _newModuleId(keepExisting = true) {
 function _commitModules(newModules, keepExisting) {
   const mm = appState.moduleMappingData;
   if (keepExisting) mm.modules = _modules().concat(newModules);
-  else              mm.modules = newModules;
+  else              mm.modules = _manualModules().concat(newModules);
   persistModuleMapping();
   renderModuleLoList();
   renderModules();
@@ -136,7 +140,7 @@ function _commitModules(newModules, keepExisting) {
  * "are you sure?". Nothing to confirm when existing modules are kept.
  */
 function _confirmOverwrite(keepExisting) {
-  const existing = _modules();
+  const existing = _modules().filter(m => !(m && m.manual));
   if (keepExisting || existing.length === 0) return true;
   /* The Full Draft run asks about overwriting ONCE, up front, naming
      every tab at stake. Re-asking here would mean four or five
