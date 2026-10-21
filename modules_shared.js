@@ -983,6 +983,35 @@ export function _injectModuleCardStyles() {
       #modulesContainer .mod-meta-field .mod-code-input,
       #modulesContainer .mod-meta-field .mod-short-input { width: auto !important; flex: 1 1 auto; }
     }
+    /* 3.133.1: phones (and the installed app on a phone). Three nested
+       boxes — the section, the modules container and the card — each
+       took 25 px of padding plus a border, so a 412 px screen left the
+       card about 200 px of room: fields stacked into a narrow column and
+       the category list and «Remove» ran past the card's edge. Thinner
+       boxes, each label above its own full-width field, and nothing
+       allowed to be wider than the card. */
+    @media (max-width: 600px) {
+      #module-mapping-tab .clustering-section { padding: 12px 10px; }
+      #modulesContainer.modules-container { padding: 10px 8px; }
+      #modulesContainer .module-item { padding: 12px 10px; }
+      #modulesContainer .module-item, #modulesContainer .module-item * { max-width: 100%; box-sizing: border-box; }
+      #modulesContainer .module-title { overflow-wrap: anywhere; }
+      #modulesContainer .mod-meta-row { gap: 10px; }
+      #modulesContainer .mod-meta-field { flex-wrap: wrap; width: 100%; }
+      #modulesContainer .mod-meta-field > span { flex: 1 1 100%; white-space: normal; }
+      #modulesContainer .mod-meta-field select,
+      #modulesContainer .mod-meta-field input,
+      #modulesContainer .mod-meta-field .mod-track-input,
+      #modulesContainer .mod-meta-field .mod-code-input,
+      #modulesContainer .mod-meta-field .mod-short-input,
+      #modulesContainer .mod-level-select { flex: 1 1 0; width: 100% !important; max-width: 100%; min-width: 0; }
+      #modulesContainer .mod-meta-field.mod-fulltitle-field { flex-wrap: wrap; }
+      #modulesContainer .mm-manual-lo { padding: 8px; }
+      #modulesContainer .mm-manual-lo-head { flex-wrap: wrap; }
+      #modulesContainer .mm-manual-pcs { padding-inline-start: 6px; }
+      #modulesContainer .module-lo-assigned { flex-wrap: wrap; }
+      #modulesContainer .btn-remove-lo { margin-inline-start: auto; }
+    }
   `;
   document.head.appendChild(st);
 }
