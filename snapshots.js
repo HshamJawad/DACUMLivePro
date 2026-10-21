@@ -175,8 +175,14 @@ export function saveToJSON() {
     // projects that never used the selection are unchanged.
     {
       const ts = appState.taskSelection;
+      /* 3.133.3: the performance rule (3.90.0) counts as a change too —
+         a project with «% performing» figures but nothing excluded lost
+         them on export. */
       if (ts && ((ts.excluded && Object.keys(ts.excluded).length) ||
-                 ts.rule !== 'impdiff' || +ts.impMin !== 2 || +ts.diffMin !== 2 || +ts.topN !== 10)) {
+                 ts.rule !== 'impdiff' || +ts.impMin !== 2 || +ts.diffMin !== 2 || +ts.topN !== 10 ||
+                 ts.perfRule === true || (ts.perfMin != null && +ts.perfMin !== 25) ||
+                 (ts.performed && Object.keys(ts.performed).length) ||
+                 (ts.newTask && Object.keys(ts.newTask).length))) {
         data.taskSelection = ts;
       }
     }

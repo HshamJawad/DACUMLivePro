@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.133.3 — 2026-10-21 — Task Selection: «% performing» kept in the exported file
+PATCH. snapshots.js, index.html, sw.js (v287),
+tests/specs/task-selection-perf.spec.js.
+Fixed   The JSON export wrote the task selection only when a task was
+        excluded or the suggestion rule changed. A project with the 25 %
+        performance rule on and «% performing» figures typed (or tasks
+        marked New) but nothing excluded lost them in the file — they
+        stayed only in the browser. They are now written too; a project
+        that never used the selection still writes nothing.
+Tested  task-selection-perf spec; full suite.
+
 ── 3.133.2 — 2026-10-21 — Module Mapping: one frame per card
 PATCH. modules_shared.js, index.html, sw.js (v286),
 tests/specs/module-cards-phone.spec.js.

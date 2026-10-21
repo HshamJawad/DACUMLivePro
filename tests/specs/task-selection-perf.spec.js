@@ -134,3 +134,29 @@ test('Arabic, 360 px: rule and fields translated, no horizontal scroll', async (
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   expect(errors).toEqual([]);
 });
+
+// 3.133.3: «% performing» figures with nothing excluded reach the JSON
+// export (they were dropped: only exclusions and a changed rule counted).
+test('export: the performance rule and its figures are saved with no task excluded', async ({ page }) => {
+  const errors = await openApp(page);
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(async () => {
+    const { appState } = await import('./state.js');
+    appState.taskSelection = { excluded: {}, rule: 'impdiff', impMin: 2, diffMin: 2, topN: 10,
+      perfRule: true, perfMin: 25, performed: { duty_1_1: 90, duty_1_2: 15 }, newTask: { duty_1_3: true } };
+  });
+  const [dl] = await Promise.all([page.waitForEvent('download'),
+    page.evaluate(async () => (await import('./snapshots.js')).saveToJSON())]);
+  const saved = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
+  expect(saved.taskSelection).toBeTruthy();
+  expect(saved.taskSelection.perfRule).toBe(true);
+  expect(saved.taskSelection.performed).toEqual({ duty_1_1: 90, duty_1_2: 15 });
+  expect(saved.taskSelection.newTask).toEqual({ duty_1_3: true });
+  expect(saved.taskSelection.excluded).toEqual({});
+  // a project that never used the selection still writes nothing
+  await page.evaluate(async () => { (await import('./state.js')).appState.taskSelection = null; });
+  const [dl2] = await Promise.all([page.waitForEvent('download'),
+    page.evaluate(async () => (await import('./snapshots.js')).saveToJSON())]);
+  expect(JSON.parse(fs.readFileSync(await dl2.path(), 'utf8')).taskSelection).toBeUndefined();
+  expect(errors).toEqual([]);
+});
