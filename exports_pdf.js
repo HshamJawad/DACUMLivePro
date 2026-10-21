@@ -385,7 +385,7 @@ function _exportTaskVerificationPDFImpl() {
         yPos += 6;
         // Only meaningful when a panel produced the numbers.
         if (appState.collectionMode === 'workshop') {
-            pdf.text(_tf('expParticipants', { v: appState.workshopParticipants }), margin, yPos);
+            pdf.text(_tf(appState.externalParticipants > 0 ? 'expParticipantsBoth' : 'expParticipants', { v: appState.workshopParticipants, x: appState.externalParticipants }), margin, yPos);
             yPos += 6;
         }
         pdf.text(_tf('expWorkflowMode', { v: _t(appState.workflowMode === 'standard' ? 'modeStandard' : 'modeExtended') }), margin, yPos);

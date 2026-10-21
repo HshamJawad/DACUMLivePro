@@ -3,13 +3,14 @@
 // Save / Load entire application state as a JSON file.
 // ============================================================
 
-import { appState, normalizeModuleCurriculumData } from './state.js';
+import { appState, normalizeModuleCurriculumData,
+         normalizeExternalCount as _extNum } from './state.js';
 import { showStatus } from './renderer.js';
 import { addDuty, addTask, syncAllFromDOM, renderDutiesFromState } from './duties.js';
 import { renderSkillsLevel } from './renderer.js';
 import { renderLearningOutcomes, renderPCSourceList } from './modules.js';
 import { renderModules, renderModuleLoList } from './modules.js';
-import { loadDutiesForVerification } from './tasks.js';
+import { loadDutiesForVerification, paintExternalParticipants } from './tasks.js';
 import { importProjectFromData, loadProject, renderProjectsSidebar } from './dacum_projects.js';
 import { reportError } from './error-handler.js';
 import { readProjects } from './project_store.js';
@@ -113,6 +114,9 @@ export function saveToJSON() {
       ratings: appState.verificationRatings,
       taskMetadata: appState.taskMetadata,
       workshopParticipants: appState.workshopParticipants,
+      // 3.134.0 — absent when no one outside the workshop took part.
+      ...(appState.externalParticipants != null ? { externalParticipants: appState.externalParticipants } : {}),
+      ...(appState.externalCounted != null ? { externalCounted: appState.externalCounted } : {}),
       priorityFormula: appState.priorityFormula,
       trainingLoadMethod: appState.trainingLoadMethod,
       workshopCounts: appState.workshopCounts,
@@ -481,6 +485,8 @@ export function loadFromJSONLegacy(event) {
           appState.verificationRatings = v.ratings || {};
           appState.taskMetadata = v.taskMetadata || {};
           appState.workshopParticipants = v.workshopParticipants || 10;
+          appState.externalParticipants = _extNum(v.externalParticipants);
+          appState.externalCounted      = _extNum(v.externalCounted);
           appState.priorityFormula = v.priorityFormula || 'if';
           appState.trainingLoadMethod = v.trainingLoadMethod || 'advanced';
           appState.workshopCounts = v.workshopCounts || {};
@@ -500,6 +506,7 @@ export function loadFromJSONLegacy(event) {
           }
           const wpInput = document.getElementById('workshopParticipants');
           if (wpInput) wpInput.value = appState.workshopParticipants;
+          try { paintExternalParticipants(true); } catch (_) { /* not built yet */ }
 
           loadDutiesForVerification();
         }

@@ -22,7 +22,8 @@ import { saveCurrentProject,
          getActiveProjectId,
          loadProject }         from './dacum_projects.js';
 import { renderAll }           from './workshop_snapshots.js';
-import { appState, defaultSupplementaryVerification } from './state.js';
+import { appState, defaultSupplementaryVerification,
+         normalizeExternalCount as _extNum } from './state.js';
 import { mergeRestoredCL }     from './content_lang.js';
 import { syncAllFromDOM }      from './duties.js';
 import { getImageSync }        from './image_store.js';
@@ -424,6 +425,8 @@ function _snapshotAppState() {
       collectionMode:           appState.collectionMode,
       workflowMode:             appState.workflowMode,
       workshopParticipants:     appState.workshopParticipants,
+      externalParticipants:     appState.externalParticipants ?? null,
+      externalCounted:          appState.externalCounted ?? null,
       priorityFormula:          appState.priorityFormula,
       workshopCounts:           appState.workshopCounts          || {},
       workshopResults:          appState.workshopResults         || {},
@@ -464,6 +467,8 @@ function _applyBackupState(s) {
   appState.collectionMode           = s.collectionMode           || 'workshop';
   appState.workflowMode             = s.workflowMode             || 'standard';
   appState.workshopParticipants     = s.workshopParticipants     || 10;
+  appState.externalParticipants     = _extNum(s.externalParticipants);
+  appState.externalCounted          = _extNum(s.externalCounted);
   appState.priorityFormula          = s.priorityFormula          || 'if';
   appState.workshopCounts           = s.workshopCounts           || {};
   appState.workshopResults          = s.workshopResults          || {};

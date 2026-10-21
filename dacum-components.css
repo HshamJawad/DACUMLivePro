@@ -2616,3 +2616,32 @@ html[data-content-mixed] .container input[type="text"] {
 .dcv-agree:hover { color: #16a34a !important; border-color: #86efac !important; }
 .dcv-agree.is-on { background: #16a34a !important; border-color: #15803d !important; color: #fff !important; }
 body.card-view-printing .dcv-agree, html.vc-printing .dcv-agree { display: none !important; }
+
+/* ── 3.134.0: participants outside the workshop (tasks.js, workshop.js) ── */
+.ext-participants { margin-top: 18px; padding-top: 14px; border-top: 1px dashed #cbd5e1; }
+.ext-chip { display: inline-block; margin-inline-start: 10px; padding: 3px 10px; border-radius: 999px;
+  font-size: .8em; font-weight: 600; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; vertical-align: middle; }
+.ext-chip.is-counted { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.ext-chip[hidden] { display: none; }
+.lw-ext-box { background: #fff; color: #1e293b; padding: 18px 20px; border-radius: 8px; margin: 0 0 15px; }
+.lw-ext-box[hidden] { display: none; }
+.lw-ext-title { margin: 0 0 4px; color: #1d4ed8; font-size: 1.02em; }
+.lw-ext-desc { margin: 0 0 12px; color: #475569; font-size: .88em; line-height: 1.6; }
+.lw-ext-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.lw-ext-link { color: #1d4ed8; font-size: .95em; padding: 12px 16px; background: #eff6ff; border: 1px solid #bfdbfe;
+  border-radius: 6px; user-select: all; cursor: text; font-weight: 500; overflow-wrap: anywhere; max-width: 100%; }
+.lw-ext-btn { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 12px 20px; font-weight: 600;
+  border-radius: 6px; cursor: pointer; font-size: .9em; }
+.lw-ext-btn:hover { background: #e2e8f0; }
+.lw-ext-btn.lw-ext-qr { background: #2563eb; color: #fff; border-color: #2563eb; }
+.lw-ext-btn.lw-ext-qr:hover { background: #1d4ed8; }
+.lw-ext-copied { color: #059669; font-weight: 600; font-size: .9em; }
+.lw-ext-copied[hidden] { display: none; }
+.lw-votes-split { font-size: .85em; opacity: .9; margin-top: 2px; }
+@media (max-width: 600px) {
+  .lw-ext-box { padding: 14px 12px; }
+  .lw-ext-row > .lw-ext-link { flex: 1 1 100%; }
+  .lw-ext-btn { flex: 1 1 auto; }
+}
+/* The workshop link wraps too (it ran past its box on a phone). */
+#lwParticipantLink { overflow-wrap: anywhere; max-width: 100%; box-sizing: border-box; }

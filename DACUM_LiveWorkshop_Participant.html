@@ -355,12 +355,18 @@
             color: #667eea;
             font-size: 1.2em;
         }
+            /* 3.134.0 */
+        .pt-ext-note { text-align: center; margin: -8px auto 18px; max-width: 560px; padding: 10px 14px;
+            background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; border-radius: 10px; font-size: .92em; line-height: 1.6; }
+        .pt-ext-note[hidden] { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎯 DACUM Live Pro</h1>
         <p style="text-align: center; color: #666; margin-bottom: 20px;" data-pt="subtitle">Participant Voting</p>
+        <!-- 3.134.0: shown when the link carries grp=ext -->
+        <p id="ptExternalNote" class="pt-ext-note" data-pt="externalNote" hidden>You are taking part from outside the workshop.</p>
 
         <div id="ptLangWrap" role="group" aria-label="Language">
             <button type="button" class="pt-lang-btn" data-lang="en" onclick="setParticipantLang('en')">EN</button>
@@ -419,6 +425,7 @@
         closedBody: 'Voting has been closed by the facilitator.',
         closedThanks: 'Thank you for your participation!',
         errNoSession: 'No session ID provided. Please use the link provided by your facilitator.',
+        externalNote: '\ud83c\udf0d You are taking part from outside the workshop. Your answers are counted with the other practitioners outside the room.',
         errLoadFailed: 'Failed to load voting session. Please check your link.',
         errLoading: 'Error loading session: {msg}',
         errClosed: 'Voting has been closed by the facilitator.',
@@ -443,6 +450,7 @@
         closedBody: 'Le vote a \u00e9t\u00e9 cl\u00f4tur\u00e9 par l\u2019animateur.',
         closedThanks: 'Merci de votre participation !',
         errNoSession: 'Aucun identifiant de session. Utilisez le lien fourni par votre animateur.',
+        externalNote: '\ud83c\udf0d Vous participez depuis l\u2019ext\u00e9rieur de l\u2019atelier. Vos r\u00e9ponses sont compt\u00e9es avec celles des autres praticiens hors de la salle.',
         errLoadFailed: '\u00c9chec du chargement. V\u00e9rifiez votre lien.',
         errLoading: 'Erreur de chargement : {msg}',
         errClosed: 'Le vote a \u00e9t\u00e9 cl\u00f4tur\u00e9 par l\u2019animateur.',
@@ -469,6 +477,7 @@
         closedBody: '\u0623\u063a\u0644\u0642 \u0627\u0644\u0645\u064f\u064a\u0633\u0651\u0631 \u0628\u0627\u0628 \u0627\u0644\u062a\u0635\u0648\u064a\u062a.',
         closedThanks: '\u0634\u0643\u0631\u0627\u064b \u0644\u0645\u0634\u0627\u0631\u0643\u062a\u0643!',
         errNoSession: '\u0644\u0645 \u064a\u064f\u0642\u062f\u0651\u0645 \u0645\u0639\u0631\u0651\u0641 \u0627\u0644\u062c\u0644\u0633\u0629. \u0627\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0631\u0627\u0628\u0637 \u0627\u0644\u0630\u064a \u0632\u0648\u0651\u062f\u0643 \u0628\u0647 \u0627\u0644\u0645\u064f\u064a\u0633\u0651\u0631.',
+        externalNote: '\ud83c\udf0d \u0623\u0646\u062a \u062a\u0634\u0627\u0631\u0643 \u0645\u0646 \u062e\u0627\u0631\u062c \u0627\u0644\u0648\u0631\u0634\u0629. \u062a\u064f\u062d\u0633\u0628 \u0625\u062c\u0627\u0628\u0627\u062a\u0643 \u0645\u0639 \u0625\u062c\u0627\u0628\u0627\u062a \u0627\u0644\u0645\u0645\u0627\u0631\u0633\u064a\u0646 \u0627\u0644\u0622\u062e\u0631\u064a\u0646 \u0645\u0646 \u062e\u0627\u0631\u062c \u0627\u0644\u0642\u0627\u0639\u0629.',
         errLoadFailed: '\u062a\u0639\u0630\u0651\u0631 \u062a\u062d\u0645\u064a\u0644 \u062c\u0644\u0633\u0629 \u0627\u0644\u062a\u0635\u0648\u064a\u062a. \u062a\u062d\u0642\u0651\u0642 \u0645\u0646 \u0627\u0644\u0631\u0627\u0628\u0637.',
         errLoading: '\u062e\u0637\u0623 \u0641\u064a \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u062c\u0644\u0633\u0629: {msg}',
         errClosed: '\u0623\u063a\u0644\u0642 \u0627\u0644\u0645\u064f\u064a\u0633\u0651\u0631 \u0628\u0627\u0628 \u0627\u0644\u062a\u0635\u0648\u064a\u062a.',
@@ -547,6 +556,9 @@
         // Only used when the session carries a `supplementary` block.
         let supplementaryVotes = {};
         let sessionId = null;
+        /* 3.134.0: 'external' when the link carries grp=ext — the link
+           the facilitator sends to practitioners outside the workshop. */
+        let participantGroup = 'workshop';
         let sessionData = null;
         
         // Show status message
@@ -844,7 +856,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(Object.assign(
-                        { sessionId: sessionId, votes: completedVotes },
+                        { sessionId: sessionId, votes: completedVotes, group: participantGroup },
                         Object.keys(supplementaryVotes).length
                             ? { supplementaryVotes: supplementaryVotes } : {}
                     ))
@@ -881,6 +893,10 @@
         window.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             sessionId = urlParams.get('lwsession');
+            if (urlParams.get('grp') === 'ext') {
+                participantGroup = 'external';
+                document.getElementById('ptExternalNote').hidden = false;
+            }
 
             /* Precedence: an explicit choice this participant already
                made on this device wins, then the language the

@@ -84,6 +84,12 @@ export const appState = {
 
   // ── Workshop Aggregated Counts ─────────────────────────────
   workshopParticipants: 10,
+  /* 3.134.0: participants OUTSIDE the workshop (survey / live link).
+     externalParticipants is the facilitator's figure (an estimate until
+     votes arrive); externalCounted is the number who actually voted
+     through the external link, set by the live session. null = none. */
+  externalParticipants: null,
+  externalCounted: null,
   priorityFormula: 'if',
   workshopCounts: {},
   workshopResults: {},
@@ -130,6 +136,14 @@ export const appState = {
    snapshots — can normalise the block without importing the tab's
    module. */
 export const CUR_DEFAULT_SPLIT = Object.freeze({ theory: 10, practical: 45, formative: 5, practice: 35, summative: 5 });
+
+/** 3.134.0: a participant count outside the workshop — a whole number
+ *  0–100000, or null when absent / not a number. */
+export function normalizeExternalCount(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Math.floor(+v);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 100000) : null;
+}
 
 export function defaultModuleCurriculumData() {
   return {

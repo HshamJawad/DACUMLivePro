@@ -16,7 +16,7 @@ import { addDuty, addTask, removeDuty, removeTask, clearDuty, toggleAgreed,
          toggleViewMode, switchToViewMode }            from './duties.js';
 import { pushHistoryState, undo, redo,
          resetHistoryToCurrentState }                  from './history.js';
-import { updateCollectionMode, updateWorkflowMode, updateParticipantCount,
+import { updateCollectionMode, updateWorkflowMode, updateParticipantCount, updateExternalParticipants, paintExternalParticipants,
   updatePriorityFormula, updateTrainingLoadMethod,
   loadDutiesForVerification, refreshVerificationTab, updateRating, updatePerformsTask, updateComments,
   updateWorkshopCount, validateAndComputeTask, validateAndComputeWorkshopResults,
@@ -317,6 +317,7 @@ export function setupEvents() {
   _onRadioGroup('priorityFormula', () => updatePriorityFormula());
   _onRadioGroup('trainingLoadMethod', () => updateTrainingLoadMethod());
   _on('workshopParticipants', 'change', () => updateParticipantCount());
+  _on('externalParticipants', 'change', () => updateExternalParticipants());   // 3.134.0
   _on('btnLoadDutiesForVerification', 'click', () => refreshVerificationTab());
 
   // Standalone verification report. These replace the old tvExportMode
@@ -399,6 +400,9 @@ export function setupEvents() {
   _on('btnLWFinalize',              'click', () => lwFinalizeAndCreateSession());
   _on('btnLWCopyLink',              'click', () => lwCopyLink());
   _on('btnLWShowQR',                'click', () => lwShowQRCode());
+  // 3.134.0: the field follows a count from the live session
+  document.addEventListener('dacum:external-participants-changed', () => paintExternalParticipants());
+  window.addEventListener('dacum:langchange', () => { try { paintExternalParticipants(); } catch (_) {} });
   _on('btnLWFetchResults',          'click', () => lwFetchResults());
   _on('btnLWExportJSON',            'click', () => lwExportJSON());
   _on('btnLWExportCSV',             'click', () => lwExportCSV());

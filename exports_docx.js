@@ -459,7 +459,7 @@ async function _exportTaskVerificationWordImpl() {
                     children.push(new Paragraph({
                         children: [
                             new TextRun({
-                                text: _tf('expParticipants', { v: appState.workshopParticipants }),
+                                text: _tf(appState.externalParticipants > 0 ? 'expParticipantsBoth' : 'expParticipants', { v: appState.workshopParticipants, x: appState.externalParticipants }),
                                 size: 22,
                             }),
                         ],
