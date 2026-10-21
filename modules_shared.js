@@ -990,8 +990,14 @@ export function _injectModuleCardStyles() {
        the category list and «Remove» ran past the card's edge. Thinner
        boxes, each label above its own full-width field, and nothing
        allowed to be wider than the card. */
+    /* 3.133.2: one frame per card. Each section of this tab (available
+       outcomes, modules, coverage, curriculum matrix) sat in a grey
+       framed box around its own framed card — two frames where the
+       other tabs have one, and on a phone the outer one cost the card
+       its width. The section keeps its heading and spacing; the card
+       inside keeps its frame. */
+    #module-mapping-tab .clustering-section { background: transparent; border: 0; padding: 0; border-radius: 0; }
     @media (max-width: 600px) {
-      #module-mapping-tab .clustering-section { padding: 12px 10px; }
       #modulesContainer.modules-container { padding: 10px 8px; }
       #modulesContainer .module-item { padding: 12px 10px; }
       #modulesContainer .module-item, #modulesContainer .module-item * { max-width: 100%; box-sizing: border-box; }

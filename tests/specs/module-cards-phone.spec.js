@@ -26,7 +26,11 @@ for (const lang of ['en', 'ar']) {
         return { out, minW, sw: document.documentElement.scrollWidth, vw: window.innerWidth };
       });
       expect(r.out).toEqual([]);
-      expect(r.minW).toBeGreaterThan(r.vw * 0.7);                   // was about 60 % of the screen
+      expect(r.minW).toBeGreaterThan(r.vw * 0.75);                  // 3.133.0: ~53–60 %, 3.133.1: ~71–75 %
+      // 3.133.2: one frame per card — the sections around them have none
+      const framed = await page.evaluate(() => [...document.querySelectorAll('#module-mapping-tab .clustering-section')]
+        .filter(s => parseFloat(getComputedStyle(s).borderTopWidth) > 0 || parseFloat(getComputedStyle(s).paddingLeft) > 0).length);
+      expect(framed).toBe(0);
       expect(r.sw).toBeLessThanOrEqual(r.vw + 1);
       // each label above its own field: the category list as wide as the code box
       const cat = await page.locator('#modulesContainer .mm-manual .mod-cat-select').boundingBox();

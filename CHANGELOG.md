@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.133.2 — 2026-10-21 — Module Mapping: one frame per card
+PATCH. modules_shared.js, index.html, sw.js (v286),
+tests/specs/module-cards-phone.spec.js.
+Changed Each section of the Module Mapping tab (available outcomes,
+        modules, coverage by level, curriculum matrix) sat in a grey
+        framed box around its own framed card: two frames where the
+        other tabs have one. The outer box is gone (its heading and
+        spacing stay), so the cards are as wide as the page allows —
+        on a phone the module card gains about 24 px. Every width.
+Tested  module-cards-phone spec; full suite.
+
 ── 3.133.1 — 2026-10-21 — Module Mapping: module cards fit a phone
 PATCH. modules_shared.js, index.html, sw.js (v285),
 tests/specs/module-cards-phone.spec.js (new).
