@@ -26,17 +26,17 @@ async function readHelp(page, tab, opener, modalId) {
 const EXPECT = {
   en: { team: 'Panel members', teamSize: '8–12', os: 'Job descriptions', task: 'two or more steps',
         naming: 'head', pc: 'How would I know one if I saw one', lo: 'Draw a square',
-        tv: 'fewer than 25%', cl: 'by itself', clBeh: 'worker behaviours',
+        tv: 'fewer than 25%', tvPerf: '12 of 28 = 43%', cl: 'by itself', clBeh: 'worker behaviours',
         dutyMax: 'about 15', transversal: 'transversal', review: 'Omissions', notVerify: 'Not the same as Task Verification',
         pcCount: '3–6 criteria', pcCountShort: 'Usually 3–6 per task' },
   fr: { team: 'Membres du panel', teamSize: '8 à 12', os: 'Descriptions de poste', task: 'deux étapes ou plus',
         naming: 'la tête', pc: 'Comment le reconnaîtrais-je', lo: 'Tracer un carré',
-        tv: 'moins de 25 %', cl: 'à elle seule', clBeh: 'comportements',
+        tv: 'moins de 25 %', tvPerf: '12 sur 28 = 43 %', cl: 'à elle seule', clBeh: 'comportements',
         dutyMax: '15 environ', transversal: 'transversale', review: 'Omissions', notVerify: 'Ce n’est pas la vérification des tâches',
         pcCount: '3 à 6 critères', pcCountShort: 'En général 3 à 6 par tâche' },
   ar: { team: 'أعضاء لجنة الخبراء', teamSize: '8–12', os: 'الوصف الوظيفي', task: 'خطوتين أو أكثر',
         naming: 'الرأس', pc: 'كيف أعرفه إذا رأيته', lo: 'ارسم مربعاً',
-        tv: 'أقل من 25%', cl: 'بمفردها', clBeh: 'سلوكيات',
+        tv: 'أقل من 25%', tvPerf: '12 من 28 = 43%', cl: 'بمفردها', clBeh: 'سلوكيات',
         dutyMax: 'نحو 15', transversal: 'عرضية', review: 'النواقص', notVerify: 'هذه ليست التحقق من المهام',
         pcCount: '3–6 معايير', pcCountShort: 'عادةً 3–6 لكل مهمة' },
 };
@@ -78,6 +78,7 @@ for (const lang of ['en', 'fr', 'ar']) {
     expect(h.text).toContain(e.lo);
     h = await readHelp(page, 'verification-tab', '#taskVerifyHelpBtn', 'taskVerificationHelpModal');
     expect(h.text).toContain(e.tv);
+    expect(h.text).toContain(e.tvPerf);                        // 3.134.1: who counts in «% performing»
     h = await readHelp(page, 'clustering-tab', '#clusteringHelpBtn', 'clusteringHelpModal');
     expect(h.text).toContain(e.cl);
     expect(h.text).toContain(e.clBeh);
