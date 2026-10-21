@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.133.1 — 2026-10-21 — Module Mapping: module cards fit a phone
+PATCH. modules_shared.js, index.html, sw.js (v285),
+tests/specs/module-cards-phone.spec.js (new).
+Fixed   On a phone (and the installed app on a phone) the module cards
+        were squeezed into a narrow column — three nested boxes each
+        took 25 px of padding — and the category list and an outcome's
+        «Remove» ran past the card's edge. Below 600 px the boxes are
+        thinner, each label sits above its own full-width field, and
+        nothing in a card is wider than the card. Desktop unchanged.
+Tested  module-cards-phone spec (EN / AR, 360 and 412 px); full suite.
+
 ── 3.133.0 — 2026-10-20 — Module Mapping: modules typed in by hand; 🚀 sends one module
 MINOR. module_mapping.js, module_mapping_ai.js, learning_outcomes.js, modules_shared.js,
 events.js, translations.js, index.html, sw.js (v284),
