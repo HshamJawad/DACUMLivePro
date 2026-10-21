@@ -183,6 +183,7 @@ export async function lwFinalizeAndCreateSession() {
       const linkElement = document.getElementById('lwParticipantLink');
       linkElement.textContent = shortLink;
       linkElement.setAttribute('data-full-url', participantUrl);
+      lwPaintExternalLink();   // 3.134.0
     } else {
       throw new Error(result.error || 'Failed to create session');
     }
@@ -197,14 +198,58 @@ export async function lwFinalizeAndCreateSession() {
 
 // ── Copy link ─────────────────────────────────────────────────
 
-export function lwCopyLink() {
-  const linkElement = document.getElementById('lwParticipantLink');
+// ── 3.134.0: the link for participants outside the workshop ─────
+// The same session and form, with &grp=ext: the participant page sends
+// group 'external' with the votes and the backend counts both groups
+// (groupCounts in get-results). The workshop link is unchanged.
+export function lwExternalUrl() {
+  const el = document.getElementById('lwParticipantLink');
+  const url = el ? el.getAttribute('data-full-url') || '' : '';
+  return url ? url + (url.includes('?') ? '&' : '?') + 'grp=ext' : '';
+}
+
+export function lwPaintExternalLink() {
+  const box = document.getElementById('lwExternalLinkBox');
+  if (!box) return;
+  const url = lwExternalUrl();
+  if (!url) { box.innerHTML = ''; box.hidden = true; return; }
+  const short = url.substring(url.lastIndexOf('/') + 1);
+  box.hidden = false;
+  box.innerHTML = `
+    <h4 class="lw-ext-title">🌍 ${lwEscapeHtml(_t('lwExtTitle'))}</h4>
+    <p class="lw-ext-desc">${lwEscapeHtml(_t('lwExtDesc'))}</p>
+    <div class="lw-ext-row">
+      <div class="lw-ext-link" id="lwExternalLink" data-full-url="${lwEscapeHtml(url)}" dir="ltr">${lwEscapeHtml(short)}</div>
+      <button type="button" class="lw-ext-btn" data-lw-ext="copy">📋 ${lwEscapeHtml(_t('btnCopyLink'))}</button>
+      <button type="button" class="lw-ext-btn lw-ext-qr" data-lw-ext="qr">📱 ${lwEscapeHtml(_t('btnShowQR'))}</button>
+      <span class="lw-ext-copied" id="lwExtCopyFeedback" hidden>✓ ${lwEscapeHtml(_t('lblCopied'))}</span>
+    </div>`;
+  if (!box.dataset.wired) {
+    box.dataset.wired = '1';
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-lw-ext]');
+      if (!b) return;
+      if (b.getAttribute('data-lw-ext') === 'copy') lwCopyLink('ext');
+      else lwShowQRCode('ext');
+    });
+  }
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('dacum:langchange', () => { try { lwPaintExternalLink(); } catch (_) {} });
+}
+
+export function lwCopyLink(kind) {
+  const ext = kind === 'ext';
+  const linkElement = document.getElementById(ext ? 'lwExternalLink' : 'lwParticipantLink');
+  if (!linkElement) return;
   const fullUrl = linkElement.getAttribute('data-full-url');
-  const feedback = document.getElementById('lwCopyFeedback');
+  const feedback = document.getElementById(ext ? 'lwExtCopyFeedback' : 'lwCopyFeedback');
 
   navigator.clipboard.writeText(fullUrl).then(() => {
-    feedback.style.display = 'inline';
-    setTimeout(() => { feedback.style.display = 'none'; }, 2000);
+    if (feedback) {
+      if (ext) { feedback.hidden = false; setTimeout(() => { feedback.hidden = true; }, 2000); }
+      else { feedback.style.display = 'inline'; setTimeout(() => { feedback.style.display = 'none'; }, 2000); }
+    }
     showStatus('✅ ' + _t('lwLinkCopied'), 'success');
   }).catch(() => { showStatus(_t('lwCopyFailed'), 'error'); });
 }
@@ -213,8 +258,8 @@ export function lwCopyLink() {
 
 let lwQRInstance = null;
 
-export function lwShowQRCode() {
-  const linkElement = document.getElementById('lwParticipantLink');
+export function lwShowQRCode(kind) {
+  const linkElement = document.getElementById(kind === 'ext' ? 'lwExternalLink' : 'lwParticipantLink');
   if (!linkElement) { showStatus(_t('lwNoLinkElement'), 'error'); return; }
   const fullUrl = linkElement.getAttribute('data-full-url');
   if (!fullUrl) { showStatus(_t('lwNoLink'), 'error'); return; }
@@ -384,6 +429,7 @@ export async function lwFetchResults() {
     if (result.success) {
       appState.lwAggregatedResults = result.data;
       lwApplyVotingResultsToDataModel();  // also populates workshopResults
+      lwApplyGroupCounts(result.data);    // 3.134.0
 
       // Supplementary items travel separately and never touch task
       // results or the Priority Index.
@@ -407,6 +453,20 @@ export async function lwFetchResults() {
     console.error('Error fetching results:', error);
     showStatus(_tf('lwFetchError', { msg: error.message }), 'error');
   }
+}
+
+/* 3.134.0: how many voted through the external link. A backend that
+   predates groups sends no groupCounts — nothing changes then. The
+   counted number replaces the facilitator's estimate. */
+export function lwApplyGroupCounts(data) {
+  const g = data && data.groupCounts;
+  if (!g || typeof g !== 'object') return;
+  const x = Math.max(0, parseInt(g.external, 10) || 0);
+  if (x > 0 || appState.externalCounted != null) {
+    appState.externalCounted = x;
+    appState.externalParticipants = x;
+  }
+  try { document.dispatchEvent(new CustomEvent('dacum:external-participants-changed')); } catch (_) {}
 }
 
 // ── Display results ───────────────────────────────────────────
@@ -449,6 +509,8 @@ export function lwDisplayResults() {
         <div style="display:inline-block;background:linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);color:white;padding:15px 30px;border-radius:12px;">
           <div style="font-size:0.9em;opacity:0.9;margin-bottom:5px;">Total Participants</div>
           <div style="font-size:2.5em;font-weight:700;">${totalVotes}</div>
+          ${appState.lwAggregatedResults.groupCounts && appState.lwAggregatedResults.groupCounts.external
+            ? `<div class="lw-votes-split">${lwEscapeHtml(_tf('lwVotesSplit', { w: appState.lwAggregatedResults.groupCounts.workshop || 0, x: appState.lwAggregatedResults.groupCounts.external }))}</div>` : ''}
         </div>
       </div>
       <div style="overflow-x:auto;">

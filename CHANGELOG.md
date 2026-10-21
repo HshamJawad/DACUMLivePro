@@ -7,6 +7,39 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.134.0 — 2026-10-21 — Task Verification: participants outside the workshop; fixes
+MINOR. tasks.js, workshop.js, events.js, state.js, dacum_projects.js, snapshots.js,
+autosave.js, workshop_snapshots.js, projects.js, supplementary_verification.js,
+exports_docx.js, exports_docx_sections.js, exports_pdf.js, exports_pdf_sections.js,
+translations.js, DACUM_LiveWorkshop_Participant.html, dacum-components.css,
+index.html, sw.js (v288), tests/specs/verification-participants.spec.js (new).
+Needs   Live-session-backend with participant groups (groupCounts) for the
+        counting; with an older backend the typed figure simply stays.
+Added   «🌍 Participants outside the workshop» under the workshop count: the
+        facilitator's figure (marked «estimate»), saved with the project
+        (verification.externalParticipants). Live Workshop shows a second
+        link and QR code for practitioners outside the room (&grp=ext);
+        their votes are sent as group «external», and «Refresh Voting
+        Results» puts the number who voted that way in the field (marked
+        «counted») and «8 in the workshop · 23 outside» under the vote
+        total. The participant page tells an external voter where they
+        are counted. Exports: «Number of Participants: 8 in the workshop ·
+        20 outside the workshop» when there are any outside. The workshop
+        count stays the ceiling of the per-task counts. EN / FR / AR.
+Fixed   Opening a project left the participant count at the default 10 (and
+        the collection mode, workflow and formula radios at their
+        defaults) though the project had its own — and the next change
+        from the field wrote 10 back. They follow the project now.
+Fixed   Supplementary verification: ▲ ▼ ✕ sat off-centre in their buttons
+        (the 44 px touch rule stretched them in the installed app); they
+        are square and centred, 38 px on touch screens.
+Fixed   Supplementary results tables: the item reads from the start of the
+        line (the right in Arabic) instead of the middle; the «%» heading
+        is centred over its column.
+Fixed   The workshop link in Live Workshop ran past its box on a phone; it
+        wraps now.
+Tested  verification-participants spec (EN / AR, 412 px touch); full suite.
+
 ── 3.133.3 — 2026-10-21 — Task Selection: «% performing» kept in the exported file
 PATCH. snapshots.js, index.html, sw.js (v287),
 tests/specs/task-selection-perf.spec.js.

@@ -295,7 +295,14 @@ function _injectStyles() {
     .sv-table td,.sv-table th{vertical-align:middle;}
     .sv-item-input{width:100%;min-width:140px;box-sizing:border-box;padding:6px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:.92em;}
     .sv-actions{display:flex;gap:4px;justify-content:center;}
-    .sv-icon{border:1px solid #cbd5e1;background:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:.85em;line-height:1;padding:0;}
+    /* 3.134.0: the glyph sits in the middle of its button. The app's
+       button rules (padding, text-align, a 44 px touch minimum) pushed
+       ▲ ▼ ✕ to one side, most visibly in the installed app and in RTL. */
+    .sv-icon{border:1px solid #cbd5e1;background:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:.85em;line-height:1;
+      padding:0!important;margin:0;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+      text-align:center;flex:0 0 auto;font-family:system-ui,'Segoe UI Symbol',sans-serif;}
+    #${CONTAINER_ID} .sv-icon{min-height:0!important;min-width:0!important;}
+    @media (pointer:coarse){ #${CONTAINER_ID} .sv-icon{width:38px!important;height:38px!important;font-size:.95em;} }
     .sv-icon:hover{background:#eef2ff;}
     .sv-icon.sv-del{color:#dc2626;}
     .sv-icon:disabled{opacity:.35;cursor:default;}
@@ -312,6 +319,13 @@ function _injectStyles() {
     .sv-res-cat h5{margin:0 0 6px;font-size:.95em;color:#4338ca;}
     .sv-sep{margin:10px 0 0;font-size:.8em;color:#64748b;border-inline-start:3px solid #667eea;padding:6px 10px;background:#f8fafc;border-radius:4px;}
     .sv-pct{font-weight:700;color:#10b981;}
+    /* 3.134.0: results — the item reads from the start of the line (the
+       right in Arabic); rank, score, % and responses are centred, their
+       headings too. */
+    .sv-res-table th,.sv-res-table td{text-align:center!important;}
+    /* dacum-rtl.css keeps every cell but the first LTR (numbers); the
+       item is prose, so it takes the table's direction back. */
+    .sv-res-table th.sv-res-item,.sv-res-table td.sv-res-item{text-align:start!important;direction:inherit!important;unicode-bidi:plaintext;}
     /* Phone layout: each item becomes a compact card — item text on
        top, the four 0–3 counts side by side in ONE row (not stacked
        one under another), then score, % and the row actions. */
@@ -456,17 +470,17 @@ function _resultsHtml() {
     <div class="sv-res-cat">
       <h5>${_esc(sec.letter)}. ${_esc(sec.title)}</h5>
       <div style="overflow-x:auto;width:100%;">
-        <table class="dashboard-table verification-table">
+        <table class="dashboard-table verification-table sv-res-table">
           <thead><tr>
             <th style="width:10%;">${_esc(_t('svThRank'))}</th>
-            <th>${_esc(_t('svThItem'))}</th>
+            <th class="sv-res-item">${_esc(_t('svThItem'))}</th>
             <th style="width:14%;">${_esc(_t('svThScore'))}</th>
             <th style="width:12%;">%</th>
             <th style="width:14%;">${_esc(_t('svThResponses'))}</th>
           </tr></thead>
           <tbody>${sec.items.map(it => `<tr>
             <td style="text-align:center;"><span class="rank-badge ${it.rank <= 3 ? 'top' : ''}">#${it.rank}</span></td>
-            <td>${_esc(it.text)}</td>
+            <td class="sv-res-item">${_esc(it.text)}</td>
             <td style="text-align:center;"><span class="mean-value">${it.aggregatedScore.toFixed(2)}</span></td>
             <td style="text-align:center;"><span class="sv-pct">${it.percentage.toFixed(1)}%</span></td>
             <td style="text-align:center;">${it.responses}</td>

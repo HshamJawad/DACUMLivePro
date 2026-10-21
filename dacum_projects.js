@@ -13,7 +13,10 @@
 // ============================================================
 
 import { appState, defaultSupplementaryVerification,
-         normalizeModuleCurriculumData } from './state.js';
+         normalizeModuleCurriculumData,
+         normalizeExternalCount as _extNum } from './state.js';
+import { paintExternalParticipants } from './tasks.js';
+import { lwPaintExternalLink } from './workshop.js';
 import { showStatus }         from './renderer.js';
 import { syncAllFromDOM }     from './duties.js';
 import { clearAllSilent }     from './projects.js';
@@ -155,6 +158,8 @@ export function importProjectFromData(data, fileName) {
     collectionMode:           s.verification?.collectionMode || 'workshop',
     workflowMode:             s.verification?.workflowMode   || 'standard',
     workshopParticipants:     s.verification?.workshopParticipants || 10,
+    externalParticipants:     _extNum(s.verification?.externalParticipants),
+    externalCounted:          _extNum(s.verification?.externalCounted),
     priorityFormula:          s.verification?.priorityFormula || 'if',
     workshopCounts:           s.verification?.workshopCounts || {},
     workshopResults:          s.verification?.workshopResults || {},
@@ -1094,6 +1099,8 @@ function _captureState() {
     collectionMode:           appState.collectionMode,
     workflowMode:             appState.workflowMode,
     workshopParticipants:     appState.workshopParticipants,
+    externalParticipants:     appState.externalParticipants ?? null,
+    externalCounted:          appState.externalCounted ?? null,
     priorityFormula:          appState.priorityFormula,
     workshopCounts:           appState.workshopCounts          || {},
     workshopResults:          appState.workshopResults         || {},
@@ -1155,6 +1162,8 @@ function _applyState(s) {
   appState.collectionMode           = s.collectionMode           || 'workshop';
   appState.workflowMode             = s.workflowMode             || 'standard';
   appState.workshopParticipants     = s.workshopParticipants     || 10;
+  appState.externalParticipants     = _extNum(s.externalParticipants);
+  appState.externalCounted          = _extNum(s.externalCounted);
   appState.priorityFormula          = s.priorityFormula          || 'if';
   appState.workshopCounts           = s.workshopCounts           || {};
   appState.workshopResults          = s.workshopResults          || {};
@@ -1189,6 +1198,13 @@ function _applyState(s) {
   // during early init) never throws.  `_arrField` joins arrays with
   // newlines for the facilitators/observers/panel textareas.
   _hydrateChartInfoDOM(s._chartInfo || s.chartInfo || {});
+  /* 3.134.0: the Task Verification controls too. Opening a project set
+     the participant count, the collection / workflow modes and the
+     priority formula in the state but never in their fields, so the
+     tab showed the default 10 (and the default radios) over a project
+     rated by 8 — and the next change written from the field put 10
+     back. */
+  _hydrateVerificationDOM();
 
   _applyLiveWorkshopDOM(s);
 
@@ -1205,6 +1221,19 @@ function _applyState(s) {
    renderModuleLoList,   renderModules, renderModuleCurriculum].forEach(fn => {
     try { fn(); } catch (err) { console.warn('[project] render skipped:', err); }
   });
+}
+
+function _hydrateVerificationDOM() {
+  const chk = (id, on) => { const el = document.getElementById(id); if (el) el.checked = !!on; };
+  chk('mode-workshop',     appState.collectionMode === 'workshop');
+  chk('mode-survey',       appState.collectionMode === 'survey');
+  chk('workflow-standard', appState.workflowMode !== 'extended');
+  chk('workflow-extended', appState.workflowMode === 'extended');
+  chk('formula-if',        appState.priorityFormula !== 'ifd');
+  chk('formula-ifd',       appState.priorityFormula === 'ifd');
+  const wp = document.getElementById('workshopParticipants');
+  if (wp) wp.value = appState.workshopParticipants || 10;
+  try { paintExternalParticipants(true); } catch (_) { /* field not built yet */ }
 }
 
 function _hydrateChartInfoDOM(ci) {
@@ -1291,6 +1320,7 @@ function _applyLiveWorkshopDOM(s) {
       lwLinkEl.textContent = '';
       lwLinkEl.removeAttribute('data-full-url');
     }
+    try { lwPaintExternalLink(); } catch (_) { /* 3.134.0 */ }
 
     // Results area
     if (s.lwAggregatedResults && lwResults) {

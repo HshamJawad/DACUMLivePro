@@ -263,7 +263,7 @@ export function _pdfVerificationAppendix({ margin, pageHeight, pageWidth, pdf, y
                 pdf.setFont(undefined, 'normal');
                 pdf.text(_tf('expCollectionMode', { v: _t(appState.collectionMode === 'workshop' ? 'modeWorkshop' : 'expIndividualSurvey') }), margin, yPos);
                 yPos += 6;
-                pdf.text(_tf('expParticipants', { v: appState.workshopParticipants }), margin, yPos);
+                pdf.text(_tf(appState.externalParticipants > 0 ? 'expParticipantsBoth' : 'expParticipants', { v: appState.workshopParticipants, x: appState.externalParticipants }), margin, yPos);
                 yPos += 6;
                 pdf.text(_tf('expWorkflowMode', { v: _t(appState.workflowMode === 'standard' ? 'modeStandard' : 'modeExtended') }), margin, yPos);
                 yPos += 6;

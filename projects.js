@@ -230,6 +230,8 @@ function _doClear() {
   const verCont = document.getElementById('verificationAccordionContainer');
   if (verCont) { verCont.innerHTML = ''; verCont.classList.remove('workflow-extended'); }
   appState.workshopParticipants = 10;
+  appState.externalParticipants = null;
+  appState.externalCounted      = null;
   appState.workshopCounts       = {};
   appState.workshopResults      = {};
   appState.priorityFormula      = 'if';
@@ -241,6 +243,8 @@ function _doClear() {
   const fif = document.getElementById('formula-if');
   const ifd = document.getElementById('formula-ifd');
   if (wp)  wp.value    = 10;
+  const xp = document.getElementById('externalParticipants');
+  if (xp)  xp.value    = '';
   if (fif) fif.checked = true;
   if (ifd) ifd.checked = false;
 

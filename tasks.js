@@ -77,6 +77,45 @@ export function updateParticipantCount() {
   showStatus(_tf('msgParticipantsSet', { n: appState.workshopParticipants }), 'success');
 }
 
+/* 3.134.0: participants outside the workshop. The field holds the
+   facilitator's figure — an estimate until votes come in through the
+   external live link, when the counted number replaces it (workshop.js
+   sets externalCounted). The workshop count above stays the ceiling of
+   the per-task counts; this one does not limit them. */
+export function updateExternalParticipants() {
+  const input = document.getElementById('externalParticipants');
+  if (!input) return;
+  const raw = String(input.value || '').trim();
+  const n = raw === '' ? null : Math.max(0, Math.floor(+raw));
+  appState.externalParticipants = Number.isFinite(n) ? n : null;
+  paintExternalParticipants();
+  if (appState.externalParticipants != null) {
+    showStatus(_tf('msgExternalSet', { n: appState.externalParticipants }), 'success');
+  }
+}
+
+export function paintExternalParticipants(force) {
+  const input = document.getElementById('externalParticipants');
+  const chip  = document.getElementById('externalParticipantsChip');
+  // Not over what is being typed — unless a project was just opened.
+  if (input && (force === true || document.activeElement !== input)) {
+    input.value = appState.externalParticipants != null ? String(appState.externalParticipants) : '';
+  }
+  if (!chip) return;
+  const counted = appState.externalCounted;
+  if (counted != null && counted === appState.externalParticipants) {
+    chip.textContent = _tf('lblExternalCounted', { n: counted });
+    chip.className = 'ext-chip is-counted';
+    chip.hidden = false;
+  } else if (appState.externalParticipants != null) {
+    chip.textContent = _t('lblExternalEstimate');
+    chip.className = 'ext-chip';
+    chip.hidden = false;
+  } else {
+    chip.hidden = true;
+  }
+}
+
 export function updatePriorityFormula() {
   const ifRadio  = document.getElementById('formula-if');
   const ifdRadio = document.getElementById('formula-ifd');

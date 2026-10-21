@@ -7,7 +7,8 @@
 // Max entries      : 30  (oldest removed when exceeded)
 // ============================================================
 
-import { appState, normalizeModuleCurriculumData } from './state.js';
+import { appState, normalizeModuleCurriculumData,
+         normalizeExternalCount as _extNum } from './state.js';
 import { mergeRestoredCL }           from './content_lang.js';
 import { showStatus }                from './renderer.js';
 import { renderDutiesFromState, syncAllFromDOM } from './duties.js';
@@ -207,6 +208,8 @@ function _captureFullState() {
     collectionMode:          appState.collectionMode,
     workflowMode:            appState.workflowMode,
     workshopParticipants:    appState.workshopParticipants,
+    externalParticipants:    appState.externalParticipants ?? null,
+    externalCounted:         appState.externalCounted ?? null,
     priorityFormula:         appState.priorityFormula,
     workshopCounts:          appState.workshopCounts          || {},
     workshopResults:         appState.workshopResults         || {},
@@ -240,6 +243,8 @@ function _applyFullState(s) {
   appState.collectionMode          = s.collectionMode          || 'workshop';
   appState.workflowMode            = s.workflowMode            || 'standard';
   appState.workshopParticipants    = s.workshopParticipants    || 10;
+  appState.externalParticipants    = _extNum(s.externalParticipants);
+  appState.externalCounted         = _extNum(s.externalCounted);
   appState.priorityFormula         = s.priorityFormula         || 'if';
   appState.workshopCounts          = s.workshopCounts          || {};
   appState.workshopResults         = s.workshopResults         || {};

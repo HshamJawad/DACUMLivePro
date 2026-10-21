@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v287';
+      var EXPECTED_SW = 'v288';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: one language per
       // text in the Module Builder handoff (text language, decisions table
       // and added sections translated, missing translations named).
-      var APP_VERSION = '3.133.3';
+      var APP_VERSION = '3.134.0';
       var APP_RELEASED = '2026-10-21';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -1258,6 +1258,15 @@
                 <p style="color: #64748b; margin: 10px 0 0 0; font-size: 0.9em;" data-i18n="hintParticipants">
                     Enter the total number of workshop participants (recommended: 8–20). This is the maximum number of responses per task.
                 </p>
+                <!-- 3.134.0: participants outside the workshop (tasks.js) -->
+                <div class="ext-participants" id="externalParticipantsRow">
+                    <h3 style="display: inline-block; margin: 0 15px 0 0;">🌍 <span data-i18n="lblExternalParticipants">Participants outside the workshop:</span></h3>
+                    <input type="number" id="externalParticipants" min="0" max="100000" placeholder="0" inputmode="numeric" style="display: inline-block; width: 80px;">
+                    <span class="ext-chip" id="externalParticipantsChip" hidden></span>
+                    <p style="color: #64748b; margin: 10px 0 0 0; font-size: 0.9em;" data-i18n="hintExternalParticipants">
+                        Practitioners who answer the verification survey outside the workshop.
+                    </p>
+                </div>
             </div>
             
             <!-- Priority Formula Selector (Standard mode only) -->
@@ -1523,6 +1532,8 @@
                                          font-size: 0.9em;
                                          display: none;">✓ <span data-i18n="lblCopied">Copied!</span></span>
                         </div>
+                        <!-- 3.134.0: a second link for participants outside the workshop (workshop.js) -->
+                        <div id="lwExternalLinkBox" class="lw-ext-box"></div>
                         <p style="margin: 20px 0 0 0; font-size: 0.9em; opacity: 0.9;">
                             <span data-i18n="lblSessionId">Session ID:</span> <span id="lwSessionId" style="font-family: monospace; font-weight: 600;"></span>
                         </p>
