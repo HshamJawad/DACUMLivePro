@@ -1053,6 +1053,7 @@ function _showTaskVerificationHelp() {
       /* 3.89.0 — from Norton, "CBE via the DACUM and SCID process". */
       ['\u2753',        _t('helpTVK7'), _t('helpTVV7')],
       ['\u{1F5F3}\uFE0F', _t('helpTVK8'), _t('helpTVV8')],
+      ['\u{1F4CF}',     _t('helpTVK11'), _t('helpTVV11')],   // 3.134.1: who counts in «% performing»
       ['\u{1F91D}',     _t('helpTVK9'), _t('helpTVV9')],
       ['\u2696\uFE0F',  _t('helpTVK10'), _t('helpTVV10')],
     ],

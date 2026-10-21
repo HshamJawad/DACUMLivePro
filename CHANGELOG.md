@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.134.1 — 2026-10-21 — Task Verification help: who counts in «% performing»
+PATCH. translations.js, events.js, index.html, sw.js (v289),
+tests/specs/help-guides.spec.js.
+Added   A point in the Task Verification help (EN / FR / AR): work out
+        «% performing» (the 25% rule) from the participants outside the
+        workshop only — the panel is chosen for its experience and does
+        most tasks, so counting it raises the figures. Example: 4 of 20
+        outside = 20%, suggested for exclusion; with the 8 panel members
+        it becomes 12 of 28 = 43% and a rare task stays. The panel is
+        counted in only when the outside sample is very small, and the
+        report says so.
+Tested  help-guides spec (EN / FR / AR, 360 px); full suite.
+
 ── 3.134.0 — 2026-10-21 — Task Verification: participants outside the workshop; fixes
 MINOR. tasks.js, workshop.js, events.js, state.js, dacum_projects.js, snapshots.js,
 autosave.js, workshop_snapshots.js, projects.js, supplementary_verification.js,
