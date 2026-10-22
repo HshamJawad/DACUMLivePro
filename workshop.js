@@ -98,6 +98,138 @@ export function lwCheckAndShowSection() {
   }
 }
 
+// ── 3.134.4: the live voting server, and what to say when it fails ──
+// Live voting needs the online server (LW_API_BASE). When it cannot be
+// reached — no internet, the server asleep or down, a request that never
+// answers, a session the server no longer has — the facilitator is told
+// in a window, with what is safe and what to do, instead of a line at
+// the foot of the page that was never seen.
+const LW_TIMEOUT_MS = 25000;
+
+async function _lwFetch(url, opts) {
+  const ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const ms = (typeof window !== 'undefined' && +window.__lwTimeoutMs) || LW_TIMEOUT_MS;   // tests shorten it
+  const timer = ctl ? setTimeout(() => ctl.abort(), ms) : null;
+  try {
+    return await fetch(url, Object.assign({}, opts || {}, ctl ? { signal: ctl.signal } : {}));
+  } catch (e) {
+    if (e && e.name === 'AbortError') { const t = new Error('No answer within ' + Math.round(ms / 1000) + ' s'); t.lwKind = 'timeout'; throw t; }
+    throw e;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function _lwHttpError(response) {
+  const e = new Error('HTTP ' + response.status + (response.statusText ? ' ' + response.statusText : ''));
+  e.status = response.status;
+  return e;
+}
+
+/** 'offline' | 'timeout' | 'lost' | 'server' | 'unreachable' */
+export function lwClassifyError(err, op) {
+  if (err && err.lwKind) return err.lwKind;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'offline';
+  const st = err && err.status;
+  if (st === 404 && op === 'fetch') return 'lost';
+  if (st >= 500 || st === 404 || st === 429) return st >= 500 ? 'server' : 'unreachable';
+  if (st) return 'server';
+  return 'unreachable';                    // fetch() threw: DNS, CORS, refused, …
+}
+
+const _LW_KIND = {
+  offline:     { icon: '\u{1F4F4}', title: 'lwSvcTitleOffline',     body: 'lwSvcBodyOffline' },
+  timeout:     { icon: '\u23F3',    title: 'lwSvcTitleTimeout',     body: 'lwSvcBodyTimeout' },
+  unreachable: { icon: '\u{1F50C}', title: 'lwSvcTitleUnreachable', body: 'lwSvcBodyUnreachable' },
+  server:      { icon: '\u26A0\uFE0F', title: 'lwSvcTitleServer', body: 'lwSvcBodyServer' },
+  lost:        { icon: '\u{1F5C2}\uFE0F', title: 'lwSvcTitleLost',  body: 'lwSvcBodyLost' },
+};
+
+function _lwModal({ id, icon, title, bodyHtml, tone }) {
+  document.getElementById(id)?.remove();
+  const red = tone === 'red';
+  const hdrBg  = red ? 'linear-gradient(135deg,#fef2f2,#fee2e2)' : 'linear-gradient(135deg,#fff7ed,#ffedd5)';
+  const hdrBdr = red ? '#fecaca' : '#fed7aa';
+  const hdrClr = red ? '#991b1b' : '#9a3412';
+  const modal = document.createElement('div');
+  modal.id = id;
+  modal.className = 'lw-svc-modal';
+  modal.setAttribute('role', 'alertdialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', id + 'Title');
+  modal.setAttribute('dir', (window.i18n && window.i18n.isRTL && window.i18n.isRTL()) ? 'rtl' : 'ltr');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;' +
+    'justify-content:center;padding:16px;background:rgba(0,0,0,0.55);';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.35);
+         overflow:hidden;font-family:inherit;max-height:88vh;display:flex;flex-direction:column;">
+      <div style="padding:18px 20px 14px;display:flex;align-items:center;gap:12px;background:${hdrBg};
+           border-bottom:1px solid ${hdrBdr};flex-shrink:0;">
+        <span style="font-size:1.7em;line-height:1;">${icon}</span>
+        <p id="${id}Title" style="margin:0;font-size:1em;font-weight:800;color:${hdrClr};">${lwEscapeHtml(title)}</p>
+      </div>
+      <div style="padding:16px 20px;overflow-y:auto;">${bodyHtml}</div>
+      <div style="padding:12px 20px;border-top:1px solid #eef0f4;display:flex;justify-content:flex-end;flex-shrink:0;">
+        <button type="button" data-lw-modal-close style="padding:9px 22px;background:#0284c7;color:#fff;border:none;
+                border-radius:8px;font-size:.9em;font-weight:700;cursor:pointer;font-family:inherit;">${lwEscapeHtml(_t('btnGotIt'))}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  const close = () => { modal.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  const btn = modal.querySelector('[data-lw-modal-close]');
+  btn.addEventListener('click', close);
+  try { btn.focus(); } catch (_) {}
+  return modal;
+}
+
+/** The live voting server could not do what was asked. `op`: 'create' | 'fetch'. */
+export function showLiveServiceError(err, op) {
+  const kind = lwClassifyError(err, op);
+  const k = _LW_KIND[kind] || _LW_KIND.unreachable;
+  const P = 'margin:0 0 12px;font-size:.9em;color:#374151;line-height:1.65;';
+  const tips = kind === 'lost' ? ['lwSvcTipNewSession', 'lwSvcTipManual']
+    : kind === 'offline' ? ['lwSvcTipOnline', 'lwSvcTipManual']
+    : ['lwSvcTipRetry', 'lwSvcTipManual', 'lwSvcTipAdmin'];
+  const detail = [err && err.message].filter(Boolean).join(' — ');
+  _lwModal({
+    id: 'lwServiceErrorModal', icon: k.icon, title: _t(k.title), tone: kind === 'lost' ? 'red' : 'orange',
+    bodyHtml: `
+      <p style="${P}">${lwEscapeHtml(_t(k.body))}</p>
+      <p style="margin:0 0 12px;font-size:.85em;color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;
+         padding:8px 10px;line-height:1.55;">✅ ${lwEscapeHtml(_t(op === 'fetch' ? 'lwSvcSafeFetch' : 'lwSvcSafeCreate'))}</p>
+      <p style="margin:0 0 4px;font-size:.82em;font-weight:700;color:#334155;">${lwEscapeHtml(_t('lwSvcWhatNow'))}</p>
+      <ul style="margin:0 0 12px;padding-inline-start:18px;font-size:.82em;color:#475569;line-height:1.8;">
+        ${tips.map(tk => `<li>${lwEscapeHtml(_t(tk))}</li>`).join('')}</ul>
+      ${detail ? `<details style="font-size:.78em;color:#64748b;"><summary style="cursor:pointer;">${lwEscapeHtml(_t('lwSvcDetails'))}</summary>
+        <code style="display:block;margin-top:6px;background:#f1f5f9;padding:6px 8px;border-radius:4px;word-break:break-all;
+              direction:ltr;unicode-bidi:isolate;">${lwEscapeHtml(detail)}</code></details>` : ''}`
+  });
+  return kind;
+}
+
+/** What has to be filled in before a session can be created. */
+export function showLiveNotice(lines) {
+  _lwModal({
+    id: 'lwServiceErrorModal', icon: '\u{1F4DD}', title: _t('lwNotReadyTitle'), tone: 'orange',
+    bodyHtml: `<ul style="margin:0;padding-inline-start:18px;font-size:.9em;color:#374151;line-height:1.8;">
+      ${lines.map(l => `<li>${lwEscapeHtml(l)}</li>`).join('')}</ul>`
+  });
+}
+
+/** A button says it is working while the server answers; returns the undo. */
+function _lwBusy(id, key) {
+  const b = document.getElementById(id);
+  if (!b) return () => {};
+  const html = b.innerHTML, was = b.disabled;
+  b.disabled = true;
+  b.setAttribute('aria-busy', 'true');
+  b.innerHTML = '⏳ ' + lwEscapeHtml(_t(key));
+  return () => { b.innerHTML = html; b.removeAttribute('aria-busy'); b.disabled = (id === 'btnLWFinalize') ? !!appState.lwIsFinalized : was; };
+}
+
 // ── Phase 1: Finalize & Create Session ───────────────────────
 
 export async function lwFinalizeAndCreateSession() {
@@ -106,27 +238,27 @@ export async function lwFinalizeAndCreateSession() {
   const occupation = occupationField?.value.trim() || '';
   const jobTitle   = jobTitleField?.value.trim() || '';
 
+  /* 3.134.4: what is missing is said in a window, not in the status
+     line at the foot of the page, where nobody saw it. */
   if (!occupation || !jobTitle) {
-    showStatus(_t('lwNeedTitles'), 'error');
+    showLiveNotice([_t('lwNeedTitles')]);
     return;
   }
 
   const duties = lwExtractDutiesAndTasks();
   if (Object.keys(duties).length === 0) {
-    showStatus(_t('lwNeedDuties'), 'error');
+    showLiveNotice([_t('lwNeedDuties')]);
     return;
   }
 
-  let valid = true;
+  const problems = [];
   Object.keys(duties).forEach(dutyId => {
     const duty = duties[dutyId];
-    if (!duty.title.trim()) { showStatus(_tf('lwDutyNeedsTitle', { id: dutyId }), 'error'); valid = false; }
-    if (duty.tasks.length === 0) { showStatus(_tf('lwDutyNeedsTask', { title: duty.title }), 'error'); valid = false; }
-    duty.tasks.forEach(task => {
-      if (!task.text.trim()) { showStatus(_t('lwFillTaskDesc'), 'error'); valid = false; }
-    });
+    if (!duty.title.trim()) problems.push(_tf('lwDutyNeedsTitle', { id: dutyId }));
+    if (duty.tasks.length === 0) problems.push(_tf('lwDutyNeedsTask', { title: duty.title }));
+    if (duty.tasks.some(task => !task.text.trim())) problems.push(_t('lwFillTaskDesc'));
   });
-  if (!valid) return;
+  if (problems.length) { showLiveNotice([...new Set(problems)]); return; }
 
   const selectedFormula = document.querySelector('input[name="priorityFormula"]:checked')?.value || 'if';
 
@@ -145,15 +277,16 @@ export async function lwFinalizeAndCreateSession() {
   appState.lwIsFinalized = true;
   document.getElementById('btnLWFinalize').disabled = true;
   appState.lwSessionId = lwGenerateId();
+  const _busy = _lwBusy('btnLWFinalize', 'lwCreating');   // 3.134.4
 
   try {
-    const response = await fetch(`${LW_API_BASE}/create-session`, {
+    const response = await _lwFetch(`${LW_API_BASE}/create-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId: appState.lwSessionId, data: appState.lwFinalizedData })
     });
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok) throw _lwHttpError(response);
     const result = await response.json();
 
     if (result.success) {
@@ -189,10 +322,12 @@ export async function lwFinalizeAndCreateSession() {
     }
   } catch (error) {
     console.error('Error creating session:', error);
-    showStatus(_tf('lwSessionError', { msg: error.message }), 'error');
     appState.lwIsFinalized = false;
     appState.lwSessionId = null;
     document.getElementById('btnLWFinalize').disabled = false;
+    showLiveServiceError(error, 'create');   // 3.134.4: a window, not the status line
+  } finally {
+    _busy();
   }
 }
 
@@ -421,9 +556,10 @@ export function lwUpdateDOMWithReorderedTasks() {
 export async function lwFetchResults() {
   if (!appState.lwSessionId) { showStatus(_t('lwNoSession'), 'error'); return; }
 
+  const _busy = _lwBusy('btnLWFetchResults', 'lwFetching');   // 3.134.4
   try {
-    const response = await fetch(`${LW_API_BASE}/get-results/${appState.lwSessionId}`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const response = await _lwFetch(`${LW_API_BASE}/get-results/${appState.lwSessionId}`);
+    if (!response.ok) throw _lwHttpError(response);
     const result = await response.json();
 
     if (result.success) {
@@ -451,7 +587,9 @@ export async function lwFetchResults() {
     }
   } catch (error) {
     console.error('Error fetching results:', error);
-    showStatus(_tf('lwFetchError', { msg: error.message }), 'error');
+    showLiveServiceError(error, 'fetch');   // 3.134.4
+  } finally {
+    _busy();
   }
 }
 

@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.134.4 — 2026-10-22 — Live Workshop: a window when the voting server cannot be used
+PATCH. workshop.js, translations.js, index.html, sw.js (v292),
+tests/specs/live-service-errors.spec.js (new).
+Fixed   «Finalize & create live session» and «Refresh voting results»
+        reported a failure only in the status line at the foot of the
+        page, which nobody saw. A window now names what happened — no
+        internet, the server unreachable or asleep, no answer within 25 s,
+        an error from the server, or (results) a session the server no
+        longer has after a restart — says what is safe (nothing created /
+        results already fetched unchanged) and what to do (try again,
+        enter the panel's votes by hand, new session, restart the
+        server), with the technical detail folded away. What is missing
+        before a session can be created (titles, duties, tasks) is listed
+        in the same window. The button says «Creating the session…» /
+        «Fetching the results…» while the server answers. EN / FR / AR.
+Tested  live-service-errors spec (unreachable, 503, timeout, offline,
+        lost session, not ready, 360 px); full suite.
+
 ── 3.134.3 — 2026-10-22 — Live Workshop card in the AI colours; matrix buttons centred
 PATCH. index.html, dacum-components.css, renderer.js, sw.js (v291),
 tests/specs/ui-centring.spec.js (new).
