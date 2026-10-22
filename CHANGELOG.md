@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.134.3 — 2026-10-22 — Live Workshop card in the AI colours; matrix buttons centred
+PATCH. index.html, dacum-components.css, renderer.js, sw.js (v291),
+tests/specs/ui-centring.spec.js (new).
+Changed The Live Workshop session card (links and QR codes) takes the AI
+        card's blue instead of green — one visual identity. Its link
+        boxes and QR buttons follow (workshop and outside-the-workshop).
+Fixed   Skills Level Matrix: the × that removes a level sat 7 px to one
+        side (RTL text-align on a block), the category ✕ was slightly
+        off and the row ✕ was a tall rectangle. All are square with the
+        glyph centred — 22 / 32 px, 28 / 38 px on touch screens.
+Tested  ui-centring spec (AR, 1280 px and 412 px touch); full suite.
+
 ── 3.134.2 — 2026-10-22 — Task Verification help: why the workshop vote still matters
 PATCH. translations.js, events.js, index.html, sw.js (v290),
 tests/specs/help-guides.spec.js.
