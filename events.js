@@ -1054,6 +1054,7 @@ function _showTaskVerificationHelp() {
       ['\u2753',        _t('helpTVK7'), _t('helpTVV7')],
       ['\u{1F5F3}\uFE0F', _t('helpTVK8'), _t('helpTVV8')],
       ['\u{1F4CF}',     _t('helpTVK11'), _t('helpTVV11')],   // 3.134.1: who counts in «% performing»
+      ['\u{1F9E9}',     _t('helpTVK12'), _t('helpTVV12')],   // 3.134.2: the two votes, two questions
       ['\u{1F91D}',     _t('helpTVK9'), _t('helpTVV9')],
       ['\u2696\uFE0F',  _t('helpTVK10'), _t('helpTVV10')],
     ],

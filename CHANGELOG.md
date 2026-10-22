@@ -7,6 +7,20 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.134.2 — 2026-10-22 — Task Verification help: why the workshop vote still matters
+PATCH. translations.js, events.js, index.html, sw.js (v290),
+tests/specs/help-guides.spec.js.
+Added   A point in the Task Verification help (EN / FR / AR), after the
+        25% rule: that rule only asks whether workers perform a task; the
+        workshop ratings (1) set aside tasks it keeps — low importance,
+        or so easy they are learned on the job (browsing the internet,
+        done by 95%) — through «Suggest», (2) shape the training of the
+        tasks kept: priority index for order and emphasis (and the
+        Competency Clusters order), difficulty for depth and length,
+        importance for assessment, and (3) document the decision. A task
+        kept for analysis passes both.
+Tested  help-guides spec (EN / FR / AR, 360 px); full suite.
+
 ── 3.134.1 — 2026-10-21 — Task Verification help: who counts in «% performing»
 PATCH. translations.js, events.js, index.html, sw.js (v289),
 tests/specs/help-guides.spec.js.
