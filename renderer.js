@@ -235,6 +235,22 @@ function _injectMatrixStyles() {
     #skillsLevelContainer .mx-row-x { margin: 0; min-width: 32px; min-height: 32px; padding: 4px 8px !important; border: none; background: transparent; color: #ef4444;
       font-size: 15px; cursor: pointer; border-radius: 6px; min-width: 0; }
     #skillsLevelContainer .mx-row-x:hover { background: #fef2f2; }
+    /* 3.134.3: every × / ✕ of the matrix square, its glyph in the middle.
+       The level × was a centred-by-text block, which the RTL text-align
+       pushed 7 px to one side; the row ✕ took the 44 px touch height. */
+    #skillsLevelContainer .mx-lv-x, #skillsLevelContainer .mx-mini.mx-del, #skillsLevelContainer .mx-row-x {
+      display: inline-flex !important; align-items: center; justify-content: center; text-align: center;
+      padding: 0 !important; box-sizing: border-box; flex: 0 0 auto; line-height: 1;
+      font-family: system-ui, 'Segoe UI Symbol', sans-serif; }
+    #skillsLevelContainer .mx-lv-x { display: flex !important; width: 22px; height: 22px; min-width: 22px !important; min-height: 22px !important;
+      max-width: 22px; max-height: 22px; margin: 3px auto 0; }
+    #skillsLevelContainer .mx-mini.mx-del, #skillsLevelContainer .mx-row-x { width: 32px; height: 32px;
+      min-width: 32px !important; min-height: 32px !important; max-width: 32px; max-height: 32px; }
+    @media (pointer: coarse) {
+      #skillsLevelContainer .mx-mini.mx-del, #skillsLevelContainer .mx-row-x { width: 38px; height: 38px;
+        min-width: 38px !important; min-height: 38px !important; max-width: 38px; max-height: 38px; }
+      #skillsLevelContainer .mx-lv-x { width: 28px; height: 28px; min-width: 28px !important; min-height: 28px !important; max-width: 28px; max-height: 28px; }
+    }
     /* The competency column stays in view while the level columns scroll. */
     #skillsLevelContainer .mx-table td.mx-c-comp { position: sticky; inset-inline-start: 0; background: #fff; z-index: 1; }
     #skillsLevelContainer .mx-table thead th.mx-c-comp { position: sticky; inset-inline-start: 0; z-index: 2; }
