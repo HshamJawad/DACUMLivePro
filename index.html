@@ -108,13 +108,13 @@
          The two constants are in different files that cannot import
          each other (a service worker has no module scope), so the only
          guard is discipline: bump BOTH in the same commit, always. */
-      var EXPECTED_SW = 'v292';
+      var EXPECTED_SW = 'v293';
 
       // ── Human-readable build identity (shown in the toolbar) ──
       // Bumped together with EXPECTED_SW above. MINOR: one language per
       // text in the Module Builder handoff (text language, decisions table
       // and added sections translated, missing translations named).
-      var APP_VERSION = '3.134.4';
+      var APP_VERSION = '3.134.5';
       var APP_RELEASED = '2026-10-21';
       // Read by the loading screen at the top of <body>.
       window.DACUM_BUILD = { version: APP_VERSION, released: APP_RELEASED };
@@ -852,7 +852,7 @@
                         <label for="jobTitle" style="margin:0;">👔 <span data-i18n="labelJobTitle">Job Title:</span> <span style="color:#dc2626;" aria-hidden="true">*</span></label>
                         <button type="button" id="jobTitleHelpBtn" class="tab-help-btn"
                                 title="Occupation vs. Job Title"
-                                data-i18n="ttJobTitleHelp" data-i18n-attr="title"
+                                data-i18n="ttJobTitleHelp" data-i18n-attr="title,aria-label"
                                 aria-label="Occupation vs. Job Title"
                                 aria-haspopup="dialog">?</button>
                     </div>
@@ -937,7 +937,7 @@
                     <h2 id="dutiesViewHeadingLegacy" data-i18n="h2Duties">Duties and Tasks</h2>
                     <button type="button" id="dutiesHelpBtn" class="tab-help-btn"
                             title="How do I write duty and task statements?"
-                            data-i18n="ttDutiesHelp" data-i18n-attr="title"
+                            data-i18n="ttDutiesHelp" data-i18n-attr="title,aria-label"
                             aria-label="How do I write duty and task statements?"
                             aria-haspopup="dialog">?</button>
                     <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="duties-tab"
@@ -1061,7 +1061,7 @@
                     <h2 data-i18n="h2AdditionalV2">Additional Information</h2>
                     <button type="button" id="addInfoHelpBtn" class="tab-help-btn"
                             title="Why does this section matter?"
-                            data-i18n="ttAddInfoHelp" data-i18n-attr="title"
+                            data-i18n="ttAddInfoHelp" data-i18n-attr="title,aria-label"
                             aria-label="Why does this section matter?"
                             aria-haspopup="dialog">?</button>
                     <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="additional-info-tab"
@@ -1204,7 +1204,7 @@
                     <h2>🎯 <span data-i18n="h2Verification">Task Verification &amp; Training Priority</span></h2>
                     <button type="button" id="taskVerifyHelpBtn" class="tab-help-btn"
                             title="Why does task verification matter?"
-                            data-i18n="ttVerifyHelp" data-i18n-attr="title"
+                            data-i18n="ttVerifyHelp" data-i18n-attr="title,aria-label"
                             aria-label="Why does task verification matter?"
                             aria-haspopup="dialog">?</button>
                 </div>
@@ -1784,7 +1784,7 @@
                     <h2>🔬 <span data-i18n="h2TaskAnalysis">Task Analysis</span></h2>
                     <button type="button" id="taskAnalysisHelpBtn" class="tab-help-btn"
                             title="What does Task Analysis add?"
-                            data-i18n="ttTaskAnalysisHelp" data-i18n-attr="title"
+                            data-i18n="ttTaskAnalysisHelp" data-i18n-attr="title,aria-label"
                             aria-label="What does Task Analysis add?"
                             aria-haspopup="dialog">?</button>
                 </div>
@@ -1830,7 +1830,7 @@
                     <h2>🎯 <span data-i18n="h2Clustering">Competency Clusters</span></h2>
                     <button type="button" id="clusteringHelpBtn" class="tab-help-btn"
                             title="How should I group tasks into clusters?"
-                            data-i18n="ttClusteringHelp" data-i18n-attr="title"
+                            data-i18n="ttClusteringHelp" data-i18n-attr="title,aria-label"
                             aria-label="How should I group tasks into clusters?"
                             aria-haspopup="dialog">?</button>
                     <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="clustering-tab"
@@ -1877,7 +1877,7 @@
                     <h3>📦 <span data-i18n="lblCreatedClusters">Created Clusters</span></h3>
                     <button type="button" id="clusterNamingHelpBtn" class="tab-help-btn"
                             title="How should I name a cluster?"
-                            data-i18n="ttClusterNamingHelp" data-i18n-attr="title"
+                            data-i18n="ttClusterNamingHelp" data-i18n-attr="title,aria-label"
                             aria-label="How should I name a cluster?"
                             aria-haspopup="dialog">?</button>
                 </div>
@@ -1972,7 +1972,7 @@
                     <h2>🎓 <span data-i18n="h2LearningOutcomes">Learning Outcomes</span></h2>
                     <button type="button" id="loHelpBtn" class="tab-help-btn"
                             title="Learning Outcome design patterns"
-                            data-i18n="ttLOHelp" data-i18n-attr="title"
+                            data-i18n="ttLOHelp" data-i18n-attr="title,aria-label"
                             aria-label="Learning Outcome design patterns"
                             aria-haspopup="dialog">?</button>
                     <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="learning-outcomes-tab"
@@ -2051,7 +2051,7 @@
                     <h2>📦 <span data-i18n="h2ModuleMapping">Module Mapping</span></h2>
                     <button type="button" id="mmHelpBtn" class="tab-help-btn"
                             title="Purpose and module grouping strategies"
-                            data-i18n="ttMMHelp" data-i18n-attr="title"
+                            data-i18n="ttMMHelp" data-i18n-attr="title,aria-label"
                             aria-label="Purpose and module grouping strategies"
                             aria-haspopup="dialog">?</button>
                     <button type="button" class="tab-ai-toggle is-open" data-ai-toggle="module-mapping-tab"

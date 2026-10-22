@@ -7,6 +7,28 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.134.5 — 2026-10-22 — Task Verification results in the interface language; cards grow again on older browsers
+PATCH. verification_charts.js, tasks.js, workshop.js, translations.js, dacum-ui.js,
+index.html, sw.js (v293), tests/specs/tv-arabic-autogrow.spec.js (new).
+Fixed   English left in an Arabic (or French) interface: the results chart
+        (its source line, note, «Duty average», axis title, «not rated»,
+        «Task statements», Close / Export PNG and its messages, the
+        chart's name for screen readers), the dashboard summary («Avg
+        Priority Index», «High Priority Tasks», «N tasks», «Showing results
+        for») and the live voting results table (title, total, headings,
+        formula note, «no votes yet»). Help buttons give screen readers
+        their name in the interface language (aria-label follows title).
+Fixed   Duties & Tasks cards no longer grew with long text in browsers
+        without CSS field-sizing (Chrome on Windows 7 and other older
+        browsers): the textareas are flex items with a 0 basis, so the
+        height the fallback set was ignored, and text saved earlier was
+        measured while its tab was hidden and stayed cut off. The fallback
+        now gives them their own height as basis, is chosen with
+        CSS.supports(), skips hidden textareas and sizes them when the tab
+        is opened or the window resized. Newer browsers are unchanged.
+Tested  tv-arabic-autogrow spec (Arabic results with no English; long text,
+        saved and typed, with and without field-sizing); full suite.
+
 ── 3.134.4 — 2026-10-22 — Live Workshop: a window when the voting server cannot be used
 PATCH. workshop.js, translations.js, index.html, sw.js (v292),
 tests/specs/live-service-errors.spec.js (new).

@@ -612,13 +612,13 @@ export function lwApplyGroupCounts(data) {
 export function lwDisplayResults() {
   const container = document.getElementById('lwResultsContainer');
   if (!appState.lwAggregatedResults) {
-    container.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:30px;">No votes received yet.</p>';
+    container.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:30px;">' + lwEscapeHtml(_t('msgNoVotesYet')) + '</p>';
     return;
   }
 
   const { totalVotes } = appState.lwAggregatedResults;
   if (totalVotes === 0) {
-    container.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:30px;">No votes received yet. Share the participant link to start collecting votes.</p>';
+    container.innerHTML = '<p style="color:#999;font-style:italic;text-align:center;padding:30px;">' + lwEscapeHtml(_t('msgNoVotesYet') + ' ' + _t('lwShareToStart')) + '</p>';
     return;
   }
 
@@ -636,16 +636,16 @@ export function lwDisplayResults() {
   allTasks.sort((a, b) => a.rank - b.rank);
 
   const formula = appState.lwFinalizedData.priorityFormula || 'if';
-  const formulaText = formula === 'ifd'
-    ? 'Average Importance × Average Frequency × Average Difficulty'
-    : 'Average Importance × Average Frequency';
+  /* 3.134.5: in the interface language, like the rest of the tab. */
+  const formulaText = _t(formula === 'ifd' ? 'lwResFormulaIFD' : 'lwResFormulaIF');
+  const th = (key, align) => `<th style="padding:12px;text-align:${align};font-weight:600;color:#0284c7;">${lwEscapeHtml(_t(key)).replace('\n', '<br>')}</th>`;
 
   let html = `
     <div style="background:white;padding:25px;border-radius:12px;border:2px solid #0284c7;">
-      <h3 style="color:#0284c7;margin:0 0 20px 0;text-align:center;">📊 Voting Results Summary</h3>
+      <h3 style="color:#0284c7;margin:0 0 20px 0;text-align:center;">📊 ${lwEscapeHtml(_t('lwResTitle'))}</h3>
       <div style="text-align:center;margin-bottom:25px;">
         <div style="display:inline-block;background:linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);color:white;padding:15px 30px;border-radius:12px;">
-          <div style="font-size:0.9em;opacity:0.9;margin-bottom:5px;">Total Participants</div>
+          <div style="font-size:0.9em;opacity:0.9;margin-bottom:5px;">${lwEscapeHtml(_t('lwResTotal'))}</div>
           <div style="font-size:2.5em;font-weight:700;">${totalVotes}</div>
           ${appState.lwAggregatedResults.groupCounts && appState.lwAggregatedResults.groupCounts.external
             ? `<div class="lw-votes-split">${lwEscapeHtml(_tf('lwVotesSplit', { w: appState.lwAggregatedResults.groupCounts.workshop || 0, x: appState.lwAggregatedResults.groupCounts.external }))}</div>` : ''}
@@ -655,13 +655,13 @@ export function lwDisplayResults() {
         <table style="width:100%;border-collapse:collapse;margin-top:20px;">
           <thead>
             <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb;">
-              <th style="padding:12px;text-align:left;font-weight:600;color:#0284c7;">Rank</th>
-              <th style="padding:12px;text-align:left;font-weight:600;color:#0284c7;">Duty</th>
-              <th style="padding:12px;text-align:left;font-weight:600;color:#0284c7;">Task</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Avg<br>Importance</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Avg<br>Frequency</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Avg<br>Difficulty</th>
-              <th style="padding:12px;text-align:center;font-weight:600;color:#0284c7;">Priority<br>Index</th>
+              ${th('lwResRank', 'start')}
+              ${th('lwResDuty', 'start')}
+              ${th('lwResTask', 'start')}
+              ${th('lwResAvgI', 'center')}
+              ${th('lwResAvgF', 'center')}
+              ${th('lwResAvgD', 'center')}
+              ${th('lwResPI', 'center')}
             </tr>
           </thead>
           <tbody>`;
@@ -687,10 +687,10 @@ export function lwDisplayResults() {
           </tbody>
         </table>
       </div>
-      <div style="margin-top:25px;padding:15px;background:#f0f7ff;border-radius:8px;border-left:4px solid #0284c7;">
+      <div style="margin-top:25px;padding:15px;background:#f0f7ff;border-radius:8px;border-inline-start:4px solid #0284c7;">
         <p style="margin:0;color:#334155;font-size:0.9em;line-height:1.6;">
-          <strong>Priority Index</strong> = ${formulaText}<br>
-          <strong>Higher values</strong> indicate greater training priority and importance for the occupation.
+          <strong>${lwEscapeHtml(_t('lwResPIName'))}</strong> = ${lwEscapeHtml(formulaText)}<br>
+          ${lwEscapeHtml(_t('lwResHigher'))}
         </p>
       </div>
     </div>`;
