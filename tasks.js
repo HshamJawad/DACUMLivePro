@@ -864,12 +864,12 @@ export function refreshDashboard() {
       const threshold         = validResults[Math.floor(validResults.length * 0.3)]?.priorityIndex || 0;
       const highPriorityCount = validResults.filter(r => r.priorityIndex >= threshold).length;
       const labelHtml = projectLabel
-        ? `<div style="grid-column:1/-1;text-align:center;margin-bottom:8px;font-size:0.82em;color:#0284c7;font-weight:600;">Showing results for: ${escapeHtml(projectLabel)}</div>`
+        ? `<div style="grid-column:1/-1;text-align:center;margin-bottom:8px;font-size:0.82em;color:#0284c7;font-weight:600;">${escapeHtml(_tf('dbShowingFor', { name: projectLabel }))}</div>`
         : '';
       summaryEl.innerHTML = `${labelHtml}
         <div class="summary-card"><h4>${_t('cardTasksVerified')}</h4><p>${validResults.length}</p></div>
-        <div class="summary-card"><h4>Avg Priority Index</h4><p>${avgPriority.toFixed(2)}</p></div>
-        <div class="summary-card"><h4>High Priority Tasks</h4><p>${highPriorityCount} tasks</p></div>
+        <div class="summary-card"><h4>${_t('cardAvgPriority')}</h4><p>${avgPriority.toFixed(2)}</p></div>
+        <div class="summary-card"><h4>${_t('cardHighPriority')}</h4><p>${escapeHtml(_tf('cardNTasks', { n: highPriorityCount }))}</p></div>
         <div class="summary-card"><h4>${_t('cardFormulaUsed')}</h4><p>${formulaSource === 'if' ? 'I × F' : 'I × F × D'}</p></div>`;
     } else {
       summaryEl.innerHTML = '';

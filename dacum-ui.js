@@ -6,34 +6,58 @@
    ============================================================= */
 
 (function () {
-  // Only needed when CSS field-sizing:content isn't available
-  var testEl = document.createElement('textarea');
-  if ('fieldSizing' in testEl.style) return; // native support — bail out
+  /* Only needed when CSS field-sizing:content isn't available — older
+     browsers, e.g. Chrome on Windows 7 (stops at 109; the feature came in
+     123). 3.134.5: asked through CSS.supports() — `'fieldSizing' in
+     el.style` is true in browsers that know the name but not the value —
+     and window.__dacumNoFieldSizing lets the tests run this path. */
+  var native = !window.__dacumNoFieldSizing &&
+    !!(window.CSS && CSS.supports && CSS.supports('field-sizing', 'content'));
+  if (native) return;
 
+  var SEL = '.dcv-duty-input, .dcv-task-input';
+  /* The textareas are flex items with flex: 1 1 0% (dacum-styles.css):
+     a 0 basis makes the browser ignore the height set below, so the
+     card never grew. Here the basis is their own height. */
+  document.documentElement.classList.add('dacum-no-field-sizing');
+  var st = document.createElement('style');
+  st.textContent = 'html.dacum-no-field-sizing .dcv-duty-input, html.dacum-no-field-sizing .dcv-task-input { flex: 1 0 auto !important; }';
+  (document.head || document.documentElement).appendChild(st);
+
+  /* A textarea on a hidden tab measures 0: it is left as it is and sized
+     when it is seen (below) — sizing it then set it to its 72 px minimum
+     and long saved text stayed cut off after the tab was opened. */
   function autoResize(el) {
+    if (!el.getClientRects().length) return;
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
+  }
+  function resizeAll() {
+    document.querySelectorAll(SEL).forEach(autoResize);
   }
 
   // Resize on every input event inside card containers
   document.addEventListener('input', function (e) {
     var t = e.target;
-    if (t && (t.classList.contains('dcv-duty-input') || t.classList.contains('dcv-task-input'))) {
-      autoResize(t);
-    }
+    if (t && t.matches && t.matches(SEL)) autoResize(t);
   });
 
-  // Initial resize for all card textareas already in the DOM
-  function resizeAll() {
-    document.querySelectorAll('.dcv-duty-input, .dcv-task-input').forEach(autoResize);
-  }
+  var timer = null;
+  function soon() { clearTimeout(timer); timer = setTimeout(resizeAll, 60); }
 
-  // Run after each render (MutationObserver on dutiesContainer)
   document.addEventListener('DOMContentLoaded', function () {
     resizeAll();
     var container = document.getElementById('dutiesContainer');
     if (!container) return;
-    new MutationObserver(resizeAll).observe(container, { childList: true, subtree: true });
+    // after each render
+    new MutationObserver(soon).observe(container, { childList: true, subtree: true });
+    // when the Duties & Tasks tab is opened, and when the width changes
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        if (entries.some(function (en) { return en.isIntersecting; })) soon();
+      }).observe(container);
+    }
+    window.addEventListener('resize', soon);
   });
 })();
 

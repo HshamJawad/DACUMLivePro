@@ -156,20 +156,18 @@ function _collectDuties() {
 // unavailable — never substituted with a placeholder figure.
 function _sourceLine(duty) {
   if (appState.collectionMode !== 'workshop') {
-    return 'Individual / Survey mode — bars show one respondent\u2019s rating on the 0\u2013' +
-           SCALE_MAX + ' scale.';
+    return _tf('chartSrcSurvey', { max: SCALE_MAX });
   }
   const all = [];
   duty.tasks.forEach(t => { if (t.rated && t.n) all.push.apply(all, t.n); });
   if (!all.length) {
-    return 'Workshop mode — bars show weighted means on the 0\u2013' + SCALE_MAX + ' scale.';
+    return _tf('chartSrcWorkshop', { max: SCALE_MAX });
   }
   const lo = Math.min.apply(null, all);
   const hi = Math.max.apply(null, all);
-  const n  = lo === hi ? ('' + lo + ' response' + (lo === 1 ? '' : 's'))
-                       : ('' + lo + '\u2013' + hi + ' responses per task');
-  return 'Workshop mode — bars show weighted means of ' + n +
-         ', on the 0\u2013' + SCALE_MAX + ' scale.';
+  const n  = lo === hi ? _tf(lo === 1 ? 'chartResp1' : 'chartRespN', { n: lo })
+                       : _tf('chartRespRange', { lo, hi });
+  return _tf('chartSrcWorkshopN', { n, max: SCALE_MAX });
 }
 
 // ── SVG chart builder ─────────────────────────────────────────
@@ -180,11 +178,10 @@ function _buildChartSVG(duty) {
   const rated = tasks.filter(t => t.rated);
 
   if (!tasks.length) {
-    return '<p class="tvc-empty">This duty has no tasks yet.</p>';
+    return '<p class="tvc-empty">' + _esc(_t('chartNoTasks')) + '</p>';
   }
   if (!rated.length) {
-    return '<p class="tvc-empty">No ratings recorded for this duty yet. ' +
-           'Rate at least one task to build the chart.</p>';
+    return '<p class="tvc-empty">' + _esc(_t('chartNoRatings')) + '</p>';
   }
 
   const groupW = keys.length * BAR_W + (keys.length - 1) * BAR_GAP;
@@ -196,7 +193,7 @@ function _buildChartSVG(duty) {
   let svg = '<svg class="tvc-svg" viewBox="0 0 ' + width + ' ' + height + '" ' +
             'width="' + width + '" height="' + height + '" ' +
             'xmlns="http://www.w3.org/2000/svg" role="img" ' +
-            'aria-label="Grouped bar chart of task ratings for ' + _esc(duty.title) + '">';
+            'aria-label="' + _esc(_tf('chartPlotAria', { t: duty.title })) + '">';
 
   svg += '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="#ffffff"/>';
 
@@ -243,7 +240,7 @@ function _buildChartSVG(duty) {
              '" fill="#f8fafc"/>';
       svg += '<text x="' + (gx + groupW / 2) + '" y="' + (PAD.top + PLOT_H / 2) +
              '" text-anchor="middle" font-family="' + _svgFont() + '" ' +
-             'font-size="10" fill="#94a3b8">not rated</text>';
+             'font-size="10" fill="#94a3b8">' + _esc(_t('chartNotRated')) + '</text>';
     } else {
       keys.forEach((k, j) => {
         const s = SERIES[k];
@@ -277,7 +274,7 @@ function _buildChartSVG(duty) {
          '" y2="' + (PAD.top + PLOT_H) + '" stroke="#334155" stroke-width="1.5"/>';
   svg += '<text x="' + (PAD.left + plotW / 2) + '" y="' + (height - 12) + '" text-anchor="middle" ' +
          'font-family="' + _svgFont() + '" font-size="11" font-weight="600" ' +
-         'fill="#64748b">Tasks (DACUM order)</text>';
+         'fill="#64748b">' + _esc(_t('chartAxisTasks')) + '</text>';
 
   svg += '</svg>';
   return svg;
@@ -288,7 +285,7 @@ function _buildLegend() {
     '<span class="tvc-legend-item"><i style="background:' + SERIES[k].color + '"></i>' +
     _esc(_seriesLabel(k)) + '</span>'
   ).join('') +
-  '<span class="tvc-legend-item"><i class="tvc-legend-dash"></i>Duty average</span>';
+  '<span class="tvc-legend-item"><i class="tvc-legend-dash"></i>' + _esc(_t('chartLegendAvg')) + '</span>';
 }
 
 // Task statements are listed under the chart rather than crammed onto
@@ -299,7 +296,7 @@ function _buildTaskList(duty) {
   return '<ol class="tvc-task-list">' + duty.tasks.map(t =>
     '<li><span class="tvc-task-code">' + _esc(t.code) + '</span>' +
     '<span class="tvc-task-text">' + _esc(t.text) + '</span>' +
-    (t.rated ? '' : '<span class="tvc-task-flag">not rated</span>') + '</li>'
+    (t.rated ? '' : '<span class="tvc-task-flag">' + _esc(_t('chartNotRated')) + '</span>') + '</li>'
   ).join('') + '</ol>';
 }
 
@@ -364,10 +361,10 @@ function _exportPNG() {
     a.href = canvas.toDataURL('image/png');
     a.click();
 
-    if (btn) { btn.textContent = '\u2713 Saved'; setTimeout(() => { btn.textContent = '\u2b07 Export PNG'; }, 1800); }
+    if (btn) { btn.textContent = '\u2713 ' + _t('chartSaved'); setTimeout(() => { btn.textContent = '\u2b07 ' + _t('chartExportPng'); }, 1800); }
   };
   img.onerror = function () {
-    if (btn) { btn.textContent = '\u2715 Export failed'; setTimeout(() => { btn.textContent = '\u2b07 Export PNG'; }, 2200); }
+    if (btn) { btn.textContent = '\u2715 ' + _t('chartExportFailed'); setTimeout(() => { btn.textContent = '\u2b07 ' + _t('chartExportPng'); }, 2200); }
   };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
 }
@@ -397,8 +394,7 @@ export function openVerificationChart(startIndex) {
   _duties = _collectDuties();
 
   if (!_duties.length) {
-    alert('No duties are loaded in Task Verification yet.\n\n' +
-          'Add duties and tasks first, then return to this tab.');
+    alert(_t('chartNoDuties'));
     return;
   }
 
@@ -465,18 +461,17 @@ export function openVerificationChart(startIndex) {
       '</div>' +
 
       '<p class="tvc-source" id="tvcSourceLine"></p>' +
-      '<p class="tvc-note">Switching the view changes the display only — Task Score and ' +
-        'Priority Index are always calculated from all three dimensions.</p>' +
+      '<p class="tvc-note">' + _esc(_t('chartViewNote')) + '</p>' +
 
       '<div class="tvc-legend" id="tvcLegend"></div>' +
       '<div class="tvc-plot-scroll"><div id="tvcPlot"></div></div>' +
 
-      '<p class="tvc-list-title">Task statements</p>' +
+      '<p class="tvc-list-title">' + _esc(_t('chartTaskStatements')) + '</p>' +
       '<div id="tvcTaskList"></div>' +
 
       '<div class="tvc-foot">' +
-        '<button type="button" class="tvc-btn-ghost" id="tvcCloseFoot">Close</button>' +
-        '<button type="button" class="tvc-btn-primary" id="tvcExportPng">\u2b07 Export PNG</button>' +
+        '<button type="button" class="tvc-btn-ghost" id="tvcCloseFoot">' + _esc(_t('chartCloseBtn')) + '</button>' +
+        '<button type="button" class="tvc-btn-primary" id="tvcExportPng">\u2b07 ' + _esc(_t('chartExportPng')) + '</button>' +
       '</div>' +
     '</div>';
 
