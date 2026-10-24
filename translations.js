@@ -722,6 +722,7 @@
       expCategoryN: 'Category {n}',
       expContinued: '{v} (continued)',
       msgPdfPreparingArabic: 'Preparing the Arabic font\u2026',
+      msgPdfMixedArabic: 'This project contains Arabic text, but it is mostly written in another language, so the PDF may show those parts as unreadable symbols. Export to Word instead, or set the project language to Arabic.',
       msgPdfFontMissing: 'Arabic font not found. Check that fonts/Cairo-Regular.ttf is deployed, then try again.',
       msgPdfExported: 'PDF exported successfully!',
       msgTVPdfExported: 'Task Verification PDF exported successfully!',
@@ -2907,6 +2908,7 @@
       expCategoryN: 'Catégorie {n}',
       expContinued: '{v} (suite)',
       msgPdfPreparingArabic: 'Préparation de la police arabe\u2026',
+      msgPdfMixedArabic: 'Ce projet contient du texte arabe mais il est surtout rédigé dans une autre langue : le PDF peut afficher ces passages en symboles illisibles. Exportez plutôt en Word, ou définissez l’arabe comme langue du projet.',
       msgPdfFontMissing: 'Police arabe introuvable. Vérifiez que fonts/Cairo-Regular.ttf est bien déployé, puis réessayez.',
       msgPdfExported: 'PDF exporté avec succès !',
       msgTVPdfExported: 'PDF de vérification des tâches exporté avec succès !',
@@ -4950,6 +4952,7 @@
       expCategoryN: 'الفئة {n}',
       expContinued: '{v} (تابع)',
       msgPdfPreparingArabic: 'جارٍ تحضير الخط العربي\u2026',
+      msgPdfMixedArabic: 'يحتوي هذا المشروع على نص عربي لكن أغلبه بلغة أخرى، فقد تظهر هذه الأجزاء في ملف PDF رموزاً غير مقروءة. صدّر إلى Word بدلاً من ذلك، أو اجعل لغة المشروع العربية.',
       msgPdfFontMissing: 'تعذّر إيجاد الخط العربي. تأكّد من رفع الملف fonts/Cairo-Regular.ttf ثمّ أعد المحاولة.',
       msgPdfExported: 'تم تصدير ملف PDF بنجاح!',
       msgTVPdfExported: 'تم تصدير ملف PDF للتحقّق من المهام بنجاح!',
@@ -6552,6 +6555,19 @@
     try { c = _contentProvider ? _contentProvider() : null; } catch (e) { c = null; }
     return (c && TRANSLATIONS[c]) ? c : _current;
   }
+  /* 3.137.0: the language a DOCUMENT is written in. The content language
+     when the project has them set up; otherwise the language its texts
+     are written in (a fallback provider reads them) — so a project in
+     Arabic exports in Arabic (font, direction, headings) even while the
+     interface is English; otherwise the interface language. */
+  var _exportFallback = null;
+  function exportLang() {
+    var c = null;
+    try { c = _contentProvider ? _contentProvider() : null; } catch (e) { c = null; }
+    if (c && TRANSLATIONS[c]) return c;
+    try { c = _exportFallback ? _exportFallback() : null; } catch (e) { c = null; }
+    return (c && TRANSLATIONS[c]) ? c : _current;
+  }
   function withLang(code, fn) {
     if (!code || !TRANSLATIONS[code] || code === _eff()) return fn();
     var prev = _override;
@@ -7001,7 +7017,9 @@
     contentLang: contentLang,
     setContentLangProvider: function (fn) { _contentProvider = (typeof fn === 'function') ? fn : null; },
     withLang: withLang,
-    withContentLang: function (fn) { return withLang(contentLang(), fn); },
+    withContentLang: function (fn) { return withLang(exportLang(), fn); },
+    exportLang: exportLang,
+    setExportLangFallback: function (fn) { _exportFallback = (typeof fn === 'function') ? fn : null; },
     tc: function (key) { return withLang(contentLang(), function () { return t(key); }); },
     isContentRTL: function () { return RTL_LANGS.indexOf(contentLang()) !== -1; },
     has: function (key) { return TRANSLATIONS.en[key] !== undefined; },

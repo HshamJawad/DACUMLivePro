@@ -30,6 +30,15 @@ export function stateLanguage(s) {
   } catch (_) { return ''; }
 }
 
+/** Whether the open project has any Arabic-script letters in its texts —
+ *  what decides whether a PDF in another language needs a warning. */
+export function hasArabicText() {
+  try {
+    const s = captureProjectState();
+    return collectUnits(s).units.some(u => /[\u0600-\u06FF]/.test(u.text || ''));
+  } catch (_) { return false; }
+}
+
 /** What a card shows: the project's language, or — while it has no text
  *  to tell — the interface language it is being written in. */
 export function badgeLanguage(p) {

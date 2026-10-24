@@ -19,6 +19,7 @@ import { lwExportVerifiedPDF } from './workshop.js';
 import { getSupplementaryExportSections } from './supplementary_verification.js';
 import * as ExportSettings from './export_settings.js';
 import { writeLevelsPdf } from './modules.js';
+import { hasArabicText } from './project_lang.js';
 import { ensureArabicFont, isArabicFontLoaded, installArabicRTL, suspendJsPdfArabicParser } from './pdf_arabic.js';
 import { _pdfVerifiedChart, _pdfClusters, _pdfKnowledgeSkills, _pdfLearningOutcomes, _pdfModules, _pdfSkillsMatrix, _pdfTaskAnalysis, _pdfToolsTrends, _pdfVerificationAppendix, _pdfVerifiedResults } from './exports_pdf_sections.js';
 import { liveLangTag } from './project_lang.js';
@@ -31,6 +32,16 @@ import { liveLangTag } from './project_lang.js';
    under it; see withLang() in translations.js. */
 const _inContentLang = (fn) =>
   (window.i18n && window.i18n.withContentLang) ? window.i18n.withContentLang(fn) : fn();
+
+/* 3.137.0: the PDF font covers Arabic only when the document is in Arabic.
+   A project mostly in another language that holds some Arabic text would
+   print that text as symbols — say so rather than ship it silently. */
+function _warnMixedArabic() {
+  try {
+    if (!window.i18n || window.i18n.getLang() === 'ar') return;
+    if (hasArabicText()) showStatus(_t('msgPdfMixedArabic'), 'error');
+  } catch (_) { /* a warning must never stop an export */ }
+}
 
 /* ── i18n + direction helpers ────────────────────────────────────────
    This file used to REFUSE outright in Arabic and point the user at
@@ -302,7 +313,7 @@ function _writeSupplementaryPDF(pdf, margin) {
     });
 }
 
-export function exportTaskVerificationPDF() { return _inContentLang(() => _exportTaskVerificationPDFImpl()); }
+export function exportTaskVerificationPDF() { return _inContentLang(() => { _warnMixedArabic(); return _exportTaskVerificationPDFImpl(); }); }
 function _exportTaskVerificationPDFImpl() {
     // Tell the user WHY the appendix is missing rather than
     // shipping a report that is quietly short a section.
@@ -676,7 +687,7 @@ function _imageFormat(dataUrl) {
   return /^data:image\/png/i.test(dataUrl || '') ? 'PNG' : 'JPEG';
 }
 
-export function exportToPDF() { return _inContentLang(() => _exportToPDFImpl()); }
+export function exportToPDF() { return _inContentLang(() => { _warnMixedArabic(); return _exportToPDFImpl(); }); }
 function _exportToPDFImpl() {
     // Tell the user WHY the appendix is missing rather than
     // shipping a report that is quietly short a section.
