@@ -7,6 +7,11 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.135.2 — 2026-10-24 — Streams help: where the network-specific outcome is created and added
+PATCH. learning_outcomes.js (help text en/fr/ar), index.html, sw.js (v296).
+- The help said outcomes were created in Competency Clustering; they are created in the
+  Learning Outcomes tab and then added to a module from the list at the top of Module Mapping.
+
 ── 3.135.1 — 2026-10-24 — Streams: common code, "Alternative for another stream", help
 PATCH. module_tracks.js, module_mapping.js, learning_outcomes.js, curriculum_matrix.js,
 dacum_projects.js, snapshots.js, modules_shared.js, index.html, sw.js (v295),
