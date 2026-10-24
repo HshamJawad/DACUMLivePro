@@ -7,6 +7,13 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.137.1 — 2026-10-24 — Document language: read fresh at each export; the test needs no external tool
+PATCH. settings_languages.js, index.html, sw.js (v300), tests/specs/export-project-language.spec.js.
+- The project's language was remembered for 1.5 s; opening another project and exporting at
+  once could use the previous one's. It is read at each export.
+- The new PDF test used the system's pdftotext, which the test runner may not have; it now
+  checks the PDF for the embedded Arabic font instead.
+
 ── 3.137.0 — 2026-10-24 — Documents follow the project's language, not the interface's
 MINOR. translations.js, settings_languages.js, project_lang.js, exports_pdf.js, index.html,
 sw.js (v299), tests/specs/export-project-language.spec.js.

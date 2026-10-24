@@ -2,19 +2,13 @@
 // An Arabic project exported while the interface is English used to print its
 // Arabic as symbols (the Arabic font was only loaded for an Arabic interface).
 const { test, expect } = require('@playwright/test');
-const { execFileSync } = require('child_process');
 const fs = require('fs');
-const os = require('os');
-const path = require('path');
 const { openApp, loadProject, fixture } = require('../helpers');
 
-const pdfText = async (download) => {
-  const f = path.join(os.tmpdir(), `epl_${Date.now()}_${Math.random().toString(36).slice(2)}.pdf`);
-  fs.copyFileSync(await download.path(), f);
-  try { return execFileSync('pdftotext', ['-layout', f, '-'], { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 }); }
-  finally { fs.unlinkSync(f); }
-};
-const arabicLetters = (s) => (s.match(/[؀-ۿﭐ-﷿ﹰ-﻿]/g) || []).length;
+/* No external tools (CI has none to rely on): a PDF carries the Arabic face
+   only when it was embedded (a FontFile2 entry); without it every Arabic letter
+   is drawn from a Latin standard font, which is the symbols seen by the user. */
+const embedsFont = async (download) => /\/FontFile2/.test(fs.readFileSync(await download.path()).toString('latin1'));
 
 test('document language follows the project, not the interface', async ({ page }) => {
   const errors = await openApp(page, { lang: 'en' });
@@ -29,9 +23,7 @@ test('document language follows the project, not the interface', async ({ page }
   test.setTimeout(240_000);
   const [pdf] = await Promise.all([page.waitForEvent('download', { timeout: 180_000 }),
     page.evaluate(async () => (await import('./exports_pdf.js')).exportToPDF())]);
-  const txt = await pdfText(pdf);
-  expect(arabicLetters(txt)).toBeGreaterThan(50);
-  expect(txt).not.toMatch(/þ/);                // the symbols seen when the font was missing
+  expect(await embedsFont(pdf)).toBe(true);
   expect(await page.evaluate(() => window.i18n.getLang())).toBe('en');
 
   // Control: without the project-language rule it is the interface language again.
@@ -39,8 +31,7 @@ test('document language follows the project, not the interface', async ({ page }
   expect(await page.evaluate(() => window.i18n.exportLang())).toBe('en');
   const [bad] = await Promise.all([page.waitForEvent('download', { timeout: 180_000 }),
     page.evaluate(async () => (await import('./exports_pdf.js')).exportToPDF())]);
-  const badTxt = await pdfText(bad);
-  expect(arabicLetters(badTxt)).toBeLessThan(arabicLetters(txt) / 4);   // the old output: symbols, not Arabic
+  expect(await embedsFont(bad)).toBe(false);    // the old output: symbols
   expect(errors).toEqual([]);
 });
 

@@ -41,17 +41,13 @@ _registerProvider();
 /* 3.137.0: a project whose content languages were never set up is still
    written in SOME language. Documents follow it, not the interface —
    an Arabic project exported while the interface is English used to come
-   out as symbols. Read from the texts (cheap, cached for a moment). */
-let _fb = { at: 0, lang: '' };
+   out as symbols. Read from the texts. */
 function _registerExportFallback() {
   if (!(window.i18n && window.i18n.setExportLangFallback)) return;
+  /* Read fresh each time (once per export): a remembered answer would be
+     wrong right after another project is opened. */
   window.i18n.setExportLangFallback(() => {
-    const now = Date.now();
-    if (now - _fb.at < 1500) return _fb.lang;
-    let lang = '';
-    try { lang = stateLanguage(captureProjectState()) || ''; } catch (_) { lang = ''; }
-    _fb = { at: now, lang };
-    return lang;
+    try { return stateLanguage(captureProjectState()) || ''; } catch (_) { return ''; }
   });
 }
 _registerExportFallback();
