@@ -511,6 +511,14 @@ function _footButtons() {
 
 /** Starts the run (from Start, or from the confirm step). */
 async function _beginRun() {
+  /* 3.138.0: the module stage needs the levels and streams — asked before
+     the run starts, so nothing waits for an answer in the middle of it. */
+  if (selectedIds().includes('modules')) {
+    try {
+      const { needsGenSetup, openGenSetup } = await import('./module_tracks.js');
+      if (needsGenSetup() && await openGenSetup() === 'cancel') return;
+    } catch (_) { /* a failed set-up question must never block the run */ }
+  }
   _phase = 'running'; _current = 0; _doneIds = new Set(); _failed = null;
   renderModal();
   const res = await runDraft(selectedIds());

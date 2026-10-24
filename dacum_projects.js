@@ -184,7 +184,10 @@ export function importProjectFromData(data, fileName) {
                                   ...(s.moduleMapping.nqf ? { nqf: s.moduleMapping.nqf } : {}),
                                   // 3.135.0 — named tracks (specialisations).
                                   ...(s.moduleMapping.tracks ? { tracks: s.moduleMapping.tracks } : {}),
-                                  ...(s.moduleMapping.commonTrack ? { commonTrack: s.moduleMapping.commonTrack } : {}) }
+                                  ...(s.moduleMapping.commonTrack ? { commonTrack: s.moduleMapping.commonTrack } : {}),
+                                  // 3.138.0 — levels where streams split; the set-up question was answered.
+                                  ...(s.moduleMapping.streamLevels ? { streamLevels: s.moduleMapping.streamLevels } : {}),
+                                  ...(s.moduleMapping.streamsAsked ? { streamsAsked: true } : {}) }
                               : { modules: [], moduleCounter: 0 },
     // Module Curriculum (3.33.0). Absent in older files — normalised to
     // the default when the project is opened (_applyState).

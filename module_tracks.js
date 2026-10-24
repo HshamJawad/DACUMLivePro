@@ -31,7 +31,7 @@
 
 import { appState } from './state.js';
 import { _esc, _tx, _txf } from './modules_shared.js';
-import { moduleRef, _moduleLevel, getModuleLevelCount, persistModuleMapping, _injectCovFoldStyles, _freshModuleId, renderModuleLoList, _newManualLo, renumberManualModule } from './module_mapping.js';
+import { moduleRef, _moduleLevel, getModuleLevelCount, setModuleLevelCount, persistModuleMapping, _injectCovFoldStyles, _freshModuleId, renderModuleLoList, _newManualLo, renumberManualModule } from './module_mapping.js';
 import { renderModules } from './learning_outcomes.js';
 import { getCurriculumModel } from './module_curriculum.js';
 
@@ -514,6 +514,132 @@ export function openTracksEditor() {
     if (b.getAttribute('data-trk-act') === 'save') { saveTrackRegistry(ta.value, ov.querySelector('#mmTrkCommon').value); close(); } else close();
   });
   ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+}
+
+// ── Set-up before generating modules with AI (3.138.0) ────────
+// The AI proposes a level and a stream for every module. It needs to know
+// how many levels there are, which streams exist and where they split.
+
+/** Levels where streams split (kept in the project); the highest by default. */
+export function getStreamLevels() {
+  const n = getModuleLevelCount();
+  const stored = (_mm().streamLevels || []).map(x => parseInt(x, 10)).filter(x => Number.isInteger(x) && x >= 1 && x <= n);
+  return stored.length ? Array.from(new Set(stored)).sort((a, b) => a - b) : [n];
+}
+
+/** Whether the question is still to be asked: streams not defined and the
+ *  person has not answered (or skipped) it for this project yet. */
+export function needsGenSetup() {
+  return !_mm().streamsAsked && getProgrammeTracks().length === 0;
+}
+
+/** What the AI is told about streams ('' when the programme has none). */
+export function streamPromptRules() {
+  const tracks = getProgrammeTracks();
+  if (!tracks.length) return '';
+  const common = getCommonCode();
+  const lv = getStreamLevels();
+  return `STREAMS: this programme has these streams — ${tracks.map(t => t.name ? `${t.code} = ${t.name}` : t.code).join('; ')}.
+  Stream-specific modules may exist ONLY at level(s) ${lv.join(', ')}; every other level is COMMON to all streams.
+  A module is stream-specific ONLY when all its outcomes belong to one stream's own work: give it that stream's exact code as "track".
+  Every other module is common: "track" = "${common}". Never mix outcomes of two streams in one module.
+  Use ONLY the stream codes listed here.`;
+}
+
+/** Keeps the AI's stream codes to the programme's own (and its split levels). */
+export function cleanAiTrack(track, level) {
+  const tracks = getProgrammeTracks().map(t => t.code);
+  const common = getCommonCode();
+  if (!tracks.length) return String(track || '').trim().slice(0, 40);
+  let t = String(track || '').trim();
+  if (t && !tracks.includes(t)) t = '';
+  if (t && level && !getStreamLevels().includes(level)) t = '';
+  return t || common;
+}
+
+/** The set-up dialog. Resolves 'apply', 'skip' or 'cancel'. */
+export function openGenSetup() {
+  return new Promise(resolve => {
+    const old = document.getElementById('mmGenSetup');
+    if (old) old.remove();
+    const mm = _mm();
+    const rtl = !!(window.i18n && window.i18n.isRTL && window.i18n.isRTL());
+    const n0 = getModuleLevelCount();
+    const ov = document.createElement('div');
+    ov.id = 'mmGenSetup';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:1000001;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.5);overflow:auto;';
+    const lines = getProgrammeTracks().map(t => t.name ? `${t.code} = ${t.name}` : t.code).join('\n');
+    const inp = 'display:block;width:100%;box-sizing:border-box;margin-top:4px;font:inherit;font-weight:400;padding:8px 10px;border:1.5px solid #ddd6fe;border-radius:8px;';
+    ov.innerHTML = `
+      <div style="background:#fff;border-radius:14px;max-width:480px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden;font-family:inherit;max-height:96vh;overflow-y:auto;">
+        <div style="padding:16px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;font-weight:800;color:#5b21b6;">⑂ ${_esc(_tx('gsTitle'))}</div>
+        <div style="padding:16px 20px;">
+          <p style="margin:0 0 12px;font-size:.88em;color:#475569;line-height:1.6;">${_esc(_tx('gsIntro'))}</p>
+          <label style="display:block;font-size:.88em;font-weight:700;color:#334155;">${_esc(_tx('gsLevels'))}
+            <input type="number" id="gsLevels" min="1" max="8" value="${n0}" style="${inp}max-width:110px;">
+          </label>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:14px;font-size:.9em;font-weight:700;color:#334155;cursor:pointer;">
+            <input type="checkbox" id="gsHas"> ${_esc(_tx('gsHasStreams'))}
+          </label>
+          <div id="gsBox" hidden style="margin-top:10px;">
+            <label style="display:block;font-size:.84em;font-weight:700;color:#334155;">${_esc(_tx('gsLines'))}
+              <textarea id="gsStreams" dir="auto" rows="3" placeholder="${_esc(_tx('gsLinesPh'))}" style="${inp}min-height:80px;">${_esc(lines)}</textarea>
+            </label>
+            <label style="display:block;margin-top:10px;font-size:.84em;font-weight:700;color:#334155;">${_esc(_tx('trkCommonLabel'))}
+              <input type="text" id="gsCommon" dir="ltr" maxlength="40" value="${_esc(getCommonCode())}" placeholder="${_esc(_tx('trkCommonPh'))}" style="${inp}">
+            </label>
+            <div style="margin-top:10px;font-size:.84em;font-weight:700;color:#334155;">${_esc(_tx('gsSplit'))}</div>
+            <div id="gsSplit" style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;"></div>
+            <p style="margin:6px 0 0;font-size:.8em;color:#64748b;line-height:1.55;">${_esc(_tx('gsSplitHint'))}</p>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px;">
+            <button type="button" data-gs="skip" style="padding:8px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font:inherit;">${_esc(_tx('gsSkip'))}</button>
+            <button type="button" data-gs="apply" style="padding:8px 16px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font:inherit;font-weight:700;">${_esc(_tx('gsContinue'))}</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    const q = (s) => ov.querySelector(s);
+    let picked = (mm.streamLevels && mm.streamLevels.length) ? mm.streamLevels.map(Number) : null;
+    const levelsNow = () => Math.max(1, Math.min(8, parseInt(q('#gsLevels').value, 10) || n0));
+    const paintSplit = () => {
+      const n = levelsNow();
+      if (q('#gsSplit').children.length) picked = Array.from(q('#gsSplit').querySelectorAll('input:checked')).map(i => +i.value);
+      picked = (picked || []).filter(l => l <= n);
+      if (!picked.length) picked = [n];                        // the highest level, by default
+      q('#gsSplit').innerHTML = Array.from({ length: n }, (_, i) => i + 1).map(l =>
+        `<label style="display:inline-flex;gap:5px;align-items:center;font-weight:400;cursor:pointer;"><input type="checkbox" value="${l}" ${picked.includes(l) ? 'checked' : ''}> ${l}</label>`).join('');
+    };
+    paintSplit();
+    q('#gsLevels').addEventListener('change', paintSplit);
+    q('#gsHas').addEventListener('change', () => { q('#gsBox').hidden = !q('#gsHas').checked; });
+    const done = (r) => { ov.remove(); resolve(r); };
+    ov.addEventListener('click', e => {
+      if (e.target === ov) return done('cancel');
+      const b = e.target.closest('[data-gs]');
+      if (!b) return;
+      if (b.getAttribute('data-gs') === 'skip') {
+        mm.streamsAsked = true;
+        persistModuleMapping();
+        return done('skip');
+      }
+      const n = levelsNow();
+      setModuleLevelCount(n);
+      if (q('#gsHas').checked) {
+        const picked = Array.from(q('#gsSplit').querySelectorAll('input:checked')).map(i => +i.value);
+        mm.streamLevels = picked.length ? picked : [n];
+        saveTrackRegistry(q('#gsStreams').value, q('#gsCommon').value);
+      }
+      mm.streamsAsked = true;
+      persistModuleMapping();
+      done('apply');
+    });
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') done('cancel'); });
+    q('#gsLevels').focus();
+  });
 }
 
 // ── Summary under the coverage matrix ─────────────────────────

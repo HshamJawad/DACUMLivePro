@@ -162,6 +162,9 @@ export function saveToJSON() {
     if (appState.moduleMappingData.commonTrack) {
       data.moduleMapping.commonTrack = appState.moduleMappingData.commonTrack;
     }
+    // 3.138.0 — where streams split; the generation set-up was answered.
+    if (appState.moduleMappingData.streamLevels) data.moduleMapping.streamLevels = appState.moduleMappingData.streamLevels;
+    if (appState.moduleMappingData.streamsAsked) data.moduleMapping.streamsAsked = true;
 
     // Module Curriculum (3.33.0) — its own top-level key. Read back by
     // importProjectFromData(); older files simply lack it.
@@ -552,6 +555,10 @@ export function loadFromJSONLegacy(event) {
           else delete appState.moduleMappingData.tracks;
           if (data.moduleMapping.commonTrack) appState.moduleMappingData.commonTrack = data.moduleMapping.commonTrack;
           else delete appState.moduleMappingData.commonTrack;
+          if (data.moduleMapping.streamLevels) appState.moduleMappingData.streamLevels = data.moduleMapping.streamLevels;
+          else delete appState.moduleMappingData.streamLevels;
+          if (data.moduleMapping.streamsAsked) appState.moduleMappingData.streamsAsked = true;
+          else delete appState.moduleMappingData.streamsAsked;
         } else {
           appState.moduleMappingData.modules = [];
           appState.moduleMappingData.moduleCounter = 0;

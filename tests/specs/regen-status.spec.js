@@ -1,7 +1,7 @@
 // 3.129.0: "Regenerate from here" only in tabs the Full Draft generated;
 // the Task Analysis status explains "Completed".
 const { test, expect } = require('@playwright/test');
-const { openApp, state, loadProject, fixture, mockAI, fillJob } = require('../helpers');
+const { openApp, state, loadProject, fixture, mockAI, fillJob, skipGenSetup } = require('../helpers');
 
 test('Regenerate from here: hidden for typed content', async ({ page }) => {
   const errors = await openApp(page);
@@ -18,6 +18,7 @@ test('Regenerate from here: shown after a draft, kept with the project', async (
   await page.evaluate(async () => (await import('./draft_ui.js')).openDraftModal());
   await page.waitForSelector('#dgOverlay .dg-dialog');
   await page.click('#dgStart');
+  await skipGenSetup(page);
   await page.waitForFunction(() => ['done', 'error'].includes(document.querySelector('#dgOverlay')?.getAttribute('data-phase')), null, { timeout: 60_000 });
   const drafted = await state(page, 's => s.draftStages');
   expect(drafted).toContain('duties');

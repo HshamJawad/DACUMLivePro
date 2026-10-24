@@ -134,4 +134,10 @@ async function fillJob(page, { occ = 'Maintenance Technician', job = 'Computer M
   await page.fill('#scopeOfWork', scope);
 }
 
-module.exports = { openApp, state, loadProject, fixture, mockAI, fillJob, messyReply, cleanReply };
+/** 3.138.0: the module stage asks about levels and streams first. Answer "Skip"
+ *  when the question appears (it does not when no module stage is selected). */
+async function skipGenSetup(page) {
+  try { await page.locator('#mmGenSetup [data-gs="skip"]').click({ timeout: 4000 }); } catch (_) { /* not asked */ }
+}
+
+module.exports = { skipGenSetup, openApp, state, loadProject, fixture, mockAI, fillJob, messyReply, cleanReply };
