@@ -178,7 +178,7 @@ export function renumberManualModule(m) {
 }
 
 function _newManualPc() { return { id: '', text: '', taskId: null, manual: true }; }
-function _newManualLo(m) {
+export function _newManualLo(m) {
   m.manualCounter = (m.manualCounter || 0) + 1;
   return { id: `${m.id}_mlo${m.manualCounter}`, number: '', statement: '', manual: true,
            linkedCriteria: [_newManualPc()] };
