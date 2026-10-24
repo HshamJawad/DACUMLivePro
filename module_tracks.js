@@ -31,7 +31,7 @@
 
 import { appState } from './state.js';
 import { _esc, _tx, _txf } from './modules_shared.js';
-import { moduleRef, _moduleLevel, getModuleLevelCount, persistModuleMapping, _injectCovFoldStyles, _freshModuleId, renderModuleLoList } from './module_mapping.js';
+import { moduleRef, _moduleLevel, getModuleLevelCount, persistModuleMapping, _injectCovFoldStyles, _freshModuleId, renderModuleLoList, _newManualLo, renumberManualModule } from './module_mapping.js';
 import { renderModules } from './learning_outcomes.js';
 import { getCurriculumModel } from './module_curriculum.js';
 
@@ -219,7 +219,7 @@ export function alternativeStreamOptions(module) {
  *  (the very same outcomes, so their criteria are shared); take out the ones
  *  that do not apply to the stream and add its own from the unassigned list.
  *  A module typed in by hand is copied instead, so its text can be edited. */
-export function addAlternativeModule(moduleId, streamCode) {
+export function addAlternativeModule(moduleId, streamCode, mode) {
   const mods = _mods();
   const idx = mods.findIndex(x => x.id === moduleId);
   const src = mods[idx];
@@ -230,16 +230,28 @@ export function addAlternativeModule(moduleId, streamCode) {
   ['level', 'category', 'fullTitle', 'shortName', 'nqfLevel', 'nqfDescriptor'].forEach(k => {
     if (src[k] !== undefined && src[k] !== '') copy[k] = src[k];
   });
-  if (src.manual) {
-    copy.manual = true;
-    copy.manualCounter = 0;
-    copy.learningOutcomes = (src.learningOutcomes || []).map(o => {
-      copy.manualCounter++;
-      return { ...JSON.parse(JSON.stringify(o)), id: `${id}_mlo${copy.manualCounter}` };
-    });
+  /* The stream's version is typed in on its own card, so it is always a
+     module "by hand": its outcomes and criteria are its own text, edited
+     in place — nothing to unassign, nothing to look for in another tab.
+     'copy' starts from the source's outcomes and criteria; 'empty' starts
+     with one blank outcome. */
+  copy.manual = true;
+  copy.manualCounter = 0;
+  copy.learningOutcomes = [];
+  if (mode === 'empty') {
+    copy.learningOutcomes.push(_newManualLo(copy));
   } else {
-    copy.learningOutcomes = (src.learningOutcomes || []).slice();
+    (src.learningOutcomes || []).forEach(o => {
+      copy.manualCounter++;
+      copy.learningOutcomes.push({
+        id: `${id}_mlo${copy.manualCounter}`, number: '', statement: o.statement || '', manual: true,
+        linkedCriteria: (o.linkedCriteria || []).filter(pc => pc && !pc.stale)
+          .map(pc => ({ id: '', text: pc.text || '', taskId: pc.taskId || null, manual: true })),
+      });
+    });
+    if (!copy.learningOutcomes.length) copy.learningOutcomes.push(_newManualLo(copy));
   }
+  renumberManualModule(copy);
   if (!src.slot) src.slot = _newSlotId();
   copy.slot = src.slot;
   mods.splice(idx + 1, 0, copy);
@@ -255,7 +267,6 @@ export function openAlternativeChooser(moduleId) {
   const src = _mods().find(x => x.id === moduleId);
   const opts = src ? alternativeStreamOptions(src) : [];
   if (!opts.length) return;
-  if (opts.length === 1) { addAlternativeModule(moduleId, opts[0].code); return; }
   const old = document.getElementById('mmAltModal');
   if (old) old.remove();
   const rtl = !!(window.i18n && window.i18n.isRTL && window.i18n.isRTL());
@@ -272,6 +283,14 @@ export function openAlternativeChooser(moduleId) {
         <select id="mmAltStream" style="width:100%;box-sizing:border-box;font:inherit;padding:9px;border:1.5px solid #ddd6fe;border-radius:8px;">
           ${opts.map(t => `<option value="${_esc(t.code)}">${_esc(trackFullLabel(t))}</option>`).join('')}
         </select>
+        <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;cursor:pointer;">
+          <input type="radio" name="mmAltMode" value="copy" checked style="margin-top:4px;">
+          <span>${_esc(_tx('trkAltModeCopy'))}</span>
+        </label>
+        <label style="display:flex;gap:8px;align-items:flex-start;margin-top:8px;cursor:pointer;">
+          <input type="radio" name="mmAltMode" value="empty" style="margin-top:4px;">
+          <span>${_esc(_tx('trkAltModeEmpty'))}</span>
+        </label>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
           <button type="button" data-alt-act="cancel" style="padding:8px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font:inherit;">${_esc(_tx('btnCancel'))}</button>
           <button type="button" data-alt-act="ok" style="padding:8px 16px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font:inherit;font-weight:700;">${_esc(_tx('trkBtnAddAltOk'))}</button>
@@ -284,7 +303,7 @@ export function openAlternativeChooser(moduleId) {
     if (e.target === ov) { close(); return; }
     const b = e.target.closest('[data-alt-act]');
     if (!b) return;
-    if (b.getAttribute('data-alt-act') === 'ok') addAlternativeModule(moduleId, ov.querySelector('#mmAltStream').value);
+    if (b.getAttribute('data-alt-act') === 'ok') { const r = ov.querySelector('input[name="mmAltMode"]:checked'); addAlternativeModule(moduleId, ov.querySelector('#mmAltStream').value, r ? r.value : 'copy'); }
     close();
   });
   ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });

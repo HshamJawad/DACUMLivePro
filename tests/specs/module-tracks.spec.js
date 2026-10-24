@@ -198,8 +198,9 @@ test('tracks: common code (CMCN) + "Alternative for another stream" adds the CN 
 
   // Add the CN version of the CM module.
   await card(page, 'mt_4').locator('.trk-alt-btn').first().click();
-  // CN is the only other stream, so the card is added straight away (no chooser).
-  await expect(page.locator('#mmAltModal')).toHaveCount(0);
+  // The chooser asks how to start: from this module's outcomes, or empty.
+  await expect(page.locator('#mmAltModal')).toBeVisible();
+  await page.locator('#mmAltModal [data-alt-act="ok"]').click();
   const mods = await modules(page);
   const cm = mods.find(m => m.id === 'mt_4');
   const cn = mods.find(m => m.id !== 'mt_4' && m.track === 'CN' && m.title === cm.title);
@@ -208,9 +209,23 @@ test('tracks: common code (CMCN) + "Alternative for another stream" adds the CN 
   expect(cn.slot).toBeTruthy();
   expect(cn.slot).toBe(cm.slot);
   expect(cn.learningOutcomes.length).toBe(cm.learningOutcomes.length);
-  // Manual outcomes are copied, so editing the CN ones does not touch CM's.
+  // The CN card is typed in on its own card; its outcomes are copies of CM's text.
+  expect(cn.manual).toBe(true);
   expect(cn.learningOutcomes[0]).not.toBe(cm.learningOutcomes[0]);
   expect(cn.learningOutcomes[0].id).not.toBe(cm.learningOutcomes[0].id);
+  expect(cn.learningOutcomes[0].statement).toBe(cm.learningOutcomes[0].statement);
+  expect(cn.learningOutcomes[0].linkedCriteria[0].text).toBe(cm.learningOutcomes[0].linkedCriteria[0].text);
+  // Edit the CN criterion in place: CM keeps its own.
+  const cnCard = card(page, cn.id);
+  await cnCard.locator('.mm-pc-text').first().fill('Configure a switch');
+  await cnCard.locator('.mm-pc-text').first().blur();
+  let after = await modules(page);
+  expect(after.find(m => m.id === cn.id).learningOutcomes[0].linkedCriteria[0].text).toBe('Configure a switch');
+  expect(after.find(m => m.id === 'mt_4').learningOutcomes[0].linkedCriteria[0].text).toBe('Done well: Repair of PCs');
+  // And one more outcome can be added on that card, no other tab needed.
+  await cnCard.locator('[data-action="mm-add-lo"]').click();
+  after = await modules(page);
+  expect(after.find(m => m.id === cn.id).learningOutcomes.length).toBe(2);
 
   // The pair takes ONE place in level 3.
   const codes = await page.evaluate(async () => {
@@ -220,6 +235,20 @@ test('tracks: common code (CMCN) + "Alternative for another stream" adds the CN 
   });
   const cmCode = codes[mods.indexOf(cm)], cnCode = codes[mods.indexOf(cn)];
   expect(cmCode.split(' ')[1]).toBe(cnCode.split(' ')[1]);
+  expect(errors).toEqual([]);
+});
+
+test('tracks: "Alternative for another stream" can start empty', async ({ page }) => {
+  const errors = await openWithModules(page);
+  await setTrack(page, 'mt_4', 'CM');
+  await page.evaluate(async () => (await import('./module_tracks.js')).saveTrackRegistry('CM = Maintenance\nCN = Networks', ''));
+  await card(page, 'mt_4').locator('.trk-alt-btn').click();
+  await page.locator('#mmAltModal input[value="empty"]').check();
+  await page.locator('#mmAltModal [data-alt-act="ok"]').click();
+  const cn = (await modules(page)).find(m => m.track === 'CN' && m.slot);
+  expect(cn.manual).toBe(true);
+  expect(cn.learningOutcomes).toHaveLength(1);
+  expect(cn.learningOutcomes[0].statement).toBe('');
   expect(errors).toEqual([]);
 });
 

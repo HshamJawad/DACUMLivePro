@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.135.3 — 2026-10-24 — Streams: the alternative card is written in place
+PATCH. module_tracks.js, module_mapping.js, learning_outcomes.js (help), modules_shared.js,
+index.html, sw.js (v297), tests/specs/module-tracks.spec.js.
+- "Alternative for another stream" now asks how to start: from this module's outcomes and
+  criteria, or empty. The new card is a module typed in by hand, so its outcomes and
+  criteria are edited, deleted and added on the card itself ("+ Add learning outcome",
+  "+ criterion"). No unassigning and no trip to the Learning Outcomes tab.
+- The source card is not changed. Help text (en/fr/ar) updated.
+
 ── 3.135.2 — 2026-10-24 — Streams help: where the network-specific outcome is created and added
 PATCH. learning_outcomes.js (help text en/fr/ar), index.html, sw.js (v296).
 - The help said outcomes were created in Competency Clustering; they are created in the
