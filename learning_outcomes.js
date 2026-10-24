@@ -12,7 +12,7 @@ import { loLabel } from './lo_labels.js';
 import { outcomeIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, _renderLoNotice, renumberLearningOutcomes, syncClusteringWithProfile } from './clusters.js';
 import { _esc, _findEffectiveCriterionById, _getClusterEffectiveCriteria, _injectModuleCardStyles, _persistClusters, _renderUndoBars, _t, _taskLabel, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
-import { ensureTracksBar, moduleMatchesTrackFilter, getSlotPartners, slotCandidates } from './module_tracks.js';
+import { ensureTracksBar, moduleMatchesTrackFilter, getSlotPartners, slotCandidates, alternativeStreamOptions } from './module_tracks.js';
 import { getModuleCategories, getModuleCategory, categoryLabel, getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName, isManualModule, renumberManualModule, manualTaskOptions } from './module_mapping.js';
 
 // ── Learning Outcomes ─────────────────────────────────────────
@@ -712,6 +712,12 @@ const _GUIDE = {
         { h: '🏷️ Specialisation field', items: [
           'Use a short code: e.g. the programme code for modules common to all tracks (CMCN), and a track code at the top level (CM, CN).',
           'Leave it empty for a programme with a single track.' ] },
+        { h: '🔀 Streams (specialisations) — module differs per stream', items: [
+          '1. Click "Edit Track / Stream…" (above the modules). Type one stream per line: CM = Computer Maintenance, CN = Computer Networks. In "Code of the modules common to all streams" type the code of your common modules (e.g. CMCN): they are then shared by every stream and are not counted as a stream.',
+          '2. Give each module its code in the Track / Stream field: CMCN for common modules, CM or CN for stream modules.',
+          '3. For a module that differs by stream (e.g. Hardware, level 3): on its card (say CM) click "⑂ Alternative for another stream" and choose CN. A new CN card appears at the same level, taking the same place in the module code (CM 3-4 / CN 3-4), starting with the same outcomes.',
+          '4. Performance criteria belong to the outcomes. To give the CN card different criteria: on the CN card remove the outcomes that do not apply, then add the network-specific ones from the "Add to" list (outcomes not yet assigned, created in Competency Clustering → Learning Outcomes). The CM card is not changed.',
+          '5. Pick a stream in the filter chips to see its own programme = common modules + its own modules. "Programme by stream" at the bottom summarises each stream, and the Word/PDF/JSON export holds all streams in one file.' ] },
         { h: '📊 Check the result', items: [
           'Open the coverage matrix at the end of the tab: "Not taught" criteria are gaps; a criterion "In N modules" is taught at several levels — informative, not an error.' ] }
       ]
@@ -783,6 +789,12 @@ const _GUIDE = {
         { h: '🏷️ Champ Spécialisation', items: [
           'Utiliser un code court : p. ex. le code du programme pour les modules communs (CMCN), et un code de filière au niveau supérieur (CM, CN).',
           'Le laisser vide pour un programme à filière unique.' ] },
+        { h: '🔀 Parcours (spécialisations) — module différent selon le parcours', items: [
+          '1. Cliquez sur « Modifier filière / parcours (stream)… » (au-dessus des modules). Saisissez un parcours par ligne : CM = Maintenance informatique, CN = Réseaux informatiques. Dans « Code des modules communs à tous les parcours », saisissez le code de vos modules communs (p. ex. CMCN) : ils sont alors partagés par tous les parcours et ne comptent pas comme un parcours.',
+          '2. Donnez à chaque module son code dans le champ Filière / parcours : CMCN pour les modules communs, CM ou CN pour ceux d’un parcours.',
+          '3. Pour un module qui diffère selon le parcours (p. ex. Matériel, niveau 3) : sur sa carte (CM), cliquez sur « ⑂ Alternative pour un autre parcours » et choisissez CN. Une carte CN apparaît au même niveau, à la même place dans le code (CM 3-4 / CN 3-4), avec les mêmes résultats au départ.',
+          '4. Les critères appartiennent aux résultats. Pour des critères différents sur la carte CN : retirez les résultats qui ne s’appliquent pas, puis ajoutez ceux propres au réseau depuis la liste « Ajouter à » (résultats non attribués, créés dans Regroupement des compétences → Résultats d’apprentissage). La carte CM n’est pas modifiée.',
+          '5. Choisissez un parcours dans les filtres pour voir son programme = modules communs + ses propres modules. « Programme par parcours » en bas résume chacun, et l’export Word/PDF/JSON réunit tous les parcours dans un seul fichier.' ] },
         { h: '📊 Vérifier le résultat', items: [
           'Ouvrez la matrice de couverture en bas de l’onglet : les critères « Non enseigné » sont des lacunes ; un critère « dans N modules » est enseigné à plusieurs niveaux — information, pas une erreur.' ] }
       ]
@@ -854,6 +866,12 @@ const _GUIDE = {
         { h: '🏷️ خانة التخصص', items: [
           'استخدم رمزاً قصيراً: رمز البرنامج للوحدات المشتركة بين المسارات (مثل CMCN)، ورمز المسار في المستوى الأعلى (مثل CM أو CN).',
           'اتركها فارغة إذا كان البرنامج مساراً واحداً.' ] },
+        { h: '🔀 المسارات (Streams) — وحدة تختلف بحسب المسار', items: [
+          '1. اضغط «تحرير المسار (Stream)…» أعلى الوحدات. اكتب مساراً في كل سطر: CM = صيانة الحاسوب، CN = شبكات الحاسوب. وفي «رمز الوحدات المشتركة بين كل المسارات» اكتب رمز وحداتك المشتركة (مثل CMCN): تصبح مشتركة بين كل المسارات ولا تُعدّ مساراً.',
+          '2. أعطِ كل وحدة رمزها في حقل المسار: CMCN للوحدات المشتركة، وCM أو CN لوحدات المسار.',
+          '3. للوحدة التي تختلف بحسب المسار (مثل الأجهزة Hardware في المستوى 3): على بطاقتها (CM) اضغط «⑂ بديل لمسار آخر» واختر CN. تظهر بطاقة CN في المستوى نفسه وتأخذ الموضع نفسه في رمز الوحدة (CM 3-4 / CN 3-4)، وتبدأ بالمحصلات نفسها.',
+          '4. معايير الأداء تتبع المحصلات. لتكون معايير بطاقة CN مختلفة: احذف من بطاقة CN المحصلات التي لا تنطبق، ثم أضف المحصلات الخاصة بالشبكات من قائمة «إضافة إلى» (المحصلات غير المسندة، وتُنشأ في تجميع الكفايات ← محصلات التعلم). بطاقة CM لا تتغير.',
+          '5. اختر مساراً من أزرار التصفية لترى برنامجه = الوحدات المشتركة + وحداته الخاصة. ويلخّص «البرنامج بحسب المسار» أسفل الصفحة كل مسار، ويضم تصدير Word/PDF/JSON كل المسارات في ملف واحد.' ] },
         { h: '📊 تحقّق من النتيجة', items: [
           'افتح مصفوفة التغطية في آخر التبويب: المعايير «غير المُدرَّسة» فجوات، والمعيار «في N وحدات» يُدرَّس في عدة مستويات، وهذه معلومة لا خطأ.' ] }
       ]
@@ -1170,6 +1188,8 @@ export function renderModules() {
           <div class="module-actions">
             <button class="btn-rename-module" data-action="build-module-in-builder" data-module-id="${module.id}"
                     title="${_t('ttBuildThisModule')}">🚀 ${_t('btnBuildThisModule')}</button>
+            ${alternativeStreamOptions(module).length ? `<button class="btn-rename-module trk-alt-btn" data-action="add-alternative-stream" data-module-id="${_esc(module.id)}"
+                    title="${_esc(_tx('trkBtnAddAltTip'))}">⑂ ${_esc(_tx('trkBtnAddAlt'))}</button>` : ''}
             <button class="btn-rename-module" data-action="rename-module" data-module-id="${module.id}">✏️ ${_t('btnRename')}</button>
             <button class="btn-delete-module" data-action="delete-module" data-module-id="${module.id}">🗑️ ${_t('btnDeleteModule')}</button>
           </div>

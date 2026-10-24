@@ -7,6 +7,20 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.135.1 — 2026-10-24 — Streams: common code, "Alternative for another stream", help
+PATCH. module_tracks.js, module_mapping.js, learning_outcomes.js, curriculum_matrix.js,
+dacum_projects.js, snapshots.js, modules_shared.js, index.html, sw.js (v295),
+tests/specs/module-tracks.spec.js.
+- "Edit tracks" is now "Edit Track / Stream"; wording says stream throughout.
+- New setting: the code of the modules common to all streams (e.g. CMCN). Modules
+  carrying it are common, and it is not listed as a stream.
+- New card button "Alternative for another stream": adds the other stream's version at
+  the same level, same code position, starting with the same outcomes (manual
+  outcomes are copied). Criteria stay with the outcomes: remove the ones that do not
+  apply and add the stream's own from the unassigned list.
+- Outcomes shared by alternatives are not reported as repeated in coverage or the matrix.
+- Help (?) of Module Mapping: new "Streams" section in en/fr/ar.
+
 ── 3.135.0 — 2026-10-24 — Tracks with alternative modules; a programme per track; one export for every track
 MINOR. module_tracks.js (new), module_mapping.js, learning_outcomes.js, clusters.js,
 dacum_projects.js, snapshots.js, modules_shared.js, index.html, sw.js (v294),

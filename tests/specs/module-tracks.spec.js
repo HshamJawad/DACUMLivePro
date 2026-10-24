@@ -147,7 +147,7 @@ test('tracks: a slot with the same track twice, or two levels, is reported', asy
   });
   let issues = await page.evaluate(async () => (await import('./module_tracks.js')).getTracksExportTables().issues);
   expect(issues).toHaveLength(1);
-  expect(issues[0]).toContain('different track');
+  expect(issues[0]).toContain('different stream');
   await page.evaluate(async () => {
     const { appState } = await import('./state.js');
     const m = appState.moduleMappingData.modules;
@@ -174,6 +174,52 @@ test('tracks: without tracks the old behaviour is unchanged (no slots, same code
   expect(codes[4].endsWith(' 3-3')).toBe(true);
   expect(await page.evaluate(async () => (await import('./module_tracks.js')).getTracksExportData())).toBeNull();
   await expect(page.locator('#mmTracksBar')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('tracks: common code (CMCN) + "Alternative for another stream" adds the CN card', async ({ page }) => {
+  const errors = await openWithModules(page);
+  // Real projects give the common modules a code too: CMCN.
+  await setTrack(page, 'mt_1', 'CMCN');
+  await setTrack(page, 'mt_2', 'CMCN');
+  await setTrack(page, 'mt_3', 'CMCN');
+  await setTrack(page, 'mt_4', 'CM');
+  await page.evaluate(async () => (await import('./module_tracks.js')).saveTrackRegistry('CM = Computer Maintenance\nCN = Computer Networks', 'CMCN'));
+  expect(await state(page, 's => s.moduleMappingData.commonTrack')).toBe('CMCN');
+  // CMCN is not a stream; CM and CN are.
+  const codesOf = await page.evaluate(async () => (await import('./module_tracks.js')).getProgrammeTracks().map(t => t.code));
+  expect(codesOf).toEqual(['CM', 'CN']);
+
+  // The CM view = CMCN modules + CM modules.
+  await page.locator('#mmTracksBar [data-trk-filter="CM"]').click();
+  await expect(card(page, 'mt_1')).toBeVisible();
+  await expect(card(page, 'mt_4')).toBeVisible();
+  await page.locator('#mmTracksBar [data-trk-filter="all"]').click();
+
+  // Add the CN version of the CM module.
+  await card(page, 'mt_4').locator('.trk-alt-btn').first().click();
+  // CN is the only other stream, so the card is added straight away (no chooser).
+  await expect(page.locator('#mmAltModal')).toHaveCount(0);
+  const mods = await modules(page);
+  const cm = mods.find(m => m.id === 'mt_4');
+  const cn = mods.find(m => m.id !== 'mt_4' && m.track === 'CN' && m.title === cm.title);
+  expect(cn).toBeTruthy();
+  expect(cn.level).toBe(cm.level);
+  expect(cn.slot).toBeTruthy();
+  expect(cn.slot).toBe(cm.slot);
+  expect(cn.learningOutcomes.length).toBe(cm.learningOutcomes.length);
+  // Manual outcomes are copied, so editing the CN ones does not touch CM's.
+  expect(cn.learningOutcomes[0]).not.toBe(cm.learningOutcomes[0]);
+  expect(cn.learningOutcomes[0].id).not.toBe(cm.learningOutcomes[0].id);
+
+  // The pair takes ONE place in level 3.
+  const codes = await page.evaluate(async () => {
+    const mm = await import('./module_mapping.js');
+    const { appState } = await import('./state.js');
+    return appState.moduleMappingData.modules.map(m => mm.getModuleCode(m));
+  });
+  const cmCode = codes[mods.indexOf(cm)], cnCode = codes[mods.indexOf(cn)];
+  expect(cmCode.split(' ')[1]).toBe(cnCode.split(' ')[1]);
   expect(errors).toEqual([]);
 });
 
@@ -210,7 +256,7 @@ test('tracks: Word and PDF exports hold every track in one file', async ({ page 
     page.evaluate(async () => (await import('./exports_docx.js')).exportToWord())]);
   const wordPath = await word.path();
   const xml = execFileSync('unzip', ['-p', wordPath, 'word/document.xml'], { maxBuffer: 64 * 1024 * 1024 }).toString('utf8');
-  expect(xml).toContain('Programmes by track');
+  expect(xml).toContain('Programmes by stream');
   expect(xml).toContain('Computer Maintenance programme');
   expect(xml).toContain('Computer Networks programme');
   expect(xml).toContain('Repair of PCs');

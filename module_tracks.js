@@ -31,14 +31,25 @@
 
 import { appState } from './state.js';
 import { _esc, _tx, _txf } from './modules_shared.js';
-import { moduleRef, _moduleLevel, getModuleLevelCount, persistModuleMapping, _injectCovFoldStyles } from './module_mapping.js';
+import { moduleRef, _moduleLevel, getModuleLevelCount, persistModuleMapping, _injectCovFoldStyles, _freshModuleId, renderModuleLoList } from './module_mapping.js';
 import { renderModules } from './learning_outcomes.js';
 import { getCurriculumModel } from './module_curriculum.js';
 
 function _mm() { return appState.moduleMappingData || { modules: [] }; }
 function _mods() { return _mm().modules || []; }
 const _clean = (s, n) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, n);
-const _track = (m) => _clean(m && m.track, 40);
+
+/** The code that marks modules common to every stream (CMCN in the CMCN
+ *  programme), or ''. Programmes written before streams used the Track /
+ *  code prefix field for it, so the common modules carry a code and not an
+ *  empty field; naming it here makes them common instead of one more stream. */
+export function getCommonCode() { return _clean(_mm().commonTrack, 40); }
+
+/** The module's stream; '' when it is common (no code, or the common code). */
+const _track = (m) => {
+  const t = _clean(m && m.track, 40);
+  return t && t === getCommonCode() ? '' : t;
+};
 
 // ── Tracks ────────────────────────────────────────────────────
 
@@ -50,7 +61,7 @@ export function getTrackRegistry() {
   const out = [];
   r.forEach(x => {
     const code = _clean(x && x.code, 40);
-    if (!code || seen.has(code)) return;
+    if (!code || seen.has(code) || code === getCommonCode()) return;
     seen.add(code);
     out.push({ code, name: _clean(x && x.name, 80) });
   });
@@ -74,18 +85,23 @@ export function trackFullLabel(t) { return t.name ? `${t.code} — ${t.name}` : 
 
 /** Replaces the registry from the editor's text ("CODE = name" per line).
  *  An empty text removes it (tracks typed on modules still count). */
-export function saveTrackRegistry(text) {
+export function saveTrackRegistry(text, commonCode) {
+  const mm = _mm();
+  if (commonCode !== undefined) {
+    const c = _clean(commonCode, 40);
+    if (c) mm.commonTrack = c; else delete mm.commonTrack;
+  }
+  const common = getCommonCode();
   const seen = new Set();
   const list = [];
   String(text || '').split('\n').forEach(line => {
     if (!line.trim()) return;
     const m = line.match(/^\s*([^=]+?)\s*(?:=|\s[—–-]\s)\s*(.+?)\s*$/);
     const code = _clean(m ? m[1] : line, 40);
-    if (!code || seen.has(code)) return;
+    if (!code || seen.has(code) || code === common) return;
     seen.add(code);
     list.push({ code, name: _clean(m ? m[2] : '', 80) });
   });
-  const mm = _mm();
   if (list.length) mm.tracks = list; else delete mm.tracks;
   renderModules();
   persistModuleMapping();
@@ -187,6 +203,92 @@ export function getTrackIssues() {
     if (new Set(g.members.map(_moduleLevel)).size > 1) out.push({ kind: 'levels', refs });
   });
   return out;
+}
+
+/** The streams a new alternative of this module could belong to: every
+ *  stream except its own and those that already have a module in its slot. */
+export function alternativeStreamOptions(module) {
+  const mine = _track(module);
+  if (!mine) return [];
+  const taken = new Set([mine, ...getSlotPartners(module).map(_track)]);
+  return getProgrammeTracks().filter(t => !taken.has(t.code));
+}
+
+/** Adds the stream's own version of a module: a new module at the same
+ *  level, linked to it as an alternative. It STARTS with the same outcomes
+ *  (the very same outcomes, so their criteria are shared); take out the ones
+ *  that do not apply to the stream and add its own from the unassigned list.
+ *  A module typed in by hand is copied instead, so its text can be edited. */
+export function addAlternativeModule(moduleId, streamCode) {
+  const mods = _mods();
+  const idx = mods.findIndex(x => x.id === moduleId);
+  const src = mods[idx];
+  const code = _clean(streamCode, 40);
+  if (!src || !_track(src) || !code || code === _track(src) || code === getCommonCode()) return null;
+  const id = _freshModuleId();
+  const copy = { id, title: src.title, track: code };
+  ['level', 'category', 'fullTitle', 'shortName', 'nqfLevel', 'nqfDescriptor'].forEach(k => {
+    if (src[k] !== undefined && src[k] !== '') copy[k] = src[k];
+  });
+  if (src.manual) {
+    copy.manual = true;
+    copy.manualCounter = 0;
+    copy.learningOutcomes = (src.learningOutcomes || []).map(o => {
+      copy.manualCounter++;
+      return { ...JSON.parse(JSON.stringify(o)), id: `${id}_mlo${copy.manualCounter}` };
+    });
+  } else {
+    copy.learningOutcomes = (src.learningOutcomes || []).slice();
+  }
+  if (!src.slot) src.slot = _newSlotId();
+  copy.slot = src.slot;
+  mods.splice(idx + 1, 0, copy);
+  renderModuleLoList();
+  renderModules();
+  persistModuleMapping();
+  return id;
+}
+
+/** The ⑂ button on a card: one stream left → create at once; several →
+ *  ask which. */
+export function openAlternativeChooser(moduleId) {
+  const src = _mods().find(x => x.id === moduleId);
+  const opts = src ? alternativeStreamOptions(src) : [];
+  if (!opts.length) return;
+  if (opts.length === 1) { addAlternativeModule(moduleId, opts[0].code); return; }
+  const old = document.getElementById('mmAltModal');
+  if (old) old.remove();
+  const rtl = !!(window.i18n && window.i18n.isRTL && window.i18n.isRTL());
+  const ov = document.createElement('div');
+  ov.id = 'mmAltModal';
+  ov.setAttribute('role', 'dialog');
+  ov.setAttribute('aria-modal', 'true');
+  ov.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.5);';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:14px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden;font-family:inherit;">
+      <div style="padding:16px 20px;background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-bottom:1px solid #ddd6fe;font-weight:800;color:#5b21b6;">⑂ ${_esc(_tx('trkBtnAddAlt'))}</div>
+      <div style="padding:16px 20px;">
+        <select id="mmAltStream" style="width:100%;box-sizing:border-box;font:inherit;padding:9px;border:1.5px solid #ddd6fe;border-radius:8px;">
+          ${opts.map(t => `<option value="${_esc(t.code)}">${_esc(trackFullLabel(t))}</option>`).join('')}
+        </select>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+          <button type="button" data-alt-act="cancel" style="padding:8px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font:inherit;">${_esc(_tx('btnCancel'))}</button>
+          <button type="button" data-alt-act="ok" style="padding:8px 16px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font:inherit;font-weight:700;">${_esc(_tx('trkBtnAddAltOk'))}</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.addEventListener('click', e => {
+    if (e.target === ov) { close(); return; }
+    const b = e.target.closest('[data-alt-act]');
+    if (!b) return;
+    if (b.getAttribute('data-alt-act') === 'ok') addAlternativeModule(moduleId, ov.querySelector('#mmAltStream').value);
+    close();
+  });
+  ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  ov.querySelector('#mmAltStream').focus();
 }
 
 // ── Programmes ────────────────────────────────────────────────
@@ -317,6 +419,13 @@ export function ensureTracksBar() {
   const tracks = getProgrammeTracks();
   if (!tracks.length) { if (bar) bar.remove(); return; }
   _styles();
+  if (!document.__trkAltWired) {
+    document.__trkAltWired = true;
+    document.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('[data-action="add-alternative-stream"]');
+      if (b) openAlternativeChooser(b.getAttribute('data-module-id'));
+    });
+  }
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'mmTracksBar';
@@ -364,6 +473,11 @@ export function openTracksEditor() {
       <div style="padding:16px 20px;">
         <p style="margin:0 0 10px;font-size:.86em;color:#475569;line-height:1.6;">${_esc(_tx('trkEditHint'))}</p>
         <textarea id="mmTrkLines" dir="auto" rows="5" style="width:100%;box-sizing:border-box;min-height:120px;font:inherit;font-size:.92em;padding:10px;border:1.5px solid #ddd6fe;border-radius:8px;">${_esc(lines)}</textarea>
+        <label style="display:block;margin-top:12px;font-size:.86em;font-weight:700;color:#334155;">${_esc(_tx('trkCommonLabel'))}
+          <input type="text" id="mmTrkCommon" dir="ltr" maxlength="40" value="${_esc(getCommonCode())}" placeholder="${_esc(_tx('trkCommonPh'))}"
+            style="display:block;width:100%;box-sizing:border-box;margin-top:4px;font:inherit;font-weight:400;padding:8px 10px;border:1.5px solid #ddd6fe;border-radius:8px;">
+        </label>
+        <p style="margin:6px 0 0;font-size:.8em;color:#64748b;line-height:1.55;">${_esc(_tx('trkCommonHint'))}</p>
         <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;">
           <button type="button" data-trk-act="cancel" style="padding:8px 14px;border:1px solid #e2e8f0;background:#fff;border-radius:8px;cursor:pointer;font:inherit;">${_esc(_tx('btnCancel'))}</button>
           <button type="button" data-trk-act="save" style="padding:8px 16px;border:none;background:#7c3aed;color:#fff;border-radius:8px;cursor:pointer;font:inherit;font-weight:700;">${_esc(_tx('btnSave'))}</button>
@@ -378,7 +492,7 @@ export function openTracksEditor() {
     if (e.target === ov) { close(); return; }
     const b = e.target.closest('[data-trk-act]');
     if (!b) return;
-    if (b.getAttribute('data-trk-act') === 'save') { saveTrackRegistry(ta.value); close(); } else close();
+    if (b.getAttribute('data-trk-act') === 'save') { saveTrackRegistry(ta.value, ov.querySelector('#mmTrkCommon').value); close(); } else close();
   });
   ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 }

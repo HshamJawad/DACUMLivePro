@@ -186,7 +186,7 @@ function _newManualLo(m) {
 
 /* An id no module, and no Module Curriculum record, has used — so a new
    module never inherits the curriculum written for a deleted one. */
-function _freshModuleId() {
+export function _freshModuleId() {
   const mm = appState.moduleMappingData;
   const taken = new Set(_idModules().map(m => m.id));
   Object.keys(appState.moduleCurriculumData?.byModule || {}).forEach(id => taken.add(id));
@@ -805,7 +805,7 @@ export function computeCoverage() {
         const row = !pc.stale && pc.key && byKey.get(pc.key);
         if (row && !row.modules.some(x => x.id === m.id)) {
           row.modules.push({ id: m.id, number: moduleRef(m), showTrack: !_refShowsTrack(m), title: m.title,
-                             level: _moduleLevel(m), track: m.track || '' });
+                             level: _moduleLevel(m), track: m.track || '', slot: m.slot || '' });
         }
       });
     });
@@ -816,8 +816,11 @@ export function computeCoverage() {
   }));
 
   rows.forEach(r => {
-    r.status = r.modules.length > 1 ? 'multi'
-             : r.modules.length === 1 ? 'covered'
+    // 3.135.0: alternatives (one slot) fill the same place, so a criterion
+    // they share is taught ONCE, not repeated.
+    r.units = new Set(r.modules.map(x => x.slot ? 'slot:' + x.slot : x.id)).size;
+    r.status = r.units > 1 ? 'multi'
+             : r.modules.length >= 1 ? 'covered'
              : r.los.length ? 'lo-only' : 'gap';
   });
   const count = st => rows.filter(r => r.status === st).length;
@@ -845,7 +848,7 @@ export function moduleTitleWithLevel(module) {
 function _statusWord(r) {
   if (r.status === 'gap')     return _tx('covGap');
   if (r.status === 'lo-only') return _txf('covLoOnly', { lo: r.los.join(', ') });
-  if (r.status === 'multi')   return _txf('covMulti', { n: r.modules.length });
+  if (r.status === 'multi')   return _txf('covMulti', { n: r.units || r.modules.length });
   return _tx('covTaught');
 }
 
@@ -1163,7 +1166,7 @@ export function renderCoverageMatrix() {
   const statusCell = r => {
     if (r.status === 'gap')     return `<span class="cov-st cov-gap">✗ ${_esc(_tx('covGap'))}</span>`;
     if (r.status === 'lo-only') return `<span class="cov-st cov-lo">◐ ${_esc(_txf('covLoOnly', { lo: r.los.join(', ') }))}</span>`;
-    if (r.status === 'multi')   return `<span class="cov-st cov-multi">⚠ ${_esc(_txf('covMulti', { n: r.modules.length }))}</span>`;
+    if (r.status === 'multi')   return `<span class="cov-st cov-multi">⚠ ${_esc(_txf('covMulti', { n: r.units || r.modules.length }))}</span>`;
     return `<span class="cov-st cov-ok">✓</span>`;
   };
 
