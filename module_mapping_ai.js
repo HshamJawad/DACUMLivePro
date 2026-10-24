@@ -46,6 +46,7 @@ import { renderModules, renderModuleLoList,
 import { checkUsageLimit, incrementUsage,
          showLoadingModal, hideLoadingModal } from './storage.js';
 import { isBatchRun } from './draft_mode.js';
+import { streamPromptRules, cleanAiTrack, needsGenSetup, openGenSetup } from './module_tracks.js';
 import { showAIServiceError, jobFocusLines, callAI } from './ai_client.js';
 
 
@@ -218,9 +219,9 @@ Decide the level with these rules:
 - SPIRAL IS ALLOWED: the same theme (e.g. hardware, safety, finance) MAY appear
   at several levels as separate modules of increasing difficulty — do not force
   a whole theme into one level.
-- SPECIALISATION: only the highest level(s) may split into tracks; lower levels
+- ${streamPromptRules() || `SPECIALISATION: only the highest level(s) may split into tracks; lower levels
   are common ("").${tracks.length ? `
-  Track codes already used in this programme: ${tracks.join(', ')} — reuse them where they fit.` : ''}
+  Track codes already used in this programme: ${tracks.join(', ')} — reuse them where they fit.` : ''}`}
 - BALANCE: every level should receive modules; avoid placing nearly everything
   at one level.
 Return the modules ordered by level (1 first), and foundational -> advanced
@@ -359,7 +360,7 @@ export function buildModulesFromResponse(parsed, outcomes, opts) {
     if (opts.assignLevels) {
       const l = parseInt(m.level, 10);
       if (Number.isInteger(l) && l >= 1 && l <= opts.levelCount) mod.level = l;
-      const tr = String(m.track || '').trim().slice(0, 40);
+      const tr = cleanAiTrack(m.track, mod.level);
       if (tr) mod.track = tr;
     }
     modules.push(mod);
@@ -390,7 +391,7 @@ export function buildModulesFromResponse(parsed, outcomes, opts) {
 }
 
 export async function generateModulesAI() {
-  const opts = _options();
+  let opts = _options();
 
   if (_outcomes().length === 0) {
     showStatus(_t('msgNoLOsYet'), 'error');
@@ -404,6 +405,13 @@ export async function generateModulesAI() {
   if (outcomes.length < 2) {
     showStatus(_t('msgNeedTwoLOs'), 'error');
     return false;
+  }
+
+  /* 3.138.0: the AI needs the levels and streams. Asked once per project
+     (Skip keeps things as they are); a Full Draft run asks before it starts. */
+  if (!isBatchRun() && opts.assignLevels && needsGenSetup()) {
+    if (await openGenSetup() === 'cancel') return false;
+    opts = _options();
   }
 
   const usageStatus = checkUsageLimit();

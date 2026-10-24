@@ -7,6 +7,21 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.138.0 — 2026-10-24 — AI modules and Full Draft ask about levels and streams
+MINOR. module_tracks.js, module_mapping_ai.js, draft_ui.js, learning_outcomes.js (help),
+modules_shared.js, dacum_projects.js, snapshots.js, index.html, sw.js (v301),
+tests/helpers.js, tests/specs/{module-ai-streams,full-draft,regen-status}.spec.js.
+- Before the AI builds modules (the card on Module Mapping, and the Full Draft before it
+  starts), a question: how many levels, does the programme have streams (CODE = name, the
+  common code), and at which levels they split (the highest by default). Skip keeps things
+  as they are. Asked once per project; closing it cancels the run.
+- The answers are the same settings "Edit Track / Stream" holds, plus streamLevels, kept
+  in the project and its snapshots.
+- The AI is told the streams and where they split; its stream codes are kept to the
+  programme's own (a stray code, or a stream at a common level, becomes common). It does
+  not link alternatives: that stays with "⑂ Alternative for another stream".
+- Help (en/fr/ar): step 0 in the Streams section.
+
 ── 3.137.1 — 2026-10-24 — Document language: read fresh at each export; the test needs no external tool
 PATCH. settings_languages.js, index.html, sw.js (v300), tests/specs/export-project-language.spec.js.
 - The project's language was remembered for 1.5 s; opening another project and exporting at

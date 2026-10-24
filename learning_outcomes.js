@@ -713,6 +713,7 @@ const _GUIDE = {
           'Use a short code: e.g. the programme code for modules common to all tracks (CMCN), and a track code at the top level (CM, CN).',
           'Leave it empty for a programme with a single track.' ] },
         { h: '🔀 Streams (specialisations) — module differs per stream', items: [
+          '0. Generating modules with AI? It first asks how many levels there are and whether the programme has streams (and where they split). Answer it to let the AI propose stream modules, or Skip to keep things as they are and do steps 1-5 yourself.',
           '1. Click "Edit Track / Stream…" (above the modules). Type one stream per line: CM = Computer Maintenance, CN = Computer Networks. In "Code of the modules common to all streams" type the code of your common modules (e.g. CMCN): they are then shared by every stream and are not counted as a stream.',
           '2. Give each module its code in the Track / Stream field: CMCN for common modules, CM or CN for stream modules.',
           '3. For a module that differs by stream (e.g. Hardware, level 3): on its card (say CM) click "⑂ Alternative for another stream", choose the stream, and choose to start from this module\'s outcomes and criteria or to start empty. A new CN card appears at the same level, in the same place in the module code (CM 3-4 / CN 3-4).',
@@ -790,6 +791,7 @@ const _GUIDE = {
           'Utiliser un code court : p. ex. le code du programme pour les modules communs (CMCN), et un code de filière au niveau supérieur (CM, CN).',
           'Le laisser vide pour un programme à filière unique.' ] },
         { h: '🔀 Parcours (spécialisations) — module différent selon le parcours', items: [
+          '0. Génération des modules par l’IA ? Elle demande d’abord le nombre de niveaux et si le programme a des parcours (et où ils se séparent). Répondez pour qu’elle propose des modules par parcours, ou passez pour tout garder tel quel et suivre les étapes 1 à 5 vous-même.',
           '1. Cliquez sur « Modifier filière / parcours (stream)… » (au-dessus des modules). Saisissez un parcours par ligne : CM = Maintenance informatique, CN = Réseaux informatiques. Dans « Code des modules communs à tous les parcours », saisissez le code de vos modules communs (p. ex. CMCN) : ils sont alors partagés par tous les parcours et ne comptent pas comme un parcours.',
           '2. Donnez à chaque module son code dans le champ Filière / parcours : CMCN pour les modules communs, CM ou CN pour ceux d’un parcours.',
           '3. Pour un module qui diffère selon le parcours (p. ex. Matériel, niveau 3) : sur sa carte (CM), cliquez sur « ⑂ Alternative pour un autre parcours », choisissez le parcours, puis partir des résultats et critères de ce module ou de zéro. Une carte CN apparaît au même niveau, à la même place dans le code (CM 3-4 / CN 3-4).',
@@ -867,6 +869,7 @@ const _GUIDE = {
           'استخدم رمزاً قصيراً: رمز البرنامج للوحدات المشتركة بين المسارات (مثل CMCN)، ورمز المسار في المستوى الأعلى (مثل CM أو CN).',
           'اتركها فارغة إذا كان البرنامج مساراً واحداً.' ] },
         { h: '🔀 المسارات (Streams) — وحدة تختلف بحسب المسار', items: [
+          '0. توليد الوحدات بالذكاء الاصطناعي؟ يسألك أولاً عن عدد المستويات وهل في البرنامج مسارات (وأين تنقسم). أجب ليقترح وحدات المسارات، أو اختر «تخطّي» للإبقاء على الوضع الحالي وتنفيذ الخطوات 1-5 بنفسك.',
           '1. اضغط «تحرير المسار (Stream)…» أعلى الوحدات. اكتب مساراً في كل سطر: CM = صيانة الحاسوب، CN = شبكات الحاسوب. وفي «رمز الوحدات المشتركة بين كل المسارات» اكتب رمز وحداتك المشتركة (مثل CMCN): تصبح مشتركة بين كل المسارات ولا تُعدّ مساراً.',
           '2. أعطِ كل وحدة رمزها في حقل المسار: CMCN للوحدات المشتركة، وCM أو CN لوحدات المسار.',
           '3. للوحدة التي تختلف بحسب المسار (مثل الأجهزة Hardware في المستوى 3): على بطاقتها (CM) اضغط «⑂ بديل لمسار آخر»، اختر المسار، ثم اختر البدء من محصلات ومعايير هذه الوحدة أو البدء فارغاً. تظهر بطاقة CN في المستوى نفسه وبالموضع نفسه في رمز الوحدة (CM 3-4 / CN 3-4).',

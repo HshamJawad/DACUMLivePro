@@ -3,7 +3,7 @@
 // stopped at Competency Clusters on every new project, and starting to
 // overwrite a filled project without a clear confirmation.
 const { test, expect } = require('@playwright/test');
-const { openApp, state, loadProject, fixture, mockAI, fillJob } = require('../helpers');
+const { openApp, state, loadProject, fixture, mockAI, fillJob, skipGenSetup } = require('../helpers');
 
 async function openDraft(page, { allExtras = false } = {}) {
   await page.evaluate(async () => (await import('./draft_ui.js')).openDraftModal());
@@ -28,6 +28,7 @@ test('new project: all seven stages complete, even with untidy AI replies', asyn
   await fillJob(page);
   await openDraft(page, { allExtras: true });
   await page.click('#dgStart');
+  await skipGenSetup(page);
   await waitEnd(page);
   expect(await phase(page)).toBe('done');
   expect(await stages(page)).toEqual(Array(7).fill('done'));
@@ -52,6 +53,7 @@ test('filled project + AI down: confirm with snapshot, stop at stage 1, nothing 
   await expect.poll(() => phase(page)).toBe('confirm');
   await expect(page.locator('#dgOverlay .dg-clash-list li')).not.toHaveCount(0);
   await page.click('#dgSnapStart');
+  await skipGenSetup(page);
   await waitEnd(page);
   await page.locator('#aiServiceErrorClose').click().catch(() => {});
   const st = await stages(page);
@@ -101,6 +103,7 @@ test('new project: no linked-work list; the Task Analysis note shows when the dr
   await openDraft(page);
   await expect(page.locator('#dgOverlay #dgLinkedWork')).toHaveCount(0);
   await page.click('#dgStart');
+  await skipGenSetup(page);
   await waitEnd(page);
   expect(await phase(page)).toBe('done');
   await expect(page.locator('#dgOverlay #dgTANote')).toBeVisible();
