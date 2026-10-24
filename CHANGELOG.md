@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.139.0 — 2026-10-24 — The Additional Info tools list goes to Module Builder
+MINOR. module_mapping.js, index.html, sw.js (v302), tests/specs/handoff-tools.spec.js.
+- The handoff carries «additionalInfoTools»: the tools, equipment and materials listed in
+  Additional Info, one item per line, bullets and numbers removed (absent when empty).
+  Module Builder's new Tools & Resources tab offers it next to each task's own list.
+
 ── 3.138.0 — 2026-10-24 — AI modules and Full Draft ask about levels and streams
 MINOR. module_tracks.js, module_mapping_ai.js, draft_ui.js, learning_outcomes.js (help),
 modules_shared.js, dacum_projects.js, snapshots.js, index.html, sw.js (v301),

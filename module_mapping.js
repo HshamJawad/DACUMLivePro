@@ -1613,6 +1613,13 @@ export function openNamedWindow(url, name) {
   try { w.focus(); } catch (_) { /* ignore */ }
 }
 
+/** One list item per line, without the bullet or number a line starts with. */
+export function listLines(text) {
+  return String(text || '').split(/\r?\n/)
+    .map(l => l.replace(/^\s*(?:[•·▪●○◦*\-–—]|\d+\s*[.)\-–—]|[A-Za-z]\s*[.)])\s*/, '').trim())
+    .filter(Boolean);
+}
+
 export function openModuleBuilderFromMapping(moduleId = null) {
   const occupationTitle = document.getElementById('occupationTitle')?.value || '';
   const jobTitle = document.getElementById('jobTitle')?.value || '';
@@ -1684,6 +1691,10 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // 3.85.0: the qualifications framework's name, when the TVQF/NQF
     // option is on and a name was given.
     ...(() => { const n = getNqfSettings(); return n.enabled && n.framework ? { qualificationsFramework: n.framework } : {}; })(),
+    // 3.139.0: the tools, equipment and materials listed in Additional
+    // Info (one text per line), for Module Builder's "Tools & Resources"
+    // tab to offer next to each task's own list. Absent when empty.
+    ...(() => { const t = listLines(document.getElementById('toolsInput')?.value); return t.length ? { additionalInfoTools: t } : {}; })(),
     // 3.104.0: programme requirements and course information (Module
     // Curriculum → Programme settings), when any was entered.
     ...(() => { let p = null; try { p = getProgrammeHandoff(); } catch (_) { p = null; } return p ? { programmeRequirements: p } : {}; })()
