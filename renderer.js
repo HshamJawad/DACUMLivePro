@@ -17,15 +17,28 @@ const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 
 // ── Status / Utility ──────────────────────────────────────────
 
+/* 3.136.0: a floating notice (see .status in dacum-styles.css). Each
+   message restarts its own timer — before, the first message's timer could
+   hide the next one early. Success fades after 4 s, info after 6 s, an
+   error after 12 s; a click dismisses any of them at once. */
+let _statusTimer = null;
+const _STATUS_MS = { success: 4000, info: 6000, error: 12000 };
+
 export function showStatus(message, type) {
   const statusDiv = document.getElementById('status');
   if (!statusDiv) return;
+  clearTimeout(_statusTimer);
+  const hide = () => { statusDiv.style.display = 'none'; };
+  if (!statusDiv.__dismissWired) {
+    statusDiv.__dismissWired = true;
+    statusDiv.setAttribute('role', 'status');
+    statusDiv.setAttribute('aria-live', 'polite');
+    statusDiv.addEventListener('click', () => { clearTimeout(_statusTimer); statusDiv.style.display = 'none'; });
+  }
   statusDiv.textContent = message;
   statusDiv.className = `status ${type}`;
   statusDiv.style.display = 'block';
-  if (type === 'success') {
-    setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
-  }
+  _statusTimer = setTimeout(hide, _STATUS_MS[type] || 6000);
 }
 
 export function escapeHtml(text) {

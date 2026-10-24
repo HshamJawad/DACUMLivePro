@@ -1387,13 +1387,33 @@ textarea {
     resize: vertical;
 }
 
+/* 3.136.0: a floating notice, like Module Builder's. It sat at the very
+   bottom of the page, so on a long tab or a short screen the message
+   appeared out of sight and the action looked as if it had done nothing.
+   Fixed to the viewport, it is always seen; click it to dismiss. */
 .status {
-    padding: 15px;
-    margin: 20px 0;
-    border-radius: 8px;
+    position: fixed;
+    left: 50%;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 100000;
+    width: max-content;
+    max-width: min(92vw, 560px);
+    margin: 0;
+    padding: 12px 18px;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
     font-size: 1.05em;
     font-weight: 600;
     text-align: center;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.status.info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 2px solid #3b82f6;
 }
 
 .status.success {

@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.136.0 — 2026-10-24 — Status messages float over the page
+MINOR. dacum-styles.css, renderer.js, index.html, sw.js (v298), tests/specs/status-toast.spec.js.
+- The status message («Saved», «Imported as new project» …) sat at the very bottom of the
+  page, out of sight on a long tab or a short screen. It is now fixed to the viewport,
+  bottom-centre, like Module Builder's, and inside the screen at 360 px.
+- Each message restarts its own timer (an older timer could hide a newer message).
+  Success fades after 4 s, info 6 s, error 12 s; a click dismisses at once. «info»
+  now has its own blue style.
+
 ── 3.135.3 — 2026-10-24 — Streams: the alternative card is written in place
 PATCH. module_tracks.js, module_mapping.js, learning_outcomes.js (help), modules_shared.js,
 index.html, sw.js (v297), tests/specs/module-tracks.spec.js.
