@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.137.0 — 2026-10-24 — Documents follow the project's language, not the interface's
+MINOR. translations.js, settings_languages.js, project_lang.js, exports_pdf.js, index.html,
+sw.js (v299), tests/specs/export-project-language.spec.js.
+- An Arabic project exported to PDF while the interface was English came out as symbols:
+  the Arabic font, shaping and right-to-left layout were loaded only for an Arabic interface.
+- Exports (Word, PDF, Occupational Standard, curriculum, CBC) are now written in the
+  project's content language when set; otherwise in the language its texts are written in;
+  only an empty project follows the interface. Headings, direction and font go together.
+  The screen is untouched.
+- A project mostly in another language that holds some Arabic text gets a warning before
+  a PDF (en/fr/ar) instead of unreadable symbols in silence.
+
 ── 3.136.0 — 2026-10-24 — Status messages float over the page
 MINOR. dacum-styles.css, renderer.js, index.html, sw.js (v298), tests/specs/status-toast.spec.js.
 - The status message («Saved», «Imported as new project» …) sat at the very bottom of the

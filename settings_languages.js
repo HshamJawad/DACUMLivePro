@@ -19,6 +19,7 @@ import { runTranslation, makeBatches, tidyTranslation } from './content_translat
 import { showStatus } from './renderer.js';
 import { syncDefaultsToLanguage } from './i18n_defaults.js';
 import { showAIServiceError } from './ai_client.js';
+import { stateLanguage, hasArabicText } from './project_lang.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -36,6 +37,24 @@ function _registerProvider() {
   }
 }
 _registerProvider();
+
+/* 3.137.0: a project whose content languages were never set up is still
+   written in SOME language. Documents follow it, not the interface —
+   an Arabic project exported while the interface is English used to come
+   out as symbols. Read from the texts (cheap, cached for a moment). */
+let _fb = { at: 0, lang: '' };
+function _registerExportFallback() {
+  if (!(window.i18n && window.i18n.setExportLangFallback)) return;
+  window.i18n.setExportLangFallback(() => {
+    const now = Date.now();
+    if (now - _fb.at < 1500) return _fb.lang;
+    let lang = '';
+    try { lang = stateLanguage(captureProjectState()) || ''; } catch (_) { lang = ''; }
+    _fb = { at: now, lang };
+    return lang;
+  });
+}
+_registerExportFallback();
 
 /* ── State of the panel ──────────────────────────────────────────── */
 let _box = null;            // the Settings body while this tab is open
