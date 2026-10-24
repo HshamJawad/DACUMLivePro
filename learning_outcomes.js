@@ -12,6 +12,7 @@ import { loLabel } from './lo_labels.js';
 import { outcomeIssues, wordingNoteHtml, refreshWordingNote } from './wording_check.js';
 import { _reconcileLearningOutcomes, _refreshModuleOutcomes, _renderLoNotice, renumberLearningOutcomes, syncClusteringWithProfile } from './clusters.js';
 import { _esc, _findEffectiveCriterionById, _getClusterEffectiveCriteria, _injectModuleCardStyles, _persistClusters, _renderUndoBars, _t, _taskLabel, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
+import { ensureTracksBar, moduleMatchesTrackFilter, getSlotPartners, slotCandidates } from './module_tracks.js';
 import { getModuleCategories, getModuleCategory, categoryLabel, getNqfSettings, getModuleNqfLevel, MAX_LEVELS, _collectModuleTaskAnalysis, _ensureModuleGenOptions, _moduleLevel, _refShowsTrack, getModuleCode, getModuleCodePrefix, getModuleLabelMode, getModuleLevelCount, isModuleCodeDuplicate, isModuleCodeManual, moduleRef, renderCoverageMatrix, setModuleLevelCount, suggestModuleShortName, isManualModule, renumberManualModule, manualTaskOptions } from './module_mapping.js';
 
 // ── Learning Outcomes ─────────────────────────────────────────
@@ -1079,6 +1080,7 @@ export function renderModules() {
   _ensureGuideButtons();
   _ensureModulesLevelBar();
   _ensureNqfBar();
+  ensureTracksBar();   // 3.135.0: programme view per track (only when tracks exist)
   const mm = appState.moduleMappingData;
 
   if (mm.modules.length === 0) {
@@ -1145,6 +1147,11 @@ export function renderModules() {
   const card = (module, moduleIndex) => {
     const { sourceTaskIds } = _collectModuleTaskAnalysis(module);
     const lvl = _moduleLevel(module);
+    /* 3.135.0: alternatives. Only a track's own module can be one; the
+       field offers the track-specific modules at the same level. */
+    const partners = getSlotPartners(module);
+    const altOptions = [...new Set([...slotCandidates(module), ...partners])];
+    const altCurrent = partners.length ? partners[0] : null;
     const levelOpts = [`<option value="">${_esc(_tx('optNoLevel'))}</option>`]
       .concat(Array.from({ length: levelCount }, (_, i) =>
         `<option value="${i + 1}" ${lvl === i + 1 ? 'selected' : ''}>${_esc(_txf('lblLevelN', { n: i + 1 }))}</option>`))
@@ -1156,6 +1163,7 @@ export function renderModules() {
             ${isManualModule(module) ? `<span class="mod-manual-chip" title="${_esc(_tx('hintManualModule'))}">📄 ${_esc(_tx('lblManualChip'))}</span>` : ''}
             ${lvl ? `<span class="mod-level-chip">${_esc(_txf('lblLevelShort', { n: lvl }))}</span>` : ''}
             ${module.track && !_refShowsTrack(module) ? `<span class="mod-track-chip">${_esc(module.track)}</span>` : ''}
+            ${partners.length ? `<span class="mod-slot-chip" title="${_esc(_tx('trkSlotChipTip'))}">⇄ <bdi>${_esc(partners.map(p => moduleRef(p)).join(', '))}</bdi></span>` : ''}
             ${getModuleCategory(module) ? `<span class="mod-cat-chip mod-cat-${_esc(module.category)}">${_esc(categoryLabel(getModuleCategory(module)))}</span>` : ''}
             ${getModuleNqfLevel(module) ? `<span class="mod-nqf-chip">${_esc(_tx('lblNqfChip'))}: <bdi>${_esc(getModuleNqfLevel(module))}</bdi></span>` : ''}
           </div>
@@ -1185,7 +1193,7 @@ export function renderModules() {
             </select>
           </label>
           <label class="mod-meta-field"><span>${_esc(_tx('lblModuleTrack'))}</span>
-            <input type="text" class="mod-track-input" data-module-id="${_esc(module.id)}"
+            <input type="text" class="mod-track-input" data-module-id="${_esc(module.id)}" list="mmTrackList"
               value="${_esc(module.track || '')}" maxlength="40" placeholder="${_esc(getModuleCodePrefix({}))}">
           </label>
           <label class="mod-meta-field mod-code-field"><span>${_esc(_tx('lblModuleCode'))}${isModuleCodeManual(module) ? '' : ` <em class="mod-auto-chip">${_esc(_tx('lblCodeAuto'))}</em>`}</span>
@@ -1199,6 +1207,15 @@ export function renderModules() {
               value="${_esc(module.shortName || '')}" maxlength="30" placeholder="${_esc(suggestModuleShortName(module))}">
           </label>
         </div>
+        ${module.track && altOptions.length ? `
+        <div class="mod-meta-row mod-slot-row">
+          <label class="mod-meta-field mod-slot-field"><span>${_esc(_tx('trkLblAlt'))}</span>
+            <select class="mod-slot-select" data-module-id="${_esc(module.id)}">
+              <option value="">${_esc(_tx('trkOptNoAlt'))}</option>
+              ${altOptions.map(o => `<option value="${_esc(o.id)}" ${o === altCurrent ? 'selected' : ''}>${_esc(moduleRef(o))} — ${_esc(o.title)} (${_esc(o.track || '')})</option>`).join('')}
+            </select>
+          </label>
+        </div>` : ''}
         ${nqf.enabled ? `
         <div class="mod-meta-row mod-nqf-row">
           <label class="mod-meta-field"><span>${_esc(_tx('lblNqfLevel'))}</span>
@@ -1242,12 +1259,13 @@ export function renderModules() {
   const anyLevel = mm.modules.some(m => _moduleLevel(m));
   let html = '';
   if (!anyLevel) {
-    html = mm.modules.map(card).join('');
+    html = mm.modules.map((m, i) => moduleMatchesTrackFilter(m) ? card(m, i) : '').join('');
   } else {
     const groups = [];
     for (let l = 1; l <= levelCount; l++) groups.push({ level: l, items: [] });
     const none = { level: null, items: [] };
     mm.modules.forEach((m, i) => {
+      if (!moduleMatchesTrackFilter(m)) return;   // 3.135.0: programme view of one track
       const l = _moduleLevel(m);
       (l ? groups[l - 1] : none).items.push([m, i]);
     });
@@ -1262,6 +1280,6 @@ export function renderModules() {
     });
   }
 
-  container.innerHTML = html;
+  container.innerHTML = html || `<div class="no-clusters-message">${_esc(_tx('trkNoMatch'))}</div>`;
   renderCoverageMatrix();
 }

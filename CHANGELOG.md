@@ -7,6 +7,45 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.135.0 — 2026-10-24 — Tracks with alternative modules; a programme per track; one export for every track
+MINOR. module_tracks.js (new), module_mapping.js, learning_outcomes.js, clusters.js,
+dacum_projects.js, snapshots.js, modules_shared.js, index.html, sw.js (v294),
+tests/specs/module-tracks.spec.js (new).
+Added   Alternative modules. A programme that splits into specialisations
+        at some level (levels 1-2 common, level 3 common except one place
+        where Computer Maintenance and Computer Networks each have a module
+        of their own) can now say so. On a module that has a Track, the new
+        "Alternative to" field links it to the other track's module at the
+        same level: they share a slot (module.slot) and fill ONE place in
+        the programme. Nothing is copied — a change to a common module is a
+        change in every track.
+Added   Programme view. Once any module has a Track, a bar above the module
+        list shows All / Common only / one button per track; a track's view
+        is the common modules plus its own. "Edit tracks…" gives each track
+        code a name (moduleMappingData.tracks); the Track field suggests the
+        tracks already in use, so a typo does not make a new one.
+Added   "Programme by track" under the coverage matrix: modules, outcomes,
+        criteria and (when Module Curriculum has them) hours for the common
+        modules and for each track's programme, by level, and the
+        alternatives side by side. Warns when alternatives share a track or
+        sit at different levels.
+Added   The chart's Word and PDF exports carry both tables, so one file
+        holds every track; the module-mapping JSON has tracks.programmes
+        and tracks.slots; the Module Builder handoff carries each module's
+        slot beside its track.
+Changed Alternatives take one number in the module code (CM 3-4 and CN 3-4,
+        not CM 3-4 and CN 3-5); the programme-structure table keeps them
+        next to each other. Without slots, codes and order are exactly as
+        before.
+Changed Clearing a module's Track also unlinks it from its alternatives.
+Kept    Every project and JSON file from before loads unchanged: tracks and
+        slots are optional, nothing is migrated, and a project with no
+        track shows none of this.
+Tested  module-tracks spec (typing tracks, linking, codes, views, summary,
+        naming, unlinking, reported problems, Arabic at 360 px, saved
+        project round trip, Module Builder handoff, Word / PDF / JSON
+        export); the existing module-mapping specs.
+
 ── 3.134.5 — 2026-10-22 — Task Verification results in the interface language; cards grow again on older browsers
 PATCH. verification_charts.js, tasks.js, workshop.js, translations.js, dacum-ui.js,
 index.html, sw.js (v293), tests/specs/tv-arabic-autogrow.spec.js (new).

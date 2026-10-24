@@ -154,6 +154,11 @@ export function saveToJSON() {
     if (appState.moduleMappingData.nqf) {
       data.moduleMapping.nqf = appState.moduleMappingData.nqf;
     }
+    // Named tracks (specialisations) — 3.135.0. Each module's own
+    // track and slot travel inside modules[].
+    if (appState.moduleMappingData.tracks) {
+      data.moduleMapping.tracks = appState.moduleMappingData.tracks;
+    }
 
     // Module Curriculum (3.33.0) — its own top-level key. Read back by
     // importProjectFromData(); older files simply lack it.
@@ -540,6 +545,8 @@ export function loadFromJSONLegacy(event) {
           if (data.moduleMapping.levelCount) appState.moduleMappingData.levelCount = data.moduleMapping.levelCount;
           if (data.moduleMapping.labelMode) appState.moduleMappingData.labelMode = data.moduleMapping.labelMode;
           if (data.moduleMapping.nqf) appState.moduleMappingData.nqf = data.moduleMapping.nqf;
+          if (data.moduleMapping.tracks) appState.moduleMappingData.tracks = data.moduleMapping.tracks;
+          else delete appState.moduleMappingData.tracks;
         } else {
           appState.moduleMappingData.modules = [];
           appState.moduleMappingData.moduleCounter = 0;
