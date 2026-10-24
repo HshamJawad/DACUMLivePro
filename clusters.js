@@ -17,6 +17,7 @@ import { clearAIDraft, restoreAIDraft, isAIDraft, canRestoreAI, aiMarkHTML, remo
 import { CLUSTER_TASK_SOURCE_ADDED, _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, isClusterAddedTask, switchTab } from './modules_shared.js';
 import { setModuleCategory, openModuleCategoriesEditor, setNqfEnabled, setNqfFramework, setModuleNqfLevel, setModuleNqfDescriptor, renderCoverageMatrix, renderModuleLoList, setCoverageGapsOnly, setModuleCode, setModuleLabelMode, setModuleLevel, setModuleLevelCount, setModuleShortName, setModuleTrack, setModuleFullTitle } from './module_mapping.js';
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
+import { setModuleAlternativeOf } from './module_tracks.js';
 import { isTaskSelected, getTaskExclusionReason } from './task_selection.js';
 import { registerHistoryScope, refreshHistoryButtons } from './history.js';
 import { clusterLabel } from './cluster_labels.js';
@@ -1456,6 +1457,7 @@ function _wireClusterTaskControls() {
     if (!t || !t.matches) return;
     if (t.matches('#modulesContainer .mod-level-select'))     setModuleLevel(t.getAttribute('data-module-id'), t.value);
     else if (t.matches('#modulesContainer .mod-track-input')) setModuleTrack(t.getAttribute('data-module-id'), t.value);
+    else if (t.matches('#modulesContainer .mod-slot-select')) setModuleAlternativeOf(t.getAttribute('data-module-id'), t.value);   // 3.135.0
     else if (t.matches('#modulesContainer .mod-cat-select')) {   // 3.101.0
       if (t.value === '__edit') {
         const m = appState.moduleMappingData.modules.find(x => x.id === t.getAttribute('data-module-id'));

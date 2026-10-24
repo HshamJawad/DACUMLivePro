@@ -21,6 +21,7 @@ import { _reconcileLearningOutcomes, _refreshModuleOutcomes, renumberLearningOut
 import { _esc, _getClusterEffectiveCriteria, _persistClusters, _t, _taskLabel, _tf, _tx, _txf, _undoRecord, _undoSnap } from './modules_shared.js';
 import { renderCurriculumMatrix, getCurriculumMatrix } from './curriculum_matrix.js';
 import { renderModules } from './learning_outcomes.js';
+import { getTracksExportData, getTracksExportTables, renderTrackSummary, tidySlots } from './module_tracks.js';
 import { captureProjectState } from './dacum_projects.js';
 import { viewOriginal, handoffTranslations, guessLanguage, versionStats, LANG_NAMES } from './content_lang.js';
 
@@ -475,11 +476,27 @@ export function getModuleCodePrefix(module) {
   if (t) return t;
   return _idInitials(_idDom('jobTitle')) || _idInitials(_idDom('occupationTitle')) || 'MOD';
 }
+/* Position of a module within its level. Alternatives that share a slot
+   (module.slot, see module_tracks.js) take ONE place between them, so the
+   Computer Maintenance and Computer Networks modules that replace each
+   other at level 3 are CM 3-4 and CN 3-4, not CM 3-4 and CN 3-5. With no
+   slots this is exactly the old count. 0 when the module is not listed. */
+function _levelPosition(module, mods, lvl) {
+  const seen = new Set();
+  let pos = 0;
+  for (const m of mods) {
+    if (_moduleLevel(m) !== lvl) continue;
+    const key = m.slot ? 'slot:' + m.slot : 'module:' + m.id;
+    if (!seen.has(key)) { seen.add(key); pos++; }
+    if (m === module) return pos;
+  }
+  return 0;
+}
 export function suggestModuleCode(module) {
   const mods = _idModules();
   const lvl = _moduleLevel(module);
   const prefix = getModuleCodePrefix(module);
-  if (lvl) return `${prefix} ${lvl}-${mods.filter(m => _moduleLevel(m) === lvl).indexOf(module) + 1}`;
+  if (lvl) return `${prefix} ${lvl}-${_levelPosition(module, mods, lvl)}`;
   return `${prefix} ${mods.indexOf(module) + 1}`;
 }
 export function isModuleCodeManual(module) {
@@ -605,7 +622,8 @@ export function setModuleTrack(moduleId, track) {
   const m = appState.moduleMappingData.modules.find(x => x.id === moduleId);
   if (!m) return;
   const t = String(track || '').replace(/\s+/g, ' ').trim().slice(0, 40);
-  if (t) m.track = t; else delete m.track;
+  if (t) m.track = t; else { delete m.track; delete m.slot; }   // 3.135.0: a common module is nobody's alternative
+  tidySlots();
   renderModules(); renderModuleLoList();
   _persistClusters();
 }
@@ -843,10 +861,14 @@ function _levelsExportData() {
   const cols = Array.from({ length: levelCount }, (_, i) => i + 1);
   if (usesNoLevel) cols.push(null);
 
-  // Programme structure: one row per module, ordered by level.
+  // Programme structure: one row per module, ordered by level. Alternatives
+  // (module.slot) sit next to each other; with no slots u === i, so the
+  // order is exactly what it was.
+  const firstOfSlot = {};
+  mm.modules.forEach((m, i) => { if (m.slot && firstOfSlot[m.slot] === undefined) firstOfSlot[m.slot] = i; });
   const structure = mm.modules
-    .map((m, i) => ({ m, i, l: _moduleLevel(m) }))
-    .sort((a, b) => (a.l || 99) - (b.l || 99) || a.i - b.i)
+    .map((m, i) => ({ m, i, l: _moduleLevel(m), u: m.slot ? firstOfSlot[m.slot] : i }))
+    .sort((a, b) => (a.l || 99) - (b.l || 99) || a.u - b.u || a.i - b.i)
     .map(({ m, i, l }) => {
       const crit = [];
       (m.learningOutcomes || []).forEach(o => (o.linkedCriteria || []).forEach(pc => {
@@ -887,7 +909,9 @@ function _levelsExportData() {
     body.push({ status: r.status,
       cells: [`${r.id}  ${r.text}`, ...cols.map(l => cellText(r, l)), _statusWord(r)] });
   });
-  return { anyLevel, structure, summary, head, body, levelColumns: cols.length };
+  // 3.135.0: each track's programme and the alternative modules, as text
+  // tables; null when the project has no tracks.
+  return { anyLevel, structure, summary, head, body, levelColumns: cols.length, tracks: getTracksExportTables() };
 }
 
 /**
@@ -936,6 +960,29 @@ export function buildLevelsDocxBlock(lib) {
       cell(r.los, w[3], { center: true }), cell(r.criteria, w[4], { size: 18 }),
     ] })));
     out.push(table(rows, w));
+    out.push(para('', { spacing: { after: 300 } }));
+  }
+
+  // 1b. Programmes by track (3.135.0): one table for every track's
+  // programme, one comparing the alternative modules. Both in the same
+  // file, so the specialisations can be read side by side.
+  if (d.tracks) {
+    out.push(para(_tx('trkExportTitle'), { size: 28, bold: true, spacing: { before: 200, after: 120 } }));
+    out.push(para(_tx('trkSummaryHint'), { size: 18, italics: true, spacing: { after: 120 } }));
+    const grid = (t, firstW) => {
+      const n = t.head.length;
+      const gw = [firstW, ...Array(n - 1).fill(Math.floor((TOTAL - firstW) / (n - 1)))];
+      const trs = [new TableRow({ tableHeader: true, children:
+        t.head.map((h, i) => cell(h, gw[i], { bold: true, shaded: true, fillCell: fill, size: 18, center: i !== 0 })) })];
+      t.rows.forEach(r => trs.push(new TableRow({ children: r.map((c, i) => cell(c, gw[i], { size: 18, center: i !== 0 })) })));
+      return table(trs, gw);
+    };
+    out.push(grid(d.tracks.programme, 2400));
+    if (d.tracks.slots) {
+      out.push(para(_tx('trkSlotsTitle'), { size: 22, bold: true, spacing: { before: 240, after: 100 } }));
+      out.push(grid(d.tracks.slots, 1300));
+    }
+    d.tracks.issues.forEach(t => out.push(para('⚠ ' + t, { size: 18, color: '9A3412', spacing: { before: 80 } })));
     out.push(para('', { spacing: { after: 300 } }));
   }
 
@@ -1035,6 +1082,32 @@ export function writeLevelsPdf(pdf, ctx) {
     ensure(30);
   }
 
+  // Programmes by track (3.135.0). Plain text only, like the tables above.
+  if (d.tracks) {
+    ensure(40);
+    pdf.setFontSize(14); pdf.setFont(undefined, 'bold');
+    pdf.text(_tx('trkExportTitle'), margin, y); y += 6;
+    pdf.setFontSize(9); pdf.setFont(undefined, 'normal');
+    pdf.splitTextToSize(_tx('trkSummaryHint'), W).forEach(l => { pdf.text(l, margin, y); y += 4; });
+    y += 2;
+    const trkWidths = (n, firstShare) => [W * firstShare, ...Array(n - 1).fill(W * (1 - firstShare) / (n - 1))];
+    drawTable(trkWidths(d.tracks.programme.head.length, 0.26), d.tracks.programme.head,
+      d.tracks.programme.rows.map(r => ({ cells: r })), 8);
+    if (d.tracks.slots) {
+      y += 6;
+      ensure(30);
+      pdf.setFontSize(11); pdf.setFont(undefined, 'bold');
+      pdf.text(_tx('trkSlotsTitle'), margin, y); y += 5;
+      pdf.setFont(undefined, 'normal');
+      drawTable(trkWidths(d.tracks.slots.head.length, 0.14), d.tracks.slots.head,
+        d.tracks.slots.rows.map(r => ({ cells: r })), 8);
+    }
+    pdf.setFontSize(9);
+    d.tracks.issues.forEach(t => pdf.splitTextToSize(t, W).forEach(l => { ensure(5); pdf.text(l, margin, y + 4); y += 4.5; }));
+    y += 10;
+    ensure(30);
+  }
+
   pdf.setFontSize(14); pdf.setFont(undefined, 'bold');
   pdf.text(_tx('covTitle'), margin, y); y += 6;
   pdf.setFontSize(9); pdf.setFont(undefined, 'normal');
@@ -1067,6 +1140,7 @@ export function renderCoverageMatrix() {
   // This Tab" and deleting the last module empty it).
   if (!((appState.moduleMappingData || {}).modules || []).length) {
     if (sec) sec.remove();
+    renderTrackSummary();   // 3.135.0: removes its own section too
     return;
   }
   if (!sec) {
@@ -1167,6 +1241,8 @@ export function renderCoverageMatrix() {
   });
   /* 3.119.0: the curriculum matrix (depth of treatment) under it. */
   try { renderCurriculumMatrix(); } catch (e) { console.warn('[curriculum matrix]', e); }
+  /* 3.135.0: programme by track, when the project has tracks. */
+  try { renderTrackSummary(); } catch (e) { console.warn('[track summary]', e); }
 }
 
 /* 3.122.0: the "?" in the title bar of the coverage and curriculum
@@ -1189,7 +1265,7 @@ export function bindMatrixHelp(sec) {
 
 let _covOpen = (() => { try { return localStorage.getItem('dacum_cov_open') === '1'; } catch (_) { return false; } })();
 
-function _injectCovFoldStyles() {
+export function _injectCovFoldStyles() {
   if (document.getElementById('covFoldStyles')) return;
   const st = document.createElement('style');
   st.id = 'covFoldStyles';
@@ -1457,6 +1533,8 @@ function _buildModuleExport(module, moduleNumber) {
     // Programme level (1..N) and specialisation; null / '' when unset.
     level: _moduleLevel(module),
     track: module.track || '',
+    // 3.135.0: modules sharing a slot are alternatives, one per track.
+    ...(module.slot ? { slot: module.slot } : {}),
     // 3.104.0: the module's category (Basic, Common, Core, Elective or
     // the programme's own), with its label as shown here.
     ...(() => { const c = getModuleCategory(module); return c ? { category: { id: c.id, label: categoryLabel(c) } } : {}; })(),
@@ -1688,6 +1766,8 @@ export function exportModuleMappingJSON() {
   let _pr = null; try { _pr = getProgrammeHandoff(); } catch (_) { _pr = null; }
   if (_pr) exportData.programmeRequirements = _pr;   // 3.104.0
   try { exportData.curriculumMatrix = getCurriculumMatrix(); } catch (_) { /* 3.119.0 */ }
+  // 3.135.0: tracks, each track's programme and the alternative modules.
+  try { const tr = getTracksExportData(); if (tr) exportData.tracks = tr; } catch (_) { /* optional */ }
 
   const dateStr = new Date().toISOString().split('T')[0];
   const filename = `module-mapping-export_${dateStr}.json`;
