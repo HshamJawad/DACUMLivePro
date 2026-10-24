@@ -183,7 +183,8 @@ export function importProjectFromData(data, fileName) {
                                   // 3.85.0 — TVQF / NQF option.
                                   ...(s.moduleMapping.nqf ? { nqf: s.moduleMapping.nqf } : {}),
                                   // 3.135.0 — named tracks (specialisations).
-                                  ...(s.moduleMapping.tracks ? { tracks: s.moduleMapping.tracks } : {}) }
+                                  ...(s.moduleMapping.tracks ? { tracks: s.moduleMapping.tracks } : {}),
+                                  ...(s.moduleMapping.commonTrack ? { commonTrack: s.moduleMapping.commonTrack } : {}) }
                               : { modules: [], moduleCounter: 0 },
     // Module Curriculum (3.33.0). Absent in older files — normalised to
     // the default when the project is opened (_applyState).

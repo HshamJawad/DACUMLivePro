@@ -159,6 +159,9 @@ export function saveToJSON() {
     if (appState.moduleMappingData.tracks) {
       data.moduleMapping.tracks = appState.moduleMappingData.tracks;
     }
+    if (appState.moduleMappingData.commonTrack) {
+      data.moduleMapping.commonTrack = appState.moduleMappingData.commonTrack;
+    }
 
     // Module Curriculum (3.33.0) — its own top-level key. Read back by
     // importProjectFromData(); older files simply lack it.
@@ -547,6 +550,8 @@ export function loadFromJSONLegacy(event) {
           if (data.moduleMapping.nqf) appState.moduleMappingData.nqf = data.moduleMapping.nqf;
           if (data.moduleMapping.tracks) appState.moduleMappingData.tracks = data.moduleMapping.tracks;
           else delete appState.moduleMappingData.tracks;
+          if (data.moduleMapping.commonTrack) appState.moduleMappingData.commonTrack = data.moduleMapping.commonTrack;
+          else delete appState.moduleMappingData.commonTrack;
         } else {
           appState.moduleMappingData.modules = [];
           appState.moduleMappingData.moduleCounter = 0;

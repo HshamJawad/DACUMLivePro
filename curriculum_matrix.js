@@ -27,6 +27,8 @@ const CYCLE = ['i', 'p', 'a', '-'];
 let _open = (() => { try { return localStorage.getItem('dacum_cmx_open') === '1'; } catch (_) { return false; } })();
 
 function _mm() { return appState.moduleMappingData || { modules: [] }; }
+/** Alternatives of one slot (3.135.0) fill the same place: one unit. */
+function _unit(m) { return m.slot ? 'slot:' + m.slot : m.id; }
 
 /** The suggested depth of each task in each module, from the criteria. */
 function _suggested() {
@@ -34,15 +36,19 @@ function _suggested() {
   const tasks = [];  // { id, code, text } in first-seen order
   const seen = new Set();
   const last = {};
+  const unit = {};   // taskId → unit key → module ids (alternatives share a unit)
   _mm().modules.forEach(m => {
     const { sourceTasks } = _collectModuleTaskAnalysis(m);
+    const key = _unit(m);
     sourceTasks.forEach(t => {
       if (!seen.has(t.id)) { seen.add(t.id); tasks.push(t); }
       (out[t.id] = out[t.id] || {})[m.id] = 'p';
-      last[t.id] = m.id;
+      ((unit[t.id] = unit[t.id] || {})[key] = unit[t.id][key] || []).push(m.id);
+      last[t.id] = key;
     });
   });
-  Object.keys(last).forEach(id => { out[id][last[id]] = 'a'; });
+  // The last place that teaches a task assesses it — in EVERY alternative there.
+  Object.keys(last).forEach(id => { unit[id][last[id]].forEach(mid => { out[id][mid] = 'a'; }); });
   return { out, tasks };
 }
 
@@ -65,7 +71,7 @@ export function getCurriculumMatrix() {
   const checks = [];
   rows.forEach(r => {
     const firstA = r.cells.indexOf('a'), firstP = r.cells.indexOf('p');
-    const nA = r.cells.filter(c => c === 'a').length;
+    const nA = new Set(r.cells.map((c, i) => c === 'a' ? _unit(mods[i]) : null).filter(Boolean)).size;
     if (!nA) checks.push({ kind: 'never', task: r.code });
     else if (firstP > firstA) checks.push({ kind: 'early', task: r.code });
     if (nA > 1) checks.push({ kind: 'multi', task: r.code, n: nA });
