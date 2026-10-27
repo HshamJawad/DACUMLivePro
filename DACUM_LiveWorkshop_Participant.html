@@ -431,6 +431,7 @@
         errClosed: 'Voting has been closed by the facilitator.',
         errIncomplete: 'Please complete all three ratings for at least one task',
         okSubmitted: '\u2705 Votes submitted successfully! Thank you for participating.',
+        alreadyVoted: 'You have already submitted your votes from this device. Thank you for taking part!',
         svTitle: 'Supplementary Occupational Verification',
         svIntro: 'Rate how important each item is for this occupation (0 = not important, 3 = critical). These ratings are kept separate from task priorities.',
         errSubmit: 'Error submitting votes: {msg}'
@@ -456,6 +457,7 @@
         errClosed: 'Le vote a \u00e9t\u00e9 cl\u00f4tur\u00e9 par l\u2019animateur.',
         errIncomplete: 'Compl\u00e9tez les trois \u00e9valuations pour au moins une t\u00e2che',
         okSubmitted: '\u2705 Votes envoy\u00e9s. Merci de votre participation !',
+        alreadyVoted: 'Vous avez d\u00e9j\u00e0 envoy\u00e9 vos votes depuis cet appareil. Merci de votre participation !',
         svTitle: 'V\u00e9rification professionnelle compl\u00e9mentaire',
         svIntro: '\u00c9valuez l\u2019importance de chaque \u00e9l\u00e9ment pour ce m\u00e9tier (0 = pas important, 3 = critique). Ces notes restent distinctes des priorit\u00e9s des t\u00e2ches.',
         errSubmit: 'Erreur lors de l\u2019envoi : {msg}'
@@ -485,6 +487,7 @@
         svTitle: '\u0627\u0644\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0647\u0646\u064a\u0629 \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629',
         svIntro: '\u0642\u064a\u0651\u0645 \u0623\u0647\u0645\u064a\u0629 \u0643\u0644 \u0628\u0646\u062f \u0644\u0647\u0630\u0647 \u0627\u0644\u0645\u0647\u0646\u0629 (0 = \u063a\u064a\u0631 \u0645\u0647\u0645\u060c 3 = \u062d\u0631\u062c). \u062a\u0628\u0642\u0649 \u0647\u0630\u0647 \u0627\u0644\u062a\u0642\u064a\u064a\u0645\u0627\u062a \u0645\u0646\u0641\u0635\u0644\u0629 \u0639\u0646 \u0623\u0648\u0644\u0648\u064a\u0627\u062a \u0627\u0644\u0645\u0647\u0627\u0645.',
         okSubmitted: '\u2705 \u0623\u064f\u0631\u0633\u0644\u062a \u0627\u0644\u0623\u0635\u0648\u0627\u062a \u0628\u0646\u062c\u0627\u062d! \u0634\u0643\u0631\u0627\u064b \u0644\u0645\u0634\u0627\u0631\u0643\u062a\u0643.',
+        alreadyVoted: '\u0644\u0642\u062f \u0623\u0631\u0633\u0644\u062a\u064e \u0623\u0635\u0648\u0627\u062a\u0643 \u0645\u0646 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632 \u0645\u0646 \u0642\u0628\u0644. \u0634\u0643\u0631\u0627\u064b \u0644\u0645\u0634\u0627\u0631\u0643\u062a\u0643!',
         errSubmit: '\u062e\u0637\u0623 \u0641\u064a \u0625\u0631\u0633\u0627\u0644 \u0627\u0644\u0623\u0635\u0648\u0627\u062a: {msg}'
       }
     };
@@ -733,6 +736,7 @@
             });
 
             renderSupplementary(sessionData, container);
+            applyVotedState();
         }
 
         /* Optional section — rendered ONLY when the facilitator enabled
@@ -859,12 +863,18 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(Object.assign(
-                        { sessionId: sessionId, votes: completedVotes, group: participantGroup },
+                        { sessionId: sessionId, votes: completedVotes, group: participantGroup, voterToken: voterToken() },
                         Object.keys(supplementaryVotes).length
                             ? { supplementaryVotes: supplementaryVotes } : {}
                     ))
                 });
                 
+                if (response.status === 409) {
+                    // The server already holds a vote from this device.
+                    markVoted();
+                    showStatus(pt('alreadyVoted'), 'success');
+                    return;
+                }
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -873,8 +883,7 @@
                 
                 if (result.success) {
                     showStatus(pt('okSubmitted'), 'success');
-                    document.getElementById('btnSubmitVotes').disabled = true;
-                    document.getElementById('votingContainer').style.opacity = '0.5';
+                    markVoted();
                 } else {
                     throw new Error(result.error || 'Failed to submit votes');
                 }
@@ -897,6 +906,55 @@
            by hand with any other id is skipped, never rendered. */
         function isSafeId(v) {
             return (typeof v === 'string' || typeof v === 'number') && /^[A-Za-z0-9_-]{1,64}$/.test(String(v));
+        }
+
+        /* One vote per device. The token is random, made once per device and
+           session, and sent with the vote: the server keeps the first vote for
+           a token and answers 409 to any later one. The "voted" flag lets this
+           page say so after a reload instead of offering the form again.
+           Storage can be blocked (private windows): the token then lives for
+           this page load only. */
+        let _memToken = null;
+        function voterToken() {
+            const key = 'dacumVoterToken_' + sessionId;
+            try {
+                const saved = localStorage.getItem(key);
+                if (saved && /^[A-Za-z0-9_-]{16,64}$/.test(saved)) return saved;
+            } catch (e) {}
+            if (!_memToken) {
+                const c = window.crypto && window.crypto.getRandomValues ? window.crypto : null;
+                _memToken = c
+                    ? Array.from(c.getRandomValues(new Uint8Array(18)), b => b.toString(16).padStart(2, '0')).join('')
+                    : (Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+            }
+            try { localStorage.setItem(key, _memToken); } catch (e) {}
+            return _memToken;
+        }
+        function hasVoted() {
+            try { return localStorage.getItem('dacumVoted_' + sessionId) === 'true'; } catch (e) { return false; }
+        }
+        function markVoted() {
+            try { localStorage.setItem('dacumVoted_' + sessionId, 'true'); } catch (e) {}
+            applyVotedState();
+        }
+        /* After a vote (this load or an earlier one) the form stays visible
+           but cannot be sent again, with a note that does not fade away. */
+        function applyVotedState() {
+            if (!hasVoted()) return;
+            const btn = document.getElementById('btnSubmitVotes');
+            if (btn) btn.disabled = true;
+            const box = document.getElementById('votingContainer');
+            if (!box) return;
+            box.style.opacity = '0.5';
+            let note = document.getElementById('alreadyVotedNote');
+            if (!note) {
+                note = document.createElement('div');
+                note.id = 'alreadyVotedNote';
+                note.setAttribute('role', 'status');
+                note.style.cssText = 'text-align:center;padding:14px;margin-bottom:16px;background:#dcfce7;border:2px solid #22c55e;border-radius:12px;color:#14532d;font-weight:600;';
+                box.parentNode.insertBefore(note, box);
+            }
+            note.textContent = pt('alreadyVoted');
         }
         
         // Ratings are read from data attributes through one delegated listener,
