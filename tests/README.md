@@ -33,6 +33,7 @@ part of the app: nothing in this folder is loaded or cached by it.
 | `specs/imported-custom-section.spec.js` | A project file with markup in a custom section's heading or text opens as plain text: nothing runs, no element is created, the text is shown as written. |
 | `specs/module-size-note.spec.js` | Module size: no note at 3 or 6 outcomes, a calm note from 7 (count, merge, split) that blocks nothing and goes away when the count falls; the note and the Module Mapping guide section in EN / FR / AR; the note inside its card at 360 px. |
 | `specs/guide-modal.spec.js` | The "?" guide dialog: styled by classes (no inline style), Tab / Shift+Tab stay inside, Esc closes and focus returns to the "?" button. |
+| `specs/cbc-methods.spec.js` | Method pickers per learning outcome: ticking adds / un-ticking removes, hand-typed methods kept, picker stays open, wording follows the document language and is recognised in any wording, CBC Word carries both lists; "Course structure" starts on a new page. |
 | `specs/cbc-arabic.spec.js` | Arabic CBC Word draft: محصلات التعلم / الكفاءة wording, the old terms gone, list and outcome numbers in Arabic-Indic digits; the English draft keeps 1. 2. 3. |
 
 `fixtures/sample-project.json` is a synthetic project (made with the

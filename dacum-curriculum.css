@@ -161,6 +161,24 @@
 #module-curriculum-tab .cur-chip-btn { font-weight: 600; padding: 4px 10px !important; min-height: 30px; border-radius: 999px; }
 #module-curriculum-tab .cur-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; font-size: .9em; color: var(--cur-muted); }
 
+/* 3.140.5: method pickers — a drop-down of tick boxes that opens in
+   the flow of the page (no floating layer, so it needs no RTL rules). */
+#module-curriculum-tab .cur-pick { margin: 0 0 8px; }
+#module-curriculum-tab .cur-pick-btn {
+  display: inline-flex; align-items: center; gap: 6px; list-style: none; cursor: pointer;
+  padding: 6px 12px; min-height: 34px; border-radius: 8px;
+  font-size: .85em; font-weight: 700; background: #f5f3ff; color: #5b21b6; border: 1px solid var(--cur-violet-line);
+}
+#module-curriculum-tab .cur-pick-btn::-webkit-details-marker { display: none; }
+#module-curriculum-tab .cur-pick-btn:hover { background: #ede9fe; border-color: #c4b5fd; }
+#module-curriculum-tab .cur-pick[open] > .cur-pick-btn { background: #ede9fe; }
+#module-curriculum-tab .cur-pick-count { font-style: normal; font-weight: 700; font-size: .9em; padding: 0 8px; border-radius: 999px; background: var(--cur-violet); color: #fff; }
+#module-curriculum-tab .cur-pick-panel { margin-top: 6px; padding: 10px 12px; border: 1px solid var(--cur-violet-line); border-radius: 10px; background: #fff; }
+#module-curriculum-tab .cur-pick-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 16px; }
+#module-curriculum-tab .cur-pick-opt { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 4px 0; cursor: pointer; font-weight: 500; color: #334155; }
+#module-curriculum-tab .cur-pick-opt input { width: 18px; height: 18px; flex-shrink: 0; margin: 2px 0 0; accent-color: var(--cur-violet); }
+#module-curriculum-tab .cur-pick-sep { margin: 8px 0 4px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: .8em; font-weight: 700; color: var(--cur-muted); }
+
 #module-curriculum-tab .cur-check { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0; font-weight: 500; color: #334155; }
 #module-curriculum-tab .cur-check input { width: 18px; height: 18px; flex-shrink: 0; margin: 2px 0 0; accent-color: var(--cur-violet); }
 #module-curriculum-tab .cur-check small { color: var(--cur-muted); }
@@ -285,12 +303,14 @@ html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
   }
   #module-curriculum-tab .cur-fac-row { grid-template-columns: minmax(0, 1fr) 70px 44px; }
   #module-curriculum-tab .cur-mini-btn, #module-curriculum-tab .cur-li-add { min-height: 44px; }
+  #module-curriculum-tab .cur-pick-btn { min-height: 44px; }
+  #module-curriculum-tab .cur-pick-opt { padding: 8px 0; }
 }
 
 /* ── Phones ───────────────────────────────────────────────── */
 @media (max-width: 760px) {
   #module-curriculum-tab .cur-grid-2, #module-curriculum-tab .cur-grid-3,
-  #module-curriculum-tab .cur-res-grid { grid-template-columns: 1fr; }
+  #module-curriculum-tab .cur-res-grid, #module-curriculum-tab .cur-pick-grid { grid-template-columns: 1fr; }
   #module-curriculum-tab .cur-ro { grid-template-columns: 1fr 1fr; }
   #module-curriculum-tab .cur-ro div:first-child { grid-column: 1 / -1; }
   #module-curriculum-tab .cur-hours { grid-template-columns: 1fr; }
