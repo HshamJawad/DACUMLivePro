@@ -2646,3 +2646,36 @@ body.card-view-printing .dcv-agree, html.vc-printing .dcv-agree { display: none 
 }
 /* The workshop link wraps too (it ran past its box on a phone). */
 #lwParticipantLink { overflow-wrap: anywhere; max-width: 100%; box-sizing: border-box; }
+
+/* Module Mapping / Learning Outcomes guide dialog (the "?" button).
+   Moved here from inline style="" strings in learning_outcomes.js. */
+.lomm-guide-overlay {
+  position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.lomm-guide-card {
+  background: #fff; border-radius: 16px; max-width: 620px; width: 100%; max-height: 88vh;
+  display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.35);
+  font-family: inherit; text-align: start;
+}
+.lomm-guide-head {
+  padding: 18px 22px 14px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg,#eef2ff,#e0e7ff); border-bottom: 1px solid #c7d2fe;
+}
+.lomm-guide-icon { font-size: 1.6em; line-height: 1; }
+.lomm-guide-title { margin: 0; font-size: 1em; font-weight: 800; color: #3730a3; }
+.lomm-guide-body { padding: 16px 22px 18px; overflow-y: auto; }
+.lomm-guide-intro {
+  margin: 0 0 14px; font-size: .88em; line-height: 1.65; color: #475569;
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;
+}
+.lomm-guide-sec { margin: 0 0 14px; }
+.lomm-guide-sec-h { margin: 0 0 6px; font-size: .9em; font-weight: 800; color: #1e293b; }
+.lomm-guide-sec ul { margin: 0; padding-inline-start: 20px; }
+.lomm-guide-sec li { font-size: .86em; line-height: 1.65; color: #334155; margin-bottom: 4px; }
+.lomm-guide-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+.lomm-guide-card .lomm-guide-close {
+  padding: 9px 22px; background: #667eea; color: #fff; border: none; border-radius: 8px;
+  font-size: .9em; font-weight: 700; cursor: pointer;
+}
+.lomm-guide-card .lomm-guide-close:focus-visible { outline: 2px solid #3730a3; outline-offset: 2px; }

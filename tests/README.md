@@ -32,6 +32,7 @@ part of the app: nothing in this folder is loaded or cached by it.
 | `specs/module-tracks.spec.js` | Tracks (specialisations): a track typed on a module brings the programme-view bar; "Alternative to" links one module per track in the same place (one code number, programme per track = common + own); named tracks; unlinking; problems reported; kept in a saved project; slot and track in the Module Builder handoff; both tracks in one Word, PDF and JSON export; Arabic at 360 px. |
 | `specs/imported-custom-section.spec.js` | A project file with markup in a custom section's heading or text opens as plain text: nothing runs, no element is created, the text is shown as written. |
 | `specs/module-size-note.spec.js` | Module size: no note at 3 or 6 outcomes, a calm note from 7 (count, merge, split) that blocks nothing and goes away when the count falls; the note and the Module Mapping guide section in EN / FR / AR; the note inside its card at 360 px. |
+| `specs/guide-modal.spec.js` | The "?" guide dialog: styled by classes (no inline style), Tab / Shift+Tab stay inside, Esc closes and focus returns to the "?" button. |
 
 `fixtures/sample-project.json` is a synthetic project (made with the
 app's own Full Draft against the stand-in), not real workshop data.
