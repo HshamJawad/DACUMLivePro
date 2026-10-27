@@ -7,6 +7,17 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.140.0 — 2026-10-27 — Voting page: one vote per device
+MINOR. DACUM_LiveWorkshop_Participant.html, index.html, sw.js (v304).
+- The page makes a random voter token once per device and session and sends it with the
+  vote. The server (Live-session-backend, one-vote-per-device) keeps the first vote for a
+  token and answers 409 to a later one; the page then says the vote was already sent.
+- After a vote the page remembers it: a reload shows the form dimmed with a note, and the
+  Submit button stays off. EN / FR / AR.
+- Stops repeat votes from a reload, the back button or a retry. It does not stop someone
+  who clears browser data or uses another device. A facilitator who tests the link on
+  the same browser uses that browser's vote.
+
 ── 3.139.1 — 2026-10-27 — Voting page: ids checked, no inline handlers; session id from crypto
 PATCH. DACUM_LiveWorkshop_Participant.html, workshop.js, index.html, sw.js (v303).
 - The participant page put task and item ids inside id="" and onchange="…" attributes
