@@ -45,6 +45,14 @@ async function _build(m) {
     const { Table, TableRow, TableCell, WidthType, AlignmentType, ShadingType, Footer, PageNumber, TabStopType } = D;
     const rtl = _rtl();
 
+    /* Arabic export: every number the tool itself writes (list numbers,
+       outcome numbers, hours) uses Arabic-Indic digits (١٢٣). Text typed by
+       the user is never touched. Runs inside withContentLang, so getLang()
+       is the export language. */
+    const isAr = !!(window.i18n && window.i18n.getLang && window.i18n.getLang() === 'ar');
+    const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+    const num = (v) => (isAr ? String(v == null ? '' : v).replace(/\d/g, (d) => AR_DIGITS[d]) : String(v == null ? '' : v));
+
     const run = (text, o = {}) => new TextRun({
       text: String(text == null ? '' : text), bold: !!o.bold, italics: !!o.italics,
       size: o.size || 21, ...(o.color ? { color: o.color } : {}),
@@ -67,7 +75,7 @@ async function _build(m) {
     const sub = (text) => para([run(text, { bold: true, size: 22 })], { before: 160, after: 60, keepNext: true });
     const labelled = (label, val) => para([run(label + ': ', { bold: true }), value(val)], { before: 60, after: 60 });
     const list = (items, numbered = true, indent = 360) => (items && items.length)
-      ? items.map((t, i) => para([run(numbered ? `${i + 1}. ` : '• ', { bold: numbered }), run(t)], { indent }))
+      ? items.map((t, i) => para([run(numbered ? `${num(i + 1)}. ` : '• ', { bold: numbered }), run(t)], { indent }))
       : [para([value('')], { indent })];
 
     const cell = (children, o = {}) => new TableCell({
@@ -84,7 +92,7 @@ async function _build(m) {
     const headCell = (text, w, o = {}) => cell([para([run(text, { bold: true })], { center: o.center })], { width: w, fill: _tblFill(), span: o.span });
     const labelCell = (text, w) => cell([para([run(text, { bold: true })])], { width: w, fill: LABEL_FILL });
     const cellList = (items, w, numbered) => cell(
-      (items && items.length) ? items.map((t, i) => para([run(numbered ? `${i + 1}. ` : '• '), run(t)])) : [txt('')], { width: w });
+      (items && items.length) ? items.map((t, i) => para([run(numbered ? `${num(i + 1)}. ` : '• '), run(t)])) : [txt('')], { width: w });
 
     const children = [];
 
@@ -109,7 +117,7 @@ async function _build(m) {
     if (m.includeDesign) {
     children.push(heading(_t('cbcCourseDesign'), { size: 30, pageBreakBefore: true, before: 0 }));
     children.push(labelled(_t('cbcCourseTitle'), m.title));
-    children.push(labelled(_t('cbcNominalDuration'), m.nominalHours ? _tf('cbcHoursN', { n: m.nominalHours }) : ''));
+    children.push(labelled(_t('cbcNominalDuration'), m.nominalHours ? _tf('cbcHoursN', { n: num(m.nominalHours) }) : ''));
     children.push(labelled(_t('cbcQualLevel'), m.qualificationLevel));
     children.push(sub(_t('cbcCourseDesc')));
     children.push(txt(m.description, { indent: 360 }));
@@ -133,14 +141,14 @@ async function _build(m) {
         srows.push(new TableRow({ cantSplit: false, children: [
           cellList(mod.competencies, SC[0], false),
           cell([txt([mod.code, mod.title].filter(Boolean).join(' '))], { width: SC[1] }),
-          cell(mod.los.length ? mod.los.map(l => para([run(`${l.n}. `, { bold: true }), run(l.statement)])) : [txt('')], { width: SC[2] }),
-          cell([para([value(mod.hours)], { center: true })], { width: SC[3] }),
+          cell(mod.los.length ? mod.los.map(l => para([run(`${num(l.n)}. `, { bold: true }), run(l.statement)])) : [txt('')], { width: SC[2] }),
+          cell([para([value(num(mod.hours))], { center: true })], { width: SC[3] }),
         ] }));
       });
     });
     srows.push(new TableRow({ children: [
       cell([para([run(_t('cbcTotal'), { bold: true })])], { span: 3, width: SC[0] + SC[1] + SC[2], fill: LABEL_FILL }),
-      cell([para([value(m.nominalHours, { bold: true })], { center: true })], { width: SC[3], fill: LABEL_FILL }),
+      cell([para([value(num(m.nominalHours), { bold: true })], { center: true })], { width: SC[3], fill: LABEL_FILL }),
     ] }));
     children.push(table(srows, SC));
 
@@ -179,7 +187,7 @@ async function _build(m) {
           row(_t('cbcUnitOfCompetency'), (mod.competencies.length ? mod.competencies : ['']).map(c => txt(c))),
           row(_t('cbcModuleTitle'), [txt([mod.code, mod.title].filter(Boolean).join(' '), { bold: true })]),
           row(_t('cbcModuleDescriptor'), [txt(mod.descriptor)]),
-          row(_t('cbcNominalDuration'), [txt(mod.hours ? _tf('cbcHoursN', { n: mod.hours }) : '')]),
+          row(_t('cbcNominalDuration'), [txt(mod.hours ? _tf('cbcHoursN', { n: num(mod.hours) }) : '')]),
           row(_t('cbcQualLevel'), [txt(mod.level || m.qualificationLevel)]),
           row(_t('cbcPrerequisite'), (mod.prerequisites.length ? mod.prerequisites : ['']).map(p => txt(p))),
         ], MC));
@@ -187,10 +195,10 @@ async function _build(m) {
         children.push(sub(_t('cbcSummaryLOs')));
         children.push(para([run(_t('cbcLOsLead'))], { indent: 360 }));
         (mod.los.length ? mod.los : [{ n: 1, statement: '' }]).forEach(l =>
-          children.push(para([run(`${_tf('cbcLOn', { n: l.n })} `, { bold: true }), value(l.statement)], { indent: 360 })));
+          children.push(para([run(`${_tf('cbcLOn', { n: num(l.n) })} `, { bold: true }), value(l.statement)], { indent: 360 })));
 
         mod.los.forEach(l => {
-          children.push(para([run(`${_tf('cbcLOn', { n: l.n })} ${l.statement}`.trim(), { bold: true, size: 22, color: '1F3864' })],
+          children.push(para([run(`${_tf('cbcLOn', { n: num(l.n) })} ${l.statement}`.trim(), { bold: true, size: 22, color: '1F3864' })],
             { before: 0, after: 120, keepNext: true, pageBreakBefore: true }));   // 3.101.2: each outcome on a new page
           [['cbcAssessCriteria', l.criteria, true], ['cbcContents', l.contents, true],
            ['cbcConditions', l.conditions.length ? l.conditions : [...mod.resources.equipment, ...mod.resources.tools].slice(0, 10), true],

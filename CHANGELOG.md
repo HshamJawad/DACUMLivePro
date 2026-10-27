@@ -7,6 +7,19 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.140.4 — 2026-10-27 — Arabic CBC export: محصلات التعلم / الكفاءة, and Arabic-Indic numbering
+PATCH. translations.js (ar), exports_cbc_docx.js, index.html, sw.js (v308),
+tests/specs/cbc-arabic.spec.js (new), tests/README.md.
+- Wording in the Arabic CBC export and its dialog: "مخرجات التعلم" → "محصلات التعلم",
+  "مخرج التعلم" → "محصلة التعلم" (the outcome heading now reads "المحصلة ١."),
+  "الكفايات" → "الكفاءات", "الكفاية" → "الكفاءة" (cover title, unit of competency,
+  structure table, dialog title and course-information hints).
+- Numbering: in an Arabic CBC file every number the tool writes — list numbers
+  (assessment criteria, contents, conditions, methodologies, assessment methods, course
+  outcomes), learning-outcome numbers and hours — uses Arabic-Indic digits (١ ٢ ٣) instead
+  of 1 2 3. Text typed by the user and module codes are not touched. English and French
+  files are unchanged.
+
 ── 3.140.3 — 2026-10-27 — Guide dialog: styling moved to the stylesheet, keyboard focus kept inside
 PATCH. learning_outcomes.js, dacum-components.css, index.html, sw.js (v307),
 tests/specs/guide-modal.spec.js (new), tests/README.md.
