@@ -2319,6 +2319,7 @@ html[data-content-mixed] .container input[type="text"] {
 .wording-note[hidden] { display: none; }
 .wording-note-head { font-weight: 700; color: #0369a1; margin-bottom: 2px; }
 .cluster-item > .wording-note { margin: 0 0 10px; }
+.module-item > .mod-size-note { margin: 0 0 12px; }
 @media print { .wording-note { display: none !important; } }
 
 /* ── 3.93.0: Task Verification, workshop counts ───────────────────
