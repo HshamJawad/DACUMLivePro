@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.140.2 — 2026-10-27 — Module size: "too many outcomes?" in the guide, and a calm note on the card
+PATCH. learning_outcomes.js, modules_shared.js, dacum-components.css, index.html, sw.js (v306),
+tests/specs/module-size-note.spec.js (new), tests/README.md.
+- Module Mapping guide (en / fr / ar): a new section "Too many outcomes in one module?" —
+  try merging first (small steps of one performance → fewer, broader outcomes), split the
+  module when the outcomes form two clear groups (different duties, levels or assessments, or
+  hours above what the system allows), how to do it, and not to split just to reach a number.
+- A module card with 7 or more outcomes shows a dashed note in the style of the wording
+  notes: the count, and the two ways out. It blocks nothing, changes no data, goes away by
+  itself when the count falls, is not printed, and is not shown on hand-typed modules.
+  The 2–4 "usual" size and the AI's cap of 6 are unchanged.
+
 ── 3.140.1 — 2026-10-27 — One HTML-escape helper; unescaped imported text fixed; innerHTML audit in CI
 PATCH. escape.js (new), 23 modules, snapshots.js, workshop.js, index.html, sw.js (v305),
 innerhtml-audit.mjs + innerhtml-audit.baseline.json (new), .github/workflows/preflight.yml.

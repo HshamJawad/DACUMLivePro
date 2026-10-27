@@ -687,6 +687,12 @@ const _GUIDE = {
         { h: '📦 Module size', items: [
           'Usually 2–4 learning outcomes per module.',
           'A single-outcome module is acceptable only when that outcome is a large, stand-alone capability.' ] },
+        { h: '🔀 Too many outcomes in one module?', items: [
+          'More than about 6 outcomes is usually too much to teach, assess and credit as one module. The tool only notes it on the card; the decision is yours.',
+          '<strong>Try merging first.</strong> Many outcomes often means each one is a small step. If they are consecutive steps of one performance, assessed on the same task, group their criteria into fewer, broader outcomes (Learning Outcomes tab, “Mixed” approach).',
+          '<strong>Split the module</strong> when the outcomes fall into two clear groups: different duties or competencies, different levels (do first, diagnose later), or different assessments — or when the hours would exceed what your system allows for one module.',
+          '<strong>How:</strong> add a second module, remove some outcomes from this one (Remove) and add them to the new one from the list. Give each module a title that says what it covers, and check that every outcome sits in exactly one module.',
+          'Do not split just to reach a number: a module of 5–6 outcomes that forms one complete work process may stay whole.' ] },
         { h: '🪜 Rules for placing a module on a level', items: [
           '<strong>Prerequisite first</strong> — what other modules build on goes at a lower level (hand tools at Level 1 → power tools at Level 2).',
           '<strong>Complexity, autonomy and responsibility</strong> — routine work under supervision belongs lower; diagnosis, planning, decision-making, financial responsibility and supervising others belong higher.',
@@ -765,6 +771,12 @@ const _GUIDE = {
         { h: '📦 Taille du module', items: [
           'En général 2 à 4 résultats par module.',
           'Un module à un seul résultat n’est acceptable que si ce résultat est une capacité large et autonome.' ] },
+        { h: '🔀 Trop de résultats dans un module ?', items: [
+          'Au-delà d’environ 6 résultats, un module est en général trop lourd à enseigner, évaluer et créditer. L’outil le signale seulement sur la carte ; la décision vous appartient.',
+          '<strong>Essayez d’abord de fusionner.</strong> Beaucoup de résultats signifie souvent que chacun est une petite étape. S’ils sont les étapes consécutives d’une même performance, évaluées sur la même tâche, regroupez leurs critères en résultats moins nombreux et plus larges (onglet Résultats d’apprentissage, approche « mixte »).',
+          '<strong>Scindez le module</strong> quand les résultats forment deux groupes nets : fonctions ou compétences différentes, niveaux différents (exécuter d’abord, diagnostiquer ensuite) ou évaluations différentes — ou quand les heures dépasseraient ce que votre système permet pour un module.',
+          '<strong>Comment :</strong> ajoutez un second module, retirez quelques résultats de celui-ci (Retirer) et ajoutez-les au nouveau depuis la liste. Donnez à chaque module un titre qui dit ce qu’il couvre, et vérifiez que chaque résultat figure dans un seul module.',
+          'Ne scindez pas juste pour atteindre un nombre : un module de 5 à 6 résultats qui forme un processus de travail complet peut rester entier.' ] },
         { h: '🪜 Règles pour placer un module sur un niveau', items: [
           '<strong>Le prérequis d’abord</strong> — ce sur quoi d’autres modules s’appuient va à un niveau inférieur (outils à main au niveau 1 → outils électriques au niveau 2).',
           '<strong>Complexité, autonomie et responsabilité</strong> — le travail routinier sous supervision va plus bas ; diagnostic, planification, décision, responsabilité financière et encadrement vont plus haut.',
@@ -843,6 +855,12 @@ const _GUIDE = {
         { h: '📦 حجم الوحدة', items: [
           'المعتاد من محصلتين إلى أربع في الوحدة.',
           'الوحدة ذات المحصلة الواحدة مقبولة فقط إذا كانت المحصلة قدرة كبيرة مستقلة.' ] },
+        { h: '🔀 محصلات كثيرة في وحدة واحدة؟', items: [
+          'إذا زادت المحصلات على نحو 6 فالوحدة غالباً أكبر من أن تُدرَّس وتُقيَّم وتُمنح رصيداً كوحدة واحدة. الأداة تنبّه إلى ذلك على البطاقة فقط، والقرار لك.',
+          '<strong>جرّب الدمج أولاً.</strong> كثرة المحصلات تعني غالباً أن كل محصلة خطوة صغيرة. فإن كانت خطوات متتابعة من أداء واحد وتُقيَّم على المهمة نفسها، فاجمع معاييرها في محصلات أقل وأوسع (تبويب محصلات التعلم، النهج «المختلط»).',
+          '<strong>قسّم الوحدة</strong> إذا انقسمت المحصلات إلى مجموعتين واضحتين: واجبات أو كفاءات مختلفة، أو مستويات مختلفة (التنفيذ أولاً ثم التشخيص)، أو تقييمات مختلفة — أو إذا زادت الساعات على ما يسمح به نظامك للوحدة الواحدة.',
+          '<strong>الطريقة:</strong> أضف وحدة ثانية، وأزل بعض المحصلات من هذه (إزالة) وأضفها إلى الجديدة من القائمة. أعطِ كل وحدة عنواناً يبيّن ما تغطيه، وتأكد أن كل محصلة في وحدة واحدة فقط.',
+          'لا تقسّم لمجرد بلوغ رقم: وحدة من 5 إلى 6 محصلات تشكّل عملية عمل متكاملة يمكن أن تبقى كما هي.' ] },
         { h: '🪜 قواعد وضع الوحدة في مستوى', items: [
           '<strong>المتطلب السابق أولاً:</strong> ما تُبنى عليه وحدات أخرى يوضع في مستوى أدنى، مثل العدد اليدوية في المستوى 1 ثم الكهربائية في المستوى 2.',
           '<strong>التعقيد والاستقلالية والمسؤولية:</strong> العمل الروتيني تحت الإشراف في المستويات الأدنى، والتشخيص والتخطيط واتخاذ القرار والمسؤولية المالية والإشراف على الآخرين في المستويات الأعلى.',
@@ -1092,6 +1110,22 @@ function _ensureNqfBar() {
   bar.querySelector('.mm-nqf-hint').textContent = _tx('hintNqf');
 }
 
+/* 3.140.2: a calm note on a module card holding more than 6 outcomes. A
+   suggestion in the style of the wording notes: it names the two ways out
+   (merge outcomes, or split the module), blocks nothing and changes no data.
+   Hand-typed modules (manual) keep their own lists and are not counted. */
+const MODULE_NOTE_FROM = 7;
+function tooManyOutcomesNote(module) {
+  if (isManualModule(module)) return '';
+  const n = (module.learningOutcomes || []).length;
+  if (n < MODULE_NOTE_FROM) return '';
+  return `<div class="wording-note mod-size-note" role="status">` +
+    `<div class="wording-note-head">${_esc(_tx('mmTooManyHead'))}</div>` +
+    `<div>💬 ${_esc(_txf('mmTooManyCount', { n }))}</div>` +
+    `<div>🔗 ${_esc(_tx('mmTooManyMerge'))}</div>` +
+    `<div>✂️ ${_esc(_tx('mmTooManySplit'))}</div></div>`;
+}
+
 export function renderModules() {
   const container = document.getElementById('modulesContainer');
   _refreshModuleOutcomes();
@@ -1256,6 +1290,7 @@ export function renderModules() {
         <div style="font-size:0.85em;color:#64748b;margin:-4px 0 10px;">
           ${_t('lblRelatedTasks')}: ${sourceTaskIds.map(id => _taskLabel(id)).join(', ')}
         </div>` : ''}
+        ${tooManyOutcomesNote(module)}
         ${isManualModule(module) ? manualLos(module) : `<div class="module-los-list">
           ${module.learningOutcomes.map(outcome => {
             const criteriaText = outcome.linkedCriteria.map(pc =>
