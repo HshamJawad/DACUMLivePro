@@ -26,7 +26,12 @@ export const LW_API_BASE = 'https://live-session-backend-production.up.railway.a
 // ── Helpers ──────────────────────────────────────────────────
 
 export function lwGenerateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  // The id is the only secret between the facilitator and the voting link,
+  // so it comes from the browser's cryptographic generator, not Math.random().
+  const c = (typeof crypto !== 'undefined' && crypto.getRandomValues) ? crypto : null;
+  if (!c) return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  const bytes = c.getRandomValues(new Uint8Array(12));
+  return Date.now().toString(36) + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function lwEscapeHtml(text) {
