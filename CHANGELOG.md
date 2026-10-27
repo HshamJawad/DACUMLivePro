@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.139.1 — 2026-10-27 — Voting page: ids checked, no inline handlers; session id from crypto
+PATCH. DACUM_LiveWorkshop_Participant.html, workshop.js, index.html, sw.js (v303).
+- The participant page put task and item ids inside id="" and onchange="…" attributes
+  without checking them. A session built by hand could carry an id that runs script on
+  the participant's device. Ids are now accepted only as letters, digits, _ and -; others
+  are skipped. Ratings are read from data attributes by one delegated listener.
+- A duty without a tasks list (or a category without items) no longer stops the page.
+- The session id comes from crypto.getRandomValues instead of Math.random().
+
 ── 3.139.0 — 2026-10-24 — The Additional Info tools list goes to Module Builder
 MINOR. module_mapping.js, index.html, sw.js (v302), tests/specs/handoff-tools.spec.js.
 - The handoff carries «additionalInfoTools»: the tools, equipment and materials listed in

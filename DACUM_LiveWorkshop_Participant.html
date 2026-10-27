@@ -639,6 +639,9 @@
             
             Object.keys(sessionData.duties).forEach(dutyId => {
                 const duty = sessionData.duties[dutyId];
+                if (!duty || !Array.isArray(duty.tasks)) return;
+                const tasks = duty.tasks.filter(t => t && isSafeId(t.id));
+                if (!tasks.length) return;
                 
                 const dutySection = document.createElement('div');
                 dutySection.className = 'duty-section';
@@ -660,7 +663,7 @@
                         <tbody>
                 `;
                 
-                duty.tasks.forEach(task => {
+                tasks.forEach(task => {
                     html += `
                         <tr id="task_row_${task.id}">
                             <td class="task-cell">${taskCounter}. ${escapeHtml(task.text)}</td>
@@ -673,7 +676,7 @@
                                                    id="${task.id}_imp_${val}"
                                                    name="${task.id}_importance" 
                                                    value="${val}"
-                                                   onchange="recordVote('${task.id}', 'importance', ${val})">
+                                                   data-vote-task="${task.id}" data-vote-dim="importance">
                                             <label for="${task.id}_imp_${val}">${val}</label>
                                         </div>
                                     `).join('')}
@@ -688,7 +691,7 @@
                                                    id="${task.id}_freq_${val}"
                                                    name="${task.id}_frequency" 
                                                    value="${val}"
-                                                   onchange="recordVote('${task.id}', 'frequency', ${val})">
+                                                   data-vote-task="${task.id}" data-vote-dim="frequency">
                                             <label for="${task.id}_freq_${val}">${val}</label>
                                         </div>
                                     `).join('')}
@@ -703,7 +706,7 @@
                                                    id="${task.id}_diff_${val}"
                                                    name="${task.id}_difficulty" 
                                                    value="${val}"
-                                                   onchange="recordVote('${task.id}', 'difficulty', ${val})">
+                                                   data-vote-task="${task.id}" data-vote-dim="difficulty">
                                             <label for="${task.id}_diff_${val}">${val}</label>
                                         </div>
                                     `).join('')}
@@ -738,7 +741,7 @@
         function renderSupplementary(sessionData, container) {
             const supp = sessionData && sessionData.supplementary;
             const cats = supp && Array.isArray(supp.categories)
-                ? supp.categories.filter(c => c.items && c.items.length) : [];
+                ? supp.categories.filter(c => c && Array.isArray(c.items) && c.items.length) : [];
             if (!cats.length) return;
 
             const sec = document.createElement('div');
@@ -747,14 +750,14 @@
                         <p class="sv-intro">${pt('svIntro')}</p>`;
             cats.forEach(cat => {
                 html += `<div class="sv-cat-title">${escapeHtml(cat.name || '')}</div>`;
-                cat.items.forEach(item => {
+                cat.items.filter(item => item && isSafeId(item.id)).forEach(item => {
                     html += `<div class="sv-item" id="sv_row_${item.id}">
                         <div class="sv-item-text">${escapeHtml(item.text || '')}</div>
                         <div class="rating-column">
                             ${[0, 1, 2, 3].map(val => `
                                 <div class="rating-option">
                                     <input type="radio" id="sv_${item.id}_${val}" name="sv_${item.id}" value="${val}"
-                                           onchange="recordSupplementaryVote('${item.id}', ${val})">
+                                           data-sv-item="${item.id}">
                                     <label for="sv_${item.id}_${val}">${val}</label>
                                 </div>`).join('')}
                         </div>
@@ -888,7 +891,26 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        /* Task and item ids are put into id="" / name="" attributes, so only
+           plain ids (letters, digits, _ and -) are accepted. A session built
+           by hand with any other id is skipped, never rendered. */
+        function isSafeId(v) {
+            return (typeof v === 'string' || typeof v === 'number') && /^[A-Za-z0-9_-]{1,64}$/.test(String(v));
+        }
         
+        // Ratings are read from data attributes through one delegated listener,
+        // so no id from the session is ever placed inside a script attribute.
+        document.addEventListener('change', function (e) {
+            const el = e.target;
+            if (!el || !el.dataset || el.type !== 'radio') return;
+            if (el.dataset.voteTask && el.dataset.voteDim) {
+                recordVote(el.dataset.voteTask, el.dataset.voteDim, el.value);
+            } else if (el.dataset.svItem) {
+                recordSupplementaryVote(el.dataset.svItem, el.value);
+            }
+        });
+
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
