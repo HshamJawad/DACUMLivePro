@@ -7,6 +7,18 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.141.0 — 2026-10-27 — Module Curriculum: sub-tabs "Module data" / CUR / CBC (step 1)
+MINOR. module_curriculum.js, module_curriculum_text.js, dacum-curriculum.css, index.html,
+sw.js (v310), tests/specs/curriculum-subtabs.spec.js (new), tests/README.md.
+- A strip of three buttons under the module selector: Module data, CUR, CBC (arrow keys, Home / End,
+  mirrored in Arabic; the last one used is remembered on the device). The module selector, progress
+  and Previous / Next stay above all three.
+- Step 1 of the split: CUR and CBC both show the cards the tab had so far — same data underneath, only the
+  active sub-tab is drawn — and each has its own export button (the one that was in the top bar now sits
+  in the CUR sub-tab; CBC opens its export dialog). Module data gathers what both files share and shows the
+  occupation, sector and "produced by" of the Basic Information tab (with a link to edit them).
+- No change to the saved data or to either Word file.
+
 ── 3.140.5 — 2026-10-27 — CBC: tick-box choices for assessment and training methods; "Course structure" on a new page
 PATCH. cbc_methods.js (new), module_curriculum.js, module_curriculum_text.js, exports_cbc_docx.js,
 dacum-curriculum.css, index.html, sw.js (v309), tests/specs/cbc-methods.spec.js (new), tests/README.md.
