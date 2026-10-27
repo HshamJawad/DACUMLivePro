@@ -15,7 +15,8 @@
 //               entrySkills[] (3.100.1 — basic skills a trainee needs to enter),
 //               byLO: { [loId]: { context, methodology, discussion,
 //                       demonstration, practice, selfDirected,
-//                       assessStatements[], assessMethods[], hours } } } }
+//                       assessStatements[], assessMethods[],
+//                       trainMethods[] (3.140.5), hours } } } }
 //
 // Rules this file keeps:
 //   • Keyed by ids, never positions. Records of a deleted module or LO
@@ -39,6 +40,7 @@ import { isTaskSelected, getTaskRatingMetrics } from './task_selection.js';
 import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds, getModuleCategories, getModuleCategory, categoryLabel, getModuleFullTitle } from './modules.js';
 import { _DIST_GUIDE, _GUIDE, _L, _S } from './module_curriculum_text.js';
 import { esc as _esc } from './escape.js';
+import { METHOD_SETS, methodLabel, storeLang, hasMethod, withoutMethod } from './cbc_methods.js';
 
 
 function _lang() {
@@ -225,7 +227,9 @@ function _loFilledCount(modId, loId) {
   let n = 0;
   LO_TEXT_FIELDS.forEach(f => {
     if (f.key === 'context' && r.context === undefined) { n++; return; }   // default text counts
-    if (_str(r[f.key]).trim()) n++;
+    if (_str(r[f.key]).trim()) { n++; return; }
+    // 3.140.5: ticked training methods answer the methodology field too
+    if (f.key === 'methodology' && _clean(r.trainMethods).length) n++;
   });
   if (_clean(r.assessStatements).length) n++;
   if (_clean(r.assessMethods).length) n++;
@@ -258,6 +262,7 @@ function _schedulePersist() {
 // ── Selection / UI state (not persisted) ─────────────────────
 let _selId = null;
 const _openLOs = new Set();
+const _openPicks = new Set();   // 3.140.5: method pickers left open across a re-render
 let _openSettings = false;
 let _loSeeded = null;
 
@@ -604,6 +609,28 @@ function _hoursField(module, lo) {
         </div>`;
 }
 
+/* 3.140.5: a drop-down of tick boxes (assessment or training methods).
+   A tick adds the method's wording to the outcome's own list, un-ticking
+   removes it; the list below stays editable by hand. */
+function _methodPicker(module, lo, field, list) {
+  const set = METHOD_SETS[field];
+  const lang = _lang();
+  const key = `${module.id}|${lo}|${field}`;
+  const n = set.filter(m => hasMethod(m, list)).length;
+  const label = _tx(field === 'assessMethods' ? 'curPickAssess' : 'curPickTrain');
+  const opt = m => `<label class="cur-pick-opt"><input type="checkbox" data-cur-method="${m.id}" data-cur-mfield="${field}" data-lo="${_esc(lo)}" ${hasMethod(m, list) ? 'checked' : ''}><span>${_esc(methodLabel(m, lang))}</span></label>`;
+  return `
+    <details class="cur-pick" data-cur-pick="${_esc(key)}" ${_openPicks.has(key) ? 'open' : ''}>
+      <summary class="cur-pick-btn">☑ ${_esc(label)} <em class="cur-pick-count" ${n ? '' : 'hidden'}>${_esc(_txf('curPickSel', { n }))}</em></summary>
+      <div class="cur-pick-panel" role="group" aria-label="${_esc(label)}">
+        <small class="cur-hint">${_esc(_tx('curPickHint'))}</small>
+        <div class="cur-pick-grid">${set.filter(m => !m.more).map(opt).join('')}</div>
+        <div class="cur-pick-sep">${_esc(_tx('curPickMore'))}</div>
+        <div class="cur-pick-grid">${set.filter(m => m.more).map(opt).join('')}</div>
+      </div>
+    </details>`;
+}
+
 function _renderLOCard(module, o, n) {
   const r = _loRec(module.id, o.id) || {};
   const open = _openLOs.has(module.id + '|' + o.id);
@@ -624,15 +651,18 @@ function _renderLOCard(module, o, n) {
       <div class="cur-lo-body">
         ${LO_TEXT_FIELDS.map(textField).join('')}
         <div class="cur-field">
+          <div class="cur-field-head"><span>${_esc(curLabel('curTrainMethods'))}</span></div>
+          ${_methodPicker(module, lo, 'trainMethods', r.trainMethods)}
+          ${_listEditor('lo', 'trainMethods', r.trainMethods, { lo, label: curLabel('curTrainMethods') })}
+        </div>
+        <div class="cur-field">
           <div class="cur-field-head"><span>${_esc(curLabel('curAssessStatements'))}</span>
             <button type="button" class="cur-mini-btn" data-cur-action="suggest-criteria" data-lo="${_esc(lo)}">✨ ${_esc(_tx('curSuggestCriteria'))}</button></div>
           ${_listEditor('lo', 'assessStatements', r.assessStatements, { lo, prefix: String(n), label: curLabel('curAssessStatements') })}
         </div>
         <div class="cur-field">
           <div class="cur-field-head"><span>${_esc(curLabel('curAssessMethods'))}</span></div>
-          <div class="cur-chips"><span>${_esc(_tx('curMethodChips'))}</span>
-            ${['mDirectObs', 'mOral', 'mPracTest', 'mProduct'].map(k =>
-              `<button type="button" class="cur-chip-btn" data-cur-action="add-method" data-lo="${_esc(lo)}" data-val="${_esc(_tx(k))}">＋ ${_esc(_tx(k))}</button>`).join('')}</div>
+          ${_methodPicker(module, lo, 'assessMethods', r.assessMethods)}
           ${_listEditor('lo', 'assessMethods', r.assessMethods, { lo, label: curLabel('curAssessMethods') })}
         </div>
         ${_hoursField(module, lo)}
@@ -1145,7 +1175,7 @@ export function isModuleCurriculumEmpty() {
 /** Clear This Tab: curriculum data only — modules and LOs are untouched. */
 export function clearModuleCurriculum() {
   appState.moduleCurriculumData = defaultModuleCurriculumData();
-  _openLOs.clear(); _loSeeded = null;
+  _openLOs.clear(); _openPicks.clear(); _loSeeded = null;
   renderModuleCurriculum();
   _persistNow();
 }
@@ -1295,7 +1325,7 @@ export function getCbcModel(opts = {}) {
         criteria: uniq(pcs.map(pc => pc.text)),
         contents,
         conditions: uniq([...lines(lr.context === undefined ? '' : lr.context)]),
-        methodologies: uniq(lines(lr.methodology)),
+        methodologies: uniq([..._clean(lr.trainMethods), ...lines(lr.methodology)]),
         assessMethods: uniq(_clean(lr.assessMethods)),
         hours: cmLo.hours,
       };
@@ -1586,6 +1616,23 @@ function _wire() {
     if (t.matches('.cur-module-select')) {
       _selId = t.value; renderModuleCurriculum(); return;
     }
+    if (t.hasAttribute('data-cur-method')) {
+      // 3.140.5: tick / un-tick of a ready-made method
+      const module = _selectedModule();
+      if (!module) return;
+      const lo = t.getAttribute('data-lo'), field = t.getAttribute('data-cur-mfield');
+      const m = (METHOD_SETS[field] || []).find(x => x.id === t.getAttribute('data-cur-method'));
+      if (!m) return;
+      const r = _loRec(module.id, lo, true);
+      if (t.checked) {
+        _addToList(r, field, [methodLabel(m, storeLang(_lang()))]);
+      } else {
+        r[field] = withoutMethod(m, r[field]);
+      }
+      _openLOs.add(module.id + '|' + lo);
+      _rerenderKeepFocus(`#curRoot input[data-cur-method="${m.id}"][data-cur-mfield="${field}"][data-lo="${CSS.escape(lo)}"]`);
+      _schedulePersist(); return;
+    }
     if (t.hasAttribute('data-cur-prereq')) {
       const module = _selectedModule();
       const rec = _modRec(module.id, true);
@@ -1625,6 +1672,11 @@ function _wire() {
 
   tab.addEventListener('toggle', e => {
     const d = e.target;
+    if (d.matches && d.matches('details[data-cur-pick]')) {      // 3.140.5: remember an open method picker
+      const k = d.getAttribute('data-cur-pick');
+      if (d.open) _openPicks.add(k); else _openPicks.delete(k);
+      return;
+    }
     if (!d.matches || !d.matches('details[data-cur-details]')) return;
     const module = _selectedModule();
     if (d.getAttribute('data-cur-details') === 'settings') _openSettings = d.open;
@@ -1649,6 +1701,10 @@ function _wire() {
   });
 
   tab.addEventListener('click', e => {
+    // 3.140.5: a click outside an open method picker closes it
+    tab.querySelectorAll('details.cur-pick[open]').forEach(d => {
+      if (!d.contains(e.target)) { d.open = false; _openPicks.delete(d.getAttribute('data-cur-pick')); }
+    });
     if (e.target.closest('#curHelpBtn')) { _showGuide(); return; }
     const b = e.target.closest('[data-cur-action]');
     if (!b || b.tagName === 'SELECT' || b.type === 'checkbox') return;
@@ -1667,11 +1723,6 @@ function _wire() {
       renderModuleCurriculum(); _schedulePersist();
     } else if (a === 'suggest-criteria') {
       _suggestFromCriteria(b.getAttribute('data-lo'));
-    } else if (a === 'add-method') {
-      const lo = b.getAttribute('data-lo');
-      const r = _loRec(module.id, lo, true);
-      const n = _addToList(r, 'assessMethods', [b.getAttribute('data-val')]);
-      if (n) { renderModuleCurriculum(); _schedulePersist(); } else showStatus(_tx('curNothingNew'), 'info');
     } else if (a === 'suggest-credits') {
       _openCreditSuggest();
     } else if (a === 'distribute-hours') {

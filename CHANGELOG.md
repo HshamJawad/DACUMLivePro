@@ -7,6 +7,24 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.140.5 — 2026-10-27 — CBC: tick-box choices for assessment and training methods; "Course structure" on a new page
+PATCH. cbc_methods.js (new), module_curriculum.js, module_curriculum_text.js, exports_cbc_docx.js,
+dacum-curriculum.css, index.html, sw.js (v309), tests/specs/cbc-methods.spec.js (new), tests/README.md.
+- Module Curriculum tab, each learning outcome: "Choose assessment methods" and a new
+  "Training methods" field, each a drop-down of tick boxes (EN / FR / AR wording). Ticking adds the
+  method to the outcome's own list, un-ticking removes it, the list stays editable and anything typed
+  by hand is kept. Assessment: demonstration, observation, portfolio, third-party report, written test,
+  oral test + practical test, product evaluation, project, simulation, self-assessment.
+  Training: demonstration, lecture, discussion, dual training, distance learning, group work, practical
+  activities, modular / self-paced, role play, case study, brainstorming, games and exercises, reporting
+  + field visit, project-based learning, problem solving, simulation, coaching.
+- A tick is written in the document language (Arabic with the English term in brackets, e.g.
+  «الاستعراض (Demonstration)»); the box shows as ticked whichever of the three wordings is stored.
+- CBC Word: the ticked training methods are the outcome's "Methodologies" (with any text of the old
+  methodology field) and feed "Course delivery"; ticked assessment methods feed "Assessment methods".
+  The "Quick add" chips are replaced by the assessment drop-down.
+- CBC Word: the "Course structure" heading starts on a new page.
+
 ── 3.140.4 — 2026-10-27 — Arabic CBC export: محصلات التعلم / الكفاءة, and Arabic-Indic numbering
 PATCH. translations.js (ar), exports_cbc_docx.js, index.html, sw.js (v308),
 tests/specs/cbc-arabic.spec.js (new), tests/README.md.

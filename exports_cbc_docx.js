@@ -128,7 +128,7 @@ async function _build(m) {
     list(m.entry, false).forEach(p => children.push(p));
 
     // Course structure, grouped by category.
-    children.push(heading(_t('cbcCourseStructure')));
+    children.push(heading(_t('cbcCourseStructure'), { pageBreakBefore: true, before: 0 }));   // 3.140.5: starts on its own page
     const SC = [2600, 2600, TABLE_W - 2600 - 2600 - 1100, 1100];
     const srows = [new TableRow({ tableHeader: true, children: [
       headCell(_t('cbcColUnits'), SC[0]), headCell(_t('cbcColModule'), SC[1]),
