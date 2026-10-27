@@ -47,6 +47,21 @@
   font: inherit; font-weight: 600; color: var(--cur-ink); background: #fff; text-overflow: ellipsis;
 }
 #module-curriculum-tab .cur-topbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* 3.141.0: sub-tabs — a segmented strip of buttons under the module selector. */
+#module-curriculum-tab .cur-subbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; }
+#module-curriculum-tab .cur-subtabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: #f1f5f9; border: 1px solid #e2e8f0; max-width: 100%; overflow-x: auto; }
+#module-curriculum-tab .cur-subtab {
+  margin: 0; padding: 8px 18px !important; min-height: 40px; white-space: nowrap; cursor: pointer;
+  border-radius: 9px; border: 1px solid transparent; background: transparent; color: #475569;
+  font: inherit; font-size: .92em; font-weight: 700; box-shadow: none !important;
+}
+#module-curriculum-tab .cur-subtab:hover { background: #e8edf3; }
+#module-curriculum-tab .cur-subtab.is-on { background: #fff; color: var(--cur-violet); border-color: var(--cur-violet-line); }
+#module-curriculum-tab .cur-subtab:focus-visible { outline: 2px solid var(--cur-violet); outline-offset: 2px; }
+#module-curriculum-tab .cur-basic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+#module-curriculum-tab .cur-basic-item { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; }
+#module-curriculum-tab .cur-basic-l { font-size: .8em; font-weight: 700; color: var(--cur-muted); }
 #module-curriculum-tab .cur-icon-btn {
   box-sizing: border-box; width: 36px; height: 36px; min-width: 36px; max-width: 36px;
   min-height: 36px; max-height: 36px; padding: 0 !important; margin: 0;
@@ -304,13 +319,18 @@ html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
   #module-curriculum-tab .cur-fac-row { grid-template-columns: minmax(0, 1fr) 70px 44px; }
   #module-curriculum-tab .cur-mini-btn, #module-curriculum-tab .cur-li-add { min-height: 44px; }
   #module-curriculum-tab .cur-pick-btn { min-height: 44px; }
+  #module-curriculum-tab .cur-subtab { min-height: 44px; }
   #module-curriculum-tab .cur-pick-opt { padding: 8px 0; }
 }
 
 /* ── Phones ───────────────────────────────────────────────── */
 @media (max-width: 760px) {
   #module-curriculum-tab .cur-grid-2, #module-curriculum-tab .cur-grid-3,
-  #module-curriculum-tab .cur-res-grid, #module-curriculum-tab .cur-pick-grid { grid-template-columns: 1fr; }
+  #module-curriculum-tab .cur-res-grid, #module-curriculum-tab .cur-pick-grid, #module-curriculum-tab .cur-basic-grid { grid-template-columns: 1fr; }
+  #module-curriculum-tab .cur-subbar { flex-direction: column; align-items: stretch; }
+  #module-curriculum-tab .cur-subtabs { display: flex; }
+  #module-curriculum-tab .cur-subtab { flex: 1 1 0; padding: 8px 10px !important; }
+  #module-curriculum-tab .cur-subbar .cur-export-btn { width: 100%; }
   #module-curriculum-tab .cur-ro { grid-template-columns: 1fr 1fr; }
   #module-curriculum-tab .cur-ro div:first-child { grid-column: 1 / -1; }
   #module-curriculum-tab .cur-hours { grid-template-columns: 1fr; }

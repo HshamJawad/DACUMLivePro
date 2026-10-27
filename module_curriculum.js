@@ -264,6 +264,16 @@ let _selId = null;
 const _openLOs = new Set();
 const _openPicks = new Set();   // 3.140.5: method pickers left open across a re-render
 let _openSettings = false;
+/* 3.141.0: the three sub-tabs of the tab — shared module data, CUR, CBC.
+   The last one used is remembered on this device. */
+const SUB_TABS = ['data', 'cur', 'cbc'];
+const SUB_KEY = 'dacum_cur_subtab';
+let _subTab = (() => { try { const v = localStorage.getItem(SUB_KEY); return SUB_TABS.includes(v) ? v : 'cur'; } catch (_) { return 'cur'; } })();
+function _setSubTab(k) {
+  if (!SUB_TABS.includes(k)) return;
+  _subTab = k;
+  try { localStorage.setItem(SUB_KEY, k); } catch (_) {}
+}
 let _loSeeded = null;
 
 function _selectedModule() {
@@ -303,10 +313,10 @@ export function renderModuleCurriculum() {
   const keepScroll = window.scrollY;
   root.innerHTML = `
     ${_renderTopBar(mods, module, idx)}
-    ${_renderSettings()}
-    ${_renderHeader(module, idx)}
-    ${_renderLOs(module)}
-    ${_renderResources(module)}`;
+    ${_renderSubTabs()}
+    <div class="cur-subpanel" role="tabpanel" id="curSubPanel" aria-labelledby="curSubTab-${_subTab}">
+      ${_renderSubPanel(module, idx)}
+    </div>`;
   root.querySelectorAll('textarea.cur-auto').forEach(_autoGrow);
   window.scrollTo(0, keepScroll);
 }
@@ -329,9 +339,48 @@ function _renderTopBar(mods, module, idx) {
         <button type="button" class="cur-icon-btn" data-cur-action="next-module" ${idx >= mods.length - 1 ? 'disabled' : ''}
           title="${_esc(_tx('curNext'))}" aria-label="${_esc(_tx('curNext'))}"><span class="rtl-flip">›</span></button>
         <span class="cur-progress ${p >= 100 ? 'is-done' : ''}" id="curProgress">${p >= 100 ? '✓ ' : ''}${_esc(_txf('curComplete', { p }))}</span>
-        <button type="button" class="cur-export-btn" data-cur-action="export-this">⬇ ${_esc(_tx('curExportThis'))}</button>
       </div>
     </div>`;
+}
+
+/* 3.141.0 — sub-tabs. Step 1: "CUR" and "CBC" both show the cards the tab
+   had so far (same data underneath, only the active panel is drawn, so no
+   element is duplicated on the page); "Module data" gathers what both
+   files share. What stays or goes in each is decided card by card. */
+function _renderSubTabs() {
+  const label = { data: `🧩 ${_tx('curSubData')}`, cur: '📘 CUR', cbc: '🎓 CBC' };
+  const exp = _subTab === 'cur' ? ['export-this', 'curExportThis'] : _subTab === 'cbc' ? ['export-cbc', 'curExportCbc'] : null;
+  return `
+    <div class="cur-subbar">
+      <div class="cur-subtabs" role="tablist" aria-label="${_esc(_tx('curSubAria'))}">
+        ${SUB_TABS.map(k => `<button type="button" role="tab" id="curSubTab-${k}" class="cur-subtab ${k === _subTab ? 'is-on' : ''}"
+          aria-selected="${k === _subTab}" aria-controls="curSubPanel" tabindex="${k === _subTab ? 0 : -1}" data-cur-subtab="${k}">${_esc(label[k])}</button>`).join('')}
+      </div>
+      ${exp ? `<button type="button" class="cur-export-btn" data-cur-action="${exp[0]}">⬇ ${_esc(_tx(exp[1]))}</button>` : ''}
+    </div>`;
+}
+
+function _renderSubPanel(module, idx) {
+  if (_subTab === 'data') return `${_renderBasicInfo()}${_renderSettings()}${_renderHeader(module, idx)}`;
+  return `${_renderSettings()}${_renderHeader(module, idx)}${_renderLOs(module)}${_renderResources(module)}`;
+}
+
+/* What the Basic Information tab already holds; both files read it. */
+function _renderBasicInfo() {
+  const lab = k => _tx(k).replace(/\s*\(.*?\)\s*/g, ' ').replace(/\s*:\s*$/, '').trim();
+  const item = (l, v) => `<div class="cur-basic-item"><span class="cur-basic-l">${_esc(l)}</span><strong dir="auto">${_esc(v || '—')}</strong></div>`;
+  return `
+    <section class="cur-card cur-basic">
+      <div class="cur-sec-head"><h3 class="cur-sec-title">${_esc(_tx('curBasicTitle'))}</h3>
+        <button type="button" class="cur-mini-btn" data-cur-action="goto-info">✏️ ${_esc(_tx('curBasicEdit'))}</button></div>
+      <p class="cur-hint">${_esc(_tx('curBasicHint'))}</p>
+      <div class="cur-basic-grid">
+        ${item(lab('labelOccupation'), _domVal('occupationTitle'))}
+        ${item(lab('labelSector'), _domVal('sector'))}
+        ${item(lab('labelProducedBy'), _domVal('producedBy'))}
+        ${item(_tx('curProgName'), _programmeName())}
+      </div>
+    </section>`;
 }
 
 function _num(v) { const n = Number(v); return Number.isFinite(n) ? n : ''; }
@@ -1688,6 +1737,22 @@ function _wire() {
 
   tab.addEventListener('keydown', e => {
     const t = e.target;
+    if (t.matches && t.matches('.cur-subtab')) {          // 3.141.0: arrow keys move along the sub-tabs
+      const rtl = _isRTL();
+      const i = SUB_TABS.indexOf(t.getAttribute('data-cur-subtab'));
+      let j = -1;
+      if (e.key === 'ArrowRight') j = i + (rtl ? -1 : 1);
+      else if (e.key === 'ArrowLeft') j = i + (rtl ? 1 : -1);
+      else if (e.key === 'Home') j = 0;
+      else if (e.key === 'End') j = SUB_TABS.length - 1;
+      if (j >= 0) {
+        e.preventDefault();
+        j = (j + SUB_TABS.length) % SUB_TABS.length;
+        _setSubTab(SUB_TABS[j]); renderModuleCurriculum();
+        const nb = document.getElementById('curSubTab-' + SUB_TABS[j]); if (nb) nb.focus();
+        return;
+      }
+    }
     if (t.matches && t.matches('.cur-li-input') && e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
       e.preventDefault();
       const listEl = t.closest('.cur-list');
@@ -1706,16 +1771,21 @@ function _wire() {
       if (!d.contains(e.target)) { d.open = false; _openPicks.delete(d.getAttribute('data-cur-pick')); }
     });
     if (e.target.closest('#curHelpBtn')) { _showGuide(); return; }
+    const st = e.target.closest('[data-cur-subtab]');
+    if (st) { _setSubTab(st.getAttribute('data-cur-subtab')); renderModuleCurriculum(); return; }
     const b = e.target.closest('[data-cur-action]');
     if (!b || b.tagName === 'SELECT' || b.type === 'checkbox') return;
     const a = b.getAttribute('data-cur-action');
     const module = _selectedModule();
     const mods = _modules();
     if (a === 'goto-mm') { if (window.switchTab) window.switchTab('module-mapping-tab'); return; }
+    if (a === 'goto-info') { if (window.switchTab) window.switchTab('info-tab'); return; }
     if (!module) return;
     if (a === 'prev-module' || a === 'next-module') {
       const i = mods.indexOf(module) + (a === 'next-module' ? 1 : -1);
       if (mods[i]) { _selId = mods[i].id; renderModuleCurriculum(); document.querySelector('#curRoot .cur-module-select')?.focus(); }
+    } else if (a === 'export-cbc') {
+      openCbcExportDialog();
     } else if (a === 'export-this') {
       exportModuleCurriculumWord(module.id, { blank: false, progReqs: !!_settings().exportProgReqs });
     } else if (a === 'suggest-code') {
