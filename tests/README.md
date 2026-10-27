@@ -30,6 +30,7 @@ part of the app: nothing in this folder is loaded or cached by it.
 | `specs/handoff-tools.spec.js` | The tools listed in Additional Info go with the Module Builder handoff, one item per line without bullets; absent when empty. |
 | `specs/status-toast.spec.js` | The status message floats over the page (fixed, inside the viewport at 360 px), a newer message is not cut short by an older timer, and a click dismisses it. |
 | `specs/module-tracks.spec.js` | Tracks (specialisations): a track typed on a module brings the programme-view bar; "Alternative to" links one module per track in the same place (one code number, programme per track = common + own); named tracks; unlinking; problems reported; kept in a saved project; slot and track in the Module Builder handoff; both tracks in one Word, PDF and JSON export; Arabic at 360 px. |
+| `specs/imported-custom-section.spec.js` | A project file with markup in a custom section's heading or text opens as plain text: nothing runs, no element is created, the text is shown as written. |
 
 `fixtures/sample-project.json` is a synthetic project (made with the
 app's own Full Draft against the stand-in), not real workshop data.

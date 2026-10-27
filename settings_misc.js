@@ -12,10 +12,9 @@ import { resetAICardChoices, hasAICardChoices } from './ai_card_toggle.js';
 import { getChartTerms, setChartTerms } from './chart_terms.js';
 import { getClusterLabelPref, setClusterLabelPref, formatClusterLabel } from './cluster_labels.js';
 import { getLoLabelPref, setLoLabelPref, formatLoLabel } from './lo_labels.js';
+import { esc as _esc } from './escape.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
-const _esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const LABELS = {
   helperChip: { auto: 'msHelperAuto', always: 'msHelperAlways', hidden: 'msHelperHidden' },

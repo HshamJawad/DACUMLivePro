@@ -26,14 +26,13 @@
 
 import { appState } from './state.js';
 import { clusterLabel } from './cluster_labels.js';
+import { esc as _esc } from './escape.js';
 
 const _t = (k) => (window.i18n ? window.i18n.t(k) : k);
 /* Each value is wrapped in Unicode isolates (FSI … PDI) so an English
    phrase quoted inside an Arabic sentence keeps its own direction. */
 const _tf = (k, vars) => String(_t(k)).replace(/\{(\w+)\}/g,
   (m, v) => (v in vars ? '\u2068' + vars[v] + '\u2069' : m));
-const _esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /* ── Language ─────────────────────────────────────────────────── */
 

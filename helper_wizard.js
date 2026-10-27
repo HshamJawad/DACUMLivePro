@@ -23,6 +23,7 @@ import { hasTaskSelection }       from './task_selection.js';
 import { countTaskAnalysisRecords, countTaskAnalysisCompleted } from './task_analysis.js';
 import { revealAICardFor }       from './ai_card_toggle.js';
 import { getPref }               from './ui_prefs.js';
+import { esc as _esc } from './escape.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k) : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -203,10 +204,6 @@ const STEPS = [
 const TOTAL = STEPS.length;
 const WORK_STEPS = STEPS.filter(s => !s.finish);
 
-function _esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 function _safeStatus(step) {
   try { return step.status(); } catch (_) { return S('todo', ''); }

@@ -21,6 +21,7 @@ import { renderModuleCurriculum, clearModuleCurriculum,
          isModuleCurriculumEmpty } from './module_curriculum.js';
 import { verifyOccupation, needsConfirmation, VERDICT, describeCheck,
          markBypassed, wasBypassed, clearBypass } from './occupation_check.js';
+import { esc } from './escape.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -992,9 +993,6 @@ function _showOccupationWarning(check) {
      occupation is fine (describeCheck picks which, and the field). */
   const d       = describeCheck(check);
   const isTypo  = d.isTypo;
-  const esc     = (v) => String(v == null ? '' : v)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 
   const title = d.title;
 

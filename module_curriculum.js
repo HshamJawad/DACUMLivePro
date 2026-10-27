@@ -38,6 +38,7 @@ import { exportCurriculumDocx } from './exports_cur_docx.js';
 import { isTaskSelected, getTaskRatingMetrics } from './task_selection.js';
 import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleCodeManual, getModuleShortName, suggestModuleShortName, assignModuleCode, assignModuleShortName, moduleRef, criterionTaskIds, getModuleCategories, getModuleCategory, categoryLabel, getModuleFullTitle } from './modules.js';
 import { _DIST_GUIDE, _GUIDE, _L, _S } from './module_curriculum_text.js';
+import { esc as _esc } from './escape.js';
 
 
 function _lang() {
@@ -64,10 +65,6 @@ export function curLabel(key, vars) {
   return s;
 }
 const _isRTL = () => !!(window.i18n && window.i18n.isRTL && window.i18n.isRTL());
-function _esc(s) {
-  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
 
 // ── Constants ────────────────────────────────────────────────
 const SPLIT_KEYS = ['theory', 'practical', 'formative', 'practice', 'summative'];

@@ -7,6 +7,23 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.140.1 — 2026-10-27 — One HTML-escape helper; unescaped imported text fixed; innerHTML audit in CI
+PATCH. escape.js (new), 23 modules, snapshots.js, workshop.js, index.html, sw.js (v305),
+innerhtml-audit.mjs + innerhtml-audit.baseline.json (new), .github/workflows/preflight.yml.
+- About twenty files each carried their own copy of the escape function. They now import
+  escape.js: esc() (null → '', 0 stays "0") and escFalsyEmpty() (0/false/'' → '', the old
+  behaviour of renderer.js escapeHtml and four older helpers, kept so those files render
+  exactly as before). Two copies (ai_client.js, workshop.js) did not escape quotes; they do now.
+- snapshots.js: the older loader loadFromJSONLegacy (no longer called anywhere) built an
+  imported custom section's heading and text as HTML unescaped. Escaped now, so it is safe
+  if it is ever used again. The loader the app uses was already safe; a new test
+  (imported-custom-section.spec.js) keeps it so.
+- workshop.js: a task's text in the live-session task list only had quotes escaped; it now
+  goes through esc().
+- innerhtml-audit.mjs (run by Preflight): fails when a ${…} in an innerHTML template puts
+  text a person typed (task.text, duty.title, section.heading …) into the page without esc().
+  Reviewed findings are listed in innerhtml-audit.baseline.json.
+
 ── 3.140.0 — 2026-10-27 — Voting page: one vote per device
 MINOR. DACUM_LiveWorkshop_Participant.html, index.html, sw.js (v304).
 - The page makes a random voter token once per device and session and sends it with the

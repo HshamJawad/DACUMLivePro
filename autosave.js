@@ -28,6 +28,7 @@ import { mergeRestoredCL }     from './content_lang.js';
 import { syncAllFromDOM }      from './duties.js';
 import { getImageSync }        from './image_store.js';
 import { readProjects }        from './project_store.js';
+import { esc as _esc } from './escape.js';
 
 const LS_BACKUP     = 'dacum_session_backup';
 // Marks whether the previous session ended in an orderly way. Written
@@ -221,11 +222,6 @@ function _watchDocumentInputs() {
 // ── Internal: recovery dialog ─────────────────────────────────
 
 /** Escape a user-supplied string before it enters innerHTML. */
-function _esc(str) {
-  return String(str == null ? '' : str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
 
 function _showRecoveryDialog(backup) {
   // Inject dialog styles once

@@ -29,6 +29,7 @@
 
 import { getTraceGraph } from './modules.js';
 import { loLabel } from './lo_labels.js';
+import { esc as _esc } from './escape.js';
 
 const COLS = ['task', 'comp', 'crit', 'lo', 'mod'];
 const LIST_BREAK = 760;            // below this width: list mode
@@ -98,8 +99,6 @@ const _s = (k, v) => {
   if (v) Object.keys(v).forEach(n => { str = str.split(`{${n}}`).join(String(v[n])); });
   return str;
 };
-const _esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c =>
-  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // ── State (one map open at a time) ──────────────────────────────
 let G = null;          // graph snapshot

@@ -7,6 +7,7 @@ import { appState } from './state.js';
 import { showStatus } from './renderer.js';
 import { getSupplementaryItemsForLiveSession,
          applyLiveSupplementaryResults } from './supplementary_verification.js';
+import { esc } from './escape.js';
 
 
 /* 3.79.0: the document is written in the project's CONTENT language
@@ -34,11 +35,6 @@ export function lwGenerateId() {
   return Date.now().toString(36) + Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function lwEscapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 function lwEscapeCSV(text) {
   return text.replace(/"/g, '""');
@@ -549,7 +545,7 @@ export function lwUpdateDOMWithReorderedTasks() {
       taskDiv.className = 'task-item';
       taskDiv.innerHTML = `
         <input type="text" data-task-id="${task.id}"
-          value="${task.text.replace(/"/g, '&quot;')}"
+          value="${esc(task.text)}"
           placeholder="Enter task description" disabled>`;
       taskListContainer.appendChild(taskDiv);
     });
@@ -1019,3 +1015,5 @@ async function _lwExportVerifiedDOCXImpl() {
     showStatus('✅ ' + _t('lwDOCXExported'), 'success');
   });
 }
+
+export function lwEscapeHtml(text) { return esc(text); }

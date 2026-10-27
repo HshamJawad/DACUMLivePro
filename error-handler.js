@@ -13,6 +13,7 @@
 
 // ── Constants ─────────────────────────────────────────────────
 
+import { escFalsyEmpty as _esc } from './escape.js';
 const LS_LAST_ERROR = 'app_last_error';
 
 // ── Per-category counters (reset on page load) ────────────────
@@ -191,11 +192,6 @@ function _injectCSS() {
 
 // ── HTML escape ───────────────────────────────────────────────
 
-function _esc(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 
 // ── Clipboard ─────────────────────────────────────────────────
 

@@ -21,6 +21,7 @@ import { STAGES, regenerateFrom, quotaCheck,
          isDraftRunning, onDraftProgress }   from './draft_agent.js';
 import { showStatus }                        from './renderer.js';
 import { appState }                          from './state.js';
+import { esc as _esc } from './escape.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -108,11 +109,6 @@ function _confirmAndRun(stageId) {
   regenerateFrom(stageId);
 }
 
-function _esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 /* Buttons appear and disappear with content, so they are re-rendered
    whenever a run finishes as well as on a language change. */

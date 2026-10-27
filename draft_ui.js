@@ -20,6 +20,7 @@ import { verifyOccupation, needsConfirmation, VERDICT, describeCheck,
          clearBypass }                       from './occupation_check.js';
 import { showStatus }                        from './renderer.js';
 import { saveSnapshot, getSnapshots }        from './workshop_snapshots.js';
+import { esc as _esc } from './escape.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -809,11 +810,6 @@ function _onProgress(ev) {
 
 // ── Helpers ──────────────────────────────────────────────────
 
-function _esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 // ── Language change ──────────────────────────────────────────
 //
