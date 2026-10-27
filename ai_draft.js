@@ -18,11 +18,10 @@
 // own copy of all three, and Additional Info had none.
 // ============================================================
 
+import { esc as _esc } from './escape.js';
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
 
-const _esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const _clone = (v) => JSON.parse(JSON.stringify(v));
 

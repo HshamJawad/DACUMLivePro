@@ -18,6 +18,7 @@ import { getDutyLetter, getTaskCode as _codesTaskCode } from './codes.js';
 import { criteriaBadge, criteriaToggle, badgesOn, setBadgesOn } from './task_criteria.js';
 import { getActiveCardColors, setTempCardColor, hasTempCardColors,
          cardSwatchRow } from './card_colors.js';
+import { escFalsyEmpty as _esc } from './escape.js';
 
 /* ── i18n access ──────────────────────────────────────────────────
    Resolved lazily on every call: window.i18n is installed by a plain
@@ -788,13 +789,6 @@ export function extractDutiesAndTasks() {
 
 // ── Private helpers ───────────────────────────────────────────
 
-function _esc(str) {
-  return (str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
 
 // Drag-handle dot grid — inline SVG so it renders the same on every
 // browser/font (used by the Card View duty and task cards).

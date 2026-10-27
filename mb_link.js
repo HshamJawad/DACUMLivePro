@@ -16,10 +16,10 @@ import { openTaskAnalysisFor } from './task_analysis.js';
 import { openModuleBuilderFromMapping } from './module_mapping.js';
 import { appState } from './state.js';
 import { showStatus } from './renderer.js';
+import { esc as _esc } from './escape.js';
 
 const KEY = 'dacum_mb_return';
 const _t = k => (window.i18n && window.i18n.t) ? window.i18n.t(k) : k;
-const _esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function _readHash() {
   const h = String(location.hash || '').replace(/^#/, '');

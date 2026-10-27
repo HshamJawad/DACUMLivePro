@@ -23,6 +23,7 @@
 //   catch (err) { showAIServiceError(err, { safeKey, tipKeys }); }
 // ============================================================
 
+import { esc as _esc } from './escape.js';
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 
 /* 3.70.0: the one address of the AI backend. It used to be repeated in
@@ -156,8 +157,6 @@ const KIND = {
   failed:     { icon: '⚠️', title: 'aiSvcFailedTitle',   body: 'aiSvcFailedBody',     tone: 'red'   },
 };
 
-const _esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
  * Show the unified warning.

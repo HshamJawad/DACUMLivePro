@@ -24,5 +24,8 @@ jobs:
       - name: CSS ownership
         run: node css-ownership-audit.mjs . --max 0
 
+      - name: innerHTML audit (unescaped text in HTML templates)
+        run: node innerhtml-audit.mjs .
+
       - name: Service worker precache and version bump
         run: node preflight.mjs .

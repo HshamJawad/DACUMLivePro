@@ -17,6 +17,7 @@ import { registerHistoryScope, refreshHistoryButtons } from './history.js';
 import { _criterionTaskIds, moduleRef, renderModuleLoList } from './module_mapping.js';
 import { renumberLearningOutcomes } from './clusters.js';
 import { renderLearningOutcomes, renderModules, renderPCSourceList } from './learning_outcomes.js';
+import { esc } from './escape.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 export function _t(k) { return window.i18n ? window.i18n.t(k) : k; }   // hoisted: safe across the split files
@@ -823,12 +824,6 @@ export function _tx(key) {
   return (_LOCAL_STRINGS[lang] && _LOCAL_STRINGS[lang][key]) || _LOCAL_STRINGS.en[key] || key;
 }
 
-export function _esc(s) {
-  return typeof escapeHtml === 'function'
-    ? escapeHtml(String(s == null ? '' : s))
-    : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
 
 // Saves through the existing project mechanism (saveCurrentProject →
 // _captureState, which already serialises appState.clusteringData).
@@ -1153,3 +1148,6 @@ export function _injectModuleCardStyles() {
   `;
   document.head.appendChild(st);
 }
+
+/** Still exported: other modules import it from here. The code is in escape.js. */
+export function _esc(s) { return esc(s); }

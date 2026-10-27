@@ -6,6 +6,7 @@
 import { appState, normalizeModuleCurriculumData,
          normalizeExternalCount as _extNum } from './state.js';
 import { showStatus } from './renderer.js';
+import { esc } from './escape.js';
 import { addDuty, addTask, syncAllFromDOM, renderDutiesFromState } from './duties.js';
 import { renderSkillsLevel } from './renderer.js';
 import { renderLearningOutcomes, renderPCSourceList } from './modules.js';
@@ -474,14 +475,14 @@ export function loadFromJSONLegacy(event) {
               sectionDiv.id = sectionId;
               sectionDiv.innerHTML = `
                 <div class="section-header-editable">
-                  <h3 id="${headingId}" contenteditable="false">${section.heading || `Custom Section ${appState.customSectionCounter}`}</h3>
+                  <h3 id="${headingId}" contenteditable="false">${esc(section.heading || `Custom Section ${appState.customSectionCounter}`)}</h3>
                   <div style="display:flex;gap:10px;">
                     <button class="btn-rename" data-action="toggle-heading" data-heading-id="${headingId}">✏️ Rename</button>
                     <button class="btn-clear-section" data-action="clear-section" data-input-id="${inputId}" data-heading-id="${headingId}" data-default="Custom Section ${appState.customSectionCounter}">🗑️ Clear</button>
                     <button class="btn-remove-section" data-action="remove-custom-section" data-section-id="${sectionId}" style="background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);color:white;padding:8px 16px;font-size:0.95em;border:none;border-radius:8px;cursor:pointer;">❌ Remove</button>
                   </div>
                 </div>
-                <textarea id="${inputId}" placeholder="Enter information for this custom section on separate lines">${section.content || ''}</textarea>
+                <textarea id="${inputId}" placeholder="Enter information for this custom section on separate lines">${esc(section.content || '')}</textarea>
               `;
               container.appendChild(sectionDiv);
             });

@@ -35,6 +35,7 @@ import { renderModuleCurriculum } from './module_curriculum.js';
 import { versionStats as _clVersionStats, LANG_NAMES as _CL_NAMES } from './content_lang.js';
 import { badgeLanguage, stateLanguage, UI_LANGS } from './project_lang.js';
 import { getPref } from './ui_prefs.js';
+import { escFalsyEmpty as _esc } from './escape.js';
 
 /* i18n access — resolved lazily; see duties.js for why.
    _tp() picks the correct plural form: Arabic has six categories and
@@ -1927,10 +1928,6 @@ function _captureCustomSections() {
 function _val(id)  { const el = document.getElementById(id); return el ? el.value : ''; }
 function _text(id) { const el = document.getElementById(id); return el ? el.textContent : ''; }
 
-function _esc(str) {
-  return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-                    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
 
 // ── CSS injection ─────────────────────────────────────────────
 

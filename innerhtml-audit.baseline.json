@@ -1,0 +1,6 @@
+{
+  "note": "Reviewed ${...} in innerHTML templates: each is escaped, a number or an internal constant. See innerhtml-audit.mjs.",
+  "reviewed": [
+    "settings_languages.js | cl.original"
+  ]
+}

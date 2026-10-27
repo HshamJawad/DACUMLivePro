@@ -20,6 +20,7 @@
 // ============================================================
 
 import { appState } from './state.js';
+import { esc as _esc } from './escape.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -79,11 +80,6 @@ const _rtlChart = () => (window.i18n ? window.i18n.isRTL() : false);
    Kept as an attribute (not CSS) so the PNG export still carries it. */
 const _svgFont = () => (_rtlChart() ? "Cairo, Segoe UI, system-ui, sans-serif" : 'Segoe UI, system-ui, sans-serif');
 
-function _esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 // Values come from a different place in each collection mode, but
 // both yield three numbers per task, so the chart works in both.

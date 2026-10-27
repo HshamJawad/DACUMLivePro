@@ -20,11 +20,10 @@ import { showStatus } from './renderer.js';
 import { syncDefaultsToLanguage } from './i18n_defaults.js';
 import { showAIServiceError } from './ai_client.js';
 import { stateLanguage, hasArabicText } from './project_lang.js';
+import { esc as _esc } from './escape.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
-const _esc = (s) => String(s == null ? '' : s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const _name = (l) => CL.LANG_NAMES[l] || l;
 const _cl = () => appState.contentLanguages || null;
 /* Save, and refresh the 🌐 badge on the project card. */

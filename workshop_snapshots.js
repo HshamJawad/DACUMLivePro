@@ -18,6 +18,7 @@ import { renderLearningOutcomes, renderPCSourceList,
          renderClusters, renderAvailableTasks } from './modules.js';
 import { resetHistoryToCurrentState } from './history.js';
 import { renderModuleCurriculum }     from './module_curriculum.js';
+import { escFalsyEmpty as _esc } from './escape.js';
 
 /* i18n access — resolved lazily; see duties.js for why. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -397,7 +398,3 @@ function _text(id)       { const el = document.getElementById(id); return el ? e
 function _setVal(id, v)  { const el = document.getElementById(id); if (el) el.value = Array.isArray(v) ? v.join('\n') : (v || ''); }
 function _setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v || ''; }
 function _cap(s)         { return s.charAt(0).toUpperCase() + s.slice(1); }
-function _esc(str) {
-  return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-                    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}

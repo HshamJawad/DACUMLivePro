@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v304';
+const CACHE_VERSION = 'v305';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -71,6 +71,7 @@ const PRECACHE_URLS = [
   BASE + 'app.js',
   BASE + 'state.js',
   BASE + 'renderer.js',
+  BASE + 'escape.js',                     // 3.140.1 — the one HTML-escape helper
   BASE + 'duties.js',
   BASE + 'events.js',
   BASE + 'history.js',

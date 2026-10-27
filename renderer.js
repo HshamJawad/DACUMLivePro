@@ -9,6 +9,7 @@ import { tableHeaderHex, contrastOn } from './export_settings.js';
 import { getSkillLevelColumns, emptyLevels, usesDefaultSkillLevels, DEFAULT_LEVELS,
          MAX_LEVELS, MIN_LEVELS, renameSkillLevel, addSkillLevel, removeSkillLevel,
          countSkillLevelTicks, ticksLostOnRestore, restoreDefaultSkillLevels } from './skill_levels.js';
+import { escFalsyEmpty } from './escape.js';
 
 /* i18n access — resolved lazily, see duties.js for the reasoning. */
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
@@ -41,15 +42,6 @@ export function showStatus(message, type) {
   _statusTimer = setTimeout(hide, _STATUS_MS[type] || 6000);
 }
 
-export function escapeHtml(text) {
-  if (!text) return '';
-  return String(text)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
 
 /* toggleInfoBox() was removed in 3.20.1.
 
@@ -635,3 +627,6 @@ export function removeCustomSection(sectionId) {
 window.addEventListener('dacum:langchange', () => {
   if (document.getElementById('skillsLevelContainer')) renderSkillsLevel();
 });
+
+/** Same behaviour as before (0, false and '' give ''); the code is in escape.js. */
+export function escapeHtml(text) { return escFalsyEmpty(text); }

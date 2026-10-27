@@ -26,6 +26,7 @@
 
 import { appState }   from './state.js';
 import { showStatus } from './renderer.js';
+import { esc as _esc } from './escape.js';
 
 const _t  = (k)    => (window.i18n ? window.i18n.t(k)     : k);
 const _tf = (k, v) => (window.i18n ? window.i18n.tf(k, v) : k);
@@ -110,10 +111,5 @@ export function renderUnverifiedBanner() {
   host.querySelector('#uvDiscard').addEventListener('click', discardDraftRatings);
 }
 
-function _esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
 
 window.addEventListener('dacum:langchange', renderUnverifiedBanner);
