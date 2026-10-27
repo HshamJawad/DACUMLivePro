@@ -920,32 +920,47 @@ function _showGuideModal(kind) {
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', g.title);
   overlay.setAttribute('dir', rtl ? 'rtl' : 'ltr');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);';
+  overlay.className = 'lomm-guide-overlay';
   // Content is our own constant HTML (strong/em only) — no user text.
   const sections = g.sections.map(sec => `
-    <div style="margin:0 0 14px;">
-      <p style="margin:0 0 6px;font-size:.9em;font-weight:800;color:#1e293b;">${sec.h}</p>
-      <ul style="margin:0;padding-inline-start:20px;">
-        ${sec.items.map(it => `<li style="font-size:.86em;line-height:1.65;color:#334155;margin-bottom:4px;">${it}</li>`).join('')}
+    <div class="lomm-guide-sec">
+      <p class="lomm-guide-sec-h">${sec.h}</p>
+      <ul>
+        ${sec.items.map(it => `<li>${it}</li>`).join('')}
       </ul>
     </div>`).join('');
   overlay.innerHTML = `
-    <div style="background:#fff;border-radius:16px;max-width:620px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);font-family:inherit;text-align:start;">
-      <div style="padding:18px 22px 14px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-bottom:1px solid #c7d2fe;flex-shrink:0;">
-        <span style="font-size:1.6em;line-height:1;">${kind === 'lo' ? '🎯' : '🪜'}</span>
-        <p style="margin:0;font-size:1em;font-weight:800;color:#3730a3;">${_esc(g.title)}</p>
+    <div class="lomm-guide-card">
+      <div class="lomm-guide-head">
+        <span class="lomm-guide-icon">${kind === 'lo' ? '🎯' : '🪜'}</span>
+        <p class="lomm-guide-title">${_esc(g.title)}</p>
       </div>
-      <div style="padding:16px 22px 18px;overflow-y:auto;">
-        <p style="margin:0 0 14px;font-size:.88em;line-height:1.65;color:#475569;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;">${_esc(g.intro)}</p>
+      <div class="lomm-guide-body">
+        <p class="lomm-guide-intro">${_esc(g.intro)}</p>
         ${sections}
-        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
-          <button type="button" data-guide-close style="padding:9px 22px !important;background:#667eea;color:#fff;border:none;border-radius:8px;font-size:.9em;font-weight:700;cursor:pointer;">${_esc(G.close)}</button>
+        <div class="lomm-guide-actions">
+          <button type="button" class="lomm-guide-close" data-guide-close>${_esc(G.close)}</button>
         </div>
       </div>
     </div>`;
+  const opener = document.activeElement;
   document.body.appendChild(overlay);
-  const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey, true); };
-  function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); close(); } }
+  const close = () => {
+    overlay.remove();
+    document.removeEventListener('keydown', onKey, true);
+    if (opener && opener.isConnected && opener.focus) { try { opener.focus({ preventScroll: true }); } catch (_) { /* ignore */ } }
+  };
+  function onKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key !== 'Tab') return;
+    // Keep Tab inside the dialog: the only controls are inside the card.
+    const items = overlay.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])');
+    if (!items.length) { e.preventDefault(); return; }
+    const first = items[0], last = items[items.length - 1];
+    if (!overlay.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
   document.addEventListener('keydown', onKey, true);
   overlay.addEventListener('click', e => { if (e.target === overlay || e.target.closest('[data-guide-close]')) close(); });
   const btn = overlay.querySelector('[data-guide-close]');

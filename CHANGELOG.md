@@ -7,6 +7,15 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.140.3 — 2026-10-27 — Guide dialog: styling moved to the stylesheet, keyboard focus kept inside
+PATCH. learning_outcomes.js, dacum-components.css, index.html, sw.js (v307),
+tests/specs/guide-modal.spec.js (new), tests/README.md.
+The "?" guide dialog was styled with inline style="" strings built in JavaScript, which
+the CSS audits cannot see and which cannot be themed or overridden. It now uses
+.lomm-guide-* classes in dacum-components.css (same look). Tab / Shift+Tab stay
+inside the dialog, and closing it returns focus to the "?" button. No wording or
+behaviour change otherwise.
+
 ── 3.140.2 — 2026-10-27 — Module size: "too many outcomes?" in the guide, and a calm note on the card
 PATCH. learning_outcomes.js, modules_shared.js, dacum-components.css, index.html, sw.js (v306),
 tests/specs/module-size-note.spec.js (new), tests/README.md.
