@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.141.1 — 2026-10-28 — CUR sub-tab: "Training methods" and "Entry skills" cards removed
+PATCH. module_curriculum.js, index.html, sw.js (v311), tests/specs/curriculum-subtabs.spec.js.
+- In the CUR sub-tab the per-outcome "Training methods" field and the module's "Basic skills required
+  for entry" list are no longer shown. They stay in the CBC and Module data sub-tabs, and nothing stored
+  is changed or deleted (the CBC file still reads them).
+
 ── 3.141.0 — 2026-10-27 — Module Curriculum: sub-tabs "Module data" / CUR / CBC (step 1)
 MINOR. module_curriculum.js, module_curriculum_text.js, dacum-curriculum.css, index.html,
 sw.js (v310), tests/specs/curriculum-subtabs.spec.js (new), tests/README.md.
