@@ -7,6 +7,16 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.143.0 — 2026-10-28 — CUR: «Personal protective equipment» card; the CUR Word prints the one tools list
+MINOR. module_curriculum.js, module_curriculum_text.js, exports_cur_docx.js, sw.js (v313), index.html,
+tests/specs/cur-ppe-export.spec.js (new), tests/specs/cur-tools-card.spec.js, tests/README.md.
+- CUR sub-tab: new card «4 · Personal protective equipment» (CUR only) with the same list controls as the
+  tools card (numbering, bullets, paste, suggest from Task Analysis safety/OSH, clear); stored as ppeText
+  and sent in the Module Builder handoff. The CBC sub-tab keeps its own PPE list.
+- CUR Word: the resources table prints ONE «Tools, equipment and materials» paragraph (as typed, numbering
+  kept) and one «Personal protective equipment» paragraph, each a heading row then a content row. A module
+  with only the four older lists prints them joined. Recommended resources and facilities unchanged.
+
 ── 3.142.0 — 2026-10-28 — CUR sub-tab: «Tools and resources» card as in Module Builder, sent with the module
 MINOR. cur_tools_list.js (new), module_curriculum.js, module_curriculum_text.js, dacum-curriculum.css,
 sw.js (v312), index.html, tests/specs/cur-tools-card.spec.js (new), tests/specs/cbc-methods.spec.js, tests/README.md.

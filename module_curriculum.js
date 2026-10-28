@@ -9,7 +9,7 @@
 //   settings: { programmeName, hoursPerCredit, groupSize, split{…},
 //               entryQualifications[], trainerQualifications[],
 //               trainersPerGroup, exportProgReqs (3.100.2) }
-//   byModule: { [moduleId]: { code, shortName, purpose, credits, toolsText (3.142.0),
+//   byModule: { [moduleId]: { code, shortName, purpose, credits, toolsText (3.142.0), ppeText (3.143.0),
 //               prerequisites[], splitOverride|null, tools[], equipment[],
 //               ppe[], materials[], resources[], facilities[{item,qty}],
 //               entrySkills[] (3.100.1 — basic skills a trainee needs to enter),
@@ -366,7 +366,7 @@ function _renderSubTabs() {
 
 function _renderSubPanel(module, idx) {
   if (_subTab === 'data') return `${_renderBasicInfo()}${_renderSettings()}${_renderHeader(module, idx)}`;
-  if (_subTab === 'cur') return `${_renderSettings()}${_renderHeader(module, idx)}${_renderLOs(module)}${_renderToolsCard(module)}`;
+  if (_subTab === 'cur') return `${_renderSettings()}${_renderHeader(module, idx)}${_renderLOs(module)}${_renderToolsCard(module)}${_renderPpeCard(module)}`;
   return `${_renderSettings()}${_renderHeader(module, idx)}${_renderLOs(module)}${_renderResources(module)}`;
 }
 
@@ -740,23 +740,44 @@ function _renderToolsCard(module) {
   return `
     <section class="cur-card cur-tools-card">
       <h3 class="cur-sec-title">${_esc(_tx('curToolsSec'))}</h3>
-      <div class="cur-field">
-        <span class="cur-field-label cur-tools-title">${_esc(_tx('curToolsTitle'))}</span>
-        <p class="cur-hint">${_esc(_tx('curToolsHint'))}</p>
-        <div class="cur-tools-bar">
-          <button type="button" class="cur-mini-btn ${st === 'num' ? 'is-on' : ''}" data-cur-action="tools-style" data-style="num" aria-pressed="${st === 'num'}">1- ${_esc(_tx('curToolsNum'))}</button>
-          <button type="button" class="cur-mini-btn ${st === 'bul' ? 'is-on' : ''}" data-cur-action="tools-style" data-style="bul" aria-pressed="${st === 'bul'}">▪ ${_esc(_tx('curToolsBul'))}</button>
-          <button type="button" class="cur-mini-btn" data-cur-action="tools-paste" title="${_esc(_tx('curToolsPasteTip'))}">📝 ${_esc(_tx('curToolsPaste'))}</button>
-          <button type="button" class="cur-mini-btn" data-cur-action="suggest-ta">🔬 ${_esc(_tx('curSuggestTA'))}</button>
-          <button type="button" class="cur-mini-btn cur-mini-danger" data-cur-action="tools-clear">🗑️ ${_esc(_tx('curToolsClear'))}</button>
-        </div>
-        <textarea class="cur-auto cur-tools-text" rows="8" dir="auto" data-cs="mod" data-ck="toolsText"
-          placeholder="${_esc(_tx('curToolsPh'))}" aria-label="${_esc(_tx('curToolsTitle'))}">${_esc(text)}</textarea>
-      </div>
+      ${_toolsBlock('toolsText', text, st, { title: 'curToolsTitle', hint: 'curToolsHint', ph: 'curToolsPh', ta: true })}
       <div class="cur-field"><span class="cur-field-label">${_esc(curLabel('curResources'))} — ${_esc(curLabel('curLearnerGuide'))}</span>
         <p class="cur-hint">${_esc(_tx('curResToMB'))}</p>
         ${_listEditor('mod', 'resources', rec.resources, { ph: _tx('curResPh'), label: curLabel('curResources') })}</div>
       ${_facilitiesField(facRows)}
+    </section>`;
+}
+
+/* One list in the style of Module Builder's «Tools & Resources» tab:
+   used for the tools / equipment / materials list (field toolsText) and
+   for the personal protective equipment list (field ppeText, 3.143.0). */
+function _toolsBlock(field, text, st, k) {
+  return `
+      <div class="cur-field" data-cur-list="${field}">
+        <span class="cur-field-label cur-tools-title">${_esc(_tx(k.title))}</span>
+        <p class="cur-hint">${_esc(_tx(k.hint))}</p>
+        <div class="cur-tools-bar">
+          <button type="button" class="cur-mini-btn ${st === 'num' ? 'is-on' : ''}" data-cur-action="tools-style" data-field="${field}" data-style="num" aria-pressed="${st === 'num'}">1- ${_esc(_tx('curToolsNum'))}</button>
+          <button type="button" class="cur-mini-btn ${st === 'bul' ? 'is-on' : ''}" data-cur-action="tools-style" data-field="${field}" data-style="bul" aria-pressed="${st === 'bul'}">▪ ${_esc(_tx('curToolsBul'))}</button>
+          <button type="button" class="cur-mini-btn" data-cur-action="tools-paste" data-field="${field}" title="${_esc(_tx('curToolsPasteTip'))}">📝 ${_esc(_tx('curToolsPaste'))}</button>
+          <button type="button" class="cur-mini-btn" data-cur-action="suggest-ta" data-field="${field}">🔬 ${_esc(_tx('curSuggestTA'))}</button>
+          <button type="button" class="cur-mini-btn cur-mini-danger" data-cur-action="tools-clear" data-field="${field}">🗑️ ${_esc(_tx('curToolsClear'))}</button>
+        </div>
+        <textarea class="cur-auto cur-tools-text" rows="${field === 'ppeText' ? 5 : 8}" dir="auto" data-cs="mod" data-ck="${field}"
+          placeholder="${_esc(_tx(k.ph))}" aria-label="${_esc(_tx(k.title))}">${_esc(text)}</textarea>
+      </div>`;
+}
+
+/* 3.143.0 — CUR sub-tab: «Personal protective equipment», a card of its
+   own with the same list controls. Printed as its own paragraph of the
+   CUR resources table. The CBC sub-tab keeps its PPE list. */
+function _renderPpeCard(module) {
+  const rec = _modRec(module.id) || {};
+  const text = _str(rec.ppeText);
+  return `
+    <section class="cur-card cur-ppe-card">
+      <h3 class="cur-sec-title">${_esc(_tx('curPpeSec'))}</h3>
+      ${_toolsBlock('ppeText', text, toolsStyleOf(text), { title: 'curPpeTitle', hint: 'curPpeHint', ph: 'curPpePh' })}
     </section>`;
 }
 
@@ -999,10 +1020,12 @@ function _openTAPicker() {
 }
 
 // ── CUR «Tools and resources»: paste and suggest (3.142.0) ──────
-function _addToolsAndShow(module, items) {
+const _LIST_FIELDS = ['toolsText', 'ppeText'];
+const _fieldOf = b => { const f = b && b.getAttribute && b.getAttribute('data-field'); return _LIST_FIELDS.includes(f) ? f : 'toolsText'; };
+function _addToolsAndShow(module, items, field = 'toolsText') {
   const r = _modRec(module.id, true);
-  const res = addToolsItems(r.toolsText, items);
-  r.toolsText = res.text;
+  const res = addToolsItems(r[field], items);
+  r[field] = res.text;
   renderModuleCurriculum(); _schedulePersist();
   showStatus(res.added ? _txf('curToolsAdded', { n: res.added }) + (res.skipped ? ' ' + _txf('curToolsSkipped', { n: res.skipped }) : '') : _tx('curNothingNew'),
     res.added ? 'success' : 'info');
@@ -1010,10 +1033,10 @@ function _addToolsAndShow(module, items) {
 
 /** One line becomes one item; bullets and numbers are removed. The
  *  clipboard is read when the browser allows it, otherwise a box opens. */
-async function _pasteTools(module) {
+async function _pasteTools(module, field = 'toolsText') {
   let raw = '';
   try { raw = await navigator.clipboard.readText(); } catch (_) { raw = ''; }
-  if (parseToolsText(raw).length) { _addToolsAndShow(module, parseToolsText(raw)); return; }
+  if (parseToolsText(raw).length) { _addToolsAndShow(module, parseToolsText(raw), field); return; }
   const ov = _modal('curToolsPasteModal', _tx('curToolsPasteHead'), '📝', `
       <textarea id="curToolsPasteTa" class="cur-auto cur-tools-text" rows="8" dir="auto" aria-label="${_esc(_tx('curToolsPasteHead'))}"></textarea>`,
     [{ label: _tx('curCancel'), cls: 'cur-btn-ghost', close: true },
@@ -1021,18 +1044,19 @@ async function _pasteTools(module) {
        const items = parseToolsText((ov.querySelector('#curToolsPasteTa') || {}).value);
        if (!items.length) { showStatus(_tx('curToolsPasteNone'), 'error'); return; }
        _closeModal(ov);
-       _addToolsAndShow(module, items);
+       _addToolsAndShow(module, items, field);
      } }]);
   const ta = ov.querySelector('#curToolsPasteTa'); if (ta) ta.focus();
 }
 
 /** The tools, equipment and materials written in Task Analysis for the
  *  tasks behind this module, by task, ticked and added to the one list. */
-function _openToolsPicker() {
+function _openToolsPicker(field = 'toolsText') {
   const module = _selectedModule();
   if (!module) return;
   const rec = _modRec(module.id) || {};
-  const on = new Set(parseToolsText(rec.toolsText).map(x => x.toLowerCase()));
+  const src = field === 'ppeText' ? 'safetyOSH' : 'toolsEquipmentMaterials';
+  const on = new Set(parseToolsText(rec[field]).map(x => x.toLowerCase()));
   const strip = s => _str(s).replace(/^[\s]*[•\-\*○●]\s*/, '').replace(/^[\s]*\d+[\.\)]\s*/, '').trim();
   const seen = new Set();
   const groups = [];
@@ -1040,7 +1064,7 @@ function _openToolsPicker() {
     const r = getTaskAnalysisRecord(tid);
     if (!r) return;
     const items = [];
-    _arr(r.toolsEquipmentMaterials).map(strip).filter(Boolean).forEach(t => {
+    _arr(r[src]).map(strip).filter(Boolean).forEach(t => {
       const k = t.toLowerCase();
       if (seen.has(k)) return;
       seen.add(k); items.push({ text: t, already: on.has(k) });
@@ -1051,7 +1075,7 @@ function _openToolsPicker() {
   const flat = groups.flatMap(g => g.items);
   let i = 0;
   const ov = _modal('curTAModal', _tx('curTATitle'), '🔬', `
-      <p class="cur-modal-intro">${_esc(_tx('curToolsPickIntro'))}</p>
+      <p class="cur-modal-intro">${_esc(_tx(field === 'ppeText' ? 'curPpePickIntro' : 'curToolsPickIntro'))}</p>
       <div class="cur-ta-list">${groups.map(g => `
         <div class="cur-ta-group"><strong dir="auto">${_esc(g.label)}</strong>
           ${g.items.map(it => { const n = i++; return `
@@ -1065,7 +1089,7 @@ function _openToolsPicker() {
        const items = [...ov.querySelectorAll('input[data-ta-i]:checked:not(:disabled)')]
          .map(cb => flat[parseInt(cb.getAttribute('data-ta-i'), 10)].text);
        _closeModal(ov);
-       _addToolsAndShow(module, items);
+       _addToolsAndShow(module, items, field);
      } }]);
 }
 
@@ -1369,6 +1393,12 @@ export function curFileName(module) {
    the summary — the module's entry skills and resource lists, and the
    programme's requirements and course information (CBC). Empty parts
    are left out; null when there is nothing. */
+/** The lines of a typed list as written (layout kept); when it has no items, the fallback. */
+function _lines(text, fallback) {
+  const t = String(text == null ? '' : text).replace(/\r\n?/g, '\n');
+  if (!parseToolsText(t).length) return fallback;
+  return t.split('\n').map(l => l.replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, '').trim()).filter(Boolean);
+}
 export function getCurriculumHandoff(moduleId) {
   const rec = _modRec(moduleId) || {};
   const mod = {};
@@ -1380,6 +1410,9 @@ export function getCurriculumHandoff(moduleId) {
   // recommended resources / learner's guide, which Module Builder adds to its References.
   const tt = _str(rec.toolsText).trim();
   if (parseToolsText(tt).length) mod.toolsText = tt;
+  // 3.143.0: the CUR sub-tab's personal protective equipment list, as typed.
+  const pt = _str(rec.ppeText).trim();
+  if (parseToolsText(pt).length) mod.ppeText = pt;
   const fac = _arr(rec.facilities)
     .map(f => ({ item: _str(f && f.item).trim(), qty: _str(f && f.qty).trim() })).filter(f => f.item);
   if (fac.length) mod.facilities = fac;
@@ -1454,6 +1487,11 @@ export function getCurriculumModel(moduleId, opts = {}) {
     programme: prog ? `${prog}${lvl ? ` — ${curLabel('curLevelN', { n: lvl })}` : ''}` : '',
     osLink: _osLinkLines(module),
     los,
+    // 3.143.0: the CUR document prints ONE list (tools, equipment, materials) and one
+    // for personal protective equipment, as typed (numbering / bullets kept). A module
+    // that only has the four older lists prints them joined, so nothing is lost.
+    toolsLines: blank ? [] : _lines(rec.toolsText, [...parseToolsText(''), ..._clean(rec.tools), ..._clean(rec.equipment), ..._clean(rec.materials)]),
+    ppeLines: blank ? [] : _lines(rec.ppeText, _clean(rec.ppe)),
     tools: blank ? [] : _clean(rec.tools), equipment: blank ? [] : _clean(rec.equipment),
     ppe: blank ? [] : _clean(rec.ppe), materials: blank ? [] : _clean(rec.materials),
     resources: blank ? [] : _clean(rec.resources),
@@ -1922,19 +1960,21 @@ function _wire() {
     } else if (a === 'dist-help') {
       _showDistGuide();
     } else if (a === 'suggest-ta') {
-      if (_subTab === 'cur') _openToolsPicker(); else _openTAPicker();
+      if (_subTab === 'cur') _openToolsPicker(_fieldOf(b)); else _openTAPicker();
     } else if (a === 'tools-style') {
       const r = _modRec(module.id, true);
-      r.toolsText = applyToolsStyle(r.toolsText, b.getAttribute('data-style'));
+      const f = _fieldOf(b);
+      r[f] = applyToolsStyle(r[f], b.getAttribute('data-style'));
       renderModuleCurriculum(); _schedulePersist();
     } else if (a === 'tools-clear') {
       const r = _modRec(module.id, true);
-      if (!parseToolsText(r.toolsText).length) return;
+      const f = _fieldOf(b);
+      if (!parseToolsText(r[f]).length) return;
       if (!confirm(_tx('curToolsClearQ'))) return;
-      r.toolsText = '';
+      r[f] = '';
       renderModuleCurriculum(); _schedulePersist();
     } else if (a === 'tools-paste') {
-      _pasteTools(module);
+      _pasteTools(module, _fieldOf(b));
     } else if (a === 'suggest-entry') {
       _openEntryPicker();
     } else if (a === 'li-add' || a === 'li-del') {
