@@ -7,6 +7,20 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.142.0 — 2026-10-28 — CUR sub-tab: «Tools and resources» card as in Module Builder, sent with the module
+MINOR. cur_tools_list.js (new), module_curriculum.js, module_curriculum_text.js, dacum-curriculum.css,
+sw.js (v312), index.html, tests/specs/cur-tools-card.spec.js (new), tests/specs/cbc-methods.spec.js, tests/README.md.
+- CUR sub-tab only: the «3 · Module resources» card is replaced by «3 · Tools and resources» — ONE list of tools,
+  equipment and materials with Numbering, Bullets, Paste text, 🔬 Suggest from Task Analysis and Clear list, the same
+  way Module Builder's Tools & Resources tab works — followed by the recommended resources / learner's guide and the
+  physical facilities. The 🔬 button adds the ticked Task Analysis items to the one list.
+- The list travels in the Module Builder handoff (`curriculum.toolsText`, as typed); the recommended resources
+  (`curriculum.resources`) were already sent and Module Builder now adds them to its References.
+- The CBC sub-tab is unchanged: it keeps the four separate lists. The two sub-tabs keep separate fields, so the
+  CUR Word file still prints the four lists (edited in the CBC sub-tab). A filled single list counts for the
+  module's progress.
+- tests/specs/cbc-methods.spec.js now works in the CBC sub-tab (3.141.1 moved Training methods out of CUR).
+
 ── 3.141.1 — 2026-10-28 — CUR sub-tab: "Training methods" and "Entry skills" cards removed
 PATCH. module_curriculum.js, index.html, sw.js (v311), tests/specs/curriculum-subtabs.spec.js.
 - In the CUR sub-tab the per-outcome "Training methods" field and the module's "Basic skills required

@@ -25,6 +25,7 @@ function docXml(file) {
 async function firstLo(page) {
   const ids = await state(page, 's => ({ m: s.moduleMappingData.modules[0].id, lo: s.moduleMappingData.modules[0].learningOutcomes[0].id })');
   await page.evaluate(() => window.switchTab('module-curriculum-tab'));
+  await page.locator('#curRoot [data-cur-subtab="cbc"]').click();    // 3.141.1: training methods live in the CBC sub-tab
   const card = page.locator('#curRoot details.cur-lo').first();
   if ((await card.getAttribute('open')) === null) await card.locator('.cur-lo-sum').click();
   return ids;
@@ -47,9 +48,11 @@ test('tick assessment and training methods: stored in the outcome, exported, un-
   let r = await rec(page, ids);
   expect(r.assessMethods).toEqual(['Demonstration', 'Portfolio']);
   expect(r.trainMethods).toEqual(['Group work']);
-  // the picker stays open while ticking, and shows the count
-  await expect(page.locator('#curRoot details[data-cur-pick$="|assessMethods"]').first()).toHaveAttribute('open', '');
+  // the picker being used stays open while ticking; the other one closes (a click outside); both show their count
+  await expect(page.locator('#curRoot details[data-cur-pick$="|trainMethods"]').first()).toHaveAttribute('open', '');
+  await expect(page.locator('#curRoot details[data-cur-pick$="|assessMethods"]').first()).not.toHaveAttribute('open', '');
   await expect(page.locator('#curRoot details[data-cur-pick$="|assessMethods"] .cur-pick-count').first()).toHaveText('2 selected');
+  await expect(page.locator('#curRoot details[data-cur-pick$="|trainMethods"] .cur-pick-count').first()).toHaveText('1 selected');
 
   // a method typed by hand is kept next to the ticked ones
   await page.evaluate(async ({ m, lo }) => {
