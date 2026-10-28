@@ -365,7 +365,7 @@ function _renderSubTabs() {
 }
 
 function _renderSubPanel(module, idx) {
-  if (_subTab === 'data') return `${_renderBasicInfo()}${_renderSettings()}${_renderHeader(module, idx)}`;
+  if (_subTab === 'data') return `${_renderBasicInfo()}${_renderHeader(module, idx)}`;
   if (_subTab === 'cur') return `${_renderSettings()}${_renderHeader(module, idx)}${_renderLOs(module)}${_renderToolsCard(module)}${_renderPpeCard(module)}`;
   return `${_renderSettings()}${_renderHeader(module, idx)}${_renderLOs(module)}${_renderResources(module)}`;
 }

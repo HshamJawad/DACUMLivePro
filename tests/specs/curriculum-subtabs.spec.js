@@ -49,6 +49,7 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   for (const sel of ['.cur-filename', '[data-ck="purpose"]', '[data-cur-prereq]', '#curHoursBox', '.cur-oslink', '.cur-lolist', '.cur-entry'])
     await expect(page.locator('#curRoot ' + sel)).toHaveCount(0);
   await expect(page.locator('#curRoot [data-ck="code"]')).toHaveCount(1);       // ... the code and short name stay
+  await expect(page.locator('#curRoot details.cur-settings')).toHaveCount(0);   // 3.143.3: no programme-settings card here either
   // ... and CUR / CBC keep them.
   await sub(page, 'cur').click();
   for (const sel of ['.cur-filename', '[data-ck="purpose"]', '#curHoursBox'])
