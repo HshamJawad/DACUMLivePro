@@ -537,7 +537,7 @@ function _renderHeader(module, idx) {
         <label class="cur-field"><span>${_esc(_tx('curShortName'))}</span>
           <input type="text" data-cs="mod" data-ck="shortName" value="${_esc(module.shortName || '')}" placeholder="${_esc(suggestModuleShortName(module))}" maxlength="30"></label>
       </div>
-      <div class="cur-filename">
+      ${_subTab === 'data' ? '' : `<div class="cur-filename">
         <div class="cur-grid-2">
           <label class="cur-field"><span>${_esc(_tx('curFilePrefix'))}</span>
             <input type="text" dir="ltr" data-cs="set" data-ck="filePrefix" value="${_esc(_settings().filePrefix || '')}" placeholder="CUR" maxlength="16"></label>
@@ -549,8 +549,8 @@ function _renderHeader(module, idx) {
         </div>
         <div class="cur-file-preview"><span>${_esc(_tx('curFilePreview'))}</span> <bdi id="curFilePreview" dir="ltr">${_esc(curFileName(module))}</bdi></div>
         <small class="cur-hint">${_esc(_tx('curFileHint'))}</small>
-      </div>
-      <label class="cur-field"><span>${_esc(_tx('curPurposeL'))}</span>
+      </div>`}
+      ${_subTab === 'data' ? '' : `<label class="cur-field"><span>${_esc(_tx('curPurposeL'))}</span>
         <textarea class="cur-auto" rows="2" data-cs="mod" data-ck="purpose" placeholder="${_esc(_tx('curPurposePh'))}">${_esc(rec.purpose || '')}</textarea></label>
       <div class="cur-field"><span>${_esc(_tx('curPrereqL'))}</span>
           ${others.length ? `<div class="cur-checklist" role="group" aria-label="${_esc(_tx('curPrereqL'))}">${others.map(({ m, i }) => `
@@ -574,7 +574,7 @@ function _renderHeader(module, idx) {
         : `<div class="cur-hint">${_esc(_tx('curOSNone'))}</div>`}
       <div class="cur-subhead">${_esc(_tx('curLOListL'))}</div>
       ${los.length ? `<ol class="cur-lolist">${los.map(o => `<li><bdi class="cur-lonum">${_esc(loLabel(o))}</bdi> ${_esc(o.statement || '')}</li>`).join('')}</ol>`
-        : `<div class="cur-hint">${_esc(_tx('curNoLOs'))}</div>`}
+        : `<div class="cur-hint">${_esc(_tx('curNoLOs'))}</div>`}`}
     </section>`;
 }
 

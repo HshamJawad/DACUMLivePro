@@ -7,6 +7,11 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.143.2 — 2026-10-28 — Module data sub-tab: file name, purpose, prerequisites, entry skills, time table, OS link and outcome list removed
+PATCH. module_curriculum.js, sw.js (v315), index.html, tests/specs/curriculum-subtabs.spec.js.
+Module data keeps Basic Information, the programme settings, the read-only Module Mapping values, the module
+code and short name. The removed parts stay in the CUR and CBC sub-tabs (same data, nothing deleted).
+
 ── 3.143.1 — 2026-10-28 — CUR lists: placeholder follows the page direction (Arabic on the right)
 PATCH. module_curriculum.js, dacum-curriculum.css, sw.js (v314), index.html, tests/specs/cur-ppe-export.spec.js.
 An empty list textarea (dir="auto" read it as left-to-right) now takes the page direction, so the Arabic
