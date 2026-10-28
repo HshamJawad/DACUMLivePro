@@ -763,7 +763,7 @@ function _toolsBlock(field, text, st, k) {
           <button type="button" class="cur-mini-btn" data-cur-action="suggest-ta" data-field="${field}">🔬 ${_esc(_tx('curSuggestTA'))}</button>
           <button type="button" class="cur-mini-btn cur-mini-danger" data-cur-action="tools-clear" data-field="${field}">🗑️ ${_esc(_tx('curToolsClear'))}</button>
         </div>
-        <textarea class="cur-auto cur-tools-text" rows="${field === 'ppeText' ? 5 : 8}" dir="auto" data-cs="mod" data-ck="${field}"
+        <textarea class="cur-auto cur-tools-text" rows="${field === 'ppeText' ? 5 : 8}" ${text ? 'dir="auto"' : ''} data-cs="mod" data-ck="${field}"
           placeholder="${_esc(_tx(k.ph))}" aria-label="${_esc(_tx(k.title))}">${_esc(text)}</textarea>
       </div>`;
 }
@@ -1038,7 +1038,7 @@ async function _pasteTools(module, field = 'toolsText') {
   try { raw = await navigator.clipboard.readText(); } catch (_) { raw = ''; }
   if (parseToolsText(raw).length) { _addToolsAndShow(module, parseToolsText(raw), field); return; }
   const ov = _modal('curToolsPasteModal', _tx('curToolsPasteHead'), '📝', `
-      <textarea id="curToolsPasteTa" class="cur-auto cur-tools-text" rows="8" dir="auto" aria-label="${_esc(_tx('curToolsPasteHead'))}"></textarea>`,
+      <textarea id="curToolsPasteTa" class="cur-auto cur-tools-text" rows="8" aria-label="${_esc(_tx('curToolsPasteHead'))}"></textarea>`,
     [{ label: _tx('curCancel'), cls: 'cur-btn-ghost', close: true },
      { label: _tx('curToolsPasteOk'), cls: 'cur-btn-primary', onClick: () => {
        const items = parseToolsText((ov.querySelector('#curToolsPasteTa') || {}).value);
@@ -1794,6 +1794,8 @@ function _wire() {
   tab.addEventListener('input', e => {
     const t = e.target;
     if (t.matches('textarea.cur-auto')) _autoGrow(t);
+    // 3.143.1: an empty list takes the page direction (its placeholder), a typed one follows its own text
+    if (t.matches('textarea.cur-tools-text') && !t.hasAttribute('dir')) t.setAttribute('dir', 'auto');
     // plain fields
     if (t.hasAttribute('data-cs') && t.hasAttribute('data-ck')) {
       _setField(t.getAttribute('data-cs'), t.getAttribute('data-ck'), t.value, t.getAttribute('data-lo'));
