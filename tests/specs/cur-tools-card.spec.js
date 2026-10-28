@@ -4,8 +4,8 @@ const { test, expect } = require('@playwright/test');
 const { openApp, state, loadProject, fixture } = require('../helpers');
 
 const sub = (page, k) => page.locator(`#curRoot [data-cur-subtab="${k}"]`);
-const ta = page => page.locator('#curRoot textarea.cur-tools-text');
-const act = (page, a, extra = '') => page.locator(`#curRoot [data-cur-action="${a}"]${extra}`);
+const ta = page => page.locator('#curRoot textarea[data-ck="toolsText"]');
+const act = (page, a, extra = '') => page.locator(`#curRoot [data-cur-list="toolsText"] [data-cur-action="${a}"]${extra}`);
 
 async function open(page) {
   const errors = await openApp(page, { lang: 'en' });
