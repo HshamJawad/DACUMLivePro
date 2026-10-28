@@ -15,6 +15,14 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   await expect(page.locator('#curRoot [data-cur-action="export-this"]')).toBeVisible();
   await expect(page.locator('#curRoot [data-cur-action="export-cbc"]')).toHaveCount(0);
 
+  // 3.141.1: CUR no longer shows "Training methods" or the entry skills; CBC still does.
+  await expect(page.locator('#curRoot .cur-pick[data-cur-pick$="|trainMethods"]')).toHaveCount(0);
+  await expect(page.locator('#curRoot .cur-entry')).toHaveCount(0);
+  await sub(page, 'cbc').click();
+  await expect(page.locator('#curRoot .cur-pick[data-cur-pick$="|trainMethods"]').first()).toBeAttached();
+  await expect(page.locator('#curRoot .cur-entry')).toHaveCount(1);
+  await sub(page, 'cur').click();
+
   // Same data in both: a programme name typed under CUR is there under CBC.
   await page.locator('#curRoot details.cur-settings > summary').click();
   await page.fill('#curRoot input[data-ck="programmeName"]', 'ZZ Programme');

@@ -553,12 +553,12 @@ function _renderHeader(module, idx) {
               <span><bdi>${_esc(_moduleCode(m))}</bdi> — ${_esc(m.title || '')}</span></label>`).join('')}</div>`
             : `<div class="cur-hint">${_esc(_tx('curPrereqNone'))}</div>`}
       </div>
-      <div class="cur-field cur-entry">
+      ${_subTab === 'cur' ? '' : `<div class="cur-field cur-entry">
         <div class="cur-sec-head"><span>${_esc(curLabel('curEntrySkills'))}</span>
           <button type="button" class="cur-mini-btn" data-cur-action="suggest-entry">🧩 ${_esc(_tx('curEntrySuggest'))}</button></div>
         <small class="cur-hint">${_esc(_tx('curEntryHint'))}</small>
         ${_listEditor('mod', 'entrySkills', rec.entrySkills, { label: curLabel('curEntrySkills'), ph: _tx('curEntryPh') })}
-      </div>
+      </div>`}
       <div class="cur-subhead">${_esc(_tx('curTimeL'))}</div>
       <div id="curHoursBox" class="cur-timecard">${_timeCard(module)}</div>
       <div class="cur-subhead">${_esc(_tx('curOSLinkL'))}</div>
@@ -699,11 +699,11 @@ function _renderLOCard(module, o, n) {
       </summary>
       <div class="cur-lo-body">
         ${LO_TEXT_FIELDS.map(textField).join('')}
-        <div class="cur-field">
+        ${_subTab === 'cur' ? '' : `<div class="cur-field">
           <div class="cur-field-head"><span>${_esc(curLabel('curTrainMethods'))}</span></div>
           ${_methodPicker(module, lo, 'trainMethods', r.trainMethods)}
           ${_listEditor('lo', 'trainMethods', r.trainMethods, { lo, label: curLabel('curTrainMethods') })}
-        </div>
+        </div>`}
         <div class="cur-field">
           <div class="cur-field-head"><span>${_esc(curLabel('curAssessStatements'))}</span>
             <button type="button" class="cur-mini-btn" data-cur-action="suggest-criteria" data-lo="${_esc(lo)}">✨ ${_esc(_tx('curSuggestCriteria'))}</button></div>
