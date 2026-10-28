@@ -68,3 +68,16 @@ test('CUR Word: one tools list and the PPE list, each under its heading, in one 
   expect(xml.indexOf('Personal protective equipment')).toBeLessThan(xml.indexOf('ZZGloves'));
   expect(errors).toEqual([]);
 });
+
+test('Arabic interface: an empty list box reads right-to-left, a typed one follows its text', async ({ page }) => {
+  const errors = await openApp(page, { lang: 'ar' });
+  await loadProject(page, fixture('sample-project.json'));
+  await page.evaluate(() => window.switchTab('module-curriculum-tab'));
+  await page.locator('#curRoot [data-cur-subtab="cur"]').click();
+  const box = ppeTa(page);
+  expect(await box.evaluate(e => getComputedStyle(e).direction)).toBe('rtl');
+  expect(await box.evaluate(e => e.hasAttribute('dir'))).toBe(false);
+  await box.fill('Gloves');
+  expect(await box.getAttribute('dir')).toBe('auto');
+  expect(errors).toEqual([]);
+});

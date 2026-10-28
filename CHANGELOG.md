@@ -7,6 +7,11 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.143.1 — 2026-10-28 — CUR lists: placeholder follows the page direction (Arabic on the right)
+PATCH. module_curriculum.js, dacum-curriculum.css, sw.js (v314), index.html, tests/specs/cur-ppe-export.spec.js.
+An empty list textarea (dir="auto" read it as left-to-right) now takes the page direction, so the Arabic
+placeholder starts on the right; once typed it follows its own text again.
+
 ── 3.143.0 — 2026-10-28 — CUR: «Personal protective equipment» card; the CUR Word prints the one tools list
 MINOR. module_curriculum.js, module_curriculum_text.js, exports_cur_docx.js, sw.js (v313), index.html,
 tests/specs/cur-ppe-export.spec.js (new), tests/specs/cur-tools-card.spec.js, tests/README.md.
