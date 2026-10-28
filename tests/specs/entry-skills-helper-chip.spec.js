@@ -17,6 +17,7 @@ test('entry skills suggested from Task Analysis basic skills', async ({ page }) 
     });
   });
   await page.evaluate(() => window.switchTab('module-curriculum-tab'));
+  await page.click('#curRoot [data-cur-subtab="cbc"]');       // 3.143.2: entry skills live in CBC only
   await page.click('[data-cur-action="suggest-entry"]');
   await expect(page.locator('#curEntryModal input[data-entry-i]')).toHaveCount(2);
   await page.locator('#curEntryModal .cur-btn-primary').click();
