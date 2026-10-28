@@ -59,6 +59,15 @@
 #module-curriculum-tab .cur-subtab:hover { background: #e8edf3; }
 #module-curriculum-tab .cur-subtab.is-on { background: #fff; color: var(--cur-violet); border-color: var(--cur-violet-line); }
 #module-curriculum-tab .cur-subtab:focus-visible { outline: 2px solid var(--cur-violet); outline-offset: 2px; }
+/* 3.142.0: CUR «Tools and resources» card */
+#module-curriculum-tab .cur-tools-title { font-size: 1.05em; color: #4338ca; }
+#module-curriculum-tab .cur-tools-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+#module-curriculum-tab .cur-tools-bar .cur-mini-btn.is-on { background: #ddd6fe; border-color: #a78bfa; }
+#module-curriculum-tab .cur-mini-btn.cur-mini-danger { background: #f8fafc; color: #b91c1c; border-color: #fecaca; }
+#module-curriculum-tab .cur-mini-btn.cur-mini-danger:hover { background: #fee2e2; }
+#module-curriculum-tab textarea.cur-tools-text { width: 100%; min-height: 180px; box-sizing: border-box; }
+.cur-modal textarea.cur-tools-text { width: 100%; min-height: 160px; box-sizing: border-box; }
+.cur-modal .cur-ta-group { margin: 0 0 10px; }
 #module-curriculum-tab .cur-basic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
 #module-curriculum-tab .cur-basic-item { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; }
 #module-curriculum-tab .cur-basic-l { font-size: .8em; font-weight: 700; color: var(--cur-muted); }
@@ -319,6 +328,7 @@ html[dir="rtl"] #module-curriculum-tab .cur-lo-sum::before { content: '◂'; }
   #module-curriculum-tab .cur-fac-row { grid-template-columns: minmax(0, 1fr) 70px 44px; }
   #module-curriculum-tab .cur-mini-btn, #module-curriculum-tab .cur-li-add { min-height: 44px; }
   #module-curriculum-tab .cur-pick-btn { min-height: 44px; }
+  #module-curriculum-tab .cur-tools-bar .cur-mini-btn { min-height: 44px; }
   #module-curriculum-tab .cur-subtab { min-height: 44px; }
   #module-curriculum-tab .cur-pick-opt { padding: 8px 0; }
 }
