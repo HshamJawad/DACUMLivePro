@@ -23,14 +23,16 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   await expect(page.locator('#curRoot .cur-entry')).toHaveCount(1);
   await sub(page, 'cur').click();
 
-  // Same data in both: a programme name typed under CUR is there under CBC.
-  await page.locator('#curRoot details.cur-settings > summary').click();
-  await page.fill('#curRoot input[data-ck="programmeName"]', 'ZZ Programme');
+  // 3.143.4: the Programme settings card is in CBC only (not on Module data, not on CUR).
+  await expect(page.locator('#curRoot details.cur-settings')).toHaveCount(0);
   await sub(page, 'cbc').click();
   await expect(sub(page, 'cbc')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#curRoot details.cur-lo').first()).toBeVisible();
   await expect(page.locator('#curRoot [data-cur-action="export-this"]')).toHaveCount(0);
   await page.locator('#curRoot details.cur-settings > summary').click();
+  await page.fill('#curRoot input[data-ck="programmeName"]', 'ZZ Programme');
+  await sub(page, 'cur').click();
+  await sub(page, 'cbc').click();
   await expect(page.locator('#curRoot input[data-ck="programmeName"]')).toHaveValue('ZZ Programme');
 
   // CBC's button opens the CBC dialog.

@@ -7,6 +7,10 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.143.4 — 2026-10-28 — CUR sub-tab: the collapsible «Programme settings» card removed
+PATCH. module_curriculum.js, sw.js (v317), index.html, tests/specs/curriculum-subtabs.spec.js, tests/specs/entry-skills-helper-chip.spec.js.
+The card now lives in the CBC sub-tab only (same data, nothing deleted; the CUR Word keeps using the saved values).
+
 ── 3.143.3 — 2026-10-28 — Module data sub-tab: the collapsible «Programme settings» card removed
 PATCH. module_curriculum.js, sw.js (v316), index.html, tests/specs/curriculum-subtabs.spec.js, tests/specs/entry-skills-helper-chip.spec.js (entry skills are in the CBC sub-tab).
 The card stays in the CUR and CBC sub-tabs (same data, nothing deleted).

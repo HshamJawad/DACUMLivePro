@@ -57,6 +57,7 @@ test('programme requirements: edited in Programme settings, exported only when t
   const errors = await openApp(page);
   await loadProject(page, fixture('sample-project.json'));
   await page.evaluate(() => window.switchTab('module-curriculum-tab'));
+  await page.click('#curRoot [data-cur-subtab="cbc"]');       // 3.143.4: Programme settings are in CBC only
   await page.locator('#curRoot details.cur-settings > summary').click();
   await page.locator('.cur-list[data-cs="set"][data-ck="entryQualifications"] .cur-li-input').first().fill('ZZ intermediate school');
   await page.locator('.cur-list[data-cs="set"][data-ck="trainerQualifications"] .cur-li-input').first().fill('ZZ technical diploma');
