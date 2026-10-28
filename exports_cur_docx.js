@@ -281,14 +281,15 @@ async function _exportCurriculumDocxImpl(m) {
         const COL3 = [3213, 3213, 3212];
         const rr = [];
         const sectionHead = (text) => new TableRow({ children: [headCell(text, { span: 3, width: TABLE_W })] });
-        rr.push(sectionHead(L('curTools') + ':'));
-        rr.push(new TableRow({ children: threeColsWith(m.tools) }));
-        rr.push(sectionHead(L('curEquipment') + ':'));
-        rr.push(new TableRow({ children: threeColsWith(m.equipment) }));
+        /* 3.143.0: one list (tools, equipment, materials) and one for personal
+           protective equipment — a heading row, then a content row, each. */
+        const oneList = (items) => new TableRow({ children: [cell(
+            items.length ? items.map(t => txt(t)) : (m.blank ? blankLines(4) : [txt('')]),
+            { span: 3, width: TABLE_W })] });
+        rr.push(sectionHead(L('curToolsList') + ':'));
+        rr.push(oneList(m.toolsLines));
         rr.push(sectionHead(L('curPPE') + ':'));
-        rr.push(new TableRow({ children: threeColsWith(m.ppe) }));
-        rr.push(sectionHead(L('curMaterials') + ':'));
-        rr.push(new TableRow({ children: threeColsWith(m.materials) }));
+        rr.push(oneList(m.ppeLines));
         rr.push(sectionHead(L('curResources') + ':'));
         rr.push(new TableRow({ children: [cell([
             para([run(L('curLearnerGuide') + ':', { bold: true })]),
@@ -306,12 +307,6 @@ async function _exportCurriculumDocxImpl(m) {
         ] })));
         children.push(table(rr, COL3));
 
-        function threeColsWith(items) {
-            if (!items.length) return [cell(m.blank ? blankLines(3) : [txt('')], { span: 3, width: TABLE_W })];
-            const per = Math.ceil(items.length / 3);
-            return [0, 1, 2].map(c => cell(
-                items.slice(c * per, c * per + per).map(t => txt(t)), { width: COL3[c] }));
-        }
         /* ---- footer: "CUR: <code> <short> L<n> V 0.1" + page ------- */
         const footer = new Footer({ children: [new Paragraph({
             bidirectional: rtl,
