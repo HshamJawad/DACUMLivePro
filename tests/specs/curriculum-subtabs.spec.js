@@ -45,6 +45,16 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   if (occ) await expect(page.locator('#curRoot .cur-basic')).toContainText(occ);
   await expect(page.locator('#curRoot .cur-export-btn')).toHaveCount(0);
   await expect(page.locator('#curRoot .cur-topbar')).toBeVisible();      // module selector stays above every sub-tab
+  // 3.143.2: file name, purpose, prerequisites, entry skills, time table, OS link and outcome list are not on Module data ...
+  for (const sel of ['.cur-filename', '[data-ck="purpose"]', '[data-cur-prereq]', '#curHoursBox', '.cur-oslink', '.cur-lolist', '.cur-entry'])
+    await expect(page.locator('#curRoot ' + sel)).toHaveCount(0);
+  await expect(page.locator('#curRoot [data-ck="code"]')).toHaveCount(1);       // ... the code and short name stay
+  // ... and CUR / CBC keep them.
+  await sub(page, 'cur').click();
+  for (const sel of ['.cur-filename', '[data-ck="purpose"]', '#curHoursBox'])
+    await expect(page.locator('#curRoot ' + sel).first()).toBeVisible();
+  await sub(page, 'cbc').click();
+  await expect(page.locator('#curRoot .cur-entry')).toHaveCount(1);
   expect(errors).toEqual([]);
 });
 
