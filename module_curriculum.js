@@ -540,17 +540,17 @@ function _renderHeader(module, idx) {
       ${_subTab === 'data' ? '' : `<div class="cur-filename">
         <div class="cur-grid-2">
           <label class="cur-field"><span>${_esc(_tx('curFilePrefix'))}</span>
-            <input type="text" dir="ltr" data-cs="set" data-ck="filePrefix" value="${_esc(_settings().filePrefix || '')}" placeholder="CUR" maxlength="16"></label>
+            <input type="text" dir="ltr" data-cs="set" data-ck="${_subTab === 'cbc' ? 'cbcFilePrefix' : 'filePrefix'}" value="${_esc((_subTab === 'cbc' ? _settings().cbcFilePrefix : _settings().filePrefix) || '')}" placeholder="${_subTab === 'cbc' ? 'CBC' : 'CUR'}" maxlength="16"></label>
           <label class="cur-field"><span>${_esc(_tx('curFileLevel'))}</span>
             <select data-cs="set" data-ck="levelStyle">
               <option value="short" ${_settings().levelStyle !== 'long' ? 'selected' : ''}>L1</option>
               <option value="long" ${_settings().levelStyle === 'long' ? 'selected' : ''}>${_esc(curLabel('curLevelN', { n: 1 }))}</option>
             </select></label>
         </div>
-        <div class="cur-file-preview"><span>${_esc(_tx('curFilePreview'))}</span> <bdi id="curFilePreview" dir="ltr">${_esc(curFileName(module))}</bdi></div>
+        <div class="cur-file-preview"><span>${_esc(_tx('curFilePreview'))}</span> <bdi id="curFilePreview" dir="ltr">${_esc(_subTab === 'cbc' ? cbcFileName(module) : curFileName(module))}</bdi></div>
         <small class="cur-hint">${_esc(_tx('curFileHint'))}</small>
       </div>`}
-      ${_subTab === 'data' ? '' : `<label class="cur-field"><span>${_esc(_tx('curPurposeL'))}</span>
+      ${_subTab !== 'cur' ? '' : `<label class="cur-field"><span>${_esc(_tx('curPurposeL'))}</span>
         <textarea class="cur-auto" rows="2" data-cs="mod" data-ck="purpose" placeholder="${_esc(_tx('curPurposePh'))}">${_esc(rec.purpose || '')}</textarea></label>
       <div class="cur-field"><span>${_esc(_tx('curPrereqL'))}</span>
           ${others.length ? `<div class="cur-checklist" role="group" aria-label="${_esc(_tx('curPrereqL'))}">${others.map(({ m, i }) => `
@@ -571,8 +571,8 @@ function _renderHeader(module, idx) {
         <li><strong>${_esc(_txf('curCompetency', { n: g.number }))}</strong>${g.name ? ` — ${_esc(g.name)}` : ''}
           <div class="cur-oslink-ids">${_esc(curLabel('curPC'))}: ${g.pcs.map(p => `<bdi class="cur-pc">${_esc(p)}</bdi>`).join(' ')}
           ${g.tasks.length ? ` · ${_esc(_tx('curTasksL'))}: ${g.tasks.map(t => `<bdi class="cur-task">${_esc(t)}</bdi>`).join(' ')}` : ''}</div></li>`).join('')}</ul>`
-        : `<div class="cur-hint">${_esc(_tx('curOSNone'))}</div>`}
-      <div class="cur-subhead">${_esc(_tx('curLOListL'))}</div>
+        : `<div class="cur-hint">${_esc(_tx('curOSNone'))}</div>`}`}
+      ${_subTab === 'data' ? '' : `<div class="cur-subhead">${_esc(_tx('curLOListL'))}</div>
       ${los.length ? `<ol class="cur-lolist">${los.map(o => `<li><bdi class="cur-lonum">${_esc(loLabel(o))}</bdi> ${_esc(o.statement || '')}</li>`).join('')}</ol>`
         : `<div class="cur-hint">${_esc(_tx('curNoLOs'))}</div>`}`}
     </section>`;
@@ -867,7 +867,7 @@ function _refreshDerived() {
     if (note) note.textContent = v.h == null ? _tx('curDistNeedCredits') : (v.auto ? _tx('curHoursAutoHint') : _tx('curHoursManualHint'));
   });
   const fp = root.querySelector('#curFilePreview');
-  if (fp) fp.textContent = curFileName(module);
+  if (fp) fp.textContent = _subTab === 'cbc' ? cbcFileName(module) : curFileName(module);
   const fh = root.querySelector('[data-cur-fachead]');
   if (fh) fh.textContent = curLabel('curFacilities', { n: _settings().groupSize });
   const tr = root.querySelector('[data-cur-trainers-ratio]');
@@ -1356,7 +1356,7 @@ export function isModuleCurriculumEmpty() {
   if (!d) return true;
   const s = d.settings || {};
   const def = defaultModuleCurriculumData().settings;
-  const settingsDefault = !(s.programmeName || '').trim() && !(s.filePrefix || '').trim() && s.levelStyle !== 'long' && Number(s.hoursPerCredit) === def.hoursPerCredit &&
+  const settingsDefault = !(s.programmeName || '').trim() && !(s.filePrefix || '').trim() && !(s.cbcFilePrefix || '').trim() && s.levelStyle !== 'long' && Number(s.hoursPerCredit) === def.hoursPerCredit &&
     Number(s.groupSize) === def.groupSize && SPLIT_KEYS.every(k => Number((s.split || {})[k]) === def.split[k]) &&
     !_clean(s.entryQualifications).length && !_clean(s.trainerQualifications).length && !(Number(s.trainersPerGroup) > 0) &&
     !(s.qualificationLevel || '').trim() && !(s.courseDescription || '').trim() && !_clean(s.courseOutcomes).length;
@@ -1378,10 +1378,16 @@ export function clearModuleCurriculum() {
 // removed; spaces are kept.
 const _fsSafe = v => String(v || '').replace(/[\\/:*?"<>|\u0000-\u001F]/g, '').replace(/\s+/g, ' ').trim();
 function _filePrefix() { return _fsSafe(_settings().filePrefix) || 'CUR'; }
+// 3.144.0: the CBC sub-tab has its own prefix (default CBC).
+function _cbcFilePrefix() { return _fsSafe(_settings().cbcFilePrefix) || 'CBC'; }
 function _fileStem(module) {
   const lvl = _moduleLevel(module);
   const lvlPart = !lvl ? '' : (_settings().levelStyle === 'long' ? curLabel('curLevelN', { n: lvl }) : `L${lvl}`);
   return [_fsSafe(_moduleCode(module)), _fsSafe(_moduleShortName(module)), _fsSafe(lvlPart)].filter(Boolean).join(' ');
+}
+export function cbcFileName(module) {
+  const lang = { en: 'En', fr: 'Fr', ar: 'Ar' }[_lang()] || 'En';
+  return `${_cbcFilePrefix()}_${_fileStem(module)} ${lang}.docx`;
 }
 export function curFileName(module) {
   const lang = { en: 'En', fr: 'Fr', ar: 'Ar' }[_lang()] || 'En';
@@ -1591,8 +1597,8 @@ export function getCbcModel(opts = {}) {
     groups,
     instructionGroups: single ? [{ id: single.categoryId, label: single.categoryLabel || _tx('cbcUnclassified'), modules: [single] }] : groups,
     fileName: single
-      ? `CBC_${slug(single.code) || 'M'}_${slug(single.title) || 'Module'}.docx`
-      : `CBC_${slug(_programmeName()) || 'Programme'}.docx`,
+      ? cbcFileName(_modules().find(m => m.id === single.id) || {})
+      : `${_cbcFilePrefix()}_${slug(_programmeName()) || 'Programme'}.docx`,
   };
 }
 

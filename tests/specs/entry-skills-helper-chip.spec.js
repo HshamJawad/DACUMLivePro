@@ -6,32 +6,7 @@ const zlib = require('zlib');
 const { test, expect } = require('@playwright/test');
 const { openApp, state, loadProject, fixture } = require('../helpers');
 
-test('entry skills suggested from Task Analysis basic skills', async ({ page }) => {
-  const errors = await openApp(page);
-  await loadProject(page, fixture('sample-project.json'));
-  await page.evaluate(async () => {
-    const { appState } = await import('./state.js');
-    Object.values(appState.taskAnalysisData).forEach((r, i) => {
-      r.basicReading = ['Read a wiring diagram'];        // same line in every task → offered once
-      if (i === 0) r.basicMath = ['Calculate load current'];
-    });
-  });
-  await page.evaluate(() => window.switchTab('module-curriculum-tab'));
-  await page.click('#curRoot [data-cur-subtab="cbc"]');       // 3.143.2: entry skills live in CBC only
-  await page.click('[data-cur-action="suggest-entry"]');
-  await expect(page.locator('#curEntryModal input[data-entry-i]')).toHaveCount(2);
-  await page.locator('#curEntryModal .cur-btn-primary').click();
-
-  const entry = await state(page, 's => s.moduleCurriculumData.byModule[s.moduleMappingData.modules[0].id].entrySkills');
-  expect(entry).toEqual(['Read a wiring diagram', 'Calculate load current']);
-
-  // A second run adds nothing new.
-  await page.click('[data-cur-action="suggest-entry"]');
-  await expect(page.locator('#curEntryModal input[data-entry-i]:disabled')).toHaveCount(2);
-  await page.locator('#curEntryModal .cur-btn-primary').click();
-  expect(await state(page, 's => s.moduleCurriculumData.byModule[s.moduleMappingData.modules[0].id].entrySkills.length')).toBe(2);
-  expect(errors).toEqual([]);
-});
+// 3.144.0: the entry-skills card (and its suggestion from Task Analysis) is no longer shown in any sub-tab.
 
 test('Helper chip step follows the tab on screen', async ({ page }) => {
   const errors = await openApp(page);

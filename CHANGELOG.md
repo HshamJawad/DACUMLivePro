@@ -7,6 +7,14 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.144.0 — 2026-10-29 — CBC sub-tab: own file prefix (CBC); purpose, prerequisites, entry skills, time table and OS link removed
+MINOR. module_curriculum.js, state.js, content_lang.js, sw.js (v318), index.html, tests/specs/curriculum-subtabs.spec.js, tests/specs/entry-skills-helper-chip.spec.js.
+- CBC: «Prefix for exported file» is its own setting (cbcFilePrefix, default CBC) and the file name shown and
+  used for the CBC Word follows it («CBC_<code> <short name> L1 Ar.docx»); CUR keeps its prefix (CUR).
+- CBC: purpose, prerequisites, entry skills, time table and the link to the occupational standard are no longer
+  shown (same data, nothing deleted; purpose, prerequisites, time table and OS link stay in CUR). The
+  «suggest entry skills from Task Analysis» picker has no button left in any sub-tab.
+
 ── 3.143.4 — 2026-10-28 — CUR sub-tab: the collapsible «Programme settings» card removed
 PATCH. module_curriculum.js, sw.js (v317), index.html, tests/specs/curriculum-subtabs.spec.js, tests/specs/entry-skills-helper-chip.spec.js.
 The card now lives in the CBC sub-tab only (same data, nothing deleted; the CUR Word keeps using the saved values).

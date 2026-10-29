@@ -271,7 +271,7 @@ const DENY = new Set([
   'dacumDate', 'dacumDateEnd', 'workshopFormat', 'collectionMode', 'workflowMode',
   'priorityFormula', 'trainingLoadMethod', 'tvExportMode', 'lwSessionId',
   'lwParticipantUrl', 'producedForImage', 'producedByImage', 'levelStyle',
-  'labelMode', 'filePrefix', 'facilitators', 'observers', 'panelMembers',
+  'labelMode', 'filePrefix', 'cbcFilePrefix', 'facilitators', 'observers', 'panelMembers',
   'contentLanguages', 'addedToClusterId', 'sourceLabel',
 ]);
 const LINK = /^((?:ta|pc)\|[^|]*\|)([\s\S]*)$/;

@@ -150,6 +150,7 @@ export function defaultModuleCurriculumData() {
     settings: {
       programmeName: '',
       filePrefix: '',
+      cbcFilePrefix: '',
       levelStyle: 'short',
       hoursPerCredit: 25,
       groupSize: 15,
@@ -179,6 +180,7 @@ export function normalizeModuleCurriculumData(d) {
       ...s,
       programmeName: typeof s.programmeName === 'string' ? s.programmeName : '',
       filePrefix: typeof s.filePrefix === 'string' ? s.filePrefix : '',
+      cbcFilePrefix: typeof s.cbcFilePrefix === 'string' ? s.cbcFilePrefix : '',
       levelStyle: s.levelStyle === 'long' ? 'long' : 'short',
       hoursPerCredit: num(s.hoursPerCredit, def.settings.hoursPerCredit),
       groupSize: num(s.groupSize, def.settings.groupSize),
