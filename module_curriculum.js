@@ -236,6 +236,13 @@ function _loFilledCount(modId, loId) {
   if (_clean(r.assessMethods).length) n++;
   return n;
 }
+/* 3.145.0: the CBC sub-tab shows three parts per outcome (assessment statements, assessment
+   methods, training methods); its badge counts those. CUR keeps the 8-part count. */
+function _loBadge(modId, loId) {
+  if (_subTab !== 'cbc') return { n: _loFilledCount(modId, loId), t: 8 };
+  const r = _loRec(modId, loId) || {};
+  return { n: [r.assessStatements, r.assessMethods, r.trainMethods].filter(v => _clean(v).length).length, t: 3 };
+}
 export function moduleCompleteness(module) {
   const rec = _modRec(module.id) || {};
   const los = _liveLOs(module);
@@ -637,7 +644,7 @@ function _renderLOs(module) {
   return `
     <section class="cur-card">
       <h3 class="cur-sec-title">${_esc(_tx('sec2'))}</h3>
-      <div id="curLOHoursWarn">${_loHoursWarn(module)}</div>
+      <div id="curLOHoursWarn">${_subTab === 'cbc' ? '' : _loHoursWarn(module)}</div>
       ${los.length ? los.map((o, i) => _renderLOCard(module, o, i + 1)).join('') : `<div class="cur-hint">${_esc(_tx('curNoLOs'))}</div>`}
     </section>`;
 }
@@ -688,7 +695,7 @@ function _methodPicker(module, lo, field, list) {
 function _renderLOCard(module, o, n) {
   const r = _loRec(module.id, o.id) || {};
   const open = _openLOs.has(module.id + '|' + o.id);
-  const filled = _loFilledCount(module.id, o.id);
+  const bd = _loBadge(module.id, o.id);
   const lo = o.id;
   const textField = f => {
     const val = f.key === 'context' && r.context === undefined ? curLabel('curDefaultContext') : _str(r[f.key]);
@@ -700,10 +707,10 @@ function _renderLOCard(module, o, n) {
     <details class="cur-lo" data-cur-details="lo" data-lo="${_esc(lo)}" ${open ? 'open' : ''}>
       <summary class="cur-lo-sum">
         <span class="cur-lo-title"><bdi class="cur-lonum">${_esc(curLabel('curLOn', { n }))}</bdi> <span class="cur-lo-st">${_esc(o.statement || '')}</span></span>
-        <span class="cur-lo-badge ${filled >= 8 ? 'is-done' : ''}" data-cur-badge="${_esc(lo)}">${_esc(_txf('curFilled', { x: filled }))}</span>
+        <span class="cur-lo-badge ${bd.n >= bd.t ? 'is-done' : ''}" data-cur-badge="${_esc(lo)}">${_esc(_txf('curFilled', { x: bd.n, t: bd.t }))}</span>
       </summary>
       <div class="cur-lo-body">
-        ${LO_TEXT_FIELDS.map(textField).join('')}
+        ${_subTab === 'cbc' ? '' : LO_TEXT_FIELDS.map(textField).join('')}
         ${_subTab === 'cur' ? '' : `<div class="cur-field">
           <div class="cur-field-head"><span>${_esc(curLabel('curTrainMethods'))}</span></div>
           ${_methodPicker(module, lo, 'trainMethods', r.trainMethods)}
@@ -719,7 +726,7 @@ function _renderLOCard(module, o, n) {
           ${_methodPicker(module, lo, 'assessMethods', r.assessMethods)}
           ${_listEditor('lo', 'assessMethods', r.assessMethods, { lo, label: curLabel('curAssessMethods') })}
         </div>
-        ${_hoursField(module, lo)}
+        ${_subTab === 'cbc' ? '' : _hoursField(module, lo)}
       </div>
     </details>`;
 }
@@ -831,13 +838,13 @@ function _refreshDerived() {
   if (!root || !module) return;
   _updateTimeCard(module);
   const w = root.querySelector('#curLOHoursWarn');
-  if (w) w.innerHTML = _loHoursWarn(module);
+  if (w) w.innerHTML = _subTab === 'cbc' ? '' : _loHoursWarn(module);
   _liveLOs(module).forEach(o => {
     const b = root.querySelector(`[data-cur-badge="${CSS.escape(o.id)}"]`);
     if (!b) return;
-    const n = _loFilledCount(module.id, o.id);
-    b.textContent = _txf('curFilled', { x: n });
-    b.classList.toggle('is-done', n >= 8);
+    const bd = _loBadge(module.id, o.id);
+    b.textContent = _txf('curFilled', { x: bd.n, t: bd.t });
+    b.classList.toggle('is-done', bd.n >= bd.t);
   });
   const p = moduleCompleteness(module);
   const pr = root.querySelector('#curProgress');

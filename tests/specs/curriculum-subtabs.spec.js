@@ -24,6 +24,13 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   for (const sel of ['.cur-entry', '[data-ck="purpose"]', '[data-cur-prereq]', '#curHoursBox', '.cur-oslink'])
     await expect(page.locator('#curRoot ' + sel)).toHaveCount(0);
   await expect(page.locator('#curRoot .cur-lolist')).toHaveCount(1);
+  // 3.145.0: per outcome, CBC has no learning context, methodology, discussion, demonstration, practice,
+  // self-directed fields and no hours; it keeps the assessment parts and the training methods.
+  for (const k of ['context', 'methodology', 'discussion', 'demonstration', 'practice', 'selfDirected', 'hours'])
+    await expect(page.locator(`#curRoot [data-cs="lo"][data-ck="${k}"]`)).toHaveCount(0);
+  await expect(page.locator('#curRoot [data-cur-action="distribute-hours"]')).toHaveCount(0);
+  await expect(page.locator('#curRoot .cur-lo-badge').first()).toHaveText(/\/3 /);
+  await expect(page.locator('#curRoot .cur-list[data-ck="assessStatements"]').first()).toBeAttached();
   // ... and its own file prefix (CBC) feeding the file name; CUR keeps CUR.
   const pre = page.locator('#curRoot input[data-ck="cbcFilePrefix"]');
   await expect(pre).toHaveAttribute('placeholder', 'CBC');
@@ -63,6 +70,7 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   await expect(page.locator('#curRoot details.cur-settings')).toHaveCount(0);   // 3.143.3: no programme-settings card here either
   // ... and CUR / CBC keep them.
   await sub(page, 'cur').click();
+  for (const k of ['context', 'methodology', 'hours']) await expect(page.locator(`#curRoot [data-cs="lo"][data-ck="${k}"]`).first()).toBeAttached();
   for (const sel of ['.cur-filename', '[data-ck="purpose"]', '#curHoursBox'])
     await expect(page.locator('#curRoot ' + sel).first()).toBeVisible();
   await sub(page, 'cbc').click();
