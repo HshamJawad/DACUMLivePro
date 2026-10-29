@@ -7,6 +7,11 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.145.1 — 2026-10-29 — Installed app: no more "site can't be reached" on reopen when hosted on Cloudflare
+PATCH. sw.js (v320), manifest.json, index.html.
+The app now opens at the folder address, and the service worker never returns a redirected response to a page load
+(Cloudflare redirects /index.html to /). manifest id keeps the existing install identity.
+
 ── 3.145.0 — 2026-10-29 — CBC sub-tab: learning context, methodology, discussion, demonstration, practice, self-directed and hours removed from each outcome
 MINOR. module_curriculum.js, module_curriculum_text.js, sw.js (v319), index.html, tests/specs/curriculum-subtabs.spec.js.
 Per learning outcome the CBC sub-tab keeps the assessment statements, assessment methods and training methods;

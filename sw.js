@@ -4,7 +4,7 @@
 // Works regardless of repository name (V3.0, V3.1, etc.)
 // ============================================================
 
-const CACHE_VERSION = 'v319';
+const CACHE_VERSION = 'v320';
 const CACHE_NAME    = 'dacum-live-pro-' + CACHE_VERSION;
 // Derive BASE from the SW scope so this file works in any repo path
 const BASE          = self.registration ? self.registration.scope : '/';
@@ -355,10 +355,28 @@ self.addEventListener('fetch', function (event) {
 });
 
 // ── Network-first: try network, cache on success, fallback to cache
+// A page load may not be answered with a response that came through a
+// redirect (ERR_FAILED). Hosts such as Cloudflare redirect /index.html to
+// /, so the installed app failed on every reopen. plain() returns a clean
+// copy of such a response; ordinary responses pass through untouched.
+async function plain(response) {
+  if (!response || !response.redirected) return response;
+  var body = await response.blob();
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers
+  });
+}
+
 async function networkFirst(request) {
   var canonical = request.url.split('?')[0]; // strip query for consistent cache key
+  // Ask for the folder address directly instead of /index.html (no redirect).
+  var target = (request.mode === 'navigate' && /\/index\.html$/.test(canonical))
+    ? canonical.slice(0, -'index.html'.length)
+    : canonical;
   try {
-    var res = await fetch(canonical, { cache: 'no-cache' });
+    var res = await plain(await fetch(target, { cache: 'no-cache' }));
     if (res && res.status === 200 && res.type !== 'opaque') {
       var cache = await caches.open(CACHE_NAME);
       cache.put(canonical, res.clone());
