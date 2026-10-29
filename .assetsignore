@@ -1,0 +1,11 @@
+.git
+.github
+.gitignore
+.assetsignore
+.wrangler
+wrangler.jsonc
+tests
+node_modules
+*.md
+*.mjs
+innerhtml-audit.baseline.json
