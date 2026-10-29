@@ -7,6 +7,11 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.145.0 — 2026-10-29 — CBC sub-tab: learning context, methodology, discussion, demonstration, practice, self-directed and hours removed from each outcome
+MINOR. module_curriculum.js, module_curriculum_text.js, sw.js (v319), index.html, tests/specs/curriculum-subtabs.spec.js.
+Per learning outcome the CBC sub-tab keeps the assessment statements, assessment methods and training methods;
+the outcome badge counts those three («x/3»). CUR keeps every field and its 8-part count (same data, nothing deleted).
+
 ── 3.144.0 — 2026-10-29 — CBC sub-tab: own file prefix (CBC); purpose, prerequisites, entry skills, time table and OS link removed
 MINOR. module_curriculum.js, state.js, content_lang.js, sw.js (v318), index.html, tests/specs/curriculum-subtabs.spec.js, tests/specs/entry-skills-helper-chip.spec.js.
 - CBC: «Prefix for exported file» is its own setting (cbcFilePrefix, default CBC) and the file name shown and
