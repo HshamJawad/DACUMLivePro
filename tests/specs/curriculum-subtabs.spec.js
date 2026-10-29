@@ -20,7 +20,16 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   await expect(page.locator('#curRoot .cur-entry')).toHaveCount(0);
   await sub(page, 'cbc').click();
   await expect(page.locator('#curRoot .cur-pick[data-cur-pick$="|trainMethods"]').first()).toBeAttached();
-  await expect(page.locator('#curRoot .cur-entry')).toHaveCount(1);
+  // 3.144.0: CBC no longer shows purpose, prerequisites, entry skills, time table or the OS link; it keeps the outcome list.
+  for (const sel of ['.cur-entry', '[data-ck="purpose"]', '[data-cur-prereq]', '#curHoursBox', '.cur-oslink'])
+    await expect(page.locator('#curRoot ' + sel)).toHaveCount(0);
+  await expect(page.locator('#curRoot .cur-lolist')).toHaveCount(1);
+  // ... and its own file prefix (CBC) feeding the file name; CUR keeps CUR.
+  const pre = page.locator('#curRoot input[data-ck="cbcFilePrefix"]');
+  await expect(pre).toHaveAttribute('placeholder', 'CBC');
+  await expect(page.locator('#curFilePreview')).toHaveText(/^CBC_/);
+  await pre.fill('MyCBC');
+  await expect(page.locator('#curFilePreview')).toHaveText(/^MyCBC_/);
   await sub(page, 'cur').click();
 
   // 3.143.4: the Programme settings card is in CBC only (not on Module data, not on CUR).
@@ -57,7 +66,7 @@ test('three sub-tabs; CUR and CBC keep the existing cards and share one store; e
   for (const sel of ['.cur-filename', '[data-ck="purpose"]', '#curHoursBox'])
     await expect(page.locator('#curRoot ' + sel).first()).toBeVisible();
   await sub(page, 'cbc').click();
-  await expect(page.locator('#curRoot .cur-entry')).toHaveCount(1);
+  await expect(page.locator('#curRoot input[data-ck="filePrefix"]')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
