@@ -41,6 +41,7 @@ import { _collectModuleTaskAnalysis, getModuleNqfLevel, getModuleCode, isModuleC
 import { _DIST_GUIDE, _GUIDE, _L, _S } from './module_curriculum_text.js';
 import { esc as _esc } from './escape.js';
 import { parseToolsText, toolsStyleOf, applyToolsStyle, addToolsItems } from './cur_tools_list.js';
+import { registerHistoryScope, refreshHistoryButtons } from './history.js';
 import { METHOD_SETS, methodLabel, storeLang, hasMethod, withoutMethod } from './cbc_methods.js';
 
 
@@ -257,6 +258,115 @@ export function moduleCompleteness(module) {
   return total ? Math.round(filled / total * 100) : 0;
 }
 
+// ── CBC outcome sections: criteria / contents / conditions (3.146.0) ──
+/* The Word file prints these three per outcome; the CBC sub-tab now shows
+   them too. Until the user edits one, it is the AUTOMATIC value (criteria =
+   the outcome's linked performance criteria, contents = required knowledge
+   from Task Analysis, conditions = the CUR "context" lines or the module's
+   equipment/tools). An edit is kept in the outcome's own CBC-only field
+   (cbcCriteria / cbcContents / cbcConditions) — it never changes the
+   performance criteria and never shows in the CUR sub-tab. Deleting the
+   field returns the section to automatic. */
+const CBC_SECTIONS = [
+  { key: 'cbcCriteria',   label: 'cbcAssessCriteria' },
+  { key: 'cbcContents',   label: 'cbcContents' },
+  { key: 'cbcConditions', label: 'cbcConditions' },
+];
+const CBC_KEYS = CBC_SECTIONS.map(x => x.key);
+const _uniqList = (arr) => { const seen = new Set(); return arr.map(x => _str(x).trim()).filter(x => x && !seen.has(x.toLowerCase()) && seen.add(x.toLowerCase())); };
+const _stripBullet = x => _str(x).replace(/^[\s]*[•\-\*○●]\s*/, '').replace(/^[\s]*\d+[\.\)]\s*/, '').trim();
+const _linesOf = t => _str(t).split('\n').map(_stripBullet).filter(Boolean);
+function _cbcAuto(module, o) {
+  const lr = _loRec(module.id, o.id) || {};
+  const pcs = _arr(o.linkedCriteria).filter(pc => pc && !pc.stale);
+  const taskIds = _uniqList(pcs.flatMap(pc => criterionTaskIds(pc)));
+  const knowledge = _uniqList(taskIds.flatMap(t => { const r = getTaskAnalysisRecord(t); return r ? _arr(r.requiredKnowledge).map(_stripBullet) : []; }));
+  let conditions = _uniqList(_linesOf(lr.context === undefined ? '' : lr.context));
+  if (!conditions.length) {
+    const cm = getCurriculumModel(module.id, {});
+    conditions = _uniqList([..._arr(cm.equipment), ..._arr(cm.tools)]).slice(0, 10);
+  }
+  return {
+    cbcCriteria: _uniqList(pcs.map(pc => pc.text)),
+    cbcContents: knowledge.length ? knowledge.slice(0, 12) : _uniqList([..._linesOf(lr.discussion), ..._linesOf(lr.demonstration)]),
+    cbcConditions: conditions,
+  };
+}
+/** The list a section shows / exports: the user's own when edited, else automatic. */
+function _cbcList(module, o, key) {
+  const r = _loRec(module.id, o.id) || {};
+  return Array.isArray(r[key]) ? r[key] : _cbcAuto(module, o)[key];
+}
+
+// ── Undo / Redo for the CBC sub-tab (3.146.0) ──────────────────
+/* The toolbar's Undo / Redo buttons are lent to this tab's history while the
+   CBC sub-tab is on screen. After every edit the data is compared with the
+   last state; a change pushes that state onto the undo stack (typing in one
+   box counts as one step). Only the CBC sub-tab records or answers. */
+const _hist = { undo: [], redo: [], cur: null, lastAt: 0, lastTarget: null, busy: false };
+const _HIST_MAX = 60;
+let _histRegistered = false;
+const _cbcTabActive = () => {
+  const el = document.getElementById(TAB_ID);
+  return !!(el && el.classList.contains('active')) && _subTab === 'cbc';
+};
+function _histReset() { _hist.undo = []; _hist.redo = []; _hist.cur = null; _hist.lastAt = 0; _hist.lastTarget = null; try { refreshHistoryButtons(); } catch (_) {} }
+function _histSnap() { try { return JSON.stringify(appState.moduleCurriculumData || null); } catch (_) { return null; } }
+function _histRegister() {
+  if (_histRegistered) return;
+  _histRegistered = true;
+  try {
+    registerHistoryScope({
+      key: 'module-curriculum-cbc',
+      isActive: _cbcTabActive,
+      canUndo: () => _hist.undo.length > 0,
+      canRedo: () => _hist.redo.length > 0,
+      undoLabel: () => '', redoLabel: () => '',
+      undo: () => _histStep(_hist.undo, _hist.redo),
+      redo: () => _histStep(_hist.redo, _hist.undo),
+    });
+  } catch (e) { console.warn('[curriculum] undo scope not registered:', e); }
+}
+function _histStep(from, to) {
+  if (!from.length) return;
+  const now = _histSnap();
+  const snap = from.pop();
+  if (now != null) to.push(now);
+  try { appState.moduleCurriculumData = normalizeModuleCurriculumData(JSON.parse(snap)); } catch (e) { return; }
+  _hist.cur = snap; _hist.lastAt = 0; _hist.lastTarget = null;
+  renderModuleCurriculum();
+  _schedulePersist();
+  try { refreshHistoryButtons(); } catch (_) {}
+}
+function _histBaseline() { if (_hist.cur == null) _hist.cur = _histSnap(); }
+/** Called shortly after any edit event inside the CBC sub-tab. */
+function _histCheck(target) {
+  if (!_cbcTabActive()) return;
+  _histBaseline();
+  const now = _histSnap();
+  if (now == null || now === _hist.cur) return;
+  const t = Date.now();
+  const sameBox = target && target === _hist.lastTarget && (t - _hist.lastAt) < 1500;
+  if (!sameBox) {
+    _hist.undo.push(_hist.cur);
+    if (_hist.undo.length > _HIST_MAX) _hist.undo.shift();
+  }
+  _hist.redo = [];
+  _hist.cur = now; _hist.lastAt = t; _hist.lastTarget = target || null;
+  try { refreshHistoryButtons(); } catch (_) {}
+}
+function _histWire() {
+  if (_hist.wired) return;
+  _hist.wired = true;
+  ['input', 'change', 'click'].forEach(ev => document.addEventListener(ev, e => {
+    if (!_cbcTabActive()) return;
+    const el = e.target && e.target.nodeType === 1 ? e.target : null;
+    if (ev === 'click' && el && !el.closest('button, [data-cur-action], label, summary')) return;
+    const box = ev === 'input' && el ? el : null;
+    setTimeout(() => _histCheck(box), 60);
+  }, true));
+}
+
 // ── Persistence ──────────────────────────────────────────────
 let _saveTimer = null;
 function _persistNow() {
@@ -282,8 +392,10 @@ const SUB_KEY = 'dacum_cur_subtab';
 let _subTab = (() => { try { const v = localStorage.getItem(SUB_KEY); return SUB_TABS.includes(v) ? v : 'cur'; } catch (_) { return 'cur'; } })();
 function _setSubTab(k) {
   if (!SUB_TABS.includes(k)) return;
+  const was = _subTab;
   _subTab = k;
   try { localStorage.setItem(SUB_KEY, k); } catch (_) {}
+  if (was !== k) _histReset();
 }
 let _loSeeded = null;
 
@@ -303,6 +415,8 @@ export function renderModuleCurriculum() {
   if (!root) return;
   _wire();
   _ensureHelpButton();
+  _histRegister(); _histWire();
+  if (_subTab === 'cbc') _histBaseline();
   const mods = _modules();
   if (!mods.length) {
     root.innerHTML = `
@@ -692,6 +806,27 @@ function _methodPicker(module, lo, field, list) {
     </details>`;
 }
 
+/* 3.146.0: one CBC section of an outcome — criteria, contents or conditions. */
+function _cbcSection(module, o, n, sec) {
+  const lo = o.id;
+  const r = _loRec(module.id, lo) || {};
+  const edited = Array.isArray(r[sec.key]);
+  const items = _cbcList(module, o, sec.key);
+  const label = _tx(sec.label);
+  const btn = (act, ic, txt) => `<button type="button" class="cur-mini-btn" data-cur-action="${act}" data-lo="${_esc(lo)}" data-ck="${sec.key}">${ic} ${_esc(txt)}</button>`;
+  return `
+        <div class="cur-field cur-cbc-sec" data-cbc-sec="${sec.key}">
+          <div class="cur-field-head"><span>${_esc(label)}
+              <em class="cur-chip" ${edited ? 'hidden' : ''}>${_esc(_tx('curHoursAuto'))}</em></span>
+            <span class="cur-hours-tools">
+              ${btn('cbc-paste', '📝', _tx('curToolsPaste'))}
+              ${edited ? btn('cbc-reset', '⟲', _tx('curCbcReset')) : ''}
+              ${items.length ? btn('cbc-clear', '🗑', _tx('curCbcClear')) : ''}
+            </span></div>
+          ${_listEditor('lo', sec.key, items, { lo, prefix: sec.key === 'cbcCriteria' ? String(n) : '', label })}
+        </div>`;
+}
+
 function _renderLOCard(module, o, n) {
   const r = _loRec(module.id, o.id) || {};
   const open = _openLOs.has(module.id + '|' + o.id);
@@ -711,6 +846,7 @@ function _renderLOCard(module, o, n) {
       </summary>
       <div class="cur-lo-body">
         ${_subTab === 'cbc' ? '' : LO_TEXT_FIELDS.map(textField).join('')}
+        ${_subTab === 'cbc' ? CBC_SECTIONS.map(sec => _cbcSection(module, o, n, sec)).join('') : ''}
         ${_subTab === 'cur' ? '' : `<div class="cur-field">
           <div class="cur-field-head"><span>${_esc(curLabel('curTrainMethods'))}</span></div>
           ${_methodPicker(module, lo, 'trainMethods', r.trainMethods)}
@@ -933,7 +1069,16 @@ function _listTarget(listEl, create) {
   const holder = scope === 'set' ? _settings()
     : scope === 'lo' ? _loRec(module.id, listEl.getAttribute('data-lo'), create) : _modRec(module.id, create);
   if (!holder) return null;
-  if (!Array.isArray(holder[key])) { if (!create) return null; holder[key] = []; }
+  if (!Array.isArray(holder[key])) {
+    if (!create) return null;
+    // 3.146.0: the first edit of an automatic CBC section keeps what it showed
+    let seed = [];
+    if (scope === 'lo' && CBC_KEYS.includes(key)) {
+      const o = _liveLOs(module).find(x => x.id === listEl.getAttribute('data-lo'));
+      if (o) seed = _cbcAuto(module, o)[key].slice();
+    }
+    holder[key] = seed;
+  }
   return { arr: holder[key], holder, key };
 }
 
@@ -961,6 +1106,36 @@ function _addToList(holder, key, values) {
     have.add(t.toLowerCase()); holder[key].push(t); added++;
   });
   return added;
+}
+
+/** 3.146.0: paste a block of lines into a CBC section; one line = one item. */
+async function _pasteCbc(module, lo, key) {
+  if (!CBC_KEYS.includes(key)) return;
+  const o = _liveLOs(module).find(x => x.id === lo);
+  if (!o) return;
+  const add = (items) => {
+    const r = _loRec(module.id, lo, true);
+    if (!Array.isArray(r[key])) r[key] = _cbcAuto(module, o)[key].slice();
+    const have = new Set(r[key].map(x => _str(x).trim().toLowerCase()));
+    let n = 0;
+    items.forEach(t => { const k = t.toLowerCase(); if (!have.has(k)) { have.add(k); r[key].push(t); n++; } });
+    _openLOs.add(module.id + '|' + lo);
+    renderModuleCurriculum(); _schedulePersist();
+    showStatus(n ? _txf('curToolsAdded', { n }) : _tx('curNothingNew'), n ? 'success' : 'info');
+  };
+  let raw = '';
+  try { raw = await navigator.clipboard.readText(); } catch (_) { raw = ''; }
+  if (parseToolsText(raw).length) { add(parseToolsText(raw)); return; }
+  const ov = _modal('curToolsPasteModal', _tx('curToolsPasteHead'), '📝', `
+      <textarea id="curToolsPasteTa" class="cur-auto cur-tools-text" rows="8" aria-label="${_esc(_tx('curToolsPasteHead'))}"></textarea>`,
+    [{ label: _tx('curCancel'), cls: 'cur-btn-ghost', close: true },
+     { label: _tx('curToolsPasteOk'), cls: 'cur-btn-primary', onClick: () => {
+       const items = parseToolsText((ov.querySelector('#curToolsPasteTa') || {}).value);
+       if (!items.length) { showStatus(_tx('curToolsPasteNone'), 'error'); return; }
+       _closeModal(ov);
+       add(items);
+     } }]);
+  const ta = ov.querySelector('#curToolsPasteTa'); if (ta) ta.focus();
 }
 
 function _suggestFromCriteria(loId) {
@@ -1537,16 +1712,12 @@ export function getCbcModel(opts = {}) {
     const comps = _osLink(m).map(g => g.name || _txf('curCompetency', { n: g.number }));
     const los = live.map((o, k) => {
       const lr = _loRec(m.id, o.id) || {};
-      const pcs = _arr(o.linkedCriteria).filter(pc => pc && !pc.stale);
-      const taskIds = uniq(pcs.flatMap(pc => criterionTaskIds(pc)));
-      const knowledge = uniq(taskIds.flatMap(t => { const r = getTaskAnalysisRecord(t); return r ? _arr(r.requiredKnowledge).map(strip) : []; }));
-      const contents = knowledge.length ? knowledge.slice(0, 12) : uniq([...lines(lr.discussion), ...lines(lr.demonstration)]);
       const cmLo = cm.los[k] || {};
       return {
         n: k + 1, statement: _str(o.statement).trim(),
-        criteria: uniq(pcs.map(pc => pc.text)),
-        contents,
-        conditions: uniq([...lines(lr.context === undefined ? '' : lr.context)]),
+        criteria: uniq(_cbcList(m, o, 'cbcCriteria')),
+        contents: uniq(_cbcList(m, o, 'cbcContents')),
+        conditions: uniq(_cbcList(m, o, 'cbcConditions')),
         methodologies: uniq([..._clean(lr.trainMethods), ...lines(lr.methodology)]),
         assessMethods: uniq(_clean(lr.assessMethods)),
         hours: cmLo.hours,
@@ -1992,6 +2163,20 @@ function _wire() {
       _pasteTools(module, _fieldOf(b));
     } else if (a === 'suggest-entry') {
       _openEntryPicker();
+    } else if (a === 'cbc-paste') {
+      _pasteCbc(module, b.getAttribute('data-lo'), b.getAttribute('data-ck'));
+    } else if (a === 'cbc-clear' || a === 'cbc-reset') {
+      const lo = b.getAttribute('data-lo'), key = b.getAttribute('data-ck');
+      if (!CBC_KEYS.includes(key)) return;
+      if (a === 'cbc-clear') {
+        if (!confirm(_tx('curToolsClearQ'))) return;
+        _loRec(module.id, lo, true)[key] = [];
+      } else {
+        const r = _loRec(module.id, lo);
+        if (r) delete r[key];
+      }
+      _openLOs.add(module.id + '|' + lo);
+      renderModuleCurriculum(); _schedulePersist();
     } else if (a === 'li-add' || a === 'li-del') {
       const listEl = b.closest('.cur-list');
       const tgt = _listTarget(listEl, true);
@@ -2036,6 +2221,7 @@ window.addEventListener('dacum:langchange', () => {
 });
 document.addEventListener('dacum:module-labels-changed', () => { if (_root()) renderModuleCurriculum(); });
 document.addEventListener('dacum:project-loaded', () => {
+  _histReset();
   _selId = null; _openLOs.clear(); _loSeeded = null;
   if (_root()) renderModuleCurriculum();
 });
