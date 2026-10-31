@@ -57,6 +57,26 @@ let _current = -1;                    // index of the stage in flight
 let _doneIds = new Set();
 let _failed  = null;
 let _unsub   = null;
+/* 3.146.0: elapsed-time clock for the running view. The clock only touches
+   two text nodes each second — it never re-renders the dialog. */
+let _runStart = 0, _stageStart = 0, _runEnd = 0, _clock = null;
+const _fmtTime = (ms) => {
+  const t = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(t / 60), sec = t % 60;
+  return (m >= 60 ? Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') : String(m)) + ':' + String(sec).padStart(2, '0');
+};
+function _tickClock() {
+  const o = document.getElementById('dgOverlay');
+  if (!o) { _stopClock(); return; }
+  const now = _runEnd || Date.now();
+  const a = o.querySelector('#dgElapsed');       if (a) a.textContent = _fmtTime(now - _runStart);
+  const b = o.querySelector('#dgStageTime');     if (b) b.textContent = _fmtTime(Date.now() - _stageStart);
+}
+function _startClock() {
+  _runStart = _stageStart = Date.now(); _runEnd = 0;
+  clearInterval(_clock); _clock = setInterval(_tickClock, 1000);
+}
+function _stopClock() { clearInterval(_clock); _clock = null; }
 
 // ── Selection ────────────────────────────────────────────────
 
@@ -129,6 +149,7 @@ export function openDraftModal() {
 }
 
 export function closeDraftModal() {
+  _stopClock();
   if (_unsub) { _unsub(); _unsub = null; }
   document.getElementById('dgOverlay')?.remove();
 }
@@ -462,8 +483,28 @@ function _runBody() {
   const hint  = _phase === 'done' ? _t('dgDoneHint')
               : _phase === 'error' ? '' : _t('dgRunningHint');
 
+  const total = run.length || 1;
+  const doneN = run.filter(s => _doneIds.has(s.id)).length;
+  const running = _phase === 'running';
+  const pct = Math.round(doneN / total * 100);
+  const stageNo = Math.min(total, (_current >= 0 ? _current : doneN) + 1);
+  const clock = _fmtTime((_runEnd || Date.now()) - _runStart);
+  const bar = `
+    <div class="dg-overall ${_phase === 'error' ? 'is-error' : ''}">
+      <div class="dg-overall-top">
+        <span class="dg-overall-stage">${_esc(running ? _tf('dgProgStage', { n: stageNo, total }) : `${doneN} / ${total}`)}</span>
+        <span class="dg-overall-time">${_esc(running ? _t('dgProgElapsed') : _t('dgProgTotalDone'))}
+          <bdi dir="ltr" id="dgElapsed">${clock}</bdi></span>
+      </div>
+      <div class="dg-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+        <span class="dg-bar-fill" style="width:${pct}%"></span>
+        ${running ? `<span class="dg-bar-live" style="width:${(100 / total).toFixed(2)}%"></span>` : ''}
+      </div>
+    </div>`;
+
   return `
     <p class="dg-run-title">${_esc(title)}</p>
+    ${_runStart ? bar : ''}
 
     <ol class="dg-progress">
       ${run.map((s, i) => {
@@ -477,6 +518,7 @@ function _runBody() {
           <li class="dg-prog-item is-${state}">
             <span class="dg-prog-mark">${mark}</span>
             <span class="dg-prog-label">${_esc(_t(s.labelKey))}</span>
+            ${state === 'active' && running ? `<span class="dg-prog-live">${_esc(_t('dgProgWorking'))} <bdi dir="ltr" id="dgStageTime">${_fmtTime(Date.now() - _stageStart)}</bdi></span>` : ''}
           </li>`;
       }).join('')}
     </ol>
@@ -521,12 +563,14 @@ async function _beginRun() {
     } catch (_) { /* a failed set-up question must never block the run */ }
   }
   _phase = 'running'; _current = 0; _doneIds = new Set(); _failed = null;
+  _startClock();
   renderModal();
   const res = await runDraft(selectedIds());
   /* runDraft can refuse before emitting any progress event — quota,
      or a run already in flight. Without this the dialog would sit on
      "generating" forever with nothing happening behind it. */
   if (res && !res.ok && (res.reason === 'quota' || res.reason === 'already-running')) {
+    _stopClock();
     _phase = 'setup';
     renderModal();
   }
@@ -797,12 +841,12 @@ function _wire() {
 
 function _onProgress(ev) {
   switch (ev.type) {
-    case 'stage-start':   _current = ev.index; break;
+    case 'stage-start':   _current = ev.index; _stageStart = Date.now(); break;
     case 'stage-done':    _doneIds.add(ev.id); break;
     case 'stage-skipped': _doneIds.add(ev.id); break;
-    case 'stage-error':   _failed = ev.id; _phase = 'error'; break;
-    case 'cancelled':     _phase = 'done'; break;
-    case 'complete':      _phase = 'done'; _current = -1; break;
+    case 'stage-error':   _failed = ev.id; _phase = 'error'; _runEnd = Date.now(); _stopClock(); break;
+    case 'cancelled':     _phase = 'done'; _runEnd = Date.now(); _stopClock(); break;
+    case 'complete':      _phase = 'done'; _current = -1; _runEnd = Date.now(); _stopClock(); break;
     default: return;
   }
   if (document.getElementById('dgOverlay')) renderModal();

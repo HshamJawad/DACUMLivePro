@@ -313,10 +313,24 @@
 .dg-prog-item.is-error .dg-prog-mark  { background: #dc2626; color: #fff; }
 .dg-prog-item.is-error .dg-prog-label { color: #991b1b; font-weight: 600; }
 
+/* 3.146.0: overall progress bar, elapsed clock and per-stage timer */
+.dg-overall { margin: 0 0 14px; }
+.dg-overall-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 6px; font-size: 0.84em; color: #475569; }
+.dg-overall-stage { font-weight: 700; color: #1e293b; }
+.dg-overall-time bdi { font-variant-numeric: tabular-nums; font-weight: 700; color: #3730a3; }
+.dg-bar { display: flex; height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.dg-bar-fill { flex: none; background: #16a34a; transition: width .4s ease; }
+.dg-bar-live { flex: none; background: linear-gradient(90deg, #c7d2fe 0%, #6366f1 50%, #c7d2fe 100%); background-size: 200% 100%; animation: dg-shimmer 1.6s linear infinite; }
+.dg-overall.is-error .dg-bar-fill { background: #dc2626; }
+.dg-prog-live { margin-inline-start: auto; font-size: 0.8em; color: #4f46e5; white-space: nowrap; }
+.dg-prog-live bdi { font-variant-numeric: tabular-nums; font-weight: 700; }
+@keyframes dg-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
 @keyframes dg-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
 
 @media (prefers-reduced-motion: reduce) {
   .dg-prog-item.is-active .dg-prog-mark { animation: none; }
+  .dg-bar-live { animation: none; }
 }
 
 .dg-run-hint {
