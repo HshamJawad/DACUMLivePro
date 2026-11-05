@@ -7,6 +7,12 @@ version constants (`APP_VERSION`, `APP_RELEASED`, `EXPECTED_SW`) stay in
 This file is documentation only — it is not loaded or cached by the app.
 
 ```text
+── 3.145.2 — 2026-11-05 — Module Builder on its own address: the handoff travels by message, not only by localStorage
+PATCH. module_mapping.js, sw.js (v321), index.html.
+Module Builder now opens at https://modules.dacumtools.com/. localStorage is shared only inside one site, so the modules are also posted
+to the Module Builder tab (postMessage, accepted only from this app's address); a tab still loading asks for them with mb-ready, and
+mb-imported confirms. Same-site setups (both tools on one host) keep using localStorage as before.
+
 ── 3.145.1 — 2026-10-29 — Installed app: no more "site can't be reached" on reopen when hosted on Cloudflare
 PATCH. sw.js (v320), manifest.json, index.html.
 The app now opens at the folder address, and the service worker never returns a redirected response to a page load
