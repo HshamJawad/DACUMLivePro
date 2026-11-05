@@ -1606,11 +1606,44 @@ function _handoffProgramme(occupation) {
 export function openNamedWindow(url, name) {
   let w = null;
   try { w = window.open('', name); } catch (_) { w = null; }
-  if (!w) { window.open(url, '_blank'); return; }
+  if (!w) return window.open(url, '_blank') || null;
   let blank = true;
   try { const h = String(w.location.href || ''); blank = !h || h === 'about:blank'; } catch (_) { blank = false; }
   if (blank) w.location.href = url;
   try { w.focus(); } catch (_) { /* ignore */ }
+  return w;
+}
+
+/* Module Builder lives on its own address. */
+export const MODULE_BUILDER_URL = 'https://modules.dacumtools.com/';
+
+/* The handoff to Module Builder used to travel only in localStorage,
+   which works only while both tools share one origin (they both sat on
+   hshamjawad.github.io). On separate addresses (pro. / modules.) it is
+   also posted to the Module Builder tab, which accepts it from this
+   address only. A tab that is still loading asks for it with
+   `mb-ready`; one already open takes it at once. `mb-imported` says it
+   arrived, and the copy left in this site's localStorage is dropped. */
+function _sendHandoffToModuleBuilder(w, url, payload) {
+  let target = '';
+  try { target = new URL(url).origin; } catch (_) { return; }
+  if (!w || target === location.origin) return;     // same site: localStorage and its storage event do it
+  const id = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const msg = { type: 'dacum-modules-export', id, payload };
+  let timer = null;
+  const send = () => { try { w.postMessage(msg, target); } catch (_) { /* ignore */ } };
+  const stop = () => { window.removeEventListener('message', onMsg); clearTimeout(timer); };
+  function onMsg(ev) {
+    if (ev.origin !== target || ev.source !== w || !ev.data) return;
+    if (ev.data.type === 'mb-ready') send();
+    else if (ev.data.type === 'mb-imported' && ev.data.id === id) {
+      try { localStorage.removeItem('dacum_modules_export'); } catch (_) { /* ignore */ }
+      stop();
+    }
+  }
+  window.addEventListener('message', onMsg);
+  timer = setTimeout(stop, 60000);
+  send();
 }
 
 /** One list item per line, without the bullet or number a line starts with. */
@@ -1725,7 +1758,7 @@ export function openModuleBuilderFromMapping(moduleId = null) {
     // 3.97.0: reuse the Module Builder tab when one is open (it names
     // itself "module-builder" and imports the handoff at once, without a
     // reload); otherwise open it.
-    openNamedWindow('https://hshamjawad.github.io/Module-Builder/', 'module-builder');
+    _sendHandoffToModuleBuilder(openNamedWindow(MODULE_BUILDER_URL, 'module-builder'), MODULE_BUILDER_URL, payload);
     showStatus(moduleId
       ? _txf('msgMBSentOne', { m: moduleRef(modulesToSend[0]) || modulesToSend[0].title || '' })
       : _txf('msgMBSentAll', { n: payload.modules.length }), 'success');

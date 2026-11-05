@@ -158,7 +158,7 @@ test('side navigation: Module Builder sends the modules like the Module Mapping 
     };
   });
   expect(r.sent).toBe(r.all);
-  expect(r.opened.some(([u]) => String(u).includes('Module-Builder'))).toBe(true);
+  expect(r.opened.some(([u]) => String(u).includes('modules.dacumtools.com'))).toBe(true);
   await expect(btn).not.toHaveClass(/dps-nav-active/);
   expect(errors).toEqual([]);
 });
